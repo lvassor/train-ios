@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Program - trAIn</title>
+    <meta name="description" content="Join the Apps That Scale waitlist and get 50% off when we launch! Learn to build profitable B2C applications.">
+    <meta name="author" content="Apps That Scale Team">
+    <meta name="keywords" content="join waitlist, apps that scale, B2C app development, early access, discount">
+    <link rel="shortcut icon" href="/bluelogo.png">
+    <link rel="icon" href="/bluelogo.png">
+    <link rel="apple-touch-icon" href="/bluelogo.png">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="min-h-screen bg-white">
+    <main class="min-h-screen bg-white">
+        <header>
+            <div class="max-w-7xl mx-auto text-center">
+                <img src="assets/images/logo_light.png" alt="Apps That Scale" class="header-logo">
+                <h1 class="header-title">
+                    Build your programme with <span class="gradient-text">trAIn</span>
+                </h1>
+                <p class="header-subtitle">
+                    We use industry expertise from Personal Trainers, combined with AI, to build the best training program for you based on your needs.
+                </p>
+            </div>
+        </header>
+        
+        <section>
+            <div class="container">
+                <div class="card">
+                    <!-- Progress Bar -->
+                    <div class="progress-container">
+                        <div class="progress-header">
+                            <span class="progress-text">Step <span id="currentStepText">1</span> of <span id="totalStepsText">6</span></span>
+                            <span class="progress-text"><span id="progressPercentage">17</span>% complete</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="progressBar"></div>
+                        </div>
+                    </div>
+
+                    <!-- Question Steps -->
+                    <!-- Step 1: Experience (Original Answers Restored) -->
+                    <div class="step active" id="step-1">
+                        <div class="question-container">
+                            <h2 class="question-title">What's your current training experience?</h2>
+                            <p class="question-subtitle">Help us understand your background</p>
+                        </div>
+                        <div class="options-container">
+                            <button class="option-button" data-value="0_months" data-field="experience">
+                                <span class="option-text">🌱 Just starting out (0-6 months)</span>
+                            </button>
+                            <button class="option-button" data-value="0_6_months" data-field="experience">
+                                <span class="option-text">🚀 Getting confident (6 months-1 year)</span>
+                            </button>
+                            <button class="option-button" data-value="6_months_2_years" data-field="experience">
+                                <span class="option-text">💪 Pretty experienced (1-2 years)</span>
+                            </button>
+                            <button class="option-button" data-value="2_plus_years" data-field="experience">
+                                <span class="option-text">🎯 Experienced Lifter (2+ years)</span>
+                            </button>
+                        </div>
+                        <div class="form-error" id="experience-error"></div>
+                    </div>
+
+                    <!-- Step 2: Why using app -->
+                    <div class="step hidden" id="step-2">
+                        <div class="question-container">
+                            <h2 class="question-title">Why have you considered using this app?</h2>
+                            <p class="question-subtitle">Choose all that apply to you</p>
+                        </div>
+                        <div class="options-container">
+                            <button class="option-button" data-value="lack_structure" data-field="whyUsingApp">
+                                <span class="option-text">📋 Lack of structure</span>
+                            </button>
+                            <button class="option-button" data-value="lack_confidence" data-field="whyUsingApp">
+                                <span class="option-text">🤔 Lack of confidence</span>
+                            </button>
+                            <button class="option-button" data-value="lack_knowledge" data-field="whyUsingApp">
+                                <span class="option-text">🧠 Lack of knowledge</span>
+                            </button>
+                            <button class="option-button" data-value="want_guidance" data-field="whyUsingApp">
+                                <span class="option-text">🧭 Want professional guidance</span>
+                            </button>
+                        </div>
+                        <div class="form-error" id="whyUsingApp-error"></div>
+                    </div>
+
+                    <!-- Step 3: Equipment availability -->
+                    <div class="step hidden" id="step-3">
+                        <div class="question-container">
+                            <h2 class="question-title">What equipment do you have available?</h2>
+                            <p class="question-subtitle">Select all equipment you have access to</p>
+                        </div>
+                        <div class="options-container">
+                            <button class="option-button" data-value="dumbbells" data-field="equipmentAvailable">
+                                <span class="option-text">🏋️‍♀️ Dumbbells</span>
+                            </button>
+                            <button class="option-button" data-value="barbells" data-field="equipmentAvailable">
+                                <span class="option-text">🏋️ Barbells</span>
+                            </button>
+                            <button class="option-button" data-value="pin_loaded_machines" data-field="equipmentAvailable">
+                                <span class="option-text">🏗️ Pin-loaded machines</span>
+                            </button>
+                            <button class="option-button" data-value="cable_machines" data-field="equipmentAvailable">
+                                <span class="option-text">🔌 Cable machines</span>
+                            </button>
+                        </div>
+                        <div class="form-error" id="equipmentAvailable-error"></div>
+                    </div>
+
+                    <!-- Step 4: Equipment confidence -->
+                    <div class="step hidden" id="step-4">
+                        <div class="question-container">
+                            <h2 class="question-title">Rate your confidence with each piece of equipment</h2>
+                            <p class="question-subtitle">On a scale of 1-5, how confident are you?</p>
+                        </div>
+                        <div class="confidence-container" id="confidenceContainer">
+                            <!-- Dynamic content will be populated based on equipment selection -->
+                        </div>
+                        <div class="form-error" id="equipmentConfidence-error"></div>
+                    </div>
+
+                    <!-- Step 5: Training frequency -->
+                    <div class="step hidden" id="step-5">
+                        <div class="question-container">
+                            <h2 class="question-title">How many days do you want to train per week?</h2>
+                            <p class="question-subtitle">Choose your ideal training frequency</p>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <div class="slider-labels">
+                                    <span>2 days</span>
+                                    <span>3 days</span>
+                                    <span>4 days</span>
+                                    <span>5 days</span>
+                                </div>
+                                <input type="range" id="trainingDays" class="slider" min="2" max="5" value="3" data-field="trainingDays">
+                                <div class="slider-value">
+                                    <span id="trainingDaysValue">3</span> days per week
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-error" id="trainingDays-error"></div>
+                    </div>
+
+                    <!-- Step 6: Contact Form -->
+                    <div class="step hidden" id="step-6">
+                        <div class="question-container">
+                            <h2 class="question-title">Let's get in touch!</h2>
+                            <p class="question-subtitle">We'll create your personalized training program</p>
+                        </div>
+                        <div class="form-container">
+                            <div class="form-group">
+                                <label class="form-label" for="firstName">First Name</label>
+                                <input type="text" id="firstName" class="form-input" required>
+                                <div class="form-error" id="firstName-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="lastName">Last Name</label>
+                                <input type="text" id="lastName" class="form-input" required>
+                                <div class="form-error" id="lastName-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="email">Email Address</label>
+                                <input type="email" id="email" class="form-input" required>
+                                <div class="form-error" id="email-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="additionalInfo">Any injuries or limitations we should know about? (Optional)</label>
+                                <textarea id="additionalInfo" class="form-input form-textarea" rows="4" placeholder="Tell us about any injuries, physical limitations, or specific goals..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Step -->
+                    <div class="step hidden" id="step-success">
+                        <div class="success-container">
+                            <div class="success-icon">✓</div>
+                            <h2 class="question-title">Your program is ready!</h2>
+                            <p class="question-subtitle" style="margin-bottom: 1.5rem;">
+                                Thank you for completing the questionnaire. We'll send you your <strong>personalized training program</strong> via email shortly.
+                            </p>
+                            <p style="color: #6b7280;">
+                                Keep an eye on your inbox — your custom workout plan is on the way!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="nav-buttons" id="navigationButtons">
+                        <button class="btn btn-secondary hidden" id="prevBtn">Previous</button>
+                        <div id="spacer"></div>
+                        <button class="btn btn-primary" id="nextBtn">Next</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <div class="footer-content">
+                <img src="/toplogo.png" alt="Apps That Scale" class="footer-logo">
+                <p class="footer-text">© 2025 trAIn. Building the future of strength training.</p>
+            </div>
+        </footer>
+    </main>
+
+    <!-- JavaScript Files -->
+    <script src="js/app.js"></script>
+</body>
+</html>

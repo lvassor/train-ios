@@ -1,0 +1,658 @@
+/* ===============================================
+   RESET & BASE STYLES
+   =============================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #ffffff;
+    color: #111827;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* ===============================================
+   UTILITY CLASSES
+   =============================================== */
+
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.bg-white {
+    background-color: #ffffff;
+}
+
+.max-w-7xl {
+    max-width: 80rem;
+}
+
+.max-w-4xl {
+    max-width: 56rem;
+}
+
+.max-w-2xl {
+    max-width: 42rem;
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ===============================================
+   HEADER STYLES
+   =============================================== */
+
+header {
+    padding-top: 2rem;
+    padding-bottom: 1.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+    header {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    header {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+.header-logo {
+    margin-left: auto;
+    margin-right: auto;
+    height: 3rem;
+    width: auto;
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+    .header-logo {
+        height: 4rem;
+    }
+}
+
+.header-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .header-title {
+        font-size: 1.875rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .header-title {
+        font-size: 2.25rem;
+    }
+}
+
+.gradient-text {
+    background: linear-gradient(to right, #2563eb, #1d4ed8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+.header-subtitle {
+    font-size: 1rem;
+    color: #4b5563;
+    max-width: 42rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 640px) {
+    .header-subtitle {
+        font-size: 1.125rem;
+    }
+}
+
+/* ===============================================
+   MAIN SECTION & CONTAINER
+   =============================================== */
+
+section {
+    padding-bottom: 4rem;
+}
+
+.container {
+    max-width: 56rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+    .container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+/* ===============================================
+   CARD STYLES
+   =============================================== */
+
+.card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f3f4f6;
+    padding: 2rem;
+    max-width: 42rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ===============================================
+   PROGRESS BAR STYLES
+   =============================================== */
+
+.progress-container {
+    margin-bottom: 2rem;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.progress-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    background-color: #e5e7eb;
+    border-radius: 9999px;
+    height: 0.5rem;
+}
+
+.progress-bar-fill {
+    background-color: #2563eb;
+    height: 0.5rem;
+    border-radius: 9999px;
+    transition: width 0.5s ease;
+    width: 16.666%;
+}
+
+/* ===============================================
+   QUESTION STYLES
+   =============================================== */
+
+.question-container {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.question-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.75rem;
+}
+
+@media (min-width: 640px) {
+    .question-title {
+        font-size: 1.875rem;
+    }
+}
+
+.question-subtitle {
+    font-size: 1.125rem;
+    color: #4b5563;
+}
+
+/* ===============================================
+   STEP TRANSITIONS
+   =============================================== */
+
+.step {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.step.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ===============================================
+   OPTION BUTTON STYLES
+   =============================================== */
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.option-button {
+    width: 100%;
+    padding: 1rem;
+    text-align: left;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.option-button:hover {
+    border-color: #93c5fd;
+    background-color: #eff6ff;
+}
+
+.option-button.selected {
+    border-color: #2563eb;
+    background-color: #eff6ff;
+    color: #1e40af;
+}
+
+.option-text {
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+/* ===============================================
+   FORM STYLES
+   =============================================== */
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 4rem;
+}
+
+.form-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.form-input.error {
+    border-color: #dc2626;
+}
+
+/* ===============================================
+   BUTTON STYLES
+   =============================================== */
+
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+}
+
+.btn-secondary {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.btn-secondary:hover {
+    background-color: #e5e7eb;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    color: #ffffff;
+    padding: 0.75rem 2rem;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===============================================
+   SUCCESS PAGE STYLES
+   =============================================== */
+
+.success-container {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.success-icon {
+    width: 5rem;
+    height: 5rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 1.875rem;
+    color: white;
+}
+
+/* ===============================================
+   FOOTER STYLES
+   =============================================== */
+
+footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+}
+
+.footer-content {
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+@media (min-width: 640px) {
+    .footer-content {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .footer-content {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+.footer-logo {
+    height: 2rem;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+}
+
+.footer-text {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* ===============================================
+   SLIDER STYLES
+   =============================================== */
+
+.slider-container {
+    padding: 2rem 0;
+}
+
+.slider-wrapper {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.slider {
+    width: 100%;
+    height: 8px;
+    border-radius: 10px;
+    background: #e5e7eb;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin-bottom: 1.5rem;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background: #1d4ed8;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+    background: #1d4ed8;
+    transform: scale(1.1);
+}
+
+.slider-value {
+    text-align: center;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #2563eb;
+    padding: 0.75rem;
+    background: #eff6ff;
+    border-radius: 10px;
+    border: 2px solid #dbeafe;
+}
+
+/* ===============================================
+   CONFIDENCE RATING STYLES
+   =============================================== */
+
+.confidence-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.confidence-item {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.confidence-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.confidence-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+}
+
+.confidence-label {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.confidence-slider-wrapper {
+    position: relative;
+}
+
+.confidence-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 10px;
+    background: #e5e7eb;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin-bottom: 0.5rem;
+}
+
+.confidence-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.confidence-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.confidence-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.confidence-value {
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #2563eb;
+    margin-top: 0.5rem;
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+
+@media (max-width: 640px) {
+    .nav-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    .card {
+        padding: 1.5rem;
+    }
+    
+    .question-title {
+        font-size: 1.25rem;
+    }
+    
+    .question-subtitle {
+        font-size: 1rem;
+    }
+    
+    .option-text {
+        font-size: 1rem;
+    }
+}
