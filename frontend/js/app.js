@@ -5,10 +5,10 @@ let currentStep = 1;
 const totalSteps = 6; // Updated to 6 steps
 const formData = {
     experience: '',
-    whyUsingApp: [],              // Multiple choice
-    equipmentAvailable: [],       // Multiple choice
-    equipmentConfidence: {},      // Object to store confidence ratings
-    trainingDays: 3,             // Slider value
+    whyUsingApp: [], // Multiple choice
+    equipmentAvailable: [], // Multiple choice
+    equipmentConfidence: {}, // Object to store confidence ratings
+    trainingDays: 3, // Slider value
     firstName: '',
     lastName: '',
     email: '',
@@ -17,10 +17,22 @@ const formData = {
 
 // Equipment mapping for confidence ratings
 const equipmentLabels = {
-    dumbbells: { icon: '🏋️‍♀️', label: 'Dumbbells' },
-    barbells: { icon: '🏋️', label: 'Barbells' },
-    pin_loaded_machines: { icon: '🏗️', label: 'Pin-loaded machines' },
-    cable_machines: { icon: '🔌', label: 'Cable machines' }
+    dumbbells: {
+        icon: '🏋️‍♀️',
+        label: 'Dumbbells'
+    },
+    barbells: {
+        icon: '🏋️',
+        label: 'Barbells'
+    },
+    pin_loaded_machines: {
+        icon: '🏗️',
+        label: 'Pin-loaded machines'
+    },
+    cable_machines: {
+        icon: '🔌',
+        label: 'Cable machines'
+    }
 };
 
 // Multiple choice fields
@@ -37,7 +49,7 @@ const elements = {
 };
 
 // Initialize the form when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     init();
 });
 
@@ -61,23 +73,23 @@ function cacheElements() {
 // Event listeners
 function attachEventListeners() {
     // Option button clicks
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (e.target.closest('.option-button')) {
             handleOptionClick(e.target.closest('.option-button'));
         }
     });
 
     // Form input changes
-    document.addEventListener('input', function(e) {
+    document.addEventListener('input', function (e) {
         if (e.target.matches('.form-input')) {
             handleFormInput(e.target);
         }
-        
+
         // Handle slider inputs
         if (e.target.matches('.slider')) {
             handleSliderInput(e.target);
         }
-        
+
         // Handle confidence sliders
         if (e.target.matches('.confidence-slider')) {
             handleConfidenceSlider(e.target);
@@ -151,7 +163,7 @@ function handleSliderInput(slider) {
     const field = slider.dataset.field;
     const value = parseInt(slider.value);
     formData[field] = value;
-    
+
     // Update display value
     if (field === 'trainingDays') {
         const valueDisplay = document.getElementById('trainingDaysValue');
@@ -165,10 +177,10 @@ function handleSliderInput(slider) {
 function handleConfidenceSlider(slider) {
     const equipment = slider.dataset.equipment;
     const value = parseInt(slider.value);
-    
+
     // Store confidence rating
     formData.equipmentConfidence[equipment] = value;
-    
+
     // Update display value
     const valueDisplay = document.getElementById(`confidence-value-${equipment}`);
     if (valueDisplay) {
@@ -181,23 +193,23 @@ function handleConfidenceSlider(slider) {
 function generateConfidenceRatings() {
     const container = document.getElementById('confidenceContainer');
     if (!container) return;
-    
+
     // Clear existing content
     container.innerHTML = '';
-    
+
     // Get selected equipment
     const selectedEquipment = formData.equipmentAvailable || [];
-    
+
     if (selectedEquipment.length === 0) {
         container.innerHTML = '<p class="text-gray-500 text-center">Please select equipment in the previous step first.</p>';
         return;
     }
-    
+
     // Create confidence sliders for each selected equipment
     selectedEquipment.forEach(equipmentKey => {
         const equipment = equipmentLabels[equipmentKey];
         if (!equipment) return;
-        
+
         const confidenceItem = document.createElement('div');
         confidenceItem.className = 'confidence-item';
         confidenceItem.innerHTML = `
@@ -225,7 +237,7 @@ function generateConfidenceRatings() {
             </div>
         `;
         container.appendChild(confidenceItem);
-        
+
         // Initialize the confidence value if not set
         if (!formData.equipmentConfidence[equipmentKey]) {
             formData.equipmentConfidence[equipmentKey] = 3;
@@ -264,12 +276,12 @@ function validateCurrentStep() {
 // Validate equipment confidence ratings
 function validateEquipmentConfidence() {
     const selectedEquipment = formData.equipmentAvailable || [];
-    
+
     if (selectedEquipment.length === 0) {
         showError('equipmentConfidence', 'Please rate your confidence for each piece of equipment');
         return false;
     }
-    
+
     // Check if all selected equipment has confidence ratings
     for (const equipment of selectedEquipment) {
         if (!formData.equipmentConfidence[equipment]) {
@@ -277,7 +289,7 @@ function validateEquipmentConfidence() {
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -337,12 +349,12 @@ function isValidEmail(email) {
 function showError(fieldName, message) {
     const errorElement = document.getElementById(`${fieldName}-error`);
     const inputElement = document.getElementById(fieldName);
-    
+
     if (errorElement) {
         errorElement.textContent = message;
         errorElement.style.display = 'block';
     }
-    
+
     if (inputElement) {
         inputElement.classList.add('error');
     }
@@ -352,12 +364,12 @@ function showError(fieldName, message) {
 function clearError(fieldName) {
     const errorElement = document.getElementById(`${fieldName}-error`);
     const inputElement = document.getElementById(fieldName);
-    
+
     if (errorElement) {
         errorElement.textContent = '';
         errorElement.style.display = 'none';
     }
-    
+
     if (inputElement) {
         inputElement.classList.remove('error');
     }
@@ -367,12 +379,12 @@ function clearError(fieldName) {
 function clearAllErrors() {
     const errorElements = document.querySelectorAll('.form-error');
     const inputElements = document.querySelectorAll('.form-input');
-    
+
     errorElements.forEach(element => {
         element.textContent = '';
         element.style.display = 'none';
     });
-    
+
     inputElements.forEach(element => {
         element.classList.remove('error');
     });
@@ -448,15 +460,15 @@ function updateNavigationButtons() {
 // Update progress bar
 function updateProgress() {
     const percentage = (currentStep / totalSteps) * 100;
-    
+
     if (elements.progressBar) {
         elements.progressBar.style.width = `${percentage}%`;
     }
-    
+
     if (elements.currentStepText) {
         elements.currentStepText.textContent = currentStep;
     }
-    
+
     if (elements.progressPercentage) {
         elements.progressPercentage.textContent = Math.round(percentage);
     }
@@ -465,27 +477,14 @@ function updateProgress() {
 // Submit form
 function submitForm() {
     console.log('Form submission data:', formData);
-    
-    // Here you would typically send the data to your server
-    // Example:
-    // fetch('/api/submit-questionnaire', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(formData)
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     console.log('Success:', data);
-    //     showSuccessPage();
-    // })
-    // .catch(error => {
-    //     console.error('Error:', error);
-    //     alert('There was an error submitting your form. Please try again.');
-    // });
 
-    // For demo purposes, just show success page
+    fetch('http://localhost:3001/api/questionnaire/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
     showSuccessPage();
 }
 
@@ -512,7 +511,7 @@ function showSuccessPage() {
     if (elements.progressBar) {
         elements.progressBar.style.width = '100%';
     }
-    
+
     if (elements.progressPercentage) {
         elements.progressPercentage.textContent = '100';
     }
@@ -533,16 +532,16 @@ function loadFormData() {
     try {
         const savedData = localStorage.getItem('trAIn_questionnaire_data');
         const savedStep = localStorage.getItem('trAIn_questionnaire_step');
-        
+
         if (savedData) {
             const parsedData = JSON.parse(savedData);
             Object.assign(formData, parsedData);
         }
-        
+
         if (savedStep) {
             currentStep = parseInt(savedStep, 10) || 1;
         }
-        
+
         // Restore form state
         restoreFormState();
     } catch (error) {
@@ -568,7 +567,7 @@ function restoreFormState() {
             if (button) {
                 button.classList.add('selected');
             }
-            
+
             // Input fields
             const input = document.getElementById(field);
             if (input) {

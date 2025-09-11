@@ -1,0 +1,38 @@
+Unique Number,Exercise Name,Primary Target Area,Secondary Target Area,Level,Progression Tag,Equipment Tag
+1,Barbell Squat,Quads,Glutes,Intermediate,,Barbell
+2,Split Squat,Quads,Glutes,Beginner,,Dumbbell
+3,Bulgarian Split Squat,Quads,Glutes,Intermediate,,Dumbbell
+4,Leg Extension,Quads,,Beginner,,Machine
+5,Barbell Hip Thrust,Glutes,Hamstrings,Intermediate,,Barbell
+6,Single Leg Glute Bridge,Glutes,Hamstrings,Beginner,,Bodyweight
+7,Step-ups,Glutes,Quads,Beginner,,Dumbbell
+8,Hip Abduction,Glutes,,Beginner,,Machine
+9,Leg Curl,Hamstrings,,Beginner,,Machine
+10,Barbell Romanian Deadlift,Hamstrings,Glutes,Intermediate,,Barbell
+11,Glute Hyper-Extension,Hamstrings,Glutes,Intermediate,,Dumbbell
+12,Dead Bug,Abs,,Beginner,Dead Bug,Bodyweight
+13,Alekna,Abs,,Beginner,Dead Bug,Bodyweight
+14,Alekna (weighted),Abs,,Intermediate,Dead Bug,Dumbbell
+15,Jack Knife,Abs,,Intermediate,Dead Bug,Bodyweight
+16,Cable Crunch,Abs,,Intermediate,,Cable
+17,Elevated Push-Up,Chest,Triceps,Beginner,Push-Up,Bodyweight
+18,Push-Up,Chest,Triceps,Beginner,Push-Up,Bodyweight
+19,Deficit Push-Up,Chest,Triceps,Intermediate,Push-Up,Bodyweight
+20,Barbell Bench Press,Chest,Triceps,Intermediate,,Barbell
+21,Chest Press,Chest,Triceps,Beginner,,Machine
+22,Barbell Overhead Press,Front Delt,Lateral Delts,Intermediate,,Barbell
+23,Shoulder Press,Front Delt,Lateral Delts,Beginner,,Machine
+24,Lateral Raises,Lateral Delts,,Beginner,,Dumbbell
+25,Barbell Uprigt Row,Lateral Delts,Traps,Intermediate,,Barbell
+26,Dumbbell Rear Delt Fly,Rear delts,Traps,Intermediate,,Dumbbell
+27,Pec Deck Rear Fly,Rear delts,,Beginner,,Machine
+28,Resistance Band Pull-Up,Lats,Back,Beginner,Pull-Up,Bodyweight
+29,Pull-Up,Lats,Back,Intermediate,Pull-Up,Bodyweight
+30,Lat Pulldown,Lats,Back,Beginner,,Machine
+31,Seated Cable Row,Back,Lats,Beginner,,Machine
+32,Bent Over Row,Back,Lats,Intermediate,,Barbell
+33,Single Arm Dumbbell Row,Back,Lats,Beginner,,Dumbbell
+34,Seated Dumbbell Curl,Biceps,,Beginner,,Dumbbell
+35,Barbell Curl,Biceps,,Intermediate,,Barbell
+36,Rope Tricep Pushdown,Triceps,,Beginner,,Cable
+37,Skullcrusher,Triceps,,Intermediate,,Barbell
