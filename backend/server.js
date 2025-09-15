@@ -1,3 +1,17 @@
+/**
+ * trAIn Backend Server
+ * 
+ * Handles:
+ * - Email capture from landing page
+ * - Questionnaire submission and processing
+ * - Program generation based on user responses
+ * - Database operations for users, responses, and programs
+ * - Static file serving for frontend
+ * 
+ * @author trAIn Team
+ * @version 2.0
+ */
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -6,7 +20,10 @@ const { initializeDatabase, dbHelpers } = require('./database/db');
 const app = express();
 const PORT = 3001;
 
-// Program Templates - same as frontend
+// ============================================================================
+// PROGRAM TEMPLATES - Same as frontend for consistency
+// ============================================================================
+
 const PROGRAM_TEMPLATES = {
   "programs": [
     {
@@ -257,29 +274,323 @@ const PROGRAM_TEMPLATES = {
   ]
 };
 
-// Middleware
+// ============================================================================
+// MIDDLEWARE SETUP
+// ============================================================================
+
 app.use(cors());
 app.use(express.json());
 
 // Serve static files from frontend directory
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// API routes
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Validate email format
+ * @param {string} email - Email address to validate
+ * @returns {boolean} - True if email format is valid
+ */
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+/**
+ * Generate program based on user questionnaire responses
+ * Uses the same logic as the frontend for consistency
+ * @param {Object} formData - User's questionnaire responses
+ * @returns {Object} - Generated program object
+ */
+function generateProgram(formData) {
+    console.log('Generating program for user data:', formData);
+    
+    // Map experience levels to program categories
+    const experienceMapping = {
+        '0_months': 'beginner',
+        '0_6_months': 'beginner', 
+        '6_months_2_years': 'beginner',
+        '2_plus_years': 'advanced'
+    };
+
+    const level = experienceMapping[formData.experience] || 'beginner';
+    const days = formData.trainingDays;
+
+    console.log(`Looking for ${level} program with ${days} days`);
+
+    // Find the best matching program template
+    const templateKey = `${level}_${days}_day`;
+    
+    let selectedTemplate = PROGRAM_TEMPLATES.programs.find(p => p.id === templateKey);
+    
+    // Fallback logic if exact match not found
+    if (!selectedTemplate) {
+        console.warn(`Exact template not found for ${templateKey}, searching for alternatives...`);
+        
+        // Try to find template that matches experience and frequency
+        selectedTemplate = PROGRAM_TEMPLATES.programs.find(p => 
+            p.target_experience.includes(formData.experience) && 
+            p.frequency.includes(days)
+        );
+        
+        // Final fallback - find template with matching experience
+        if (!selectedTemplate) {
+            selectedTemplate = PROGRAM_TEMPLATES.programs.find(p => 
+                p.target_experience.includes(formData.experience)
+            );
+        }
+        
+        // Ultimate fallback - use first template
+        if (!selectedTemplate) {
+            console.warn('No matching template found, using default template');
+            selectedTemplate = PROGRAM_TEMPLATES.programs[0];
+        }
+    }
+
+    console.log('Selected template:', selectedTemplate.name);
+
+    // Create personalized program object
+    const program = {
+        id: `custom_${Date.now()}`,
+        name: selectedTemplate.name,
+        description: selectedTemplate.description,
+        duration_weeks: selectedTemplate.duration_weeks,
+        frequency: days,
+        user: {
+            email: formData.email,
+            experience: formData.experience,
+            trainingDays: formData.trainingDays,
+            whyUsingApp: formData.whyUsingApp,
+            equipmentAvailable: formData.equipmentAvailable,
+            equipmentConfidence: formData.equipmentConfidence
+        },
+        // Take only the number of workouts that match requested frequency
+        workouts: selectedTemplate.workouts.slice(0, days),
+        created_at: new Date().toISOString(),
+        template_used: selectedTemplate.id
+    };
+
+    return program;
+}
+
+/**
+ * Save program to database
+ * Currently returns a mock ID - implement database save as needed
+ * @param {Object} program - Generated program object
+ * @param {string} userEmail - User's email address
+ * @returns {Promise<string>} - Program ID
+ */
+async function saveProgramToDatabase(program, userEmail) {
+    try {
+        console.log('Saving program to database:', {
+            userEmail,
+            programName: program.name,
+            templateId: program.template_used,
+            createdAt: program.created_at
+        });
+        
+        // TODO: Implement actual database save
+        // For now, return a mock program ID
+        return `prog_${Date.now()}`;
+        
+        // In a real implementation, you might do:
+        // const programId = await dbHelpers.insertProgram({
+        //     userEmail,
+        //     templateId: program.template_used,
+        //     programData: JSON.stringify(program),
+        //     createdAt: program.created_at
+        // });
+        // return programId;
+        
+    } catch (error) {
+        console.error('Error saving program to database:', error);
+        throw error;
+    }
+}
+
+/**
+ * Send program via email (placeholder for email service integration)
+ * This is where you would integrate with your email service to send the PDF
+ * @param {string} userEmail - User's email address
+ * @param {Object} program - Generated program object
+ * @returns {Promise<boolean>} - Success status
+ */
+async function sendProgramEmail(userEmail, program) {
+    try {
+        console.log(`Sending program "${program.name}" to ${userEmail}`);
+        
+        // TODO: Implement email sending with PDF generation
+        // Example integration points:
+        // 1. Generate PDF from program data
+        // 2. Send via email service (SendGrid, Mailgun, etc.)
+        
+        // For now, just log the action
+        console.log('Email sent successfully (mock)');
+        return true;
+        
+    } catch (error) {
+        console.error('Error sending program email:', error);
+        throw error;
+    }
+}
+
+// ============================================================================
+// API ENDPOINTS
+// ============================================================================
+
+/**
+ * Health check endpoint
+ */
 app.get('/api/health', (req, res) => {
-    res.json({ message: 'Server is working!' });
+    res.json({ 
+        message: 'Server is working!',
+        timestamp: new Date().toISOString(),
+        version: '2.0'
+    });
 });
 
-// Original questionnaire submission endpoint
+/**
+ * Email capture endpoint
+ * Called from the landing page when user enters their email
+ */
+app.post('/api/email-capture', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email || !isValidEmail(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid email address is required'
+            });
+        }
+
+        console.log('Email captured:', email);
+
+        // Store email capture in database
+        const userId = await dbHelpers.createOrUpdateUser(email);
+        console.log('User created/updated with ID:', userId);
+
+        res.json({
+            success: true,
+            message: 'Email captured successfully',
+            userId
+        });
+
+    } catch (error) {
+        console.error('Error capturing email:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error: ' + error.message
+        });
+    }
+});
+
+/**
+ * Complete questionnaire submission and program generation endpoint
+ * This is the main endpoint called by the frontend after questionnaire completion
+ */
 app.post('/api/questionnaire/submit', async (req, res) => {
     try {
-        console.log('Received questionnaire data:', req.body);
+        console.log('Received complete submission:', req.body);
+        
+        const {
+            questionnaire,
+            program,
+            timestamp
+        } = req.body;
+
+        // Extract questionnaire data (supporting both old and new formats)
+        const questionnaireData = questionnaire || req.body;
+        const userEmail = questionnaireData.email;
+
+        if (!userEmail || !isValidEmail(userEmail)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid email address is required'
+            });
+        }
+
+        // Create or update user
+        const userId = await dbHelpers.createOrUpdateUser(userEmail);
+        console.log('User found/created with ID:', userId);
+
+        // Save questionnaire response
+        const responseId = await dbHelpers.insertResponse({
+            userId,
+            experience: questionnaireData.experience,
+            whyUsingApp: questionnaireData.whyUsingApp,
+            equipmentAvailable: questionnaireData.equipmentAvailable,
+            equipmentConfidence: questionnaireData.equipmentConfidence,
+            trainingDays: questionnaireData.trainingDays,
+            additionalInfo: questionnaireData.additionalInfo,
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        console.log('Questionnaire response saved with ID:', responseId);
+
+        // Generate program if not provided
+        let programToSave = program;
+        if (!programToSave) {
+            console.log('No program provided, generating new program');
+            programToSave = generateProgram(questionnaireData);
+        }
+
+        // Save program to database
+        const programId = await saveProgramToDatabase(programToSave, userEmail);
+        programToSave.id = programId;
+
+        // Send program via email
+        try {
+            await sendProgramEmail(userEmail, programToSave);
+            console.log('Program email sent successfully');
+        } catch (emailError) {
+            console.warn('Failed to send program email:', emailError.message);
+            // Continue without failing the entire request
+        }
+
+        res.json({
+            success: true,
+            message: 'Questionnaire submitted and program generated successfully',
+            data: {
+                responseId,
+                programId,
+                program: programToSave
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in questionnaire submission:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error: ' + error.message
+        });
+    }
+});
+
+/**
+ * Legacy questionnaire submission endpoint
+ * Maintained for backwards compatibility
+ */
+app.post('/api/questionnaire/submit-legacy', async (req, res) => {
+    try {
+        console.log('Received legacy questionnaire data:', req.body);
         
         const {
             email, firstName, lastName, experience, whyUsingApp,
             equipmentAvailable, equipmentConfidence, trainingDays, additionalInfo
         } = req.body;
 
-        // Create user
+        if (!email || !isValidEmail(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid email address is required'
+            });
+        }
+
+        // Create user (firstName and lastName optional)
         const userId = await dbHelpers.createOrUpdateUser(email, firstName, lastName);
         console.log('User created/updated with ID:', userId);
 
@@ -296,7 +607,7 @@ app.post('/api/questionnaire/submit', async (req, res) => {
             userAgent: req.get('User-Agent')
         });
 
-        console.log('Response saved with ID:', responseId);
+        console.log('Legacy response saved with ID:', responseId);
 
         res.json({
             success: true,
@@ -305,7 +616,7 @@ app.post('/api/questionnaire/submit', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error submitting questionnaire:', error);
+        console.error('Error submitting legacy questionnaire:', error);
         res.status(500).json({
             success: false,
             message: 'Server error: ' + error.message
@@ -313,17 +624,27 @@ app.post('/api/questionnaire/submit', async (req, res) => {
     }
 });
 
-// New program generation endpoint
+/**
+ * Program generation endpoint
+ * Can be called independently to generate programs
+ */
 app.post('/api/programs/generate', async (req, res) => {
     try {
         console.log('Generating program for:', req.body);
         
         const formData = req.body;
         
+        if (!formData.email || !isValidEmail(formData.email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid email address is required'
+            });
+        }
+
         // Generate program using the same logic as frontend
         const program = generateProgram(formData);
         
-        // Save program to database (optional)
+        // Save program to database
         try {
             const programId = await saveProgramToDatabase(program, formData.email);
             program.id = programId;
@@ -333,7 +654,21 @@ app.post('/api/programs/generate', async (req, res) => {
             // Continue without database save
         }
 
-        res.json(program);
+        // Optionally send email
+        if (formData.sendEmail !== false) {
+            try {
+                await sendProgramEmail(formData.email, program);
+                console.log('Program email sent');
+            } catch (emailError) {
+                console.warn('Failed to send program email:', emailError.message);
+            }
+        }
+
+        res.json({
+            success: true,
+            message: 'Program generated successfully',
+            program
+        });
 
     } catch (error) {
         console.error('Error generating program:', error);
@@ -344,93 +679,35 @@ app.post('/api/programs/generate', async (req, res) => {
     }
 });
 
-// Program generation logic (same as frontend)
-function generateProgram(formData) {
-    // Determine experience level for program selection
-    const experienceMapping = {
-        '0_months': 'beginner',
-        '0_6_months': 'beginner', 
-        '6_months_2_years': 'beginner',
-        '2_plus_years': 'advanced'
-    };
-
-    const level = experienceMapping[formData.experience] || 'beginner';
-    const days = formData.trainingDays;
-
-    // Select appropriate program template
-    let selectedTemplate;
-    const templateKey = `${level}_${days}_day`;
-    
-    // Find matching template or fallback
-    selectedTemplate = PROGRAM_TEMPLATES.programs.find(p => p.id === templateKey) ||
-                     PROGRAM_TEMPLATES.programs.find(p => 
-                         p.target_experience.includes(formData.experience) && 
-                         p.frequency.includes(days)
-                     ) ||
-                     PROGRAM_TEMPLATES.programs[0]; // fallback
-
-    // Create personalized program
-    const program = {
-        id: `custom_${Date.now()}`,
-        name: selectedTemplate.name,
-        description: selectedTemplate.description,
-        duration_weeks: selectedTemplate.duration_weeks,
-        frequency: days,
-        user: {
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            experience: formData.experience,
-            trainingDays: formData.trainingDays
-        },
-        workouts: selectedTemplate.workouts.slice(0, days), // Take only the number of days requested
-        created_at: new Date().toISOString(),
-        template_id: selectedTemplate.id
-    };
-
-    return program;
-}
-
-// Save program to database (optional - requires database setup)
-async function saveProgramToDatabase(program, userEmail) {
-    try {
-        // This would require additional database tables for programs
-        // For now, we'll just log it and return a mock ID
-        console.log('Saving program to database:', {
-            userEmail,
-            programName: program.name,
-            templateId: program.template_id,
-            createdAt: program.created_at
-        });
-        
-        // Return a mock program ID
-        return `prog_${Date.now()}`;
-        
-        // In a real implementation, you'd do something like:
-        // const programId = await dbHelpers.insertProgram({
-        //     userEmail,
-        //     templateId: program.template_id,
-        //     programData: JSON.stringify(program),
-        //     createdAt: program.created_at
-        // });
-        // return programId;
-        
-    } catch (error) {
-        console.error('Error saving program to database:', error);
-        throw error;
-    }
-}
-
-// Get user's programs endpoint (for future use)
+/**
+ * Get user's programs endpoint
+ * Retrieve all programs for a specific user
+ */
 app.get('/api/programs/user/:email', async (req, res) => {
     try {
         const email = req.params.email;
         
-        // This would retrieve programs from database
+        if (!email || !isValidEmail(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid email address is required'
+            });
+        }
+        
+        // TODO: Implement database retrieval
         // For now, return empty array
         res.json({
             success: true,
-            programs: []
+            programs: [],
+            message: 'No programs found (database retrieval not yet implemented)'
         });
+        
+        // In a real implementation:
+        // const programs = await dbHelpers.getUserPrograms(email);
+        // res.json({
+        //     success: true,
+        //     programs
+        // });
         
     } catch (error) {
         console.error('Error fetching user programs:', error);
@@ -441,30 +718,263 @@ app.get('/api/programs/user/:email', async (req, res) => {
     }
 });
 
-// Program templates endpoint (optional)
-app.get('/api/programs/templates', (req, res) => {
-    res.json(PROGRAM_TEMPLATES);
+/**
+ * Get specific program by ID
+ */
+app.get('/api/programs/:programId', async (req, res) => {
+    try {
+        const programId = req.params.programId;
+        
+        // TODO: Implement database retrieval
+        // For now, return not found
+        res.status(404).json({
+            success: false,
+            message: 'Program not found (database retrieval not yet implemented)'
+        });
+        
+        // In a real implementation:
+        // const program = await dbHelpers.getProgramById(programId);
+        // if (program) {
+        //     res.json({
+        //         success: true,
+        //         program
+        //     });
+        // } else {
+        //     res.status(404).json({
+        //         success: false,
+        //         message: 'Program not found'
+        //     });
+        // }
+        
+    } catch (error) {
+        console.error('Error fetching program:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch program: ' + error.message
+        });
+    }
 });
 
-// Serve frontend for any non-API routes
+/**
+ * Program templates endpoint
+ * Returns all available program templates
+ */
+app.get('/api/programs/templates', (req, res) => {
+    res.json({
+        success: true,
+        templates: PROGRAM_TEMPLATES
+    });
+});
+
+/**
+ * Get specific template by ID
+ */
+app.get('/api/programs/templates/:templateId', (req, res) => {
+    try {
+        const templateId = req.params.templateId;
+        const template = PROGRAM_TEMPLATES.programs.find(p => p.id === templateId);
+        
+        if (template) {
+            res.json({
+                success: true,
+                template
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: 'Template not found'
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching template:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch template: ' + error.message
+        });
+    }
+});
+
+/**
+ * Analytics endpoint for tracking user events
+ * Can be used to log user interactions and program generation metrics
+ */
+app.post('/api/analytics/track', async (req, res) => {
+    try {
+        const { event, data, timestamp } = req.body;
+        
+        console.log('Analytics event:', {
+            event,
+            data,
+            timestamp: timestamp || new Date().toISOString(),
+            ip: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+        
+        // TODO: Implement analytics storage
+        // For now, just log the event
+        
+        res.json({
+            success: true,
+            message: 'Event tracked successfully'
+        });
+        
+    } catch (error) {
+        console.error('Error tracking analytics event:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to track event: ' + error.message
+        });
+    }
+});
+
+/**
+ * Contact/feedback endpoint
+ * For user inquiries or feedback submission
+ */
+app.post('/api/contact', async (req, res) => {
+    try {
+        const { email, name, message, type } = req.body;
+        
+        if (!email || !message) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and message are required'
+            });
+        }
+        
+        console.log('Contact form submission:', {
+            email,
+            name,
+            message,
+            type: type || 'general',
+            timestamp: new Date().toISOString()
+        });
+        
+        // TODO: Implement contact form handling
+        // Could save to database and/or send notification email
+        
+        res.json({
+            success: true,
+            message: 'Message received successfully'
+        });
+        
+    } catch (error) {
+        console.error('Error processing contact form:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to process message: ' + error.message
+        });
+    }
+});
+
+// ============================================================================
+// STATIC FILE SERVING AND FALLBACK ROUTES
+// ============================================================================
+
+/**
+ * Serve frontend for any non-API routes
+ * This enables client-side routing for the single-page application
+ */
 app.get('*', (req, res) => {
+    // Don't serve HTML for API routes that weren't found
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({
+            success: false,
+            message: 'API endpoint not found'
+        });
+    }
+    
+    // Serve the main HTML file for all other routes
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Start server
+// ============================================================================
+// ERROR HANDLING MIDDLEWARE
+// ============================================================================
+
+/**
+ * Global error handler
+ * Catches any unhandled errors and returns appropriate responses
+ */
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    
+    res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        ...(process.env.NODE_ENV === 'development' && { error: err.message })
+    });
+});
+
+/**
+ * 404 handler for API routes
+ */
+app.use('/api/*', (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'API endpoint not found'
+    });
+});
+
+// ============================================================================
+// SERVER INITIALIZATION
+// ============================================================================
+
+/**
+ * Start the server with proper error handling and database initialization
+ */
 async function startServer() {
     try {
+        // Initialize database connection
         await initializeDatabase();
+        console.log('Database initialized successfully');
         
+        // Start the HTTP server
         app.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}`);
-            console.log('Database connected and ready');
-            console.log('Frontend served at http://localhost:${PORT}');
-            console.log('Program generation API ready');
+            console.log('='.repeat(50));
+            console.log('🚀 trAIn Backend Server Started');
+            console.log('='.repeat(50));
+            console.log(`🌐 Server running on: http://localhost:${PORT}`);
+            console.log(`📱 Frontend available at: http://localhost:${PORT}`);
+            console.log(`🔧 API base URL: http://localhost:${PORT}/api`);
+            console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+            console.log('='.repeat(50));
+            console.log('✅ Database: Connected and ready');
+            console.log('✅ Program generation: Ready');
+            console.log('✅ Email capture: Ready');
+            console.log('✅ Static files: Serving from frontend directory');
+            console.log('='.repeat(50));
+            
+            // Log available endpoints
+            console.log('📋 Available API Endpoints:');
+            console.log('   POST /api/email-capture');
+            console.log('   POST /api/questionnaire/submit');
+            console.log('   POST /api/programs/generate');
+            console.log('   GET  /api/programs/templates');
+            console.log('   GET  /api/programs/user/:email');
+            console.log('   POST /api/analytics/track');
+            console.log('   POST /api/contact');
+            console.log('   GET  /api/health');
+            console.log('='.repeat(50));
         });
+        
     } catch (error) {
-        console.error('Failed to start server:', error);
+        console.error('❌ Failed to start server:', error);
+        console.error('Please check your database configuration and try again.');
+        process.exit(1);
     }
 }
 
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    process.exit(0);
+});
+
+// Start the server
 startServer();

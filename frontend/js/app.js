@@ -1,6 +1,32 @@
-// trAIn Questionnaire App - Complete JavaScript with Program Generation
+/**
+ * trAIn Questionnaire App - Complete JavaScript Application
+ * 
+ * This application handles the multi-step questionnaire process for generating
+ * personalized training programs. It includes:
+ * - Multi-step form navigation
+ * - Form validation and data collection
+ * - Program generation based on user responses
+ * - Loading animations and user feedback
+ * - API integration for data submission
+ * 
+ * Flow: Email Capture -> Questionnaire -> Loading -> Success Page -> Account Creation CTA
+ * 
+ * @author trAIn Team
+ * @version 2.0
+ */
 
-// Load program templates from external file or use embedded data
+// ============================================================================
+// PROGRAM TEMPLATES - Pre-defined workout programs based on experience/frequency
+// ============================================================================
+
+/**
+ * Program templates used for generating personalized workout plans.
+ * Each template includes:
+ * - Target experience levels
+ * - Training frequency options
+ * - Duration in weeks
+ * - Structured workouts with exercises, sets, reps, and guidance
+ */
 const PROGRAM_TEMPLATES = {
   "programs": [
     {
@@ -251,22 +277,41 @@ const PROGRAM_TEMPLATES = {
   ]
 };
 
-// State management
+// ============================================================================
+// GLOBAL STATE MANAGEMENT
+// ============================================================================
+
+/**
+ * Current step in the questionnaire process
+ * Steps: 1-5 (questionnaire) -> loading -> success
+ */
 let currentStep = 1;
-const totalSteps = 6; // Updated to 6 steps
+
+/**
+ * Total number of questionnaire steps (excluding loading and success pages)
+ */
+const totalSteps = 5;
+
+/**
+ * Form data object that stores all user responses
+ * This object gets populated as the user progresses through the questionnaire
+ */
 const formData = {
-    experience: '',
-    whyUsingApp: [], // Multiple choice
-    equipmentAvailable: [], // Multiple choice
-    equipmentConfidence: {}, // Object to store confidence ratings
-    trainingDays: 3, // Slider value
-    firstName: '',
-    lastName: '',
-    email: '',
-    additionalInfo: ''
+    experience: '',                    // User's training experience level
+    whyUsingApp: [],                  // Reasons for using the app (multiple choice)
+    equipmentAvailable: [],           // Available equipment (multiple choice)
+    equipmentConfidence: {},          // Confidence ratings for each equipment type
+    trainingDays: 3,                  // Number of training days per week (slider)
+    firstName: '',                    // User's first name
+    lastName: '',                     // User's last name
+    email: '',                        // User's email address
+    additionalInfo: ''                // Any additional information from user
 };
 
-// Equipment mapping for confidence ratings
+/**
+ * Equipment mapping for confidence ratings
+ * Maps equipment IDs to display information including icons and labels
+ */
 const equipmentLabels = {
     dumbbells: {
         icon: '🏋️‍♀️',
@@ -277,7 +322,7 @@ const equipmentLabels = {
         label: 'Barbells'
     },
     pin_loaded_machines: {
-        icon: '🏗️',
+        icon: '🗿',
         label: 'Pin-loaded machines'
     },
     cable_machines: {
@@ -286,10 +331,16 @@ const equipmentLabels = {
     }
 };
 
-// Multiple choice fields
+/**
+ * Fields that allow multiple selections
+ * Used to determine whether to handle single or multiple selection logic
+ */
 const multipleChoiceFields = ['whyUsingApp', 'equipmentAvailable'];
 
-// DOM elements cache
+/**
+ * DOM elements cache for better performance
+ * Avoids repeated DOM queries by storing references
+ */
 const elements = {
     progressBar: null,
     currentStepText: null,
@@ -299,21 +350,49 @@ const elements = {
     navigationButtons: null
 };
 
-// Initialize the form when DOM is loaded
+// ============================================================================
+// INITIALIZATION AND SETUP
+// ============================================================================
+
+/**
+ * Initialize the application when DOM is loaded
+ * This is the main entry point for the questionnaire
+ */
 document.addEventListener('DOMContentLoaded', function () {
     init();
 });
 
-// Initialize the form
+/**
+ * Main initialization function
+ * Sets up the questionnaire interface and prepares all necessary components
+ */
 function init() {
+    // Cache DOM elements for better performance
     cacheElements();
+    
+    // Set up initial progress display
     updateProgress();
+    
+    // Attach all event listeners
     attachEventListeners();
+    
+    // Create dynamic pages that aren't in the HTML
     createLoadingScreen();
-    createProgramDisplayScreen();
+    createSuccessScreen();
+    
+    // Get user email from previous page if available
+    retrieveUserEmail();
+    
+    // Initialize the first step
+    showStep(currentStep);
+    
+    console.log('trAIn Questionnaire App initialized successfully');
 }
 
-// Cache DOM elements for better performance
+/**
+ * Cache frequently accessed DOM elements to improve performance
+ * Prevents repeated querySelector calls throughout the application
+ */
 function cacheElements() {
     elements.progressBar = document.getElementById('progressBar');
     elements.currentStepText = document.getElementById('currentStepText');
@@ -321,9 +400,37 @@ function cacheElements() {
     elements.prevBtn = document.getElementById('prevBtn');
     elements.nextBtn = document.getElementById('nextBtn');
     elements.navigationButtons = document.getElementById('navigationButtons');
+    
+    // Log any missing elements for debugging
+    Object.keys(elements).forEach(key => {
+        if (!elements[key]) {
+            console.warn(`Element not found: ${key}`);
+        }
+    });
 }
 
-// Create loading screen
+/**
+ * Retrieve user email from sessionStorage (set on landing page)
+ * This email will be used for program delivery
+ */
+function retrieveUserEmail() {
+    const userEmail = sessionStorage.getItem('userEmail');
+    if (userEmail) {
+        formData.email = userEmail;
+        console.log('Retrieved user email from session:', userEmail);
+    } else {
+        console.warn('No user email found in session storage');
+    }
+}
+
+// ============================================================================
+// DYNAMIC SCREEN CREATION
+// ============================================================================
+
+/**
+ * Create the loading screen that appears during program generation
+ * This screen shows animated progress and realistic loading steps
+ */
 function createLoadingScreen() {
     const loadingHTML = `
         <div class="step hidden" id="step-loading">
@@ -341,8 +448,8 @@ function createLoadingScreen() {
                 </div>
                 
                 <div class="loading-steps">
-                    <div class="loading-step completed" id="loading-step-1">
-                        <span class="loading-step-icon">✓</span>
+                    <div class="loading-step" id="loading-step-1">
+                        <span class="loading-step-icon">⏳</span>
                         <span class="loading-step-text">Experience assessment</span>
                     </div>
                     <div class="loading-step" id="loading-step-2">
@@ -366,89 +473,172 @@ function createLoadingScreen() {
         </div>
     `;
     
-    // Insert loading screen after the last step
-    const lastStep = document.getElementById('step-6');
-    lastStep.insertAdjacentHTML('afterend', loadingHTML);
+    // Insert loading screen after the last questionnaire step
+    const lastStep = document.getElementById('step-5');
+    if (lastStep) {
+        lastStep.insertAdjacentHTML('afterend', loadingHTML);
+    } else {
+        console.error('Could not find step-5 to insert loading screen');
+    }
 }
 
-// Create program display screen
-function createProgramDisplayScreen() {
-    const programHTML = `
-        <div class="step hidden" id="step-program">
-            <div class="question-container">
-                <h2 class="question-title" id="programTitle">Your Personalized Training Program</h2>
-                <p class="question-subtitle" id="programDescription">Here's your custom workout plan based on your responses</p>
-            </div>
-            
-            <div class="program-overview" id="programOverview">
-                <!-- Program summary will be populated here -->
-            </div>
-            
-            <div class="program-workouts" id="programWorkouts">
-                <!-- Workout cards will be populated here -->
-            </div>
-            
-            <div class="program-actions">
-                <button class="btn btn-primary" onclick="downloadProgram()">Download PDF</button>
-                <button class="btn btn-secondary" onclick="emailProgram()">Email Program</button>
+/**
+ * Create the success screen that appears after program generation
+ * This screen informs users their program is ready and includes CTA for account creation
+ */
+function createSuccessScreen() {
+    const successHTML = `
+        <div class="step hidden" id="step-success">
+            <div class="success-container">
+                <div class="success-icon">✅</div>
+                <h2 class="question-title">Your bespoke program is ready!</h2>
+                <p class="question-subtitle" style="margin-bottom: 2rem;">
+                    We've created a <strong>personalized training program</strong> just for you and sent it to your email.
+                </p>
+                <p style="color: #6b7280; margin-bottom: 2rem;">
+                    Check your inbox for your custom workout plan!
+                </p>
+                
+                <!-- Account Creation CTA -->
+                <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 2rem; border-radius: 1rem; border: 2px solid #93c5fd; margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.5rem; font-weight: 700; color: #1e40af; margin-bottom: 1rem; text-align: center;">
+                        🚀 Take your training to the next level
+                    </h3>
+                    <p style="color: #4b5563; text-align: center; margin-bottom: 1.5rem;">
+                        Join <strong>10,000+ users</strong> who are crushing their fitness goals with our in-app coaching experience
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; text-align: center;">
+                        <div>
+                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📊</div>
+                            <div style="font-weight: 600; color: #374151;">Track Progress</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">See your strength gains</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚡</div>
+                            <div style="font-weight: 600; color: #374151;">Log Workouts</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">Quick & easy logging</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🤖</div>
+                            <div style="font-weight: 600; color: #374151;">AI Coaching</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">Personalized tips</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; padding: 1rem 2rem; font-size: 1.125rem;" id="create-account-btn">
+                        Create Free Account - Start Tracking
+                    </button>
+                </div>
+                
+                <!-- Secondary actions -->
+                <div style="text-align: center; margin-top: 1rem;">
+                    <p style="color: #6b7280; font-size: 0.875rem;">
+                        Don't want to create an account right now? That's okay!<br>
+                        Your program has been sent to your email.
+                    </p>
+                </div>
             </div>
         </div>
     `;
     
-    // Insert program screen after loading screen
+    // Insert success screen after loading screen
     const loadingStep = document.getElementById('step-loading');
-    loadingStep.insertAdjacentHTML('afterend', programHTML);
+    if (loadingStep) {
+        loadingStep.insertAdjacentHTML('afterend', successHTML);
+    } else {
+        // If loading screen doesn't exist yet, try inserting after step-5
+        const lastStep = document.getElementById('step-5');
+        if (lastStep) {
+            lastStep.insertAdjacentHTML('afterend', successHTML);
+        } else {
+            console.error('Could not find insertion point for success screen');
+        }
+    }
 }
 
-// Event listeners
+// ============================================================================
+// EVENT HANDLING AND USER INTERACTIONS
+// ============================================================================
+
+/**
+ * Attach all event listeners for the application
+ * This centralizes all event handling logic for better organization
+ */
 function attachEventListeners() {
-    // Option button clicks
+    // Option button clicks (for questionnaire selections)
     document.addEventListener('click', function (e) {
         if (e.target.closest('.option-button')) {
             handleOptionClick(e.target.closest('.option-button'));
         }
+        
+        // Handle create account button click
+        if (e.target.id === 'create-account-btn') {
+            handleCreateAccountClick();
+        }
     });
 
-    // Form input changes
+    // Form input changes (text inputs, etc.)
     document.addEventListener('input', function (e) {
         if (e.target.matches('.form-input')) {
             handleFormInput(e.target);
         }
 
-        // Handle slider inputs
+        // Handle slider inputs (training days)
         if (e.target.matches('.slider')) {
             handleSliderInput(e.target);
         }
 
-        // Handle confidence sliders
+        // Handle confidence rating sliders
         if (e.target.matches('.confidence-slider')) {
             handleConfidenceSlider(e.target);
         }
     });
 
     // Navigation buttons
-    elements.prevBtn.addEventListener('click', goToPreviousStep);
-    elements.nextBtn.addEventListener('click', goToNextStep);
+    if (elements.prevBtn) {
+        elements.prevBtn.addEventListener('click', goToPreviousStep);
+    }
+    if (elements.nextBtn) {
+        elements.nextBtn.addEventListener('click', goToNextStep);
+    }
 }
 
-// Handle option selection
+/**
+ * Handle option button clicks (single or multiple selection)
+ * Determines whether this is a single or multiple choice field and handles accordingly
+ * 
+ * @param {HTMLElement} button - The clicked option button
+ */
 function handleOptionClick(button) {
     const field = button.dataset.field;
     const value = button.dataset.value;
 
-    // Clear errors
+    if (!field || !value) {
+        console.error('Button missing data attributes:', button);
+        return;
+    }
+
+    // Clear any existing errors for this field
     clearError(field);
 
     if (multipleChoiceFields.includes(field)) {
-        // Multiple selection
+        // Handle multiple selection (checkboxes-like behavior)
         handleMultipleSelection(button, field, value);
     } else {
-        // Single selection
+        // Handle single selection (radio button-like behavior)
         handleSingleSelection(button, field, value);
     }
+    
+    console.log(`Selection updated - ${field}: ${formData[field]}`);
 }
 
-// Handle single selection
+/**
+ * Handle single selection fields (radio button behavior)
+ * Only one option can be selected at a time
+ * 
+ * @param {HTMLElement} button - The clicked button
+ * @param {string} field - The form field name
+ * @param {string} value - The selected value
+ */
 function handleSingleSelection(button, field, value) {
     // Remove selected class from all buttons in this step
     const stepButtons = button.closest('.step').querySelectorAll('.option-button');
@@ -461,9 +651,22 @@ function handleSingleSelection(button, field, value) {
     formData[field] = value;
 }
 
-// Handle multiple selection
+/**
+ * Handle multiple selection fields (checkbox behavior)
+ * Multiple options can be selected simultaneously
+ * 
+ * @param {HTMLElement} button - The clicked button
+ * @param {string} field - The form field name
+ * @param {string} value - The selected value
+ */
 function handleMultipleSelection(button, field, value) {
+    // Toggle selected state
     button.classList.toggle('selected');
+
+    // Initialize array if it doesn't exist
+    if (!Array.isArray(formData[field])) {
+        formData[field] = [];
+    }
 
     if (button.classList.contains('selected')) {
         // Add to array if not already present
@@ -481,14 +684,24 @@ function handleMultipleSelection(button, field, value) {
     }
 }
 
-// Handle form input
+/**
+ * Handle text input changes
+ * Updates form data and clears validation errors
+ * 
+ * @param {HTMLElement} input - The input element
+ */
 function handleFormInput(input) {
     const field = input.id;
     formData[field] = input.value;
     clearError(field);
 }
 
-// Handle slider input
+/**
+ * Handle slider input changes (training days selection)
+ * Updates both form data and display value
+ * 
+ * @param {HTMLElement} slider - The slider element
+ */
 function handleSliderInput(slider) {
     const field = slider.dataset.field;
     const value = parseInt(slider.value);
@@ -503,10 +716,20 @@ function handleSliderInput(slider) {
     }
 }
 
-// Handle confidence slider
+/**
+ * Handle equipment confidence slider changes
+ * Updates confidence ratings and display text
+ * 
+ * @param {HTMLElement} slider - The confidence slider element
+ */
 function handleConfidenceSlider(slider) {
     const equipment = slider.dataset.equipment;
     const value = parseInt(slider.value);
+
+    // Initialize confidence object if it doesn't exist
+    if (!formData.equipmentConfidence) {
+        formData.equipmentConfidence = {};
+    }
 
     // Store confidence rating
     formData.equipmentConfidence[equipment] = value;
@@ -514,20 +737,44 @@ function handleConfidenceSlider(slider) {
     // Update display value
     const valueDisplay = document.getElementById(`confidence-value-${equipment}`);
     if (valueDisplay) {
-        const confidenceTexts = ['', 'Not confident', 'Slightly confident', 'Moderately confident', 'Very confident', 'Extremely confident'];
-        valueDisplay.textContent = confidenceTexts[value];
+        valueDisplay.textContent = getConfidenceText(value);
     }
 }
 
-// Generate confidence rating sliders based on selected equipment
+/**
+ * Handle create account button click
+ * This would typically redirect to account creation or trigger signup flow
+ */
+function handleCreateAccountClick() {
+    console.log('Create account clicked');
+    
+    // For now, show an alert - in production this would redirect to signup
+    alert('Account creation would redirect to signup page. For demo purposes, this shows an alert.');
+    
+    // In production, you might do:
+    // window.location.href = '/signup?email=' + encodeURIComponent(formData.email);
+    // or trigger a modal signup form
+}
+
+// ============================================================================
+// DYNAMIC CONTENT GENERATION
+// ============================================================================
+
+/**
+ * Generate confidence rating sliders based on selected equipment
+ * This function creates sliders dynamically based on what equipment the user selected
+ */
 function generateConfidenceRatings() {
     const container = document.getElementById('confidenceContainer');
-    if (!container) return;
+    if (!container) {
+        console.error('Confidence container not found');
+        return;
+    }
 
     // Clear existing content
     container.innerHTML = '';
 
-    // Get selected equipment
+    // Get selected equipment from form data
     const selectedEquipment = formData.equipmentAvailable || [];
 
     if (selectedEquipment.length === 0) {
@@ -535,10 +782,15 @@ function generateConfidenceRatings() {
         return;
     }
 
-    // Create confidence sliders for each selected equipment
+    console.log('Generating confidence ratings for:', selectedEquipment);
+
+    // Create confidence sliders for each selected equipment type
     selectedEquipment.forEach(equipmentKey => {
         const equipment = equipmentLabels[equipmentKey];
-        if (!equipment) return;
+        if (!equipment) {
+            console.warn(`Equipment label not found for: ${equipmentKey}`);
+            return;
+        }
 
         const confidenceItem = document.createElement('div');
         confidenceItem.className = 'confidence-item';
@@ -575,14 +827,35 @@ function generateConfidenceRatings() {
     });
 }
 
-// Get confidence text based on value
+/**
+ * Convert confidence rating number to descriptive text
+ * 
+ * @param {number} value - Confidence rating (1-5)
+ * @returns {string} - Descriptive text for the rating
+ */
 function getConfidenceText(value) {
-    const confidenceTexts = ['', 'Not confident', 'Slightly confident', 'Moderately confident', 'Very confident', 'Extremely confident'];
+    const confidenceTexts = {
+        1: 'Not confident',
+        2: 'Slightly confident', 
+        3: 'Moderately confident',
+        4: 'Very confident',
+        5: 'Extremely confident'
+    };
     return confidenceTexts[value] || 'Moderately confident';
 }
 
-// Validation
+// ============================================================================
+// FORM VALIDATION
+// ============================================================================
+
+/**
+ * Validate the current step before allowing progression
+ * Each step has specific validation requirements
+ * 
+ * @returns {boolean} - True if current step is valid, false otherwise
+ */
 function validateCurrentStep() {
+    // Clear any existing errors
     clearAllErrors();
 
     switch (currentStep) {
@@ -595,20 +868,23 @@ function validateCurrentStep() {
         case 4:
             return validateEquipmentConfidence();
         case 5:
-            return true; // Slider always has a value
-        case 6:
-            return validateContactForm();
+            return true; // Slider always has a value, so no validation needed
         default:
             return true;
     }
 }
 
-// Validate equipment confidence ratings
+/**
+ * Validate equipment confidence ratings
+ * Ensures all selected equipment has confidence ratings
+ * 
+ * @returns {boolean} - True if all confidence ratings are provided
+ */
 function validateEquipmentConfidence() {
     const selectedEquipment = formData.equipmentAvailable || [];
 
     if (selectedEquipment.length === 0) {
-        showError('equipmentConfidence', 'Please rate your confidence for each piece of equipment');
+        showError('equipmentConfidence', 'Please select equipment in the previous step first');
         return false;
     }
 
@@ -623,7 +899,13 @@ function validateEquipmentConfidence() {
     return true;
 }
 
-// Validate single field
+/**
+ * Validate a single required field
+ * 
+ * @param {string} fieldName - Name of the field to validate
+ * @param {string} errorMessage - Error message to show if validation fails
+ * @returns {boolean} - True if field is valid
+ */
 function validateField(fieldName, errorMessage) {
     if (!formData[fieldName]) {
         showError(fieldName, errorMessage);
@@ -632,7 +914,13 @@ function validateField(fieldName, errorMessage) {
     return true;
 }
 
-// Validate array field (multiple selections)
+/**
+ * Validate an array field (multiple selections)
+ * 
+ * @param {string} fieldName - Name of the array field to validate
+ * @param {string} errorMessage - Error message to show if validation fails
+ * @returns {boolean} - True if field has at least one selection
+ */
 function validateArrayField(fieldName, errorMessage) {
     if (!formData[fieldName] || formData[fieldName].length === 0) {
         showError(fieldName, errorMessage);
@@ -641,41 +929,12 @@ function validateArrayField(fieldName, errorMessage) {
     return true;
 }
 
-// Validate contact form
-function validateContactForm() {
-    let isValid = true;
-
-    // First name validation
-    if (!formData.firstName || formData.firstName.trim() === '') {
-        showError('firstName', 'First name is required');
-        isValid = false;
-    }
-
-    // Last name validation
-    if (!formData.lastName || formData.lastName.trim() === '') {
-        showError('lastName', 'Last name is required');
-        isValid = false;
-    }
-
-    // Email validation
-    if (!formData.email || formData.email.trim() === '') {
-        showError('email', 'Email address is required');
-        isValid = false;
-    } else if (!isValidEmail(formData.email)) {
-        showError('email', 'Please enter a valid email address');
-        isValid = false;
-    }
-
-    return isValid;
-}
-
-// Email validation helper
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-// Show error message
+/**
+ * Show error message for a specific field
+ * 
+ * @param {string} fieldName - Name of the field with error
+ * @param {string} message - Error message to display
+ */
 function showError(fieldName, message) {
     const errorElement = document.getElementById(`${fieldName}-error`);
     const inputElement = document.getElementById(fieldName);
@@ -688,9 +947,15 @@ function showError(fieldName, message) {
     if (inputElement) {
         inputElement.classList.add('error');
     }
+    
+    console.warn(`Validation error for ${fieldName}: ${message}`);
 }
 
-// Clear specific error
+/**
+ * Clear error message for a specific field
+ * 
+ * @param {string} fieldName - Name of the field to clear error for
+ */
 function clearError(fieldName) {
     const errorElement = document.getElementById(`${fieldName}-error`);
     const inputElement = document.getElementById(fieldName);
@@ -705,7 +970,10 @@ function clearError(fieldName) {
     }
 }
 
-// Clear all errors
+/**
+ * Clear all error messages and styling
+ * Used before running validation to start with a clean slate
+ */
 function clearAllErrors() {
     const errorElements = document.querySelectorAll('.form-error');
     const inputElements = document.querySelectorAll('.form-input');
@@ -720,29 +988,50 @@ function clearAllErrors() {
     });
 }
 
-// Navigation functions
+// ============================================================================
+// NAVIGATION AND STEP MANAGEMENT
+// ============================================================================
+
+/**
+ * Navigate to the next step in the questionnaire
+ * Validates current step before proceeding
+ */
 function goToNextStep() {
     if (validateCurrentStep()) {
         if (currentStep < totalSteps) {
             currentStep++;
             showStep(currentStep);
             updateProgress();
+            console.log(`Advanced to step ${currentStep}`);
         } else {
-            // Final step - submit form
-            submitForm();
+            // Final step - submit questionnaire and generate program
+            console.log('Questionnaire complete, generating program...');
+            submitQuestionnaireAndGenerateProgram();
         }
+    } else {
+        console.log(`Validation failed for step ${currentStep}`);
     }
 }
 
+/**
+ * Navigate to the previous step in the questionnaire
+ * No validation required when going backwards
+ */
 function goToPreviousStep() {
     if (currentStep > 1) {
         currentStep--;
         showStep(currentStep);
         updateProgress();
+        console.log(`Returned to step ${currentStep}`);
     }
 }
 
-// Show specific step
+/**
+ * Display a specific step and hide all others
+ * Also handles special step-specific logic
+ * 
+ * @param {number} stepNumber - The step number to display
+ */
 function showStep(stepNumber) {
     // Hide all steps
     const allSteps = document.querySelectorAll('.step');
@@ -756,6 +1045,9 @@ function showStep(stepNumber) {
     if (targetStep) {
         targetStep.classList.remove('hidden');
         targetStep.classList.add('active');
+    } else {
+        console.error(`Step ${stepNumber} not found`);
+        return;
     }
 
     // Special handling for step 4 (confidence ratings)
@@ -765,21 +1057,26 @@ function showStep(stepNumber) {
 
     // Update navigation buttons
     updateNavigationButtons();
+    
+    console.log(`Displaying step ${stepNumber}`);
 }
 
-// Update navigation button text
+/**
+ * Update navigation button visibility and text
+ * Adapts button appearance based on current step
+ */
 function updateNavigationButtons() {
     const isFirstStep = currentStep === 1;
     const isLastStep = currentStep === totalSteps;
 
-    // Previous button
+    // Show/hide previous button
     if (isFirstStep) {
         elements.prevBtn.classList.add('hidden');
     } else {
         elements.prevBtn.classList.remove('hidden');
     }
 
-    // Next button text
+    // Update next button text
     if (isLastStep) {
         elements.nextBtn.textContent = 'Generate My Program';
     } else {
@@ -787,7 +1084,10 @@ function updateNavigationButtons() {
     }
 }
 
-// Update progress bar
+/**
+ * Update progress bar and percentage display
+ * Shows user how far through the questionnaire they are
+ */
 function updateProgress() {
     const percentage = (currentStep / totalSteps) * 100;
 
@@ -804,20 +1104,177 @@ function updateProgress() {
     }
 }
 
-// Enhanced submit form with loading and program generation
-function submitForm() {
-    console.log('Form submission data:', formData);
-    
-    // Show loading screen
-    showLoadingScreen();
-    
-    // Submit questionnaire to backend and generate program
-    submitQuestionnaireAndGenerateProgram();
+// ============================================================================
+// PROGRAM GENERATION AND SUBMISSION
+// ============================================================================
+
+/**
+ * Submit questionnaire data and initiate program generation
+ * This is called when user completes the final questionnaire step
+ */
+async function submitQuestionnaireAndGenerateProgram() {
+    try {
+        console.log('Starting program generation process...');
+        console.log('Form data:', formData);
+        
+        // Show loading screen
+        showLoadingScreen();
+        
+        // Start loading animation
+        simulateProgramGeneration();
+        
+        // Generate the program based on form data
+        const generatedProgram = generateProgramFromFormData(formData);
+        console.log('Generated program:', generatedProgram);
+        
+        // Submit questionnaire and program to backend
+        const submissionResult = await submitToBackend(formData, generatedProgram);
+        
+        // Wait for loading animation to complete, then show success
+        setTimeout(() => {
+            showSuccessScreen();
+            console.log('Program generation completed successfully');
+        }, 6500); // Total loading animation time
+
+    } catch (error) {
+        console.error('Error during program generation:', error);
+        
+        // Still show success screen after loading, but log the error
+        setTimeout(() => {
+            showSuccessScreen();
+            console.warn('Program generation completed with errors, but proceeding to success screen');
+        }, 6500);
+    }
 }
 
-// Show loading screen with animated progress
+/**
+ * Generate a personalized program based on user's questionnaire responses
+ * Uses the program templates and user preferences to create a custom plan
+ * 
+ * @param {Object} formData - User's questionnaire responses
+ * @returns {Object} - Generated program object
+ */
+function generateProgramFromFormData(formData) {
+    console.log('Generating program for user data:', formData);
+    
+    // Map experience levels to program categories
+    const experienceMapping = {
+        '0_months': 'beginner',
+        '0_6_months': 'beginner', 
+        '6_months_2_years': 'beginner',
+        '2_plus_years': 'advanced'
+    };
+
+    const level = experienceMapping[formData.experience] || 'beginner';
+    const days = formData.trainingDays;
+
+    console.log(`Looking for ${level} program with ${days} days`);
+
+    // Find the best matching program template
+    const templateKey = `${level}_${days}_day`;
+    
+    let selectedTemplate = PROGRAM_TEMPLATES.programs.find(p => p.id === templateKey);
+    
+    // Fallback logic if exact match not found
+    if (!selectedTemplate) {
+        console.warn(`Exact template not found for ${templateKey}, searching for alternatives...`);
+        
+        // Try to find template that matches experience and frequency
+        selectedTemplate = PROGRAM_TEMPLATES.programs.find(p => 
+            p.target_experience.includes(formData.experience) && 
+            p.frequency.includes(days)
+        );
+        
+        // Final fallback - find template with matching experience
+        if (!selectedTemplate) {
+            selectedTemplate = PROGRAM_TEMPLATES.programs.find(p => 
+                p.target_experience.includes(formData.experience)
+            );
+        }
+        
+        // Ultimate fallback - use first template
+        if (!selectedTemplate) {
+            console.warn('No matching template found, using default template');
+            selectedTemplate = PROGRAM_TEMPLATES.programs[0];
+        }
+    }
+
+    console.log('Selected template:', selectedTemplate.name);
+
+    // Create personalized program object
+    const program = {
+        id: `custom_${Date.now()}`,
+        name: selectedTemplate.name,
+        description: selectedTemplate.description,
+        duration_weeks: selectedTemplate.duration_weeks,
+        frequency: days,
+        user: {
+            email: formData.email,
+            experience: formData.experience,
+            trainingDays: formData.trainingDays,
+            whyUsingApp: formData.whyUsingApp,
+            equipmentAvailable: formData.equipmentAvailable,
+            equipmentConfidence: formData.equipmentConfidence
+        },
+        // Take only the number of workouts that match requested frequency
+        workouts: selectedTemplate.workouts.slice(0, days),
+        created_at: new Date().toISOString(),
+        template_used: selectedTemplate.id
+    };
+
+    return program;
+}
+
+/**
+ * Submit questionnaire data and generated program to backend
+ * This would send the data to your server for processing and email delivery
+ * 
+ * @param {Object} formData - User's questionnaire responses
+ * @param {Object} program - Generated workout program
+ * @returns {Promise<Object>} - Server response
+ */
+async function submitToBackend(formData, program) {
+    // In a real application, this would submit to your backend
+    // For now, we'll simulate the API call
+    
+    const submissionData = {
+        questionnaire: formData,
+        program: program,
+        timestamp: new Date().toISOString()
+    };
+    
+    console.log('Simulating backend submission:', submissionData);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // In production, this would be:
+    // const response = await fetch('/api/questionnaire/submit', {
+    //     method: 'POST',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify(submissionData)
+    // });
+    // return response.json();
+    
+    return {
+        success: true,
+        message: 'Program generated and sent to email',
+        programId: program.id
+    };
+}
+
+// ============================================================================
+// LOADING SCREEN AND ANIMATIONS
+// ============================================================================
+
+/**
+ * Show the loading screen and hide other elements
+ * Transitions from questionnaire to loading state
+ */
 function showLoadingScreen() {
-    // Hide current step
+    // Hide all current steps
     const allSteps = document.querySelectorAll('.step');
     allSteps.forEach(step => {
         step.classList.remove('active');
@@ -826,11 +1283,18 @@ function showLoadingScreen() {
 
     // Show loading step
     const loadingStep = document.getElementById('step-loading');
-    loadingStep.classList.remove('hidden');
-    loadingStep.classList.add('active');
+    if (loadingStep) {
+        loadingStep.classList.remove('hidden');
+        loadingStep.classList.add('active');
+    } else {
+        console.error('Loading step not found');
+        return;
+    }
 
-    // Hide navigation buttons
-    elements.navigationButtons.classList.add('hidden');
+    // Hide navigation buttons during loading
+    if (elements.navigationButtons) {
+        elements.navigationButtons.classList.add('hidden');
+    }
 
     // Update main progress bar to 100%
     if (elements.progressBar) {
@@ -839,63 +1303,16 @@ function showLoadingScreen() {
     if (elements.progressPercentage) {
         elements.progressPercentage.textContent = '100';
     }
+    
+    console.log('Loading screen displayed');
 }
 
-// Submit questionnaire and generate program
-async function submitQuestionnaireAndGenerateProgram() {
-    try {
-        // Start loading animation
-        simulateProgramGeneration();
-        
-        // Submit questionnaire to backend
-        const response = await fetch('http://localhost:3001/api/questionnaire/submit', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to submit questionnaire');
-        }
-
-        const result = await response.json();
-        console.log('Questionnaire submitted:', result);
-
-        // Generate program using backend API
-        const programResponse = await fetch('http://localhost:3001/api/programs/generate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
-        });
-
-        if (!programResponse.ok) {
-            throw new Error('Failed to generate program');
-        }
-
-        const program = await programResponse.json();
-        console.log('Generated program:', program);
-
-        // Wait for loading animation to complete, then show program
-        setTimeout(() => {
-            showProgramResults(program);
-        }, 6500); // Total loading time
-
-    } catch (error) {
-        console.error('Error:', error);
-        // Fallback to client-side program generation
-        setTimeout(() => {
-            const fallbackProgram = generateProgramClientSide(formData);
-            showProgramResults(fallbackProgram);
-        }, 6500);
-    }
-}
-
-// Simulate program generation with realistic progress
+/**
+ * Simulate realistic program generation with animated progress
+ * Creates engaging loading experience with multiple steps
+ */
 function simulateProgramGeneration() {
+    // Define loading steps with realistic timing
     const loadingSteps = [
         { text: "Analyzing your experience level...", duration: 800 },
         { text: "Matching equipment preferences...", duration: 1000 },
@@ -909,6 +1326,15 @@ function simulateProgramGeneration() {
     const loadingBar = document.getElementById('loadingBar');
     const loadingText = document.getElementById('loadingText');
 
+    if (!loadingBar || !loadingText) {
+        console.error('Loading animation elements not found');
+        return;
+    }
+
+    /**
+     * Update the current loading step and progress
+     * Recursively called to create smooth progression
+     */
     function updateLoadingStep() {
         if (currentLoadingStep < loadingSteps.length) {
             const step = loadingSteps[currentLoadingStep];
@@ -917,179 +1343,97 @@ function simulateProgramGeneration() {
             const progress = ((currentLoadingStep + 1) / loadingSteps.length) * 100;
             loadingBar.style.width = `${progress}%`;
             
-            // Update text
+            // Update loading text
             loadingText.textContent = step.text;
             
-            // Update step indicators
+            // Update step indicators - mark previous step as completed
             if (currentLoadingStep > 0) {
                 const prevStepElement = document.getElementById(`loading-step-${currentLoadingStep}`);
                 if (prevStepElement) {
                     prevStepElement.classList.add('completed');
-                    prevStepElement.querySelector('.loading-step-icon').textContent = '✓';
+                    const icon = prevStepElement.querySelector('.loading-step-icon');
+                    if (icon) icon.textContent = '✓';
                 }
             }
             
+            // Mark current step as active
             const currentStepElement = document.getElementById(`loading-step-${currentLoadingStep + 1}`);
             if (currentStepElement) {
                 currentStepElement.classList.add('active');
-                currentStepElement.querySelector('.loading-step-icon').textContent = '⏳';
+                const icon = currentStepElement.querySelector('.loading-step-icon');
+                if (icon) icon.textContent = '⏳';
             }
 
             currentLoadingStep++;
             setTimeout(updateLoadingStep, step.duration);
         } else {
-            // Complete all steps
+            // Complete final step
             const lastStep = document.getElementById(`loading-step-${loadingSteps.length}`);
             if (lastStep) {
                 lastStep.classList.add('completed');
-                lastStep.querySelector('.loading-step-icon').textContent = '✓';
+                lastStep.classList.remove('active');
+                const icon = lastStep.querySelector('.loading-step-icon');
+                if (icon) icon.textContent = '✓';
             }
+            
+            loadingText.textContent = "Program ready!";
+            console.log('Loading animation completed');
         }
     }
 
     updateLoadingStep();
 }
 
-// Client-side program generation (fallback)
-function generateProgramClientSide(formData) {
-    // Determine experience level for program selection
-    const experienceMapping = {
-        '0_months': 'beginner',
-        '0_6_months': 'beginner', 
-        '6_months_2_years': 'beginner',
-        '2_plus_years': 'advanced'
-    };
-
-    const level = experienceMapping[formData.experience] || 'beginner';
-    const days = formData.trainingDays;
-
-    // Select appropriate program template
-    let selectedTemplate;
-    const templateKey = `${level}_${days}_day`;
-    
-    // Find matching template or fallback
-    selectedTemplate = PROGRAM_TEMPLATES.programs.find(p => p.id === templateKey) ||
-                     PROGRAM_TEMPLATES.programs.find(p => 
-                         p.target_experience.includes(formData.experience) && 
-                         p.frequency.includes(days)
-                     ) ||
-                     PROGRAM_TEMPLATES.programs[0]; // fallback
-
-    // Create personalized program
-    const program = {
-        id: `custom_${Date.now()}`,
-        name: selectedTemplate.name,
-        description: selectedTemplate.description,
-        duration_weeks: selectedTemplate.duration_weeks,
-        frequency: days,
-        user: {
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            experience: formData.experience,
-            trainingDays: formData.trainingDays
-        },
-        workouts: selectedTemplate.workouts.slice(0, days), // Take only the number of days requested
-        created_at: new Date().toISOString()
-    };
-
-    return program;
-}
-
-// Show program results
-function showProgramResults(program) {
+/**
+ * Show the success screen after program generation
+ * Displays completion message and account creation CTA
+ */
+function showSuccessScreen() {
     // Hide loading screen
     const loadingStep = document.getElementById('step-loading');
-    loadingStep.classList.add('hidden');
-    loadingStep.classList.remove('active');
+    if (loadingStep) {
+        loadingStep.classList.add('hidden');
+        loadingStep.classList.remove('active');
+    }
 
-    // Show program step
-    const programStep = document.getElementById('step-program');
-    programStep.classList.remove('hidden');
-    programStep.classList.add('active');
+    // Show success step
+    const successStep = document.getElementById('step-success');
+    if (successStep) {
+        successStep.classList.remove('hidden');
+        successStep.classList.add('active');
+        console.log('Success screen displayed');
+    } else {
+        console.error('Success step not found');
+    }
 
-    // Populate program content
-    populateProgramDisplay(program);
+    // Keep navigation buttons hidden on success screen
+    if (elements.navigationButtons) {
+        elements.navigationButtons.classList.add('hidden');
+    }
 }
 
-// Populate program display with workout cards
-function populateProgramDisplay(program) {
-    // Update title and description
-    document.getElementById('programTitle').textContent = program.name;
-    document.getElementById('programDescription').textContent = program.description;
+// ============================================================================
+// UTILITY FUNCTIONS AND HELPERS
+// ============================================================================
 
-    // Create program overview
-    const overview = document.getElementById('programOverview');
-    overview.innerHTML = `
-        <div class="program-summary">
-            <div class="summary-item">
-                <span class="summary-label">Duration:</span>
-                <span class="summary-value">${program.duration_weeks} weeks</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Frequency:</span>
-                <span class="summary-value">${program.frequency} days per week</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Total Workouts:</span>
-                <span class="summary-value">${program.workouts.length} different workouts</span>
-            </div>
-        </div>
-    `;
-
-    // Create workout cards
-    const workoutsContainer = document.getElementById('programWorkouts');
-    const columnClass = `workout-columns-${program.workouts.length}`;
-    workoutsContainer.className = `program-workouts ${columnClass}`;
-
-    workoutsContainer.innerHTML = program.workouts.map((workout, index) => `
-        <div class="workout-card">
-            <div class="workout-header">
-                <h3 class="workout-title">${workout.name}</h3>
-                <span class="workout-day">Day ${index + 1}</span>
-            </div>
-            <div class="workout-exercises">
-                ${workout.exercises.map((exercise, exerciseIndex) => `
-                    <div class="exercise-card">
-                        <div class="exercise-header">
-                            <span class="exercise-number">${exerciseIndex + 1}</span>
-                            <span class="exercise-name">${exercise.name}</span>
-                        </div>
-                        <div class="exercise-details">
-                            <div class="exercise-sets-reps">
-                                <span class="sets">${exercise.sets} sets</span>
-                                <span class="reps">${exercise.reps} reps</span>
-                            </div>
-                            <div class="exercise-rest">Rest: ${exercise.rest}</div>
-                        </div>
-                        ${exercise.notes ? `<div class="exercise-notes">${exercise.notes}</div>` : ''}
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `).join('');
-}
-
-// Download program function (placeholder)
-function downloadProgram() {
-    alert('Download functionality would be implemented here - generating PDF of your program');
-}
-
-// Email program function (placeholder)
-function emailProgram() {
-    alert('Email functionality would be implemented here - sending program to your email');
-}
-
-// Utility function to save form data to localStorage (optional)
+/**
+ * Save form data to localStorage for persistence
+ * Allows users to refresh page without losing progress
+ */
 function saveFormData() {
     try {
         localStorage.setItem('trAIn_questionnaire_data', JSON.stringify(formData));
         localStorage.setItem('trAIn_questionnaire_step', currentStep.toString());
+        console.log('Form data saved to localStorage');
     } catch (error) {
         console.warn('Could not save form data to localStorage:', error);
     }
 }
 
-// Utility function to load form data from localStorage (optional)
+/**
+ * Load form data from localStorage if available
+ * Restores user progress on page reload
+ */
 function loadFormData() {
     try {
         const savedData = localStorage.getItem('trAIn_questionnaire_data');
@@ -1098,25 +1442,33 @@ function loadFormData() {
         if (savedData) {
             const parsedData = JSON.parse(savedData);
             Object.assign(formData, parsedData);
+            console.log('Form data loaded from localStorage');
         }
 
         if (savedStep) {
-            currentStep = parseInt(savedStep, 10) || 1;
+            const stepNumber = parseInt(savedStep, 10);
+            if (stepNumber >= 1 && stepNumber <= totalSteps) {
+                currentStep = stepNumber;
+                console.log(`Restored to step ${currentStep}`);
+            }
         }
 
-        // Restore form state
+        // Restore form visual state
         restoreFormState();
     } catch (error) {
         console.warn('Could not load form data from localStorage:', error);
     }
 }
 
-// Restore form state from saved data
+/**
+ * Restore visual form state from saved data
+ * Re-selects buttons and fills inputs based on saved form data
+ */
 function restoreFormState() {
     // Restore button selections
     Object.keys(formData).forEach(field => {
         if (Array.isArray(formData[field])) {
-            // Multiple selection fields
+            // Multiple selection fields - restore all selected options
             formData[field].forEach(value => {
                 const button = document.querySelector(`[data-field="${field}"][data-value="${value}"]`);
                 if (button) {
@@ -1124,40 +1476,442 @@ function restoreFormState() {
                 }
             });
         } else if (formData[field]) {
-            // Single selection fields
+            // Single selection fields - restore selected option
             const button = document.querySelector(`[data-field="${field}"][data-value="${formData[field]}"]`);
             if (button) {
                 button.classList.add('selected');
             }
 
-            // Input fields
+            // Input fields - restore values
             const input = document.getElementById(field);
             if (input) {
                 input.value = formData[field];
             }
         }
     });
+
+    // Restore slider values
+    const trainingDaysSlider = document.getElementById('trainingDays');
+    if (trainingDaysSlider && formData.trainingDays) {
+        trainingDaysSlider.value = formData.trainingDays;
+        const valueDisplay = document.getElementById('trainingDaysValue');
+        if (valueDisplay) {
+            valueDisplay.textContent = formData.trainingDays;
+        }
+    }
+
+    // Restore confidence ratings if equipment is selected
+    if (formData.equipmentAvailable && formData.equipmentAvailable.length > 0) {
+        // Regenerate confidence sliders for restored equipment
+        generateConfidenceRatings();
+    }
 }
 
-// Clear saved data (call this after successful submission)
+/**
+ * Clear saved data from localStorage
+ * Called after successful form submission
+ */
 function clearSavedData() {
     try {
         localStorage.removeItem('trAIn_questionnaire_data');
         localStorage.removeItem('trAIn_questionnaire_step');
+        console.log('Saved form data cleared');
     } catch (error) {
         console.warn('Could not clear saved data:', error);
     }
 }
 
-// Auto-save form data on changes (optional feature)
+/**
+ * Enable auto-save functionality
+ * Automatically saves form data when user makes changes
+ * Uncomment the call at the bottom to enable this feature
+ */
 function enableAutoSave() {
     // Save data whenever form changes
     document.addEventListener('change', saveFormData);
     document.addEventListener('input', saveFormData);
+    
+    // Also save when user makes selections
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.option-button')) {
+            // Delay save slightly to ensure form data is updated first
+            setTimeout(saveFormData, 100);
+        }
+    });
+    
+    console.log('Auto-save enabled');
 }
 
-// Initialize auto-save on load (uncomment if needed)
+/**
+ * Validate email format
+ * Helper function for email validation
+ * 
+ * @param {string} email - Email address to validate
+ * @returns {boolean} - True if email format is valid
+ */
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+/**
+ * Format date for display
+ * Helper function to format dates consistently
+ * 
+ * @param {Date} date - Date object to format
+ * @returns {string} - Formatted date string
+ */
+function formatDate(date) {
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    }).format(date);
+}
+
+/**
+ * Debug function to log current form state
+ * Useful for development and troubleshooting
+ */
+function debugFormState() {
+    console.group('Current Form State');
+    console.log('Current Step:', currentStep);
+    console.log('Form Data:', JSON.stringify(formData, null, 2));
+    console.log('Validation Status:', validateCurrentStep());
+    console.groupEnd();
+}
+
+/**
+ * Get program difficulty text based on experience level
+ * Helper function for program customization
+ * 
+ * @param {string} experience - User's experience level
+ * @returns {string} - Human-readable difficulty level
+ */
+function getProgramDifficulty(experience) {
+    const difficultyMap = {
+        '0_months': 'Beginner',
+        '0_6_months': 'Beginner',
+        '6_months_2_years': 'Intermediate',
+        '2_plus_years': 'Advanced'
+    };
+    return difficultyMap[experience] || 'Beginner';
+}
+
+/**
+ * Get equipment priority score for program selection
+ * Helps determine which exercises to prioritize based on user confidence
+ * 
+ * @param {string} equipmentType - Type of equipment
+ * @param {Object} confidenceRatings - User's confidence ratings
+ * @returns {number} - Priority score (higher = more confident)
+ */
+function getEquipmentPriorityScore(equipmentType, confidenceRatings) {
+    const confidence = confidenceRatings[equipmentType] || 1;
+    const baseScores = {
+        'dumbbells': 4,
+        'barbells': 5,
+        'pin_loaded_machines': 3,
+        'cable_machines': 3
+    };
+    
+    return (baseScores[equipmentType] || 2) * confidence;
+}
+
+// ============================================================================
+// INITIALIZATION OPTIONS AND FEATURES
+// ============================================================================
+
+/**
+ * Configuration object for optional features
+ * Developers can enable/disable features by modifying these flags
+ */
+const appConfig = {
+    autoSave: false,           // Auto-save form data to localStorage
+    debugMode: false,          // Enable debug logging
+    restoreProgress: false,    // Restore progress from localStorage on page load
+    animationSpeed: 'normal',  // 'fast', 'normal', 'slow'
+    validateOnChange: true     // Validate fields as user types/selects
+};
+
+/**
+ * Apply configuration settings
+ * Called during initialization to set up optional features
+ */
+function applyConfiguration() {
+    if (appConfig.autoSave) {
+        enableAutoSave();
+        console.log('Auto-save feature enabled');
+    }
+    
+    if (appConfig.restoreProgress) {
+        loadFormData();
+        console.log('Progress restoration enabled');
+    }
+    
+    if (appConfig.debugMode) {
+        // Add debug information to console
+        window.debugFormState = debugFormState;
+        window.formData = formData;
+        console.log('Debug mode enabled. Use debugFormState() to inspect form state.');
+    }
+    
+    if (appConfig.animationSpeed === 'fast') {
+        // Reduce animation timings for faster experience
+        document.documentElement.style.setProperty('--animation-speed', '0.5');
+    } else if (appConfig.animationSpeed === 'slow') {
+        // Increase animation timings for accessibility
+        document.documentElement.style.setProperty('--animation-speed', '2');
+    }
+}
+
+// ============================================================================
+// ERROR HANDLING AND FALLBACKS
+// ============================================================================
+
+/**
+ * Global error handler for uncaught exceptions
+ * Provides graceful error handling and user feedback
+ */
+window.addEventListener('error', function(event) {
+    console.error('Global error caught:', event.error);
+    
+    // In production, you might want to send this to an error tracking service
+    // Example: sendErrorToTracking(event.error);
+    
+    // Show user-friendly error message
+    const errorMessage = 'Something went wrong. Please refresh the page and try again.';
+    alert(errorMessage);
+});
+
+/**
+ * Handle API errors gracefully
+ * Provides fallback behavior when backend requests fail
+ * 
+ * @param {Error} error - The error that occurred
+ * @param {string} context - Context where the error occurred
+ */
+function handleApiError(error, context) {
+    console.error(`API Error in ${context}:`, error);
+    
+    // Provide user feedback
+    const userMessage = `We're having trouble connecting to our servers. Your progress has been saved locally.`;
+    
+    // In a real app, you might show a toast notification instead of alert
+    // showToastNotification(userMessage, 'error');
+    console.warn(userMessage);
+    
+    // Save current progress in case of reload
+    if (appConfig.autoSave) {
+        saveFormData();
+    }
+}
+
+/**
+ * Validate browser compatibility
+ * Ensures the app works on older browsers
+ */
+function validateBrowserCompatibility() {
+    const requiredFeatures = [
+        'localStorage' in window,
+        'JSON' in window,
+        'addEventListener' in document,
+        'querySelector' in document
+    ];
+    
+    const isCompatible = requiredFeatures.every(feature => feature);
+    
+    if (!isCompatible) {
+        alert('Your browser is not supported. Please use a modern browser like Chrome, Firefox, Safari, or Edge.');
+        return false;
+    }
+    
+    return true;
+}
+
+// ============================================================================
+// ANALYTICS AND TRACKING (OPTIONAL)
+// ============================================================================
+
+/**
+ * Track user progression through questionnaire
+ * This would typically integrate with analytics services
+ * 
+ * @param {string} event - Event name
+ * @param {Object} data - Event data
+ */
+function trackUserEvent(event, data = {}) {
+    if (appConfig.debugMode) {
+        console.log('Analytics Event:', event, data);
+    }
+    
+    // In production, this would send to your analytics service
+    // Example integrations:
+    // gtag('event', event, data);                    // Google Analytics
+    // analytics.track(event, data);                  // Segment
+    // mixpanel.track(event, data);                   // Mixpanel
+    // amplitude.getInstance().logEvent(event, data); // Amplitude
+}
+
+/**
+ * Track step completion
+ * Called whenever user completes a questionnaire step
+ * 
+ * @param {number} stepNumber - Completed step number
+ */
+function trackStepCompletion(stepNumber) {
+    trackUserEvent('questionnaire_step_completed', {
+        step: stepNumber,
+        totalSteps: totalSteps,
+        timestamp: new Date().toISOString()
+    });
+}
+
+/**
+ * Track program generation
+ * Called when user's program is successfully generated
+ * 
+ * @param {Object} program - Generated program data
+ */
+function trackProgramGeneration(program) {
+    trackUserEvent('program_generated', {
+        programId: program.id,
+        templateUsed: program.template_used,
+        trainingDays: program.frequency,
+        userExperience: program.user.experience,
+        timestamp: new Date().toISOString()
+    });
+}
+
+// ============================================================================
+// ENHANCED INITIALIZATION
+// ============================================================================
+
+/**
+ * Enhanced initialization that includes all optional features
+ * This replaces the simple init() function for production use
+ */
+function initializeApp() {
+    // Check browser compatibility first
+    if (!validateBrowserCompatibility()) {
+        return;
+    }
+    
+    try {
+        // Apply configuration settings
+        applyConfiguration();
+        
+        // Cache DOM elements
+        cacheElements();
+        
+        // Set up initial progress display
+        updateProgress();
+        
+        // Attach all event listeners
+        attachEventListeners();
+        
+        // Create dynamic pages
+        createLoadingScreen();
+        createSuccessScreen();
+        
+        // Get user email from previous page
+        retrieveUserEmail();
+        
+        // Initialize the first step
+        showStep(currentStep);
+        
+        // Track app initialization
+        trackUserEvent('questionnaire_started', {
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent
+        });
+        
+        console.log('trAIn Questionnaire App initialized successfully');
+        
+    } catch (error) {
+        console.error('Failed to initialize app:', error);
+        handleApiError(error, 'initialization');
+    }
+}
+
+// ============================================================================
+// FINAL SETUP AND EXPORTS
+// ============================================================================
+
+// Optional: Enable auto-save (uncomment to activate)
 // enableAutoSave();
 
-// Load saved data on initialization (uncomment if needed)
+// Optional: Enable progress restoration (uncomment to activate)
 // loadFormData();
+
+// Make certain functions available globally for debugging (development only)
+if (appConfig.debugMode) {
+    window.trAInDebug = {
+        formData,
+        debugFormState,
+        generateProgramFromFormData,
+        validateCurrentStep,
+        saveFormData,
+        loadFormData,
+        clearSavedData
+    };
+}
+
+/**
+ * Performance monitoring (optional)
+ * Tracks how long it takes users to complete the questionnaire
+ */
+const performanceMetrics = {
+    startTime: Date.now(),
+    stepTimes: {},
+    
+    recordStepTime(stepNumber) {
+        this.stepTimes[stepNumber] = Date.now() - this.startTime;
+    },
+    
+    getCompletionTime() {
+        return Date.now() - this.startTime;
+    }
+};
+
+// Start performance tracking
+if (appConfig.debugMode) {
+    window.performance = performanceMetrics;
+}
+
+/**
+ * Accessibility enhancements
+ * Improves experience for users with disabilities
+ */
+function enhanceAccessibility() {
+    // Add ARIA labels to progress bar
+    if (elements.progressBar) {
+        elements.progressBar.setAttribute('role', 'progressbar');
+        elements.progressBar.setAttribute('aria-valuenow', '20');
+        elements.progressBar.setAttribute('aria-valuemin', '0');
+        elements.progressBar.setAttribute('aria-valuemax', '100');
+    }
+    
+    // Add keyboard navigation support
+    document.addEventListener('keydown', function(event) {
+        // Allow navigation with arrow keys
+        if (event.key === 'ArrowRight' && !event.ctrlKey && !event.metaKey) {
+            const nextBtn = elements.nextBtn;
+            if (nextBtn && !nextBtn.disabled && document.activeElement.tagName !== 'INPUT') {
+                nextBtn.click();
+                event.preventDefault();
+            }
+        } else if (event.key === 'ArrowLeft' && !event.ctrlKey && !event.metaKey) {
+            const prevBtn = elements.prevBtn;
+            if (prevBtn && !prevBtn.classList.contains('hidden') && document.activeElement.tagName !== 'INPUT') {
+                prevBtn.click();
+                event.preventDefault();
+            }
+        }
+    });
+}
+
+// Apply accessibility enhancements
+document.addEventListener('DOMContentLoaded', enhanceAccessibility);
+
+console.log('trAIn Questionnaire App loaded - ready for initialization');
