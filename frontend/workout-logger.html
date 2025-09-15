@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Logger - trAIn</title>
+    <meta name="description" content="Log your workouts and track your progress with trAIn">
+    <link rel="shortcut icon" href="/bluelogo.png">
+    <link rel="icon" href="/bluelogo.png">
+    <link rel="apple-touch-icon" href="/bluelogo.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/logger-styles.css">
+</head>
+<body class="min-h-screen bg-white">
+    <main class="min-h-screen bg-white">
+        <header>
+            <div class="max-w-7xl mx-auto text-center">
+                <img src="assets/images/logo_light.png" alt="trAIn" class="header-logo">
+                <h1 class="header-title">
+                    Workout Logger - <span class="gradient-text">trAIn</span>
+                </h1>
+                <p class="header-subtitle">
+                    Track your progress and log your workouts with precision
+                </p>
+            </div>
+        </header>
+        
+        <section>
+            <div class="container">
+                <!-- Program Selection Step -->
+                <div class="card" id="program-selection">
+                    <div class="question-container">
+                        <h2 class="question-title">Select Your Program</h2>
+                        <p class="question-subtitle">Choose the program you want to log</p>
+                    </div>
+                    <div class="options-container">
+                        <button class="option-button" data-program="beginner-2day">
+                            <span class="option-text">💪 Beginner 2-Day Split</span>
+                        </button>
+                        <button class="option-button" data-program="beginner-3day">
+                            <span class="option-text">🚀 Beginner 3-Day Full Body</span>
+                        </button>
+                        <button class="option-button" data-program="intermediate-4day">
+                            <span class="option-text">🎯 Intermediate 4-Day Upper/Lower</span>
+                        </button>
+                    </div>
+                    <div class="nav-buttons">
+                        <div></div>
+                        <button class="btn btn-primary" id="select-program-btn" disabled>Select Program</button>
+                    </div>
+                </div>
+
+                <!-- Day Selection Step -->
+                <div class="card hidden" id="day-selection">
+                    <div class="question-container">
+                        <h2 class="question-title">Select Training Day</h2>
+                        <p class="question-subtitle">Choose which day you want to log</p>
+                    </div>
+                    <div class="options-container" id="day-options">
+                        <!-- Dynamic content -->
+                    </div>
+                    <div class="nav-buttons">
+                        <button class="btn btn-secondary" id="back-to-programs">Back to Programs</button>
+                        <button class="btn btn-primary" id="start-workout-btn" disabled>Start Workout</button>
+                    </div>
+                </div>
+
+                <!-- Workout Logging Step -->
+                <div class="card hidden" id="workout-logging">
+                    <div class="workout-header">
+                        <div class="workout-date" id="workout-date"></div>
+                        <div class="workout-title" id="workout-title"></div>
+                        <div class="workout-subtitle" id="workout-subtitle"></div>
+                    </div>
+
+                    <div id="exercises-container">
+                        <!-- Dynamic exercise content -->
+                    </div>
+
+                    <div class="nav-buttons">
+                        <button class="btn btn-secondary" id="back-to-days">Back to Days</button>
+                        <button class="btn btn-primary" id="complete-workout-btn">Complete Workout</button>
+                    </div>
+                </div>
+
+                <!-- Workout Summary -->
+                <div class="card hidden" id="workout-summary">
+                    <div class="workout-summary">
+                        <h3 class="summary-title">🎉 Workout Completed!</h3>
+                        <div class="summary-stats" id="summary-stats">
+                            <!-- Dynamic summary content -->
+                        </div>
+                    </div>
+                    <div class="nav-buttons">
+                        <button class="btn btn-secondary" id="log-another">Log Another Workout</button>
+                        <button class="btn btn-primary" id="view-progress">View Progress</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <div class="footer-content">
+                <img src="/toplogo.png" alt="trAIn" class="footer-logo">
+                <p class="footer-text">© 2025 trAIn. Building the future of strength training.</p>
+            </div>
+        </footer>
+    </main>
+
+    <script src="js/logger.js"></script>
+</body>
+</html>
