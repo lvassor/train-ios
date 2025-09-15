@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,11 +8,20 @@
     <meta name="description" content="Answer a few questions to get your personalized training program.">
     <meta name="author" content="trAIn Team">
     <meta name="keywords" content="personal training, workout program, fitness questionnaire">
-    <link rel="shortcut icon" href="/bluelogo.png">
-    <link rel="icon" href="/bluelogo.png">
-    <link rel="apple-touch-icon" href="/bluelogo.png">
-    <link rel="stylesheet" href="css/styles.css">
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="assets/images/bluelogo.png">
+    <link rel="icon" href="assets/images/bluelogo.png">
+    <link rel="apple-touch-icon" href="assets/images/bluelogo.png">
+
+    <!-- Optimized CSS -->
+    <link rel="stylesheet" href="css/main.css">
+
+    <!-- Preload critical JavaScript -->
+    <link rel="modulepreload" href="js/pages/questionnaire.js">
 </head>
+
 <body class="min-h-screen bg-white">
     <main class="min-h-screen bg-white">
         <header>
@@ -25,14 +35,15 @@
                 </p>
             </div>
         </header>
-        
+
         <section>
             <div class="container">
                 <div class="card">
                     <!-- Progress Bar -->
                     <div class="progress-container">
                         <div class="progress-header">
-                            <span class="progress-text">Step <span id="currentStepText">1</span> of <span id="totalStepsText">5</span></span>
+                            <span class="progress-text">Step <span id="currentStepText">1</span> of <span
+                                    id="totalStepsText">5</span></span>
                             <span class="progress-text"><span id="progressPercentage">20</span>% complete</span>
                         </div>
                         <div class="progress-bar-bg">
@@ -99,7 +110,8 @@
                             <button class="option-button" data-value="barbells" data-field="equipmentAvailable">
                                 <span class="option-text">🏋️ Barbells</span>
                             </button>
-                            <button class="option-button" data-value="pin_loaded_machines" data-field="equipmentAvailable">
+                            <button class="option-button" data-value="pin_loaded_machines"
+                                data-field="equipmentAvailable">
                                 <span class="option-text">🏗️ Pin-loaded machines</span>
                             </button>
                             <button class="option-button" data-value="cable_machines" data-field="equipmentAvailable">
@@ -135,7 +147,8 @@
                                     <span>4 days</span>
                                     <span>5 days</span>
                                 </div>
-                                <input type="range" id="trainingDays" class="slider" min="2" max="5" value="3" data-field="trainingDays">
+                                <input type="range" id="trainingDays" class="slider" min="2" max="5" value="3"
+                                    data-field="trainingDays">
                                 <div class="slider-value">
                                     <span id="trainingDaysValue">3</span> days per week
                                 </div>
@@ -150,21 +163,26 @@
                             <div class="success-icon">✓</div>
                             <h2 class="question-title">Your bespoke program is ready!</h2>
                             <p class="question-subtitle" style="margin-bottom: 2rem;">
-                                We've created a <strong>personalized training program</strong> just for you and sent it to your email.
+                                We've created a <strong>personalized training program</strong> just for you and sent it
+                                to your email.
                             </p>
                             <p style="color: #6b7280; margin-bottom: 2rem;">
                                 Check your inbox for your custom workout plan!
                             </p>
-                            
+
                             <!-- Account Creation CTA -->
-                            <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 2rem; border-radius: 1rem; border: 2px solid #93c5fd; margin-bottom: 2rem;">
-                                <h3 style="font-size: 1.5rem; font-weight: 700; color: #1e40af; margin-bottom: 1rem; text-align: center;">
+                            <div
+                                style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 2rem; border-radius: 1rem; border: 2px solid #93c5fd; margin-bottom: 2rem;">
+                                <h3
+                                    style="font-size: 1.5rem; font-weight: 700; color: #1e40af; margin-bottom: 1rem; text-align: center;">
                                     🚀 Take your training to the next level
                                 </h3>
                                 <p style="color: #4b5563; text-align: center; margin-bottom: 1.5rem;">
-                                    Join <strong>10,000+ users</strong> who are crushing their fitness goals with our in-app coaching experience
+                                    Join <strong>10,000+ users</strong> who are crushing their fitness goals with our
+                                    in-app coaching experience
                                 </p>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; text-align: center;">
+                                <div
+                                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; text-align: center;">
                                     <div>
                                         <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📊</div>
                                         <div style="font-weight: 600; color: #374151;">Track Progress</div>
@@ -181,7 +199,9 @@
                                         <div style="font-size: 0.875rem; color: #6b7280;">Personalized tips</div>
                                     </div>
                                 </div>
-                                <button class="btn btn-primary" style="width: 100%; padding: 1rem 2rem; font-size: 1.125rem;" id="create-account-btn">
+                                <button class="btn btn-primary"
+                                    style="width: 100%; padding: 1rem 2rem; font-size: 1.125rem;"
+                                    id="create-account-btn">
                                     Create Free Account - Start Tracking
                                 </button>
                             </div>
@@ -206,6 +226,7 @@
         </footer>
     </main>
 
-    <script src="js/app.js"></script>
+    <script src="js/pages/questionnaire.js"></script>
 </body>
+
 </html>

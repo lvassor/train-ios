@@ -1,0 +1,187 @@
+/* Card Components - Replaces duplicate card styles */
+
+/* Base Card */
+.card {
+  background-color: var(--bg-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--bg-gray-100);
+  padding: var(--space-xl);
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  transition: all var(--transition-base);
+}
+
+.card--compact {
+  padding: var(--space-lg);
+}
+
+.card--interactive:hover {
+  border-color: var(--border-blue);
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-2px);
+}
+
+/* Exercise Card (workout logger) */
+.exercise-card {
+  background-color: var(--bg-gray-50);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border: 1px solid var(--border-gray);
+  transition: all var(--transition-base);
+}
+
+.exercise-card:last-child {
+  margin-bottom: 0;
+}
+
+.exercise-card:hover {
+  background-color: var(--bg-blue-50);
+  border-color: var(--border-blue);
+  transform: translateX(4px);
+}
+
+/* Workout Card */
+.workout-card {
+  background-color: var(--bg-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--bg-gray-100);
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.workout-card:hover {
+  border-color: var(--border-blue);
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-2px);
+}
+
+.workout-card.highlighted {
+  border-color: var(--color-primary);
+  background-color: var(--bg-blue-50);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* Feature Card (landing page) */
+.feature-card {
+  text-align: center;
+  padding: var(--space-lg);
+}
+
+/* Card Headers */
+.workout-header {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--text-white);
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.exercise-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-gray);
+  position: relative;
+}
+
+/* Card Content Areas */
+.workout-exercises {
+  padding: 1.25rem;
+}
+
+.exercise-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.exercise-notes {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-style: italic;
+  background-color: var(--bg-gray-100);
+  padding: var(--space-sm);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-primary);
+}
+
+/* Special Card Variants */
+.confidence-item {
+  background: var(--bg-gray-50);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-gray);
+}
+
+.loading-step {
+  display: flex;
+  align-items: center;
+  padding: var(--space-md);
+  background-color: var(--bg-gray-50);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border-gray);
+  transition: all var(--transition-base);
+}
+
+.loading-step.active {
+  border-color: var(--border-blue);
+  background-color: var(--bg-blue-50);
+}
+
+.loading-step.completed {
+  border-color: var(--color-success);
+  background-color: var(--bg-green-50);
+}
+
+/* Summary Card */
+.workout-summary {
+  background: linear-gradient(135deg, var(--bg-green-50), var(--bg-green-100));
+  padding: var(--space-lg);
+  border-radius: var(--radius-xl);
+  margin-top: var(--space-xl);
+  border: 1px solid var(--border-success);
+}
+
+.program-summary {
+  display: flex;
+  justify-content: space-around;
+  background-color: var(--bg-gray-50);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  border: 1px solid var(--border-gray);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .card {
+    padding: var(--space-lg);
+  }
+  
+  .program-summary {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  
+  .exercise-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+}
+
+@media (max-width: 768px) {
+  .exercise-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  
+  .workout-card {
+    margin-bottom: var(--space-md);
+  }
+}
