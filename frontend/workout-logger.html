@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="css/main.css">
     
     <!-- Preload critical JavaScript -->
-    <link rel="modulepreload" href="js/pages/workout-logger.js">
+    <link rel="modulepreload" href="js/workout-logger.js">
 </head>
 <body class="min-h-screen bg-white">
     <main class="min-h-screen bg-white">
@@ -36,22 +36,14 @@
         
         <section>
             <div class="container">
-                <!-- Program Selection Step -->
-                <div class="card" id="program-selection">
+                <!-- Program Selection Step (Dev Mode Only) -->
+                <div class="card hidden" id="program-selection">
                     <div class="question-container">
                         <h2 class="question-title">Select Your Program</h2>
-                        <p class="question-subtitle">Choose the program you want to log</p>
+                        <p class="question-subtitle">Choose the program you want to log (Dev Mode)</p>
                     </div>
                     <div class="options-container">
-                        <button class="option-button" data-program="beginner-2day">
-                            <span class="option-text">💪 Beginner 2-Day Split</span>
-                        </button>
-                        <button class="option-button" data-program="beginner-3day">
-                            <span class="option-text">🚀 Beginner 3-Day Full Body</span>
-                        </button>
-                        <button class="option-button" data-program="intermediate-4day">
-                            <span class="option-text">🎯 Intermediate 4-Day Upper/Lower</span>
-                        </button>
+                        <!-- Dynamic content populated by JS -->
                     </div>
                     <div class="nav-buttons">
                         <div></div>
@@ -60,7 +52,7 @@
                 </div>
 
                 <!-- Day Selection Step -->
-                <div class="card hidden" id="day-selection">
+                <div class="card" id="day-selection">
                     <div class="question-container">
                         <h2 class="question-title">Select Training Day</h2>
                         <p class="question-subtitle">Choose which day you want to log</p>
@@ -116,6 +108,6 @@
         </footer>
     </main>
 
-    <script src="js/pages/workout-logger.js"></script>
+    <script src="js/workout-logger.js"></script>
 </body>
 </html>

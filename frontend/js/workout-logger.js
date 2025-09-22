@@ -1,59 +1,101 @@
-// Workout Logger JavaScript - Clean & Simple
-
-// Program Templates
-const programs = {
-    'beginner-2day': {
-        name: 'Beginner 2-Day Split',
-        days: {
-            1: {
-                name: 'Upper Body',
-                exercises: [
-                    { name: 'Push-Up', icon: '💪', target: 'Chest, Triceps', sets: 3, repsMin: 8, repsMax: 12 },
-                    { name: 'Single Arm Dumbbell Row', icon: '🚣', target: 'Back, Lats', sets: 3, repsMin: 10, repsMax: 12 },
-                    { name: 'Shoulder Press', icon: '🏋️', target: 'Shoulders', sets: 3, repsMin: 8, repsMax: 10 },
-                    { name: 'Lateral Raises', icon: '🤲', target: 'Lateral Delts', sets: 3, repsMin: 12, repsMax: 15 },
-                    { name: 'Bicep Curls', icon: '💪', target: 'Biceps', sets: 3, repsMin: 10, repsMax: 12 }
-                ]
-            },
-            2: {
-                name: 'Lower Body',
-                exercises: [
-                    { name: 'Split Squat', icon: '🦵', target: 'Quads, Glutes', sets: 3, repsMin: 8, repsMax: 10 },
-                    { name: 'Glute Bridge', icon: '🍑', target: 'Glutes, Hamstrings', sets: 3, repsMin: 10, repsMax: 12 },
-                    { name: 'Step-ups', icon: '📦', target: 'Glutes, Quads', sets: 3, repsMin: 10, repsMax: 12 },
-                    { name: 'Leg Curl', icon: '🦵', target: 'Hamstrings', sets: 3, repsMin: 12, repsMax: 15 },
-                    { name: 'Dead Bug', icon: '🐛', target: 'Core', sets: 3, repsMin: 8, repsMax: 10 }
-                ]
-            }
-        }
-    }
-};
+// Workout Logger JavaScript - Complete Program Support
 
 // State
 let currentProgram = null;
 let currentDay = null;
 let workoutData = {};
+let programs = {};
+let dummyLogData = {};
+let isDevMode = false;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
 
-function init() {
+async function init() {
+    await loadWorkoutTemplates();
+    await loadDummyLogData();
+    detectDevMode();
+    detectUserProgram();
     attachEventListeners();
+    
+    if (isDevMode) {
+        showProgramSelection();
+    } else {
+        showDaySelection();
+    }
+}
+
+async function loadWorkoutTemplates() {
+    try {
+        const response = await fetch('/backend/workout-templates.json');
+        programs = await response.json();
+    } catch (error) {
+        console.error('Could not load workout templates:', error);
+        programs = {};
+    }
+}
+
+async function loadDummyLogData() {
+    try {
+        const response = await fetch('/backend/dummy_log_data.json');
+        dummyLogData = await response.json();
+    } catch (error) {
+        console.warn('Could not load dummy log data:', error);
+        dummyLogData = {};
+    }
+}
+
+function detectDevMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    isDevMode = urlParams.get('dev') === 'true' || window.location.pathname.includes('/dev/');
+}
+
+function detectUserProgram() {
+    if (isDevMode) return;
+    
+    // Try sessionStorage first
+    const storedProgram = JSON.parse(sessionStorage.getItem('userProgram') || 'null');
+    if (storedProgram?.id) {
+        currentProgram = storedProgram.id;
+        return;
+    }
+    
+    // Try URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const programFromUrl = urlParams.get('program');
+    if (programFromUrl && programs[programFromUrl]) {
+        currentProgram = programFromUrl;
+        return;
+    }
+    
+    // Fallback
+    currentProgram = 'beginner-2day';
 }
 
 function attachEventListeners() {
-    // Program selection
-    document.querySelectorAll('[data-program]').forEach(btn => {
-        btn.addEventListener('click', () => selectProgram(btn.dataset.program));
+    // Program selection (dev mode only)
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[data-program]')) {
+            selectProgram(e.target.dataset.program);
+        }
+        if (e.target.matches('[data-day]')) {
+            selectDay(e.target.dataset.day);
+        }
     });
 
     // Navigation buttons
-    document.getElementById('select-program-btn').addEventListener('click', showDaySelection);
-    document.getElementById('back-to-programs').addEventListener('click', showProgramSelection);
-    document.getElementById('start-workout-btn').addEventListener('click', startWorkout);
-    document.getElementById('back-to-days').addEventListener('click', showDaySelection);
-    document.getElementById('complete-workout-btn').addEventListener('click', completeWorkout);
-    document.getElementById('log-another').addEventListener('click', showProgramSelection);
+    document.getElementById('select-program-btn')?.addEventListener('click', showDaySelection);
+    document.getElementById('back-to-programs')?.addEventListener('click', showProgramSelection);
+    document.getElementById('start-workout-btn')?.addEventListener('click', startWorkout);
+    document.getElementById('back-to-days')?.addEventListener('click', showDaySelection);
+    document.getElementById('complete-workout-btn')?.addEventListener('click', completeWorkout);
+    document.getElementById('log-another')?.addEventListener('click', () => {
+        if (isDevMode) {
+            showProgramSelection();
+        } else {
+            showDaySelection();
+        }
+    });
 }
 
 function selectProgram(programKey) {
@@ -61,18 +103,38 @@ function selectProgram(programKey) {
     
     // Update UI
     document.querySelectorAll('[data-program]').forEach(btn => btn.classList.remove('selected'));
-    document.querySelector(`[data-program="${programKey}"]`).classList.add('selected');
+    document.querySelector(`[data-program="${programKey}"]`)?.classList.add('selected');
     document.getElementById('select-program-btn').disabled = false;
 }
 
 function showProgramSelection() {
+    if (!isDevMode) return;
+    
     hideAllSteps();
     document.getElementById('program-selection').classList.remove('hidden');
+    
+    // Populate program options if not already done
+    const container = document.querySelector('#program-selection .options-container');
+    if (container && container.children.length === 0) {
+        Object.keys(programs).forEach(programKey => {
+            const program = programs[programKey];
+            const button = document.createElement('button');
+            button.className = 'option-button';
+            button.dataset.program = programKey;
+            button.innerHTML = `<span class="option-text">${program.name}</span>`;
+            container.appendChild(button);
+        });
+    }
 }
 
 function showDaySelection() {
     hideAllSteps();
     document.getElementById('day-selection').classList.remove('hidden');
+    
+    if (!currentProgram || !programs[currentProgram]) {
+        console.error('No valid program selected');
+        return;
+    }
     
     const program = programs[currentProgram];
     const dayOptions = document.getElementById('day-options');
@@ -93,7 +155,7 @@ function selectDay(dayKey) {
     currentDay = dayKey;
     
     document.querySelectorAll('[data-day]').forEach(btn => btn.classList.remove('selected'));
-    document.querySelector(`[data-day="${dayKey}"]`).classList.add('selected');
+    document.querySelector(`[data-day="${dayKey}"]`)?.classList.add('selected');
     document.getElementById('start-workout-btn').disabled = false;
 }
 
@@ -126,6 +188,10 @@ function generateExerciseInterface(exercises) {
         
         let setsHTML = '';
         for (let setNum = 1; setNum <= exercise.sets; setNum++) {
+            const previousData = getPreviousSetData(exerciseIndex, setNum - 1);
+            const weightPlaceholder = previousData?.weight || 0;
+            const repsPlaceholder = previousData?.reps || 0;
+            
             setsHTML += `
                 <div class="set-row">
                     <div class="set-number">Set ${setNum}</div>
@@ -135,7 +201,8 @@ function generateExerciseInterface(exercises) {
                                data-exercise="${exerciseIndex}" 
                                data-set="${setNum}" 
                                data-type="weight" 
-                               placeholder="0" min="0" step="2.5">
+                               placeholder="${weightPlaceholder}" 
+                               min="0" step="2.5">
                     </div>
                     <div class="input-group">
                         <label class="input-label">Reps</label>
@@ -143,7 +210,8 @@ function generateExerciseInterface(exercises) {
                                data-exercise="${exerciseIndex}" 
                                data-set="${setNum}" 
                                data-type="reps" 
-                               placeholder="0" min="0">
+                               placeholder="${repsPlaceholder}" 
+                               min="0">
                     </div>
                     <div class="set-complete">
                         <input type="checkbox" class="complete-checkbox">
@@ -151,6 +219,8 @@ function generateExerciseInterface(exercises) {
                 </div>
             `;
         }
+        
+        const previousNotes = getPreviousExerciseNotes(exerciseIndex);
         
         exerciseCard.innerHTML = `
             <div class="exercise-header">
@@ -175,7 +245,7 @@ function generateExerciseInterface(exercises) {
                 ${setsHTML}
             </div>
             <div class="exercise-notes">
-                <textarea class="notes-textarea" placeholder="Exercise notes (optional)" 
+                <textarea class="notes-textarea" placeholder="${previousNotes || 'Exercise notes (optional)'}" 
                           data-exercise="${exerciseIndex}"></textarea>
             </div>
         `;
@@ -185,6 +255,14 @@ function generateExerciseInterface(exercises) {
     
     // Add single event listener to container
     container.addEventListener('input', handleInput);
+}
+
+function getPreviousSetData(exerciseIndex, setIndex) {
+    return dummyLogData[currentProgram]?.[currentDay]?.[exerciseIndex]?.sets?.[setIndex];
+}
+
+function getPreviousExerciseNotes(exerciseIndex) {
+    return dummyLogData[currentProgram]?.[currentDay]?.[exerciseIndex]?.notes;
 }
 
 function handleInput(event) {

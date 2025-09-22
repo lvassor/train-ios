@@ -46,9 +46,9 @@ function attachEventListeners() {
         if (e.target.closest('.option-button')) {
             handleOptionClick(e.target.closest('.option-button'));
         }
-        if (e.target.id === 'create-account-btn') {
-            alert('Account creation coming soon!');
-        }
+        if (e.target.id === 'start-logging-btn') {
+    window.location.href = 'workout-logger.html';
+}
     });
 
     // Form inputs
@@ -120,6 +120,33 @@ function handleConfidenceSlider(slider) {
     if (valueDisplay) {
         valueDisplay.textContent = getConfidenceText(value);
     }
+}
+
+// ============================================================================
+// PROGRAM GENERATION
+// ============================================================================
+function generateProgramId(questionnaire) {
+    const { experience, trainingDays } = questionnaire;
+    
+    let difficultyLevel = 'beginner';
+    if (experience === '6_months_2_years' || experience === '2_plus_years') {
+        difficultyLevel = 'intermediate';
+    }
+    
+    return `${difficultyLevel}-${trainingDays}day`;
+}
+
+function generateProgramName(programId) {
+    const programNames = {
+        'beginner-2day': 'Beginner Full Body Foundation',
+        'beginner-3day': 'Beginner Full Body Builder', 
+        'beginner-4day': 'Beginner Upper/Lower Split',
+        'intermediate-2day': 'Intermediate Full Body Power',
+        'intermediate-3day': 'Intermediate Push/Pull/Legs',
+        'intermediate-4day': 'Intermediate Upper/Lower Power'
+    };
+    
+    return programNames[programId] || 'Custom Program';
 }
 
 // ============================================================================
@@ -253,9 +280,9 @@ function createSuccessScreen() {
                             <div style="font-size: 0.875rem; color: #6b7280;">Personalized tips</div>
                         </div>
                     </div>
-                    <button class="btn btn-primary" style="width: 100%; padding: 1rem 2rem; font-size: 1.125rem;" id="create-account-btn">
-                        Create Free Account - Start Tracking
-                    </button>
+                    <button class="btn btn-primary" style="width: 100%; padding: 1rem 2rem; font-size: 1.125rem;" id="start-logging-btn">
+    Start Logging Your Program
+</button>
                 </div>
                 
                 <div style="text-align: center; margin-top: 1rem;">
@@ -364,15 +391,30 @@ function updateProgress() {
 // ============================================================================
 async function submitQuestionnaire() {
     try {
+        const programId = generateProgramId(formData);
+        const programName = generateProgramName(programId);
+        
+        const programData = {
+            id: programId,
+            name: programName,
+            frequency: formData.trainingDays,
+            experience: formData.experience,
+            generatedAt: new Date().toISOString(),
+            userEmail: formData.email
+        };
+        
+        sessionStorage.setItem('userProgram', JSON.stringify(programData));
+        
         showLoadingScreen();
         simulateLoadingAnimation();
         
-        // Submit to backend - it will handle program generation using programmes.json
-        const response = await fetch('/api/questionnaire/submit', {
+        // Submit to backend
+        const response = await fetch('/api/submit-questionnaire', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 questionnaire: formData,
+                program: programData,
                 timestamp: new Date().toISOString()
             })
         });
