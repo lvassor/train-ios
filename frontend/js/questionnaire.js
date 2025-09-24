@@ -1,13 +1,13 @@
 /**
  * trAIn Questionnaire - Streamlined MVP Version
- * Handles: Email flow -> 5-step questionnaire -> Loading -> Success -> Program generation
+ * Handles: Email flow -> 6-step questionnaire -> Loading -> Success -> Program generation
  */
 
 // ============================================================================
 // STATE MANAGEMENT
 // ============================================================================
 let currentStep = 1;
-const totalSteps = 5;
+const totalSteps = 6;
 
 const formData = {
     experience: '',
@@ -15,6 +15,7 @@ const formData = {
     equipmentAvailable: [],
     equipmentConfidence: {},
     trainingDays: 3,
+    sessionDuration: 60,
     email: sessionStorage.getItem('userEmail') || ''
 };
 
@@ -47,8 +48,8 @@ function attachEventListeners() {
             handleOptionClick(e.target.closest('.option-button'));
         }
         if (e.target.id === 'start-logging-btn') {
-    window.location.href = 'workout-logger.html';
-}
+            window.location.href = 'workout-logger.html';
+        }
     });
 
     // Form inputs
@@ -106,6 +107,8 @@ function handleSliderInput(slider) {
     
     if (field === 'trainingDays') {
         document.getElementById('trainingDaysValue').textContent = value;
+    } else if (field === 'sessionDuration') {
+        document.getElementById('sessionDurationValue').textContent = value;
     }
 }
 
@@ -237,7 +240,7 @@ function createLoadingScreen() {
         </div>
     `;
     
-    const lastStep = document.getElementById('step-5');
+    const lastStep = document.getElementById('step-6');
     if (lastStep) {
         lastStep.insertAdjacentHTML('afterend', loadingHTML);
     }
@@ -258,10 +261,10 @@ function createSuccessScreen() {
                 
                 <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 2rem; border-radius: 1rem; border: 2px solid #93c5fd; margin-bottom: 2rem;">
                     <h3 style="font-size: 1.5rem; font-weight: 700; color: #1e40af; margin-bottom: 1rem; text-align: center;">
-                        🚀 Take your training to the next level
+                        🚀 Start logging your workouts
                     </h3>
                     <p style="color: #4b5563; text-align: center; margin-bottom: 1.5rem;">
-                        Join <strong>10,000+ users</strong> who are crushing their fitness goals with our in-app coaching experience
+                        Track your progress and see your strength gains with our smart logging system
                     </p>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; text-align: center;">
                         <div>
@@ -275,20 +278,19 @@ function createSuccessScreen() {
                             <div style="font-size: 0.875rem; color: #6b7280;">Quick & easy logging</div>
                         </div>
                         <div>
-                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🤖</div>
-                            <div style="font-weight: 600; color: #374151;">AI Coaching</div>
-                            <div style="font-size: 0.875rem; color: #6b7280;">Personalized tips</div>
+                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🏆</div>
+                            <div style="font-weight: 600; color: #374151;">Get Rewards</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">Celebrate improvements</div>
                         </div>
                     </div>
                     <button class="btn btn-primary" style="width: 100%; padding: 1rem 2rem; font-size: 1.125rem;" id="start-logging-btn">
-    Start Logging Your Program
-</button>
+                        Start Logging Your Program
+                    </button>
                 </div>
                 
                 <div style="text-align: center; margin-top: 1rem;">
                     <p style="color: #6b7280; font-size: 0.875rem;">
-                        Don't want to create an account right now? That's okay!<br>
-                        Your program has been sent to your email.
+                        Your program has been sent to your email and is ready to log!
                     </p>
                 </div>
             </div>
@@ -313,6 +315,7 @@ function validateCurrentStep() {
             const selected = formData.equipmentAvailable || [];
             return selected.every(eq => formData.equipmentConfidence?.[eq]);
         case 5: return true;
+        case 6: return true;
         default: return true;
     }
 }
@@ -398,6 +401,7 @@ async function submitQuestionnaire() {
             id: programId,
             name: programName,
             frequency: formData.trainingDays,
+            duration: formData.sessionDuration,
             experience: formData.experience,
             generatedAt: new Date().toISOString(),
             userEmail: formData.email

@@ -1,4 +1,4 @@
-// Workout Logger JavaScript - Complete Program Support
+// Workout Logger JavaScript - Complete Program Support with Enhanced Prompts
 
 // State
 let currentProgram = null;
@@ -7,6 +7,7 @@ let workoutData = {};
 let programs = {};
 let dummyLogData = {};
 let isDevMode = false;
+let promptTimers = {}; // Store debounce timers for each exercise
 
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
@@ -231,13 +232,34 @@ function generateExerciseInterface(exercises) {
                     +<span class="counter-value">0</span>
                 </div>
             </div>
-            <div class="progression-prompt hidden" id="progression-prompt-${exerciseIndex}">
+            
+            <!-- Regression Prompt (Red) -->
+            <div class="regression-prompt hidden" id="regression-prompt-${exerciseIndex}">
+                <div class="progression-prompt-icon">⚠️</div>
+                <div class="progression-prompt-text">
+                    <div class="progression-prompt-title">Form check needed</div>
+                    <div class="progression-prompt-subtitle">Consider reducing weight for better form</div>
+                </div>
+            </div>
+            
+            <!-- Consistency Prompt (Amber) -->
+            <div class="progression-prompt hidden" id="consistency-prompt-${exerciseIndex}">
+                <div class="progression-prompt-icon">🎯</div>
+                <div class="progression-prompt-text">
+                    <div class="progression-prompt-title">Great consistency!</div>
+                    <div class="progression-prompt-subtitle">Try pushing a bit harder next time</div>
+                </div>
+            </div>
+            
+            <!-- Progression Prompt (Green) -->
+            <div class="progression-success hidden" id="progression-prompt-${exerciseIndex}">
                 <div class="progression-prompt-icon">💪</div>
                 <div class="progression-prompt-text">
                     <div class="progression-prompt-title">Ready to progress!</div>
                     <div class="progression-prompt-subtitle">Consider increasing weight next time</div>
                 </div>
             </div>
+            
             <div class="exercise-target" style="margin-bottom: 1rem; text-align: center;">
                 Target: ${exercise.sets} sets × ${exercise.repsMin}-${exercise.repsMax} reps
             </div>
@@ -290,30 +312,42 @@ function handleInput(event) {
     
     workoutData.exercises[exerciseIndex].sets[setIndex][type] = value;
     
-    // Update counters if reps changed
+    // Update counters and prompts if reps changed
     if (type === 'reps') {
         updateCounters(exerciseIndex);
+        
+        // Clear existing timer for this exercise
+        if (promptTimers[exerciseIndex]) {
+            clearTimeout(promptTimers[exerciseIndex]);
+        }
+        
+        // Set new debounced timer for prompt evaluation
+        promptTimers[exerciseIndex] = setTimeout(() => {
+            updateExercisePrompts(exerciseIndex);
+            delete promptTimers[exerciseIndex];
+        }, 500); // 500ms debounce delay
     }
 }
 
+// Updated function to compare against previous session data
 function updateCounters(exerciseIndex) {
-    const program = programs[currentProgram];
-    const day = program.days[currentDay];
-    const exercise = day.exercises[exerciseIndex];
     const exerciseData = workoutData.exercises[exerciseIndex];
     
-    // Calculate excess reps
+    // Calculate excess reps compared to previous session
     let excessReps = 0;
-    let setsExceedingRange = 0;
     
-    exerciseData.sets.forEach(set => {
-        if (set && set.reps && set.reps > exercise.repsMax) {
-            excessReps += (set.reps - exercise.repsMax);
-            setsExceedingRange++;
+    exerciseData.sets.forEach((currentSet, setIndex) => {
+        if (currentSet && currentSet.reps) {
+            const previousSetData = getPreviousSetData(exerciseIndex, setIndex);
+            const previousReps = previousSetData?.reps || 0;
+            
+            if (currentSet.reps > previousReps) {
+                excessReps += (currentSet.reps - previousReps);
+            }
         }
     });
     
-    // Update rep counter
+    // Update rep counter display
     const repCounter = document.getElementById(`rep-counter-${exerciseIndex}`);
     const counterValue = repCounter.querySelector('.counter-value');
     
@@ -323,22 +357,221 @@ function updateCounters(exerciseIndex) {
     } else {
         repCounter.classList.add('hidden');
     }
+}
+
+// New function to handle exercise completion prompts
+function updateExercisePrompts(exerciseIndex) {
+    const program = programs[currentProgram];
+    const day = program.days[currentDay];
+    const exercise = day.exercises[exerciseIndex];
+    const exerciseData = workoutData.exercises[exerciseIndex];
     
-    // Update progression prompt
-    const progressionPrompt = document.getElementById(`progression-prompt-${exerciseIndex}`);
+    // Check if all sets are completed (have both weight and reps)
+    const expectedSets = exercise.sets;
+    const completedSets = exerciseData.sets.filter(set => 
+        set && set.weight && set.reps && set.weight > 0 && set.reps > 0
+    ).length;
     
-    if (setsExceedingRange >= 2) {
-        progressionPrompt.classList.remove('hidden');
-    } else {
-        progressionPrompt.classList.add('hidden');
+    // Only show prompts when exercise is fully completed
+    if (completedSets !== expectedSets) {
+        hideAllPrompts(exerciseIndex);
+        return;
+    }
+    
+    // Evaluate prompt tier based on completed sets
+    const promptTier = evaluatePromptTier(exerciseIndex, exercise, exerciseData);
+    showPrompt(exerciseIndex, promptTier);
+}
+
+function evaluatePromptTier(exerciseIndex, exercise, exerciseData) {
+    const completedSets = exerciseData.sets.filter(set => 
+        set && set.weight && set.reps && set.weight > 0 && set.reps > 0
+    );
+    
+    // Check for regression (any set below minimum reps)
+    const hasRegression = completedSets.some(set => set.reps < exercise.repsMin);
+    if (hasRegression) {
+        return 'regression';
+    }
+    
+    // Check for progression (2+ sets above maximum reps)
+    const setsAboveMax = completedSets.filter(set => set.reps >= exercise.repsMax).length;
+    if (setsAboveMax >= 2) {
+        return 'progression';
+    }
+    
+    // Default to consistency (all sets within range)
+    return 'consistency';
+}
+
+function showPrompt(exerciseIndex, promptType) {
+    // Hide all prompts first
+    hideAllPrompts(exerciseIndex);
+    
+    // Show the appropriate prompt
+    const promptElement = document.getElementById(`${promptType}-prompt-${exerciseIndex}`);
+    if (promptElement) {
+        promptElement.classList.remove('hidden');
     }
 }
 
+function hideAllPrompts(exerciseIndex) {
+    const promptTypes = ['regression', 'progression', 'consistency'];
+    promptTypes.forEach(type => {
+        const promptElement = document.getElementById(`${type}-prompt-${exerciseIndex}`);
+        if (promptElement) {
+            promptElement.classList.add('hidden');
+        }
+    });
+}
+
 function completeWorkout() {
-    hideAllSteps();
-    document.getElementById('workout-summary').classList.remove('hidden');
+    // Show award screen first
+    showAwardScreen();
     
-    // Generate summary
+    // Generate summary data but don't show yet
+    generateSummaryData();
+}
+
+function hideAllSteps() {
+    document.querySelectorAll('.card').forEach(card => {
+        card.classList.add('hidden');
+    });
+}
+
+function calculateImprovements(exercises) {
+    const improvements = [];
+    
+    exercises.forEach((exercise, exerciseIndex) => {
+        const currentData = workoutData.exercises[exerciseIndex];
+        const previousData = dummyLogData[currentProgram]?.[currentDay]?.[exerciseIndex];
+        
+        if (!previousData || !currentData) return;
+        
+        // Calculate current totals
+        const currentWeights = currentData.sets.map(set => set.weight || 0).filter(w => w > 0);
+        const currentTotalReps = currentData.sets.reduce((sum, set) => sum + (set.reps || 0), 0);
+        
+        // Calculate previous totals
+        const previousWeights = previousData.sets.map(set => set.weight || 0).filter(w => w > 0);
+        const previousTotalReps = previousData.sets.reduce((sum, set) => sum + (set.reps || 0), 0);
+        
+        // Check for improvements
+        const maxCurrentWeight = Math.max(...currentWeights, 0);
+        const maxPreviousWeight = Math.max(...previousWeights, 0);
+        
+        const weightImproved = maxCurrentWeight > maxPreviousWeight;
+        const repsImproved = currentTotalReps > previousTotalReps;
+        
+        if (weightImproved || repsImproved) {
+            improvements.push({
+                exercise,
+                exerciseIndex,
+                weightImproved,
+                repsImproved,
+                weightIncrease: maxCurrentWeight - maxPreviousWeight,
+                repsIncrease: currentTotalReps - previousTotalReps
+            });
+        }
+    });
+    
+    return improvements;
+}
+
+function generateAwardScreen(exercises) {
+    const improvements = calculateImprovements(exercises);
+    const improvementsList = document.getElementById('improvements-list');
+    
+    if (improvements.length === 0) {
+        // Check if it's regression or just no change
+        const hasRegression = checkForRegression(exercises);
+        
+        if (hasRegression) {
+            // Show regression encouragement message
+            improvementsList.innerHTML = `
+                <div style="background: linear-gradient(135deg, #fef2f2, #fee2e2); padding: 1.5rem; border-radius: 1rem; border: 2px solid #fca5a5; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">💪</div>
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #dc2626; margin-bottom: 0.5rem;">
+                        Every workout counts!
+                    </div>
+                    <div style="color: #7f1d1d;">
+                        Not every session will be your best - that's completely normal! Recovery, sleep, and nutrition all play a role. You showed up, and that's what matters most.
+                    </div>
+                </div>
+            `;
+        } else {
+            // Show consistency message (matched previous session)
+            improvementsList.innerHTML = `
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 1.5rem; border-radius: 1rem; border: 2px solid #f59e0b; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">🔥</div>
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #92400e; margin-bottom: 0.5rem;">
+                        Consistency is key!
+                    </div>
+                    <div style="color: #a16207;">
+                        You matched your previous session perfectly. Maintaining your performance is still progress - you're building the habit!
+                    </div>
+                </div>
+            `;
+        }
+        return;
+    }
+    
+    // Show ALL improvements (however many there are)
+    const improvementsHTML = improvements.map(improvement => {
+        const { exercise, weightImproved, repsImproved, weightIncrease, repsIncrease } = improvement;
+        
+        let message = `${exercise.icon} Congratulations! You `;
+        
+        if (weightImproved && repsImproved) {
+            message += `lifted ${Math.abs(weightIncrease)}kg more and did ${Math.abs(repsIncrease)} more reps on ${exercise.name} versus last session`;
+        } else if (repsImproved) {
+            message += `did ${Math.abs(repsIncrease)} more reps on ${exercise.name} versus last session`;
+        } else if (weightImproved) {
+            message += `lifted ${Math.abs(weightIncrease)}kg more on ${exercise.name} versus last session`;
+        }
+        
+        return `
+            <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 1.5rem; border-radius: 1rem; border: 2px solid #bbf7d0; margin-bottom: 1rem;">
+                <div style="font-size: 1.125rem; font-weight: 600; color: #166534;">
+                    ${message}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    improvementsList.innerHTML = improvementsHTML;
+}
+
+function checkForRegression(exercises) {
+    let hasRegression = false;
+    
+    exercises.forEach((exercise, exerciseIndex) => {
+        const currentData = workoutData.exercises[exerciseIndex];
+        const previousData = dummyLogData[currentProgram]?.[currentDay]?.[exerciseIndex];
+        
+        if (!previousData || !currentData) return;
+        
+        // Calculate current totals
+        const currentWeights = currentData.sets.map(set => set.weight || 0).filter(w => w > 0);
+        const currentTotalReps = currentData.sets.reduce((sum, set) => sum + (set.reps || 0), 0);
+        
+        // Calculate previous totals
+        const previousWeights = previousData.sets.map(set => set.weight || 0).filter(w => w > 0);
+        const previousTotalReps = previousData.sets.reduce((sum, set) => sum + (set.reps || 0), 0);
+        
+        // Check for regression
+        const maxCurrentWeight = Math.max(...currentWeights, 0);
+        const maxPreviousWeight = Math.max(...previousWeights, 0);
+        
+        if (maxCurrentWeight < maxPreviousWeight || currentTotalReps < previousTotalReps) {
+            hasRegression = true;
+        }
+    });
+    
+    return hasRegression;
+}
+
+function generateSummaryData() {
     const program = programs[currentProgram];
     const day = program.days[currentDay];
     
@@ -357,13 +590,25 @@ function completeWorkout() {
                 completedSets++;
                 totalVolume += (set.weight * set.reps);
             }
-            if (set.reps > exercise.repsMax) {
-                totalExcessReps += (set.reps - exercise.repsMax);
+        });
+        
+        // Calculate excess reps vs previous session for summary
+        exerciseData.sets.forEach((currentSet, setIndex) => {
+            if (currentSet && currentSet.reps) {
+                const previousSetData = getPreviousSetData(index, setIndex);
+                const previousReps = previousSetData?.reps || 0;
+                if (currentSet.reps > previousReps) {
+                    totalExcessReps += (currentSet.reps - previousReps);
+                }
             }
         });
         
-        const setsExceedingRange = exerciseData.sets.filter(set => 
-            set && set.reps && set.reps > exercise.repsMax
+        // Check if exercise is ready to progress
+        const completedSetsForExercise = exerciseData.sets.filter(set => 
+            set && set.weight && set.reps && set.weight > 0 && set.reps > 0
+        );
+        const setsExceedingRange = completedSetsForExercise.filter(set => 
+            set.reps >= exercise.repsMax
         ).length;
         
         if (setsExceedingRange >= 2) {
@@ -388,7 +633,7 @@ function completeWorkout() {
         </div>
         <div class="summary-stat">
             <div class="stat-value">${totalExcessReps}</div>
-            <div class="stat-label">Excess Reps</div>
+            <div class="stat-label">Excess Reps vs Last</div>
         </div>
         <div class="summary-stat">
             <div class="stat-value">${exercisesReadyToProgress}</div>
@@ -399,8 +644,12 @@ function completeWorkout() {
     console.log('Workout completed:', workoutData);
 }
 
-function hideAllSteps() {
-    document.querySelectorAll('.card').forEach(card => {
-        card.classList.add('hidden');
-    });
+function showAwardScreen() {
+    const program = programs[currentProgram];
+    const day = program.days[currentDay];
+    
+    hideAllSteps();
+    document.getElementById('workout-award').classList.remove('hidden');
+    
+    generateAwardScreen(day.exercises);
 }

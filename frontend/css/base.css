@@ -1,0 +1,437 @@
+/* ===============================================
+   trAIn - Base Styles
+   Reset, utilities, typography, buttons, forms, layout
+   =============================================== */
+
+/* ===============================================
+   RESET & BASE
+   =============================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #ffffff;
+    color: #111827;
+    line-height: 1.6;
+}
+
+/* ===============================================
+   UTILITIES
+   =============================================== */
+.min-h-screen { min-height: 100vh; }
+.bg-white { background-color: #ffffff; }
+.text-center { text-align: center; }
+.hidden { display: none !important; }
+.mx-auto { margin: 0 auto; }
+
+/* ===============================================
+   LAYOUT
+   =============================================== */
+header {
+    padding: 2rem 1rem 1.5rem;
+    text-align: center;
+}
+
+.container {
+    max-width: 56rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+section {
+    padding-bottom: 4rem;
+}
+
+footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+/* ===============================================
+   TYPOGRAPHY
+   =============================================== */
+.header-logo {
+    height: 3rem;
+    margin-bottom: 1rem;
+}
+
+.header-title, .hero-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.75rem;
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+}
+
+.gradient-text {
+    background: linear-gradient(to right, #2563eb, #1d4ed8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+.header-subtitle, .hero-subtitle {
+    font-size: 1rem;
+    color: #4b5563;
+    max-width: 42rem;
+    margin: 0 auto;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+.question-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.75rem;
+}
+
+.question-subtitle {
+    font-size: 1.125rem;
+    color: #4b5563;
+}
+
+.question-container {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.footer-logo {
+    height: 2rem;
+    margin-bottom: 1rem;
+}
+
+.footer-text {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* ===============================================
+   CARDS
+   =============================================== */
+.card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f3f4f6;
+    padding: 2rem;
+    max-width: 42rem;
+    margin: 0 auto;
+}
+
+.success-icon {
+    width: 5rem;
+    height: 5rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 1.875rem;
+    color: white;
+}
+
+/* ===============================================
+   BUTTONS
+   =============================================== */
+.btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    text-decoration: none;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+    padding: 0.75rem 2rem;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: #e5e7eb;
+}
+
+.option-button {
+    width: 100%;
+    padding: 1rem;
+    text-align: left;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.option-button:hover {
+    border-color: #93c5fd;
+    background-color: #eff6ff;
+}
+
+.option-button.selected {
+    border-color: #2563eb;
+    background-color: #eff6ff;
+    color: #1e40af;
+}
+
+.option-text {
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+/* ===============================================
+   FORMS & INPUTS
+   =============================================== */
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.email-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-size: 1.125rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.email-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.email-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.email-submit-btn {
+    padding: 0.75rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.email-submit-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.email-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.form-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.error-message, .success-message {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+}
+
+.error-message {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.success-message {
+    background-color: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+/* ===============================================
+   NAVIGATION
+   =============================================== */
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+/* ===============================================
+   LANDING PAGE SPECIFIC
+   =============================================== */
+.hero-content {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 4rem 1rem;
+    text-align: center;
+}
+
+.email-capture-form {
+    max-width: 32rem;
+    margin: 0 auto 3rem;
+}
+
+.trust-indicators {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin: 3rem 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 4rem;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 2rem;
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1rem;
+}
+
+.feature-description {
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+/* ===============================================
+   STEP TRANSITIONS
+   =============================================== */
+.step {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.step.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+@media (min-width: 640px) {
+    .header-logo { height: 4rem; }
+    .header-title { font-size: 1.875rem; }
+    .hero-title { font-size: 3.5rem; }
+    .header-subtitle, .hero-subtitle { font-size: 1.125rem; }
+    .question-title { font-size: 1.875rem; }
+    
+    .email-input-container {
+        flex-direction: row;
+        gap: 0;
+    }
+    
+    .email-input {
+        border-radius: 0.75rem 0 0 0.75rem;
+        border-right: none;
+    }
+    
+    .email-submit-btn {
+        border-radius: 0 0.75rem 0.75rem 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .nav-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .btn { width: 100%; }
+    .card { padding: 1.5rem; }
+    .option-text { font-size: 1rem; }
+}

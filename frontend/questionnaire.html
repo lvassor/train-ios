@@ -16,10 +16,11 @@
     <link rel="apple-touch-icon" href="assets/images/bluelogo.png">
 
     <!-- Optimized CSS -->
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/questionnaire.css">  
 
     <!-- Preload critical JavaScript -->
-    <link rel="modulepreload" href="js/pages/questionnaire.js">
+    <link rel="modulepreload" href="js/questionnaire.js">
 </head>
 
 <body class="min-h-screen bg-white">
@@ -43,8 +44,8 @@
                     <div class="progress-container">
                         <div class="progress-header">
                             <span class="progress-text">Step <span id="currentStepText">1</span> of <span
-                                    id="totalStepsText">5</span></span>
-                            <span class="progress-text"><span id="progressPercentage">20</span>% complete</span>
+                                    id="totalStepsText">6</span></span>
+                            <span class="progress-text"><span id="progressPercentage">17</span>% complete</span>
                         </div>
                         <div class="progress-bar-bg">
                             <div class="progress-bar-fill" id="progressBar"></div>
@@ -59,13 +60,13 @@
                         </div>
                         <div class="options-container">
                             <button class="option-button" data-value="0_months" data-field="experience">
-                                <span class="option-text">🌱 Just starting out (0-6 months)</span>
+                                <span class="option-text">🌱 Just starting out (0–6 months)</span>
                             </button>
                             <button class="option-button" data-value="0_6_months" data-field="experience">
-                                <span class="option-text">🚀 Getting confident (6 months-1 year)</span>
+                                <span class="option-text">🚀 Getting confident (6 months–1 year)</span>
                             </button>
                             <button class="option-button" data-value="6_months_2_years" data-field="experience">
-                                <span class="option-text">💪 Pretty experienced (1-2 years)</span>
+                                <span class="option-text">💪 Pretty experienced (1–2 years)</span>
                             </button>
                             <button class="option-button" data-value="2_plus_years" data-field="experience">
                                 <span class="option-text">🎯 Experienced Lifter (2+ years)</span>
@@ -157,55 +158,28 @@
                         <div class="form-error" id="trainingDays-error"></div>
                     </div>
 
-                    <!-- Success Step -->
-                    <div class="step hidden" id="step-success">
-                        <div class="success-container">
-                            <div class="success-icon">✓</div>
-                            <h2 class="question-title">Your bespoke program is ready!</h2>
-                            <p class="question-subtitle" style="margin-bottom: 2rem;">
-                                We've created a <strong>personalized training program</strong> just for you and sent it
-                                to your email.
-                            </p>
-                            <p style="color: #6b7280; margin-bottom: 2rem;">
-                                Check your inbox for your custom workout plan!
-                            </p>
-
-                            <!-- Account Creation CTA -->
-                            <div
-                                style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 2rem; border-radius: 1rem; border: 2px solid #93c5fd; margin-bottom: 2rem;">
-                                <h3
-                                    style="font-size: 1.5rem; font-weight: 700; color: #1e40af; margin-bottom: 1rem; text-align: center;">
-                                    🚀 Take your training to the next level
-                                </h3>
-                                <p style="color: #4b5563; text-align: center; margin-bottom: 1.5rem;">
-                                    Join <strong>10,000+ users</strong> who are crushing their fitness goals with our
-                                    in-app coaching experience
-                                </p>
-                                <div
-                                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; text-align: center;">
-                                    <div>
-                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📊</div>
-                                        <div style="font-weight: 600; color: #374151;">Track Progress</div>
-                                        <div style="font-size: 0.875rem; color: #6b7280;">See your strength gains</div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚡</div>
-                                        <div style="font-weight: 600; color: #374151;">Log Workouts</div>
-                                        <div style="font-size: 0.875rem; color: #6b7280;">Quick & easy logging</div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🤖</div>
-                                        <div style="font-weight: 600; color: #374151;">AI Coaching</div>
-                                        <div style="font-size: 0.875rem; color: #6b7280;">Personalized tips</div>
-                                    </div>
+                    <!-- Step 6: Session duration -->
+                    <div class="step hidden" id="step-6">
+                        <div class="question-container">
+                            <h2 class="question-title">How long can you commit to each session?</h2>
+                            <p class="question-subtitle">Choose your available time per workout</p>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <div class="slider-labels">
+                                    <span>45 min</span>
+                                    <span>60 min</span>
+                                    <span>75 min</span>
+                                    <span>90 min</span>
                                 </div>
-                                <button class="btn btn-primary"
-                                    style="width: 100%; padding: 1rem 2rem; font-size: 1.125rem;"
-                                    id="create-account-btn">
-                                    Begin Logging Your Workout
-                                </button>
+                                <input type="range" id="sessionDuration" class="slider" min="45" max="90" value="60"
+                                    step="15" data-field="sessionDuration">
+                                <div class="slider-value">
+                                    <span id="sessionDurationValue">60</span> minutes per session
+                                </div>
                             </div>
                         </div>
+                        <div class="form-error" id="sessionDuration-error"></div>
                     </div>
 
                     <!-- Navigation Buttons -->
@@ -220,7 +194,7 @@
 
         <footer>
             <div class="footer-content">
-                <img src="/assets/images/logo_light.png" alt="trAIn" class="footer-logo">
+                <img src="assets/images/logo_light.png" alt="trAIn" class="footer-logo">
                 <p class="footer-text">© 2025 trAIn. Building the future of strength training.</p>
             </div>
         </footer>

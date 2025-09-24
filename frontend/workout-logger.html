@@ -15,7 +15,9 @@
     <link rel="apple-touch-icon" href="assets/images/bluelogo.png">
     
     <!-- Optimized CSS -->
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/questionnaire.css">  
+    <link rel="stylesheet" href="css/logger.css">
     
     <!-- Preload critical JavaScript -->
     <link rel="modulepreload" href="js/workout-logger.js">
@@ -84,6 +86,31 @@
                     </div>
                 </div>
 
+                <!-- Award Screen -->
+                <div class="card hidden" id="workout-award">
+                    <div class="success-container">
+                        <div class="success-icon">🏆</div>
+                        <h2 class="question-title">Amazing workout in the books!</h2>
+                        <p class="question-subtitle" style="margin-bottom: 2rem;">
+                            Well done for another workout logged! Here's what you crushed today:
+                        </p>
+                        
+                        <div id="improvements-list" style="margin-bottom: 2rem;">
+                            <!-- Dynamic improvements will be populated here -->
+                        </div>
+                        
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <p style="color: #6b7280; font-size: 0.875rem;">
+                                Keep up the great work! Consistency is key to reaching your goals.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-buttons">
+                        <button class="btn btn-primary" id="continue-to-summary">View Workout Summary</button>
+                    </div>
+                </div>
+
                 <!-- Workout Summary -->
                 <div class="card hidden" id="workout-summary">
                     <div class="workout-summary">
@@ -102,7 +129,7 @@
         
         <footer>
             <div class="footer-content">
-                <img src="/toplogo.png" alt="trAIn" class="footer-logo">
+                <img src="assets/images/logo_light.png" alt="trAIn" class="footer-logo">
                 <p class="footer-text">© 2025 trAIn. Building the future of strength training.</p>
             </div>
         </footer>

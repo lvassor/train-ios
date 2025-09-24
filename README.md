@@ -2,17 +2,20 @@
 
 > **Building the future of strength training through intelligent program generation and personalized coaching.**
 
-[![Build Status](https://github.com/yourusername/train/workflows/CI/badge.svg)](https://github.com/yourusername/train/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/yourusername/train/releases)
+<img src="frontend/assets/images/logo_light.png" alt="trAIn Logo" width="100">
 
-[🚀 Live Demo](https://train-app.vercel.app) • [📖 Documentation](./docs) • [🐛 Report Bug](https://github.com/yourusername/train/issues) • [💡 Request Feature](https://github.com/yourusername/train/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/lukevassor/train/releases)
+
+[🚀 Live Demo](https://train-app.vercel.app) • [📖 Documentation](./docs) • [🐛 Report Bug](https://github.com/lukevassor/train/issues) • [💡 Request Feature](https://github.com/lukevassor/train/issues)
 
 ---
 
 ## ✨ What is trAIn?
 
 trAIn is a revolutionary fitness platform that combines **expert trainer knowledge** with **AI intelligence** to create personalized workout programs in 60 seconds. No more generic routines or guesswork—just results.
+
+**Created by**: Luke Vassor & Brody Bastiman
 
 ### 🎯 Key Features
 
@@ -22,6 +25,106 @@ trAIn is a revolutionary fitness platform that combines **expert trainer knowled
 - **📱 Workout Logger**: Track progress with intuitive exercise logging
 - **📊 Progress Analytics**: Visualize strength gains and workout consistency
 - **🎯 Adaptive Programs**: Automatically adjusts as you progress
+
+---
+
+## 📋 Application Flow
+
+### High-Level User Journey
+
+```
+Landing Page → Email Capture → Questionnaire → Loading → Success → Workout Logger
+```
+
+### Section-by-Section Breakdown
+
+#### 1. **Landing Page** (`index.html`)
+- Hero section with value proposition
+- Email capture form with validation
+- Trust indicators and feature highlights
+- Redirects to questionnaire after email submission
+
+#### 2. **Questionnaire Flow** (`questionnaire.html`)
+**6-Step Progressive Questionnaire:**
+
+1. **Experience Level**: Training background assessment
+2. **Why Using App**: Motivation and pain points (multiple selection)
+3. **Equipment Available**: Available gym equipment (multiple selection) 
+4. **Equipment Confidence**: Dynamic confidence ratings for selected equipment
+5. **Training Frequency**: Days per week slider (2-5 days)
+6. **Session Duration**: Time commitment slider (45-90 minutes)
+
+**Features:**
+- Dynamic progress bar with percentage completion
+- Form validation with error messaging
+- Equipment-based dynamic confidence generation
+- Local storage for email persistence
+
+#### 3. **Loading Screen**
+- Animated multi-step loading process
+- 5-stage progress simulation:
+  - Experience analysis
+  - Equipment matching  
+  - Program selection
+  - Exercise customization
+  - Final optimization
+- Visual feedback with icons and progress bars
+
+#### 4. **Success Screen** 
+- Program confirmation with personalized details
+- Email delivery confirmation
+- Call-to-action to start workout logging
+- Celebration messaging and next steps
+
+#### 5. **Workout Logger** (`workout-logger.html`)
+**Multi-Stage Logging Process:**
+
+- **Program Selection** (Dev mode): Choose from available programs
+- **Day Selection**: Pick specific training day
+- **Exercise Logging**: Log sets, reps, and weights
+- **Workout Completion**: Award screen and summary
+
+---
+
+## 🧠 Smart Prompt Logic System
+
+### Traffic Light Progression System
+
+The workout logger uses an intelligent **hierarchical prompt system** to provide contextual feedback based on performance:
+
+#### 🔴 **Regression Prompt** (Highest Priority)
+```javascript
+// Triggered when ANY set falls below minimum reps
+if (anySet.reps < exercise.repsMin) {
+  showPrompt('regression'); // ⚠️ Form check needed - reduce weight
+}
+```
+
+#### 🟢 **Progression Prompt** (Medium Priority)  
+```javascript
+// Triggered when 2+ sets exceed maximum reps
+if (setsAboveMax >= 2 && !hasRegression) {
+  showPrompt('progression'); // 💪 Ready to progress - increase weight
+}
+```
+
+#### 🟡 **Consistency Prompt** (Default)
+```javascript
+// Triggered when all sets are within target range
+if (allSetsInRange) {
+  showPrompt('consistency'); // 🎯 Great consistency - push harder next time
+}
+```
+
+### Key Implementation Details
+
+**Debounced Evaluation**: Prompts use a 500ms debounce to prevent flickering during multi-digit input
+
+**Completion-Based**: Prompts only appear when all sets for an exercise are completed (both weight and reps entered)
+
+**Set-by-Set Comparison**: Rep counters compare current performance against previous session data on individual set basis, not totals
+
+**Hierarchical Logic**: Regression always takes priority over progression when both conditions are present, ensuring safety and form guidance
 
 ---
 
@@ -37,7 +140,7 @@ trAIn is a revolutionary fitness platform that combines **expert trainer knowled
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/train.git
+git clone https://github.com/lukevassor/train.git
 cd train
 
 # Install dependencies
@@ -62,7 +165,7 @@ npm run dev
 
 ---
 
-## 🏗️ Architecture
+## 🗃️ Architecture
 
 trAIn follows a **component-based architecture** with clear separation of concerns:
 
@@ -82,42 +185,27 @@ trAIn/
 | **Frontend** | Vanilla JS + Web Components | Lightweight, fast, no framework bloat |
 | **Backend** | Node.js + Express | Mature ecosystem, great performance |
 | **Database** | PostgreSQL + Objection.js | Relational data with powerful ORM |
-| **Styling** | CSS Variables + BEM | Maintainable, performant styling |
+| **Styling** | CSS Variables + Modular CSS | Maintainable, performant styling |
 | **Testing** | Jest + Playwright | Unit, integration, and E2E coverage |
 | **Deployment** | Vercel + Railway | Easy scaling and deployment |
 
 ---
 
-## 🎨 Component System
+## 🎨 CSS Architecture
 
-Our **modular component system** ensures consistency and maintainability:
+**Modular CSS Structure** for maintainable styling:
 
-### 🧱 Base Components
-
-```javascript
-// Reusable, styled components
-Button({ variant: 'primary', size: 'lg', text: 'Get Started' })
-Card({ interactive: true, compact: false })
-ProgressBar({ percentage: 75, animated: true })
+```
+css/
+├── base.css           # Reset, typography, buttons, layout (~270 lines)
+├── questionnaire.css  # Progress bars, sliders, loading (~160 lines) 
+└── logger.css         # Exercise cards, prompts, summaries (~280 lines)
 ```
 
-### 🎯 Feature Components
-
-```javascript
-// Domain-specific components
-QuestionStep({ title, options, onAnswer })
-ExerciseCard({ exercise, sets, onComplete })
-WorkoutSummary({ stats, achievements })
-```
-
-### 📱 Page Components
-
-```javascript
-// Full page implementations
-Landing({ heroMessage, features })
-Questionnaire({ steps, validation })
-WorkoutLogger({ program, exercises })
-```
+**Benefits:**
+- Reduced upload overhead during development
+- Feature-specific styling isolation  
+- Easier maintenance and debugging
 
 ---
 
@@ -192,7 +280,7 @@ npm run test:e2e        # Full user journey testing
 npm run test:perf       # Lighthouse and load testing
 ```
 
-### 📏 Code Quality
+### 📝 Code Quality
 
 We maintain high code quality with:
 
@@ -242,7 +330,7 @@ We love contributions! Here's how to get started:
 
 ### 🐛 Bug Reports
 
-Found a bug? Please [create an issue](https://github.com/yourusername/train/issues/new?template=bug_report.md) with:
+Found a bug? Please [create an issue](https://github.com/lukevassor/train/issues/new?template=bug_report.md) with:
 
 - **Description**: What happened vs. what you expected
 - **Steps**: How to reproduce the issue
@@ -251,7 +339,7 @@ Found a bug? Please [create an issue](https://github.com/yourusername/train/issu
 
 ### 💡 Feature Requests
 
-Have an idea? [Submit a feature request](https://github.com/yourusername/train/issues/new?template=feature_request.md) with:
+Have an idea? [Submit a feature request](https://github.com/lukevassor/train/issues/new?template=feature_request.md) with:
 
 - **Problem**: What pain point does this solve?
 - **Solution**: How would you like it to work?
@@ -324,14 +412,14 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - 📧 **Email**: support@train-app.com
 - 💬 **Discord**: [Join our community](https://discord.gg/train)
 - 📖 **Docs**: [Full documentation](./docs)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/yourusername/train/issues)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/lukevassor/train/issues)
 
 ---
 
 <div align="center">
 
-**[⭐ Star this repo](https://github.com/yourusername/train) if trAIn helped you achieve your fitness goals!**
+**[⭐ Star this repo](https://github.com/lukevassor/train) if trAIn helped you achieve your fitness goals!**
 
-Made with ❤️ by the trAIn team
+Made with ❤️ by Luke Vassor & Brody Bastiman
 
 </div>
