@@ -95,7 +95,26 @@ function createTables() {
             console.error('UAT feedback table creation failed:', err.message);
         } else {
             console.log('Database tables initialized');
+            // Create indexes for better query performance
+            createIndexes();
         }
+    });
+}
+
+function createIndexes() {
+    // Index on questionnaires.email for faster lookups
+    db.run('CREATE INDEX IF NOT EXISTS idx_questionnaires_email ON questionnaires(email)', (err) => {
+        if (err) console.error('Index creation failed:', err.message);
+    });
+
+    // Index on uat_feedback.email for faster lookups
+    db.run('CREATE INDEX IF NOT EXISTS idx_uat_feedback_email ON uat_feedback(email)', (err) => {
+        if (err) console.error('Index creation failed:', err.message);
+    });
+
+    // Index on created_at fields for time-based queries
+    db.run('CREATE INDEX IF NOT EXISTS idx_beta_users_created_at ON beta_users(created_at)', (err) => {
+        if (err) console.error('Index creation failed:', err.message);
     });
 }
 

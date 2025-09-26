@@ -677,12 +677,18 @@ footer {
     }
 }
 
+/* Loading spinner animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 @media (max-width: 640px) {
     .nav-buttons {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     .btn { width: 100%; }
     .card { padding: 1.5rem; }
     .option-text { font-size: 1rem; }
