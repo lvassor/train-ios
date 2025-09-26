@@ -97,6 +97,9 @@ function attachEventListeners() {
             showDaySelection();
         }
     });
+
+    // Summary button
+    document.getElementById('continue-to-summary')?.addEventListener('click', showWorkoutSummary);
 }
 
 function selectProgram(programKey) {
@@ -366,14 +369,32 @@ function updateExercisePrompts(exerciseIndex) {
     const exercise = day.exercises[exerciseIndex];
     const exerciseData = workoutData.exercises[exerciseIndex];
     
+    console.log(`=== WORKOUT DATA DEBUG ===`);
+    console.log('Exercise data sets:', exerciseData.sets);
+    
+    // Let's see what each set looks like
+    exerciseData.sets.forEach((set, index) => {
+        console.log(`Set ${index}:`, set);
+        if (set) {
+            console.log(`  Weight: ${set.weight} (type: ${typeof set.weight})`);
+            console.log(`  Reps: ${set.reps} (type: ${typeof set.reps})`);
+            console.log(`  Weight > 0: ${set.weight > 0}`);
+            console.log(`  Reps > 0: ${set.reps > 0}`);
+        }
+    });
+    
     // Check if all sets are completed (have both weight and reps)
     const expectedSets = exercise.sets;
     const completedSets = exerciseData.sets.filter(set => 
         set && set.weight && set.reps && set.weight > 0 && set.reps > 0
     ).length;
     
+    console.log('Expected sets:', expectedSets);
+    console.log('Completed sets:', completedSets);
+    
     // Only show prompts when exercise is fully completed
     if (completedSets !== expectedSets) {
+        console.log('Not all sets completed, hiding prompts');
         hideAllPrompts(exerciseIndex);
         return;
     }
@@ -388,30 +409,51 @@ function evaluatePromptTier(exerciseIndex, exercise, exerciseData) {
         set && set.weight && set.reps && set.weight > 0 && set.reps > 0
     );
     
+    console.log(`=== DEBUG Exercise ${exerciseIndex}: ${exercise.name} ===`);
+    console.log('Completed sets:', completedSets);
+    console.log('Target range:', exercise.repsMin, '-', exercise.repsMax);
+    
     // Check for regression (any set below minimum reps)
     const hasRegression = completedSets.some(set => set.reps < exercise.repsMin);
+    console.log('Has regression:', hasRegression);
+    
     if (hasRegression) {
+        console.log('RETURNING: regression');
         return 'regression';
     }
     
     // Check for progression (2+ sets above maximum reps)
     const setsAboveMax = completedSets.filter(set => set.reps >= exercise.repsMax).length;
+    console.log('Sets above max:', setsAboveMax);
+    
     if (setsAboveMax >= 2) {
+        console.log('RETURNING: progression');
         return 'progression';
     }
     
     // Default to consistency (all sets within range)
+    console.log('RETURNING: consistency');
     return 'consistency';
 }
 
 function showPrompt(exerciseIndex, promptType) {
+    console.log(`=== SHOWING PROMPT ===`);
+    console.log(`Exercise: ${exerciseIndex}, Type: ${promptType}`);
+    
     // Hide all prompts first
     hideAllPrompts(exerciseIndex);
     
     // Show the appropriate prompt
     const promptElement = document.getElementById(`${promptType}-prompt-${exerciseIndex}`);
+    console.log('Looking for element ID:', `${promptType}-prompt-${exerciseIndex}`);
+    console.log('Element found:', promptElement);
+    
     if (promptElement) {
+        console.log('Removing hidden class...');
         promptElement.classList.remove('hidden');
+        console.log('Element classes after:', promptElement.className);
+    } else {
+        console.error('ELEMENT NOT FOUND!');
     }
 }
 
@@ -617,8 +659,14 @@ function generateSummaryData() {
     });
     
     const completionRate = Math.round((completedSets / totalSets) * 100);
-    
+
     document.getElementById('summary-stats').innerHTML = `
+        <div class="summary-stat workout-description" style="grid-column: 1 / -1; background: linear-gradient(135deg, #f3f4f6, #e5e7eb); border: 1px solid #d1d5db; padding: 1.5rem;">
+            <div class="stat-value" style="font-size: 1.25rem; color: #374151; margin-bottom: 0.5rem;">${day.name}</div>
+            <div class="stat-label" style="color: #6b7280; font-size: 0.875rem;">
+                ${program.name} • Day ${currentDay + 1} • ${day.exercises.length} exercises completed
+            </div>
+        </div>
         <div class="summary-stat">
             <div class="stat-value">${completedSets}</div>
             <div class="stat-label">Sets Completed</div>
@@ -647,9 +695,74 @@ function generateSummaryData() {
 function showAwardScreen() {
     const program = programs[currentProgram];
     const day = program.days[currentDay];
-    
+
     hideAllSteps();
     document.getElementById('workout-award').classList.remove('hidden');
-    
+
     generateAwardScreen(day.exercises);
+}
+
+function showWorkoutSummary() {
+    const program = programs[currentProgram];
+    const day = program.days[currentDay];
+
+    hideAllSteps();
+    document.getElementById('workout-summary').classList.remove('hidden');
+
+    generateWorkoutSummary(day.exercises);
+}
+
+function generateWorkoutSummary(exercises) {
+    const summaryStats = document.getElementById('summary-stats');
+    const program = programs[currentProgram];
+    const day = program.days[currentDay];
+
+    // Calculate workout statistics
+    let totalSets = 0;
+    let totalReps = 0;
+    let totalWeight = 0;
+    let exerciseCount = exercises.length;
+
+    exercises.forEach((exercise, exerciseIndex) => {
+        const currentData = workoutData.exercises[exerciseIndex];
+        if (currentData) {
+            totalSets += currentData.sets.length;
+            currentData.sets.forEach(set => {
+                totalReps += set.reps || 0;
+                totalWeight += (set.weight || 0) * (set.reps || 0);
+            });
+        }
+    });
+
+    const summaryHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div style="background: linear-gradient(135deg, #f3f4f6, #e5e7eb); padding: 1.5rem; border-radius: 1rem; border: 2px solid #d1d5db; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #374151;">${day.name}</div>
+                <div style="font-size: 0.875rem; color: #6b7280;">${program.name}</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 1.5rem; border-radius: 1rem; border: 2px solid #bbf7d0; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">💪</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #166534;">${exerciseCount}</div>
+                <div style="font-size: 0.875rem; color: #15803d;">Exercises</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 1.5rem; border-radius: 1rem; border: 2px solid #93c5fd; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔢</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #1e40af;">${totalSets}</div>
+                <div style="font-size: 0.875rem; color: #1d4ed8;">Total Sets</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 1.5rem; border-radius: 1rem; border: 2px solid #f59e0b; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔥</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #92400e;">${totalReps}</div>
+                <div style="font-size: 0.875rem; color: #a16207;">Total Reps</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #fdf2f8, #fce7f3); padding: 1.5rem; border-radius: 1rem; border: 2px solid #f9a8d4; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚖️</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #be185d;">${Math.round(totalWeight)}kg</div>
+                <div style="font-size: 0.875rem; color: #be185d;">Volume Load</div>
+            </div>
+        </div>
+    `;
+
+    summaryStats.innerHTML = summaryHTML;
 }

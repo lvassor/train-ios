@@ -7,16 +7,19 @@
 // STATE MANAGEMENT
 // ============================================================================
 let currentStep = 1;
-const totalSteps = 6;
+const totalSteps = 8;
 
 const formData = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    emailOptOut: false,
     experience: '',
     whyUsingApp: [],
     equipmentAvailable: [],
     equipmentConfidence: {},
     trainingDays: 3,
-    sessionDuration: 60,
-    email: sessionStorage.getItem('userEmail') || ''
+    sessionDuration: 60
 };
 
 const equipmentLabels = {
@@ -34,11 +37,35 @@ const multipleChoiceFields = ['whyUsingApp', 'equipmentAvailable'];
 document.addEventListener('DOMContentLoaded', init);
 
 function init() {
+    loadUserData();
     attachEventListeners();
     createLoadingScreen();
     createSuccessScreen();
     updateProgress();
     showStep(currentStep);
+}
+
+function loadUserData() {
+    // Load data from beta-landing form if it exists
+    const betaUser = sessionStorage.getItem('betaUser');
+    if (betaUser) {
+        const userData = JSON.parse(betaUser);
+        formData.firstName = userData.firstName || '';
+        formData.lastName = userData.lastName || '';
+        formData.email = userData.email || '';
+        formData.emailOptOut = userData.emailOptOut || false;
+
+        // Populate the form fields if they exist
+        const firstNameField = document.getElementById('firstName');
+        const lastNameField = document.getElementById('lastName');
+        const emailField = document.getElementById('email');
+        const emailOptOutField = document.getElementById('emailOptOut');
+
+        if (firstNameField) firstNameField.value = formData.firstName;
+        if (lastNameField) lastNameField.value = formData.lastName;
+        if (emailField) emailField.value = formData.email;
+        if (emailOptOutField) emailOptOutField.checked = formData.emailOptOut;
+    }
 }
 
 function attachEventListeners() {
@@ -48,7 +75,7 @@ function attachEventListeners() {
             handleOptionClick(e.target.closest('.option-button'));
         }
         if (e.target.id === 'start-logging-btn') {
-            window.location.href = 'workout-logger.html';
+            window.location.href = '/logger';
         }
     });
 
@@ -60,6 +87,26 @@ function attachEventListeners() {
         if (e.target.matches('.confidence-slider')) {
             handleConfidenceSlider(e.target);
         }
+        if (e.target.matches('#firstName, #lastName, #email')) {
+            handleTextInput(e.target);
+        }
+        if (e.target.matches('#emailOptOut')) {
+            formData.emailOptOut = e.target.checked;
+        }
+    });
+
+    // Input validation on blur
+    document.addEventListener('blur', function (e) {
+        if (e.target.matches('#firstName, #lastName, #email')) {
+            validateField(e.target.id);
+        }
+    }, true);
+
+    // Clear errors on input
+    document.addEventListener('input', function (e) {
+        if (e.target.matches('#firstName, #lastName, #email')) {
+            clearError(e.target.id);
+        }
     });
 
     // Navigation
@@ -70,6 +117,11 @@ function attachEventListeners() {
 // ============================================================================
 // EVENT HANDLERS
 // ============================================================================
+function handleTextInput(input) {
+    const field = input.id;
+    const value = input.value.trim();
+    formData[field] = value;
+}
 function handleOptionClick(button) {
     const field = button.dataset.field;
     const value = button.dataset.value;
@@ -308,15 +360,92 @@ function createSuccessScreen() {
 // ============================================================================
 function validateCurrentStep() {
     switch (currentStep) {
-        case 1: return !!formData.experience;
-        case 2: return formData.whyUsingApp?.length > 0;
-        case 3: return formData.equipmentAvailable?.length > 0;
-        case 4: 
+        case 1: return validateField('firstName') && validateField('lastName');
+        case 2: return validateField('email');
+        case 3: return !!formData.experience;
+        case 4: return formData.whyUsingApp?.length > 0;
+        case 5: return formData.equipmentAvailable?.length > 0;
+        case 6:
             const selected = formData.equipmentAvailable || [];
             return selected.every(eq => formData.equipmentConfidence?.[eq]);
-        case 5: return true;
-        case 6: return true;
+        case 7: return true;
+        case 8: return true;
         default: return true;
+    }
+}
+
+function validateField(fieldName) {
+    const field = document.getElementById(fieldName);
+    if (!field) return true;
+
+    const value = field.value.trim();
+
+    // Clear previous errors
+    clearError(fieldName);
+
+    // Validate based on field type
+    switch (fieldName) {
+        case 'firstName':
+        case 'lastName':
+            if (!value) {
+                showError(fieldName, `${fieldName === 'firstName' ? 'First' : 'Last'} name is required`);
+                return false;
+            }
+            if (value.length < 2) {
+                showError(fieldName, 'Name must be at least 2 characters');
+                return false;
+            }
+            if (!/^[a-zA-Z\s'-]+$/.test(value)) {
+                showError(fieldName, 'Please enter a valid name');
+                return false;
+            }
+            break;
+
+        case 'email':
+            if (!value) {
+                showError(fieldName, 'Email is required');
+                return false;
+            }
+            if (!isValidEmail(value)) {
+                showError(fieldName, 'Please enter a valid email address');
+                return false;
+            }
+            break;
+    }
+
+    return true;
+}
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function showError(fieldName, message) {
+    const errorElement = document.getElementById(`${fieldName}-error`);
+    const field = document.getElementById(fieldName);
+
+    if (errorElement) {
+        errorElement.textContent = message;
+    }
+
+    if (field) {
+        field.style.borderColor = '#dc2626';
+        field.style.boxShadow = '0 0 0 3px rgba(220, 38, 38, 0.1)';
+    }
+}
+
+function clearError(fieldName) {
+    const errorElement = document.getElementById(`${fieldName}-error`);
+    const field = document.getElementById(fieldName);
+
+    if (errorElement) {
+        errorElement.textContent = '';
+    }
+
+    if (field) {
+        field.style.borderColor = '';
+        field.style.boxShadow = '';
     }
 }
 
@@ -358,7 +487,7 @@ function showStep(stepNumber) {
         targetStep.classList.add('active');
     }
 
-    if (stepNumber === 4) {
+    if (stepNumber === 6) {
         generateConfidenceRatings();
     }
 
@@ -408,6 +537,16 @@ async function submitQuestionnaire() {
         };
         
         sessionStorage.setItem('userProgram', JSON.stringify(programData));
+
+        // Update user data in session
+        sessionStorage.setItem('betaUser', JSON.stringify({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            emailOptOut: formData.emailOptOut
+        }));
+        sessionStorage.setItem('userEmail', formData.email);
+        sessionStorage.setItem('userName', `${formData.firstName} ${formData.lastName}`);
         
         showLoadingScreen();
         simulateLoadingAnimation();

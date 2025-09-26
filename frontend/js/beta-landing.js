@@ -1,0 +1,259 @@
+/**
+ * trAIn Beta Landing Page JavaScript
+ * Handles landing page redirect and UAT feedback functionality
+ */
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+document.addEventListener('DOMContentLoaded', init);
+
+function init() {
+    attachEventListeners();
+    setupPage();
+}
+
+function setupPage() {
+    // Check if we're on the feedback page
+    if (window.location.pathname.includes('feedback')) {
+        setupFeedbackPage();
+    }
+}
+
+function attachEventListeners() {
+    // Landing page start button
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+        startBtn.addEventListener('click', handleStartClick);
+    }
+
+    // Logger summary feedback button
+    const feedbackBtn = document.getElementById('give-feedback');
+    if (feedbackBtn) {
+        feedbackBtn.addEventListener('click', handleFeedbackClick);
+    }
+
+    // UAT Feedback form elements
+    setupFeedbackFormListeners();
+}
+
+function handleStartClick() {
+    // Direct redirect to questionnaire
+    window.location.href = '/questionnaire';
+}
+
+function handleFeedbackClick() {
+    // Redirect to feedback form
+    window.location.href = '/feedback';
+}
+
+// ============================================================================
+// UAT FEEDBACK FUNCTIONALITY
+// ============================================================================
+function setupFeedbackPage() {
+    // Character counters
+    setupCharacterCounters();
+    // Star rating
+    setupStarRating();
+}
+
+function setupFeedbackFormListeners() {
+    // Feedback form submission
+    const feedbackForm = document.getElementById('feedbackForm');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', handleFeedbackSubmit);
+    }
+}
+
+function setupCharacterCounters() {
+    const textareas = [
+        { id: 'lovedMost', countId: 'lovedMostCount' },
+        { id: 'improvements', countId: 'improvementsCount' }
+    ];
+
+    textareas.forEach(({ id, countId }) => {
+        const textarea = document.getElementById(id);
+        const counter = document.getElementById(countId);
+        if (textarea && counter) {
+            textarea.addEventListener('input', () => {
+                counter.textContent = textarea.value.length;
+            });
+        }
+    });
+}
+
+function setupStarRating() {
+    const stars = document.querySelectorAll('.rating-star');
+    const ratingInput = document.getElementById('overallRating');
+    const ratingText = document.getElementById('ratingText');
+
+    const ratingTexts = {
+        1: "Needs work",
+        2: "Could be better",
+        3: "Good experience",
+        4: "Really good!",
+        5: "Amazing! 🎉"
+    };
+
+    stars.forEach((star, index) => {
+        star.addEventListener('click', () => {
+            const rating = parseInt(star.dataset.rating);
+
+            // Update visual state with smooth transition
+            stars.forEach((s, i) => {
+                s.style.transition = 'color 0.2s ease, transform 0.1s ease';
+                if (i < rating) {
+                    s.style.color = '#f59e0b'; // bright orange/yellow
+                    s.style.transform = 'scale(1.1)';
+                    setTimeout(() => s.style.transform = 'scale(1)', 100);
+                } else {
+                    s.style.color = '#d1d5db'; // gray
+                    s.style.transform = 'scale(1)';
+                }
+            });
+
+            // Update form data
+            ratingInput.value = rating;
+            ratingText.textContent = ratingTexts[rating];
+        });
+
+        // Hover effects
+        star.addEventListener('mouseenter', () => {
+            const rating = parseInt(star.dataset.rating);
+            stars.forEach((s, i) => {
+                s.style.transition = 'color 0.15s ease';
+                if (i < rating) {
+                    s.style.color = '#fbbf24'; // lighter yellow on hover
+                } else {
+                    s.style.color = '#d1d5db';
+                }
+            });
+        });
+    });
+
+    // Reset to current rating on mouse leave
+    const ratingContainer = document.querySelector('.rating-container');
+    if (ratingContainer) {
+        ratingContainer.addEventListener('mouseleave', () => {
+            const currentRating = parseInt(ratingInput.value) || 0;
+            stars.forEach((s, i) => {
+                s.style.transition = 'color 0.2s ease';
+                if (i < currentRating) {
+                    s.style.color = '#f59e0b'; // match the clicked color
+                } else {
+                    s.style.color = '#d1d5db';
+                }
+            });
+        });
+    }
+}
+
+async function handleFeedbackSubmit(event) {
+    event.preventDefault();
+
+    const formData = {
+        email: sessionStorage.getItem('userEmail'),
+        overallRating: document.getElementById('overallRating').value,
+        lovedMost: document.getElementById('lovedMost').value.trim(),
+        improvements: document.getElementById('improvements').value.trim(),
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href
+    };
+
+    // Basic validation
+    if (!formData.overallRating) {
+        showFeedbackError('Please rate your overall experience');
+        return;
+    }
+
+    if (!formData.email) {
+        showFeedbackError('Session expired. Please complete the questionnaire first.');
+        return;
+    }
+
+    // Show loading state
+    setFeedbackLoadingState(true);
+
+    try {
+        // Submit to backend
+        const response = await fetch('/api/uat-feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Show thank you section
+            showThankYouSection();
+        } else {
+            throw new Error(result.message || 'Feedback submission failed');
+        }
+
+    } catch (error) {
+        console.error('Feedback submission error:', error);
+
+        // For MVP/development: Still show success if backend fails
+        if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
+            console.log('Dev mode: Simulating successful feedback submission');
+            showThankYouSection();
+        } else {
+            showFeedbackError('Something went wrong. Please try again.');
+        }
+    } finally {
+        setFeedbackLoadingState(false);
+    }
+}
+
+function showFeedbackError(message) {
+    const errorElement = document.getElementById('feedbackError');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+function clearFeedbackError() {
+    const errorElement = document.getElementById('feedbackError');
+    if (errorElement) {
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+    }
+}
+
+function setFeedbackLoadingState(loading) {
+    const submitBtn = document.getElementById('submitFeedback');
+    if (!submitBtn) return;
+
+    if (loading) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<div class="loading-spinner" style="display: inline-block; width: 16px; height: 16px; border: 2px solid #ffffff; border-radius: 50%; border-top-color: transparent; animation: spin 1s ease-in-out infinite; margin-right: 0.5rem;"></div>Submitting...';
+    } else {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Submit Feedback';
+    }
+}
+
+function showThankYouSection() {
+    // Hide the main feedback form
+    const mainSection = document.querySelector('section');
+    if (mainSection) {
+        mainSection.style.display = 'none';
+    }
+
+    // Show thank you section
+    const thankYouSection = document.getElementById('thankYouSection');
+    if (thankYouSection) {
+        thankYouSection.classList.remove('hidden');
+
+        // Scroll to top smoothly
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+}

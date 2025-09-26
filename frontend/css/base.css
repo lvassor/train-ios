@@ -36,6 +36,10 @@ header {
     text-align: center;
 }
 
+.header-container {
+    max-width: 70rem;
+}
+
 .container {
     max-width: 56rem;
     margin: 0 auto;
@@ -57,12 +61,12 @@ footer {
    TYPOGRAPHY
    =============================================== */
 .header-logo {
-    height: 3rem;
+    height: 50px;
     margin-bottom: 1rem;
 }
 
 .header-title, .hero-title {
-    font-size: 1.5rem;
+    font-size: 12rem;
     font-weight: 700;
     color: #111827;
     margin-bottom: 0.75rem;
@@ -84,9 +88,9 @@ footer {
 }
 
 .header-subtitle, .hero-subtitle {
-    font-size: 1rem;
+    font-size: 2rem;
     color: #4b5563;
-    max-width: 42rem;
+    max-width: 70rem;
     margin: 0 auto;
 }
 
@@ -113,7 +117,7 @@ footer {
 }
 
 .footer-logo {
-    height: 2rem;
+    height: 4rem;
     margin-bottom: 1rem;
 }
 
@@ -292,6 +296,24 @@ footer {
     to { transform: rotate(360deg); }
 }
 
+.notes-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    resize: vertical;
+    transition: border-color 0.2s ease;
+}
+
+.notes-textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
 .form-error {
     color: #dc2626;
     font-size: 0.875rem;
@@ -401,13 +423,243 @@ footer {
 }
 
 /* ===============================================
+   QUESTIONNAIRE STYLES
+   =============================================== */
+.step {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.step.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.slider-container {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.slider {
+    width: 100%;
+    max-width: 400px;
+    height: 6px;
+    border-radius: 3px;
+    background: #e5e7eb;
+    outline: none;
+    margin: 1rem 0;
+    appearance: none;
+    cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 1rem 0;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: #6b7280;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.confidence-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.confidence-item {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.confidence-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.confidence-icon {
+    font-size: 1.5rem;
+}
+
+.confidence-label {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.confidence-slider-wrapper {
+    text-align: center;
+}
+
+.confidence-slider {
+    width: 100%;
+    max-width: 300px;
+    height: 6px;
+    border-radius: 3px;
+    background: #e5e7eb;
+    outline: none;
+    margin: 1rem 0;
+    appearance: none;
+    cursor: pointer;
+}
+
+.confidence-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.confidence-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.confidence-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    max-width: 300px;
+    margin: 0 auto 0.5rem;
+}
+
+.confidence-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.loading-progress {
+    margin-bottom: 2rem;
+}
+
+.loading-bar-bg {
+    background-color: #f3f4f6;
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.loading-bar-fill {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    height: 100%;
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.loading-text {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.loading-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.loading-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.loading-step.active {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.loading-step.completed {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.loading-step-icon {
+    font-size: 1.25rem;
+    width: 2rem;
+    text-align: center;
+}
+
+.loading-step.completed .loading-step-icon {
+    color: #10b981;
+}
+
+.loading-step-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.loading-step.active .loading-step-text {
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.loading-step.completed .loading-step-text {
+    color: #065f46;
+}
+
+/* ===============================================
    RESPONSIVE DESIGN
    =============================================== */
 @media (min-width: 640px) {
     .header-logo { height: 4rem; }
-    .header-title { font-size: 1.875rem; }
-    .hero-title { font-size: 3.5rem; }
-    .header-subtitle, .hero-subtitle { font-size: 1.125rem; }
+    .header-title { font-size: 3.75rem; }
+    .hero-title { font-size: 7rem; }
+    .header-subtitle, .hero-subtitle { font-size: 2.25rem; }
     .question-title { font-size: 1.875rem; }
     
     .email-input-container {

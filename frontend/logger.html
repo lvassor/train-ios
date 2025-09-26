@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="css/logger.css">
     
     <!-- Preload critical JavaScript -->
-    <link rel="modulepreload" href="js/workout-logger.js">
+    <link rel="modulepreload" href="js/logger.js">
 </head>
 <body class="min-h-screen bg-white">
     <main class="min-h-screen bg-white">
@@ -106,7 +106,7 @@
                         </div>
                     </div>
                     
-                    <div class="nav-buttons">
+                    <div class="nav-buttons" style="justify-content: center;">
                         <button class="btn btn-primary" id="continue-to-summary">View Workout Summary</button>
                     </div>
                 </div>
@@ -118,10 +118,12 @@
                         <div class="summary-stats" id="summary-stats">
                             <!-- Dynamic summary content -->
                         </div>
+
                     </div>
-                    <div class="nav-buttons">
+
+                    <div class="nav-buttons" style="gap: 1rem;">
                         <button class="btn btn-secondary" id="log-another">Log Another Workout</button>
-                        <button class="btn btn-primary" id="view-progress">View Progress</button>
+                        <a href="/feedback" class="btn btn-primary" style="text-decoration: none;">Share Your Experience</a>
                     </div>
                 </div>
             </div>
@@ -135,6 +137,6 @@
         </footer>
     </main>
 
-    <script src="js/workout-logger.js"></script>
+    <script src="js/logger.js"></script>
 </body>
 </html>
