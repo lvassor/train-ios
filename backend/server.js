@@ -391,7 +391,7 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
 // Workout data API endpoints (for serverless compatibility)
 app.get('/api/programs', (req, res) => {
     try {
-        const workoutTemplates = require('./workout-templates.json');
+        const workoutTemplates = require(path.join(__dirname, 'workout-templates.json'));
         res.json(workoutTemplates);
     } catch (error) {
         console.error('❌ Error loading workout templates:', error);
@@ -404,7 +404,7 @@ app.get('/api/programs', (req, res) => {
 
 app.get('/api/dummy-logs', (req, res) => {
     try {
-        const dummyLogs = require('./dummy_log_data.json');
+        const dummyLogs = require(path.join(__dirname, 'dummy_log_data.json'));
         res.json(dummyLogs);
     } catch (error) {
         console.error('❌ Error loading dummy log data:', error);
