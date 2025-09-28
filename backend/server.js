@@ -263,20 +263,6 @@ app.post('/api/submit-questionnaire', formLimiter, validateQuestionnaire, async 
         };
         await saveQuestionnaire(questionnaireData);
 
-        // Log the new/updated row to console
-        const savedUser = await getUATUser(email);
-        console.log('\n🎯 NEW QUESTIONNAIRE SUBMISSION:');
-        console.log('=====================================');
-        console.log(`Email: ${savedUser.email}`);
-        console.log(`Name: ${savedUser.first_name || 'N/A'} ${savedUser.last_name || 'N/A'}`);
-        console.log(`Experience: ${savedUser.experience}`);
-        console.log(`Training Days: ${savedUser.training_days}/week`);
-        console.log(`Session Duration: ${savedUser.session_duration} mins`);
-        console.log(`Program: ${savedUser.program_name} (${savedUser.program_id})`);
-        console.log(`Email Opt-out: ${savedUser.email_opt_out ? 'Yes' : 'No'}`);
-        console.log(`Equipment: ${JSON.parse(savedUser.equipment || '[]').join(', ')}`);
-        console.log(`Submitted: ${savedUser.questionnaire_completed_at}`);
-        console.log('=====================================\n');
 
         // Save user for legacy compatibility
         await saveUser(email);
@@ -384,19 +370,6 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
 
         await saveUATFeedback(feedbackData);
 
-        // Log the updated row with feedback to console
-        const updatedUser = await getUATUser(userEmail);
-        console.log('\n💬 NEW FEEDBACK SUBMISSION:');
-        console.log('=====================================');
-        console.log(`Email: ${updatedUser.email}`);
-        console.log(`Name: ${updatedUser.first_name || 'N/A'} ${updatedUser.last_name || 'N/A'}`);
-        console.log(`Program: ${updatedUser.program_name} (${updatedUser.program_id})`);
-        console.log(`Overall Rating: ${updatedUser.overall_rating}/5 stars`);
-        console.log(`What they loved: "${updatedUser.loved_most || 'N/A'}"`);
-        console.log(`Improvements: "${updatedUser.improvements || 'N/A'}"`);
-        console.log(`Feedback submitted: ${updatedUser.feedback_completed_at}`);
-        console.log(`Original signup: ${updatedUser.questionnaire_completed_at}`);
-        console.log('=====================================\n');
 
         res.json({
             success: true,
