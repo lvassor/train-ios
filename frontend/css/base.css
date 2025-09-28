@@ -116,9 +116,25 @@ footer {
 /* ===============================================
    TYPOGRAPHY
    =============================================== */
-.header-logo {
+.header-logo, .footer-logo {
     height: 50px;
     margin-bottom: 1rem;
+}
+
+/* Logo styles - using CSS masks for color control */
+.logo-svg {
+    height: inherit;
+    width: auto;
+    background-color: #2563eb; /* Blue in light mode */
+    -webkit-mask: url('../assets/images/svg_logo.svg') no-repeat center;
+    mask: url('../assets/images/svg_logo.svg') no-repeat center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    transition: background-color 0.3s ease;
+}
+
+[data-theme="dark"] .logo-svg {
+    background-color: #ffffff; /* White in dark mode */
 }
 
 .header-title, .hero-title {

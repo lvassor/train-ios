@@ -54,8 +54,6 @@ function applyTheme(isDark) {
             if (icon) icon.textContent = '☀️';
             if (text) text.textContent = 'Light';
         }
-        // Switch logos to dark theme
-        switchLogos('logo_dark.png');
     } else {
         root.setAttribute('data-theme', 'light');
         if (toggleBtn) {
@@ -64,24 +62,9 @@ function applyTheme(isDark) {
             if (icon) icon.textContent = '🌙';
             if (text) text.textContent = 'Dark';
         }
-        // Switch logos to light theme
-        switchLogos('logo_light.png');
     }
 }
 
-function switchLogos(logoFileName) {
-    // Update header logo
-    const headerLogo = document.querySelector('.header-logo');
-    if (headerLogo) {
-        headerLogo.src = `assets/images/${logoFileName}`;
-    }
-
-    // Update footer logo
-    const footerLogo = document.querySelector('.footer-logo');
-    if (footerLogo) {
-        footerLogo.src = `assets/images/${logoFileName}`;
-    }
-}
 
 // Auto-initialize dark mode when DOM is ready
 document.addEventListener('DOMContentLoaded', initDarkMode);
