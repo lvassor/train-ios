@@ -2,12 +2,12 @@
   "name": "train-app",
   "version": "1.0.0",
   "description": "trAIn - AI-Powered Personal Training App",
-  "main": "backend/server.js",
+  "main": "api/index.js",
   "scripts": {
     "start": "node backend/server.js",
     "dev": "cd backend && npm run dev",
     "build": "echo 'Static files ready for deployment'",
-    "install-backend": "cd backend && npm install"
+    "vercel-build": "echo 'No build step required'"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -13,19 +13,30 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { body, validationResult } = require('express-validator');
-const {
-    initDB,
-    saveUser,
-    saveBetaUser,
-    saveQuestionnaire,
-    saveUATFeedback,
-    getBetaUser,
-    getQuestionnaire,
-    getUATUser,
-    getAllUATFeedback,
-    getUATStats,
-    generateProgram
-} = require('./database/db.js');
+
+// Only import database functions if we have a DATABASE_URL
+let db = {};
+if (process.env.DATABASE_URL || process.env.POSTGRES_URL) {
+    try {
+        db = require('./database/db.js');
+    } catch (error) {
+        console.warn('Database module not available:', error.message);
+        // Provide mock functions for development
+        db = {
+            initDB: async () => console.log('Mock database initialized'),
+            saveUser: async () => ({ id: 'mock' }),
+            saveBetaUser: async () => ({ id: 'mock' }),
+            saveQuestionnaire: async () => ({ id: 'mock' }),
+            saveUATFeedback: async () => ({ id: 'mock' }),
+            getBetaUser: async () => null,
+            getQuestionnaire: async () => null,
+            getUATUser: async () => null,
+            getAllUATFeedback: async () => [],
+            getUATStats: async () => ({}),
+            generateProgram: () => ({ id: 'mock', name: 'Mock Program' })
+        };
+    }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -92,16 +103,6 @@ const formLimiter = rateLimit({
     }
 });
 
-// Stricter rate limiting for specific endpoints that could be abused
-const strictLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 3, // Only 3 attempts per hour for sensitive actions
-    message: {
-        success: false,
-        message: 'Too many attempts. Please try again in an hour.'
-    }
-});
-
 app.use('/api/', generalLimiter);
 
 // HTTPS enforcement in production
@@ -130,11 +131,14 @@ app.use('/js', express.static(path.join(__dirname, '../frontend/js')));
 // Initialize database on startup (async for PostgreSQL)
 async function startServer() {
     try {
-        await initDB();
+        await db.initDB();
         console.log('✅ Database connected and initialized');
     } catch (error) {
         console.error('❌ Failed to initialize database:', error);
-        process.exit(1);
+        // Don't exit in serverless environment
+        if (process.env.NODE_ENV !== 'production') {
+            process.exit(1);
+        }
     }
 }
 
@@ -201,7 +205,7 @@ app.post('/api/beta-signup', formLimiter, validateBetaSignup, async (req, res) =
             timestamp: timestamp || new Date().toISOString()
         };
 
-        await saveBetaUser(userData);
+        await db.saveBetaUser(userData);
 
         res.json({
             success: true,
@@ -215,7 +219,7 @@ app.post('/api/beta-signup', formLimiter, validateBetaSignup, async (req, res) =
 
     } catch (error) {
         console.error('❌ Beta signup error:', error);
-        
+
         // Handle duplicate email
         if (error.message?.includes('UNIQUE constraint failed')) {
             return res.status(409).json({
@@ -223,7 +227,7 @@ app.post('/api/beta-signup', formLimiter, validateBetaSignup, async (req, res) =
                 message: 'This email is already registered for the beta'
             });
         }
-        
+
         res.status(500).json({
             success: false,
             message: 'Unable to process signup. Please try again.'
@@ -254,18 +258,17 @@ app.post('/api/submit-questionnaire', formLimiter, validateQuestionnaire, async 
         }
 
         // Generate program based on questionnaire
-        const generatedProgram = program || generateProgram(questionnaire);
+        const generatedProgram = program || db.generateProgram(questionnaire);
 
         // Save questionnaire and program data
         const questionnaireData = {
             ...questionnaire,
             program: generatedProgram
         };
-        await saveQuestionnaire(questionnaireData);
-
+        await db.saveQuestionnaire(questionnaireData);
 
         // Save user for legacy compatibility
-        await saveUser(email);
+        await db.saveUser(email);
 
         res.json({
             success: true,
@@ -333,7 +336,7 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
         // Get user details from beta_users if name not provided
         if (!userFirstName || !userLastName) {
             try {
-                const betaUser = await getBetaUser(userEmail);
+                const betaUser = await db.getBetaUser(userEmail);
                 if (betaUser) {
                     userFirstName = userFirstName || betaUser.first_name;
                     userLastName = userLastName || betaUser.last_name;
@@ -347,7 +350,7 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
         let feedbackProgramId = programId;
         if (!feedbackProgramId) {
             try {
-                const questionnaire = await getQuestionnaire(userEmail);
+                const questionnaire = await db.getQuestionnaire(userEmail);
                 if (questionnaire) {
                     feedbackProgramId = questionnaire.program_id;
                 }
@@ -368,8 +371,7 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
             timestamp: new Date().toISOString()
         };
 
-        await saveUATFeedback(feedbackData);
-
+        await db.saveUATFeedback(feedbackData);
 
         res.json({
             success: true,
@@ -386,7 +388,6 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
     }
 });
 
-
 // Legacy email capture (backwards compatibility)
 app.post('/api/email-capture', async (req, res) => {
     try {
@@ -399,7 +400,7 @@ app.post('/api/email-capture', async (req, res) => {
             });
         }
 
-        await saveUser(email);
+        await db.saveUser(email);
 
         res.json({
             success: true,
@@ -441,7 +442,6 @@ app.get('/dev/logger', (req, res) => {
     res.redirect('/logger?dev=true');
 });
 
-
 // Catch-all for unmatched routes
 app.get('*', (req, res) => {
     // API routes that don't exist
@@ -480,15 +480,16 @@ app.use((err, req, res, next) => {
     });
 });
 
-// This catch-all is redundant - the app.get('*') above already handles this
-
 // ============================================================================
-// SERVER STARTUP
+// SERVER STARTUP (only in development)
 // ============================================================================
 
-app.listen(PORT, () => {
-    console.log(`trAIn UAT Server running on port ${PORT}`);
-});
+// Only start server if not in Vercel
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`trAIn UAT Server running on port ${PORT}`);
+    });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
@@ -498,3 +499,6 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
     process.exit(0);
 });
+
+// Export app for Vercel
+module.exports = app;
