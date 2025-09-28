@@ -13,5 +13,7 @@
       "source": "/(.*)",
       "destination": "/api/index.js"
     }
-  ]
+  ],
+  "buildCommand": "",
+  "outputDirectory": "frontend"
 }
