@@ -4,9 +4,15 @@
  * Flow: beta-landing.html → questionnaire.html → workout-logger.html → uat-feedback.html
  */
 
+// Load environment variables
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const { body, validationResult } = require('express-validator');
 const {
     initDB,
     saveUser,
@@ -15,6 +21,7 @@ const {
     saveUATFeedback,
     getBetaUser,
     getQuestionnaire,
+    getUATUser,
     getAllUATFeedback,
     getUATStats,
     generateProgram
@@ -23,10 +30,94 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Security middleware
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"],
+        },
+    },
+}));
+
+// CORS with proper origin restrictions
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production'
+        ? [process.env.ALLOWED_ORIGIN || 'https://your-app.vercel.app']
+        : true,
+    credentials: true
+};
+app.use(cors(corsOptions));
+
+// Rate limiting with enhanced DDoS protection
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: process.env.NODE_ENV === 'production' ? 50 : 100, // Stricter in production
+    message: {
+        success: false,
+        message: 'Too many requests from this IP, please try again later.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    // Skip successful requests to prevent legitimate usage from being penalized
+    skip: (req, res) => res.statusCode < 400,
+    // More aggressive rate limiting for suspected attacks
+    handler: (req, res) => {
+        console.warn(`⚠️ Rate limit exceeded from IP: ${req.ip} - ${req.path}`);
+        res.status(429).json({
+            success: false,
+            message: 'Too many requests from this IP, please try again later.',
+            retryAfter: Math.round(15 * 60) // 15 minutes in seconds
+        });
+    }
+});
+
+const formLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: process.env.NODE_ENV === 'production' ? 5 : 10, // Stricter for forms in production
+    message: {
+        success: false,
+        message: 'Too many form submissions, please try again later.'
+    },
+    // Progressive delay for repeat offenders
+    handler: (req, res) => {
+        console.warn(`🚨 Form spam detected from IP: ${req.ip} - ${req.path}`);
+        res.status(429).json({
+            success: false,
+            message: 'Too many form submissions. Please wait before trying again.',
+            retryAfter: Math.round(15 * 60)
+        });
+    }
+});
+
+// Stricter rate limiting for specific endpoints that could be abused
+const strictLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // Only 3 attempts per hour for sensitive actions
+    message: {
+        success: false,
+        message: 'Too many attempts. Please try again in an hour.'
+    }
+});
+
+app.use('/api/', generalLimiter);
+
+// HTTPS enforcement in production
+if (process.env.NODE_ENV === 'production') {
+    app.use((req, res, next) => {
+        if (req.header('x-forwarded-proto') !== 'https') {
+            res.redirect(`https://${req.header('host')}${req.url}`);
+        } else {
+            next();
+        }
+    });
+}
+
+// Body parsing middleware
+app.use(express.json({ limit: '1mb' })); // Reduced from 10mb
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Serve backend JSON files (workout templates, dummy data)
 app.use('/backend', express.static(path.join(__dirname)));
@@ -36,8 +127,19 @@ app.use('/assets', express.static(path.join(__dirname, '../frontend/assets')));
 app.use('/css', express.static(path.join(__dirname, '../frontend/css')));
 app.use('/js', express.static(path.join(__dirname, '../frontend/js')));
 
-// Initialize database on startup
-initDB();
+// Initialize database on startup (async for PostgreSQL)
+async function startServer() {
+    try {
+        await initDB();
+        console.log('✅ Database connected and initialized');
+    } catch (error) {
+        console.error('❌ Failed to initialize database:', error);
+        process.exit(1);
+    }
+}
+
+// Start the database initialization
+startServer();
 
 // ============================================================================
 // API ROUTES
@@ -52,26 +154,43 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// Input validation middleware
+const validateBetaSignup = [
+    body('firstName').trim().isLength({ min: 1, max: 50 }).escape(),
+    body('lastName').trim().isLength({ min: 1, max: 50 }).escape(),
+    body('email').isEmail().normalizeEmail(),
+    body('signupType').optional().isIn(['beta', 'waitlist']).escape()
+];
+
+const validateQuestionnaire = [
+    body('questionnaire.firstName').trim().isLength({ min: 1, max: 50 }).escape(),
+    body('questionnaire.lastName').trim().isLength({ min: 1, max: 50 }).escape(),
+    body('questionnaire.email').isEmail().normalizeEmail(),
+    body('questionnaire.experience').isIn(['0_months', '0_6_months', '6_months_2_years', '2_years_plus']),
+    body('questionnaire.trainingDays').isInt({ min: 1, max: 7 }),
+    body('questionnaire.sessionDuration').isInt({ min: 15, max: 180 })
+];
+
+const validateFeedback = [
+    body('email').isEmail().normalizeEmail(),
+    body('overallRating').isInt({ min: 1, max: 5 }),
+    body('lovedMost').optional().trim().isLength({ max: 500 }).escape(),
+    body('improvements').optional().trim().isLength({ max: 500 }).escape()
+];
+
 // Beta signup (Step 1: Landing page form submission)
-app.post('/api/beta-signup', async (req, res) => {
+app.post('/api/beta-signup', formLimiter, validateBetaSignup, async (req, res) => {
+    // Check validation results
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid input data',
+            errors: errors.array()
+        });
+    }
     try {
         const { firstName, lastName, email, signupType, timestamp } = req.body;
-
-        // Validate required fields
-        if (!firstName?.trim() || !lastName?.trim() || !email?.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: 'First name, last name, and email are required'
-            });
-        }
-
-        // Validate email format
-        if (!isValidEmail(email.trim())) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please enter a valid email address'
-            });
-        }
 
         // Save beta user
         const userData = {
@@ -83,7 +202,6 @@ app.post('/api/beta-signup', async (req, res) => {
         };
 
         await saveBetaUser(userData);
-        console.log(`✅ Beta user registered: ${userData.firstName} ${userData.lastName} (${userData.email})`);
 
         res.json({
             success: true,
@@ -114,7 +232,16 @@ app.post('/api/beta-signup', async (req, res) => {
 });
 
 // Questionnaire submission (Step 2: Generate program)
-app.post('/api/submit-questionnaire', async (req, res) => {
+app.post('/api/submit-questionnaire', formLimiter, validateQuestionnaire, async (req, res) => {
+    // Check validation results
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid questionnaire data',
+            errors: errors.array()
+        });
+    }
     try {
         const { questionnaire, program } = req.body;
         const { email } = questionnaire;
@@ -136,9 +263,20 @@ app.post('/api/submit-questionnaire', async (req, res) => {
         };
         await saveQuestionnaire(questionnaireData);
 
-        // Log questionnaire completion
-        console.log(`📝 Questionnaire completed: ${email} → ${generatedProgram.name}`);
-        console.log(`   Experience: ${questionnaire.experience}, Days: ${questionnaire.trainingDays}, Duration: ${questionnaire.sessionDuration}min`);
+        // Log the new/updated row to console
+        const savedUser = await getUATUser(email);
+        console.log('\n🎯 NEW QUESTIONNAIRE SUBMISSION:');
+        console.log('=====================================');
+        console.log(`Email: ${savedUser.email}`);
+        console.log(`Name: ${savedUser.first_name || 'N/A'} ${savedUser.last_name || 'N/A'}`);
+        console.log(`Experience: ${savedUser.experience}`);
+        console.log(`Training Days: ${savedUser.training_days}/week`);
+        console.log(`Session Duration: ${savedUser.session_duration} mins`);
+        console.log(`Program: ${savedUser.program_name} (${savedUser.program_id})`);
+        console.log(`Email Opt-out: ${savedUser.email_opt_out ? 'Yes' : 'No'}`);
+        console.log(`Equipment: ${JSON.parse(savedUser.equipment || '[]').join(', ')}`);
+        console.log(`Submitted: ${savedUser.questionnaire_completed_at}`);
+        console.log('=====================================\n');
 
         // Save user for legacy compatibility
         await saveUser(email);
@@ -164,7 +302,16 @@ app.post('/api/submit-questionnaire', async (req, res) => {
 });
 
 // UAT feedback submission (Step 4: Final feedback)
-app.post('/api/uat-feedback', async (req, res) => {
+app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) => {
+    // Check validation results
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid feedback data',
+            errors: errors.array()
+        });
+    }
     try {
         const {
             firstName,
@@ -237,9 +384,19 @@ app.post('/api/uat-feedback', async (req, res) => {
 
         await saveUATFeedback(feedbackData);
 
-        console.log(`💬 UAT feedback received from: ${userEmail}`);
-        console.log(`   Rating: ${overallRating}/5 | Program: ${feedbackProgramId || 'Unknown'}`);
-        console.log(`   Loved: ${lovedMost ? 'Yes' : 'No'} | Improvements: ${improvements ? 'Yes' : 'No'}`);
+        // Log the updated row with feedback to console
+        const updatedUser = await getUATUser(userEmail);
+        console.log('\n💬 NEW FEEDBACK SUBMISSION:');
+        console.log('=====================================');
+        console.log(`Email: ${updatedUser.email}`);
+        console.log(`Name: ${updatedUser.first_name || 'N/A'} ${updatedUser.last_name || 'N/A'}`);
+        console.log(`Program: ${updatedUser.program_name} (${updatedUser.program_id})`);
+        console.log(`Overall Rating: ${updatedUser.overall_rating}/5 stars`);
+        console.log(`What they loved: "${updatedUser.loved_most || 'N/A'}"`);
+        console.log(`Improvements: "${updatedUser.improvements || 'N/A'}"`);
+        console.log(`Feedback submitted: ${updatedUser.feedback_completed_at}`);
+        console.log(`Original signup: ${updatedUser.questionnaire_completed_at}`);
+        console.log('=====================================\n');
 
         res.json({
             success: true,
@@ -256,28 +413,6 @@ app.post('/api/uat-feedback', async (req, res) => {
     }
 });
 
-// Get UAT statistics (Internal monitoring)
-app.get('/api/admin/uat-stats', async (req, res) => {
-    try {
-        const stats = await getUATStats();
-        const allFeedback = await getAllUATFeedback();
-        
-        res.json({
-            success: true,
-            stats: {
-                ...stats,
-                lastUpdated: new Date().toISOString()
-            },
-            recentFeedback: allFeedback.slice(0, 5) // Last 5 feedback entries
-        });
-    } catch (error) {
-        console.error('❌ Stats error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Unable to fetch statistics'
-        });
-    }
-});
 
 // Legacy email capture (backwards compatibility)
 app.post('/api/email-capture', async (req, res) => {
@@ -292,7 +427,6 @@ app.post('/api/email-capture', async (req, res) => {
         }
 
         await saveUser(email);
-        console.log(`📧 Legacy email captured: ${email}`);
 
         res.json({
             success: true,
@@ -334,50 +468,6 @@ app.get('/dev/logger', (req, res) => {
     res.redirect('/logger?dev=true');
 });
 
-// Admin interface (simple stats page)
-app.get('/admin', (req, res) => {
-    res.send(`
-        <html>
-            <head><title>trAIn UAT Admin</title></head>
-            <body style="font-family: Arial; padding: 2rem;">
-                <h1>trAIn UAT Dashboard</h1>
-                <p>Monitor beta testing progress and feedback.</p>
-                <div>
-                    <a href="/api/admin/uat-stats" target="_blank">View UAT Statistics</a>
-                </div>
-                <script>
-                    fetch('/api/admin/uat-stats')
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.success) {
-                                const programsHtml = data.stats.programBreakdown ?
-                                    data.stats.programBreakdown.map(p => \`<li>\${p.program_name}: \${p.count} users</li>\`).join('') :
-                                    '<li>No programs generated yet</li>';
-
-                                document.body.innerHTML += \`
-                                    <h2>UAT Progress Stats</h2>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 1rem 0;">
-                                        <div>
-                                            <h3>User Journey</h3>
-                                            <p>👤 Beta Signups: <strong>\${data.stats.betaUsers}</strong></p>
-                                            <p>📝 Questionnaires: <strong>\${data.stats.questionnaireCompletions}</strong> (\${data.stats.questionnaireRate}%)</p>
-                                            <p>💬 Feedback: <strong>\${data.stats.feedbackSubmissions}</strong> (\${data.stats.feedbackRate}%)</p>
-                                            <p>🎯 Overall Completion: <strong>\${data.stats.overallCompletionRate}%</strong></p>
-                                        </div>
-                                        <div>
-                                            <h3>Program Breakdown</h3>
-                                            <ul>\${programsHtml}</ul>
-                                        </div>
-                                    </div>
-                                    <p><em>Data refreshes on page reload</em></p>
-                                \`;
-                            }
-                        });
-                </script>
-            </body>
-        </html>
-    `);
-});
 
 // Catch-all for unmatched routes
 app.get('*', (req, res) => {
@@ -424,31 +514,14 @@ app.use((err, req, res, next) => {
 // ============================================================================
 
 app.listen(PORT, () => {
-    console.log('');
-    console.log('🚀 trAIn UAT Server Started');
-    console.log('================================');
-    console.log(`📱 Frontend: http://localhost:${PORT}`);
-    console.log(`🔧 API: http://localhost:${PORT}/api`);
-    console.log(`👨‍💼 Admin: http://localhost:${PORT}/admin`);
-    console.log('✅ Database: SQLite initialized');
-    console.log('');
-    console.log('📋 UAT Flow:');
-    console.log('   1. Landing Page → Beta Signup');
-    console.log('   2. Questionnaire → Program Generation');
-    console.log('   3. Workout Logger → Exercise Tracking');
-    console.log('   4. Feedback Form → UAT Collection');
-    console.log('');
-    console.log('🎯 Ready for gym client testing!');
-    console.log('================================');
+    console.log(`trAIn UAT Server running on port ${PORT}`);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-    console.log('🔄 Received SIGTERM, shutting down gracefully...');
     process.exit(0);
 });
 
 process.on('SIGINT', () => {
-    console.log('🔄 Received SIGINT, shutting down gracefully...');
     process.exit(0);
 });

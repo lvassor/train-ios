@@ -1,168 +1,77 @@
 /**
- * trAIn UAT Database
- * SQLite operations for beta users, questionnaires, and UAT feedback
+ * trAIn UAT Database - PostgreSQL for Vercel
+ * PostgreSQL operations for UAT users (questionnaires + feedback)
  */
 
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { Pool } = require('pg');
 
-const DB_PATH = path.join(__dirname, 'train.db');
-let db;
+let pool;
 
-// Initialize database
-function initDB() {
-    db = new sqlite3.Database(DB_PATH, (err) => {
-        if (err) {
-            console.error('Database connection failed:', err.message);
-            process.exit(1);
-        }
-        console.log('Connected to SQLite database');
+// Initialize database connection
+async function initDB() {
+    // Use Vercel's DATABASE_URL or fallback to local development
+    const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+    if (!connectionString) {
+        throw new Error('❌ No database connection string found. Please set DATABASE_URL or POSTGRES_URL environment variable.');
+    }
+
+    pool = new Pool({
+        connectionString,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
     });
 
-    // Create tables in sequence
-    createTables();
+    // Test connection and create table
+    await createTable();
 }
 
-function createTables() {
-    // Legacy users table (for backwards compatibility)
-    db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `, (err) => {
-        if (err) {
-            console.error('Users table creation failed:', err.message);
-        }
-    });
+async function createTable() {
+    try {
+        // Create consolidated UAT users table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS uat_users (
+                id SERIAL PRIMARY KEY,
+                -- Basic Info
+                first_name TEXT,
+                last_name TEXT,
+                email TEXT UNIQUE NOT NULL,
+                email_opt_out INTEGER DEFAULT 0,
 
-    // Beta users table (for UAT participants)
-    db.run(`
-        CREATE TABLE IF NOT EXISTS beta_users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            first_name TEXT NOT NULL,
-            last_name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            signup_type TEXT DEFAULT 'beta',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `, (err) => {
-        if (err) {
-            console.error('Beta users table creation failed:', err.message);
-        }
-    });
+                -- Questionnaire Data
+                experience TEXT,
+                goals JSONB, -- JSON array
+                equipment JSONB, -- JSON array
+                equipment_confidence JSONB, -- JSON object
+                training_days INTEGER,
+                session_duration INTEGER,
+                program_id TEXT,
+                program_name TEXT,
 
-    // Questionnaires table (stores responses and generated programs)
-    db.run(`
-        CREATE TABLE IF NOT EXISTS questionnaires (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT NOT NULL,
-            experience TEXT,
-            goals TEXT, -- JSON array of whyUsingApp
-            equipment TEXT, -- JSON array of equipmentAvailable
-            equipment_confidence TEXT, -- JSON object of confidence ratings
-            training_days INTEGER,
-            session_duration INTEGER,
-            program_id TEXT,
-            program_name TEXT,
-            email_opt_out BOOLEAN DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (email) REFERENCES beta_users (email)
-        )
-    `, (err) => {
-        if (err) {
-            console.error('Questionnaires table creation failed:', err.message);
-        }
-    });
+                -- Feedback Data
+                overall_rating INTEGER,
+                loved_most TEXT,
+                improvements TEXT,
 
-    // UAT feedback table
-    db.run(`
-        CREATE TABLE IF NOT EXISTS uat_feedback (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            first_name TEXT,
-            last_name TEXT,
-            email TEXT NOT NULL,
-            program_id TEXT,
-            overall_rating INTEGER,
-            loved_most TEXT,
-            improvements TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (email) REFERENCES beta_users (email)
-        )
-    `, (err) => {
-        if (err) {
-            console.error('UAT feedback table creation failed:', err.message);
-        } else {
-            console.log('Database tables initialized');
-            // Create indexes for better query performance
-            createIndexes();
-        }
-    });
+                -- Timestamps
+                questionnaire_completed_at TIMESTAMPTZ,
+                feedback_completed_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        `);
+
+        // Create indexes for better performance
+        await pool.query('CREATE INDEX IF NOT EXISTS idx_uat_users_email ON uat_users(email)');
+        await pool.query('CREATE INDEX IF NOT EXISTS idx_uat_users_created_at ON uat_users(created_at)');
+
+        console.log('✅ Database table and indexes created successfully');
+    } catch (error) {
+        console.error('❌ Error creating database table:', error);
+        throw error;
+    }
 }
 
-function createIndexes() {
-    // Index on questionnaires.email for faster lookups
-    db.run('CREATE INDEX IF NOT EXISTS idx_questionnaires_email ON questionnaires(email)', (err) => {
-        if (err) console.error('Index creation failed:', err.message);
-    });
-
-    // Index on uat_feedback.email for faster lookups
-    db.run('CREATE INDEX IF NOT EXISTS idx_uat_feedback_email ON uat_feedback(email)', (err) => {
-        if (err) console.error('Index creation failed:', err.message);
-    });
-
-    // Index on created_at fields for time-based queries
-    db.run('CREATE INDEX IF NOT EXISTS idx_beta_users_created_at ON beta_users(created_at)', (err) => {
-        if (err) console.error('Index creation failed:', err.message);
-    });
-}
-
-// Save user email (legacy function)
-function saveUser(email) {
-    return new Promise((resolve, reject) => {
-        db.run(
-            'INSERT OR IGNORE INTO users (email) VALUES (?)',
-            [email],
-            function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(this.lastID);
-                }
-            }
-        );
-    });
-}
-
-// Save beta user (for UAT)
-function saveBetaUser(userData) {
-    const { firstName, lastName, email, signupType, timestamp } = userData;
-    
-    return new Promise((resolve, reject) => {
-        db.run(
-            `INSERT INTO beta_users (first_name, last_name, email, signup_type, created_at) 
-             VALUES (?, ?, ?, ?, ?)`,
-            [firstName, lastName, email, signupType, timestamp],
-            function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({
-                        id: this.lastID,
-                        firstName,
-                        lastName,
-                        email,
-                        signupType
-                    });
-                }
-            }
-        );
-    });
-}
-
-// Save questionnaire responses and generated program
-function saveQuestionnaire(questionnaireData) {
+// Save or update questionnaire responses and generated program
+async function saveQuestionnaire(questionnaireData) {
     const {
         email,
         firstName,
@@ -177,186 +86,198 @@ function saveQuestionnaire(questionnaireData) {
         program
     } = questionnaireData;
 
-    return new Promise((resolve, reject) => {
-        db.run(
-            `INSERT INTO questionnaires
-             (email, experience, goals, equipment, equipment_confidence, training_days, session_duration, program_id, program_name, email_opt_out, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                email,
-                experience,
-                JSON.stringify(whyUsingApp || []),
-                JSON.stringify(equipmentAvailable || []),
-                JSON.stringify(equipmentConfidence || {}),
-                trainingDays,
-                sessionDuration,
-                program.id,
-                program.name,
-                emailOptOut ? 1 : 0,
-                new Date().toISOString()
-            ],
-            function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({
-                        id: this.lastID,
-                        email,
-                        program: program
-                    });
-                }
-            }
-        );
-    });
+    try {
+        const result = await pool.query(`
+            INSERT INTO uat_users
+            (first_name, last_name, email, email_opt_out, experience, goals, equipment, equipment_confidence,
+             training_days, session_duration, program_id, program_name, questionnaire_completed_at, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            ON CONFLICT (email) DO UPDATE SET
+            first_name = EXCLUDED.first_name,
+            last_name = EXCLUDED.last_name,
+            email_opt_out = EXCLUDED.email_opt_out,
+            experience = EXCLUDED.experience,
+            goals = EXCLUDED.goals,
+            equipment = EXCLUDED.equipment,
+            equipment_confidence = EXCLUDED.equipment_confidence,
+            training_days = EXCLUDED.training_days,
+            session_duration = EXCLUDED.session_duration,
+            program_id = EXCLUDED.program_id,
+            program_name = EXCLUDED.program_name,
+            questionnaire_completed_at = EXCLUDED.questionnaire_completed_at
+            RETURNING id, email
+        `, [
+            firstName,
+            lastName,
+            email,
+            emailOptOut ? 1 : 0,
+            experience,
+            JSON.stringify(whyUsingApp || []),
+            JSON.stringify(equipmentAvailable || []),
+            JSON.stringify(equipmentConfidence || {}),
+            trainingDays,
+            sessionDuration,
+            program.id,
+            program.name,
+            new Date().toISOString(),
+            new Date().toISOString()
+        ]);
+
+        return {
+            id: result.rows[0].id,
+            email: result.rows[0].email,
+            program: program
+        };
+    } catch (error) {
+        console.error('❌ Error saving questionnaire:', error);
+        throw error;
+    }
 }
 
 // Save UAT feedback
-function saveUATFeedback(feedbackData) {
+async function saveUATFeedback(feedbackData) {
     const {
-        firstName,
-        lastName,
         email,
-        programId,
         overallRating,
         lovedMost,
         improvements,
         timestamp
     } = feedbackData;
 
-    return new Promise((resolve, reject) => {
-        db.run(
-            `INSERT INTO uat_feedback
-             (first_name, last_name, email, program_id, overall_rating, loved_most, improvements, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [firstName, lastName, email, programId, overallRating, lovedMost, improvements, timestamp],
-            function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({
-                        id: this.lastID,
-                        email,
-                        feedbackReceived: true
-                    });
-                }
-            }
-        );
-    });
+    try {
+        const result = await pool.query(`
+            UPDATE uat_users
+            SET overall_rating = $1, loved_most = $2, improvements = $3, feedback_completed_at = $4
+            WHERE email = $5
+            RETURNING email
+        `, [overallRating, lovedMost, improvements, timestamp, email]);
+
+        if (result.rowCount === 0) {
+            throw new Error('No user found with that email');
+        }
+
+        return {
+            email,
+            feedbackReceived: true
+        };
+    } catch (error) {
+        console.error('❌ Error saving feedback:', error);
+        throw error;
+    }
 }
 
-// Get beta user by email
-function getBetaUser(email) {
-    return new Promise((resolve, reject) => {
-        db.get(
-            'SELECT * FROM beta_users WHERE email = ?',
-            [email],
-            (err, row) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(row);
-                }
-            }
+// Get user by email
+async function getUATUser(email) {
+    try {
+        const result = await pool.query(
+            'SELECT * FROM uat_users WHERE email = $1',
+            [email]
         );
-    });
+
+        if (result.rows.length > 0) {
+            const row = result.rows[0];
+            // Parse JSON fields (PostgreSQL JSONB automatically parses)
+            return {
+                ...row,
+                goals: row.goals || [],
+                equipment: row.equipment || [],
+                equipment_confidence: row.equipment_confidence || {}
+            };
+        }
+
+        return null;
+    } catch (error) {
+        console.error('❌ Error getting UAT user:', error);
+        throw error;
+    }
 }
 
-// Get questionnaire by email
+// Get questionnaire by email (for backward compatibility)
 function getQuestionnaire(email) {
-    return new Promise((resolve, reject) => {
-        db.get(
-            'SELECT * FROM questionnaires WHERE email = ?',
-            [email],
-            (err, row) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    if (row) {
-                        // Parse JSON fields
-                        row.goals = JSON.parse(row.goals || '[]');
-                        row.equipment = JSON.parse(row.equipment || '[]');
-                        row.equipment_confidence = JSON.parse(row.equipment_confidence || '{}');
-                    }
-                    resolve(row);
-                }
-            }
-        );
-    });
+    return getUATUser(email);
 }
 
-// Get all UAT feedback (for analysis)
-function getAllUATFeedback() {
-    return new Promise((resolve, reject) => {
-        db.all(
-            `SELECT 
-                f.*,
-                b.first_name as beta_first_name,
-                b.last_name as beta_last_name,
-                b.signup_type,
-                b.created_at as signup_date
-             FROM uat_feedback f
-             LEFT JOIN beta_users b ON f.email = b.email
-             ORDER BY f.created_at DESC`,
-            [],
-            (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(rows);
-                }
-            }
+// Get all UAT users (for analysis)
+async function getAllUATUsers() {
+    try {
+        const result = await pool.query(
+            'SELECT * FROM uat_users ORDER BY created_at DESC'
         );
-    });
+
+        return result.rows.map(row => ({
+            ...row,
+            goals: row.goals || [],
+            equipment: row.equipment || [],
+            equipment_confidence: row.equipment_confidence || {}
+        }));
+    } catch (error) {
+        console.error('❌ Error getting all UAT users:', error);
+        throw error;
+    }
+}
+
+// Get all UAT feedback (for backward compatibility)
+async function getAllUATFeedback() {
+    try {
+        const result = await pool.query(`
+            SELECT * FROM uat_users
+            WHERE overall_rating IS NOT NULL
+            ORDER BY feedback_completed_at DESC
+        `);
+
+        return result.rows;
+    } catch (error) {
+        console.error('❌ Error getting UAT feedback:', error);
+        throw error;
+    }
 }
 
 // Get UAT stats
-function getUATStats() {
-    return new Promise((resolve, reject) => {
+async function getUATStats() {
+    try {
         const stats = {};
 
-        // Get beta user count
-        db.get('SELECT COUNT(*) as count FROM beta_users', (err, row) => {
-            if (err) return reject(err);
-            stats.betaUsers = row.count;
+        // Get total user count
+        const totalResult = await pool.query('SELECT COUNT(*) as count FROM uat_users');
+        stats.totalUsers = parseInt(totalResult.rows[0].count);
 
-            // Get questionnaire completion count
-            db.get('SELECT COUNT(*) as count FROM questionnaires', (err, row) => {
-                if (err) return reject(err);
-                stats.questionnaireCompletions = row.count;
+        // Get questionnaire completion count
+        const questionnaireResult = await pool.query('SELECT COUNT(*) as count FROM uat_users WHERE questionnaire_completed_at IS NOT NULL');
+        stats.questionnaireCompletions = parseInt(questionnaireResult.rows[0].count);
 
-                // Get feedback count
-                db.get('SELECT COUNT(*) as count FROM uat_feedback', (err, row) => {
-                    if (err) return reject(err);
-                    stats.feedbackSubmissions = row.count;
+        // Get feedback count
+        const feedbackResult = await pool.query('SELECT COUNT(*) as count FROM uat_users WHERE overall_rating IS NOT NULL');
+        stats.feedbackSubmissions = parseInt(feedbackResult.rows[0].count);
 
-                    // Get program breakdown
-                    db.all('SELECT program_id, program_name, COUNT(*) as count FROM questionnaires GROUP BY program_id ORDER BY count DESC', (err, programs) => {
-                        if (err) return reject(err);
-                        stats.programBreakdown = programs;
+        // Get program breakdown
+        const programsResult = await pool.query('SELECT program_id, program_name, COUNT(*) as count FROM uat_users WHERE program_id IS NOT NULL GROUP BY program_id, program_name ORDER BY count DESC');
+        stats.programBreakdown = programsResult.rows.map(row => ({
+            ...row,
+            count: parseInt(row.count)
+        }));
 
-                        // Calculate completion rates
-                        stats.questionnaireRate = stats.betaUsers > 0 ?
-                            Math.round((stats.questionnaireCompletions / stats.betaUsers) * 100) : 0;
-                        stats.feedbackRate = stats.questionnaireCompletions > 0 ?
-                            Math.round((stats.feedbackSubmissions / stats.questionnaireCompletions) * 100) : 0;
-                        stats.overallCompletionRate = stats.betaUsers > 0 ?
-                            Math.round((stats.feedbackSubmissions / stats.betaUsers) * 100) : 0;
+        // Calculate completion rates
+        stats.questionnaireRate = stats.totalUsers > 0 ?
+            Math.round((stats.questionnaireCompletions / stats.totalUsers) * 100) : 0;
+        stats.feedbackRate = stats.questionnaireCompletions > 0 ?
+            Math.round((stats.feedbackSubmissions / stats.questionnaireCompletions) * 100) : 0;
+        stats.overallCompletionRate = stats.totalUsers > 0 ?
+            Math.round((stats.feedbackSubmissions / stats.totalUsers) * 100) : 0;
 
-                        resolve(stats);
-                    });
-                });
-            });
-        });
-    });
+        return stats;
+    } catch (error) {
+        console.error('❌ Error getting UAT stats:', error);
+        throw error;
+    }
 }
 
 // Generate program based on questionnaire responses
 function generateProgram(questionnaire) {
     const { experience, trainingDays } = questionnaire;
-    
+
     // Simple program matching logic
     let programName, programId;
-    
+
     if (experience === '0_months' || experience === '0_6_months') {
         if (trainingDays <= 2) {
             programName = 'Beginner Full Body Foundation';
@@ -400,23 +321,62 @@ function generateProgram(questionnaire) {
     };
 }
 
-// Close database connection
-function closeDB() {
-    if (db) {
-        db.close((err) => {
-            if (err) {
-                console.error('Error closing database:', err.message);
-            } else {
-                console.log('Database connection closed');
-            }
-        });
+// Legacy functions for backward compatibility
+async function saveUser(email) {
+    try {
+        const result = await pool.query(`
+            INSERT INTO uat_users (email)
+            VALUES ($1)
+            ON CONFLICT (email) DO NOTHING
+            RETURNING id
+        `, [email]);
+
+        return result.rows[0]?.id || null;
+    } catch (error) {
+        console.error('❌ Error saving user:', error);
+        throw error;
     }
 }
 
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-    console.log('Shutting down gracefully...');
-    closeDB();
+async function saveBetaUser(userData) {
+    const { firstName, lastName, email } = userData;
+
+    try {
+        const result = await pool.query(`
+            INSERT INTO uat_users (first_name, last_name, email)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (email) DO UPDATE SET
+            first_name = EXCLUDED.first_name,
+            last_name = EXCLUDED.last_name
+            RETURNING id
+        `, [firstName, lastName, email]);
+
+        return {
+            id: result.rows[0].id,
+            firstName,
+            lastName,
+            email
+        };
+    } catch (error) {
+        console.error('❌ Error saving beta user:', error);
+        throw error;
+    }
+}
+
+function getBetaUser(email) {
+    return getUATUser(email);
+}
+
+// Close database connection (for serverless, this isn't needed but kept for compatibility)
+async function closeDB() {
+    if (pool) {
+        await pool.end();
+    }
+}
+
+// Handle graceful shutdown (in serverless, this might not be called)
+process.on('SIGINT', async () => {
+    await closeDB();
     process.exit(0);
 });
 
@@ -427,7 +387,9 @@ module.exports = {
     saveQuestionnaire,
     saveUATFeedback,
     getBetaUser,
+    getUATUser,
     getQuestionnaire,
+    getAllUATUsers,
     getAllUATFeedback,
     getUATStats,
     generateProgram,

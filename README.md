@@ -293,27 +293,57 @@ We maintain high code quality with:
 
 ## 🚀 Deployment
 
-### Environment Setup
+### Quick Deploy to Vercel + PostgreSQL
 
-```bash
-# Development
-npm run deploy:dev      # Deploy to development environment
+#### Prerequisites
+1. A Vercel account
+2. Your code pushed to GitHub
 
-# Staging
-npm run deploy:staging  # Deploy to staging for testing
+#### Step-by-Step Deployment
 
-# Production
-npm run deploy:prod     # Deploy to production
-```
+1. **Connect Repository to Vercel:**
+   - Go to [vercel.com](https://vercel.com) and sign in
+   - Click "New Project" and import your GitHub repository
+   - Vercel will auto-detect the configuration from `vercel.json`
+
+2. **Set Up PostgreSQL Database:**
+   - In your Vercel project dashboard, go to "Storage" tab
+   - Click "Create Database" → "Postgres"
+   - Copy the connection string provided
+
+3. **Configure Environment Variables:**
+   - In Vercel project settings, go to "Environment Variables"
+   - Add these variables:
+   ```
+   DATABASE_URL=your_vercel_postgres_connection_string
+   NODE_ENV=production
+   ```
+
+4. **Deploy:**
+   - Push to your main branch or click "Deploy" in Vercel
+   - The app will automatically create the database table on first startup
+
+5. **Test Your Deployment:**
+   - Visit your Vercel URL
+   - Complete a questionnaire submission
+   - Check Vercel function logs to see the console output
 
 ### 🔧 Environment Variables
 
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `DATABASE_URL` | PostgreSQL connection string | ✅ |
-| `JWT_SECRET` | Authentication secret | ✅ |
-| `EMAIL_API_KEY` | Email service API key | ✅ |
-| `ANALYTICS_ID` | Google Analytics ID | ❌ |
+| `POSTGRES_URL` | Alternative name for database URL | ✅ |
+| `NODE_ENV` | Environment (production/development) | ✅ |
+
+### Local Development with PostgreSQL
+
+```bash
+# If you want to test with PostgreSQL locally
+createdb train_dev
+export DATABASE_URL="postgres://username:password@localhost:5432/train_dev"
+npm start
+```
 
 ### 📊 Monitoring
 

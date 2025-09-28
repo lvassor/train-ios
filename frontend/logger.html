@@ -25,6 +25,14 @@
 <body class="min-h-screen bg-white">
     <main class="min-h-screen bg-white">
         <header>
+            <!-- Dark Mode Toggle -->
+            <div class="dark-mode-toggle">
+                <button id="darkModeToggle" class="dark-toggle-btn" aria-label="Toggle dark mode">
+                    <span class="toggle-icon">🌙</span>
+                    <span class="toggle-text">Dark</span>
+                </button>
+            </div>
+
             <div class="max-w-7xl mx-auto text-center">
                 <img src="assets/images/logo_light.png" alt="trAIn" class="header-logo">
                 <h1 class="header-title">
@@ -137,6 +145,7 @@
         </footer>
     </main>
 
+    <script src="js/dark-mode.js"></script>
     <script src="js/logger.js"></script>
 </body>
 </html>

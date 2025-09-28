@@ -18,7 +18,7 @@ async function init() {
     detectDevMode();
     detectUserProgram();
     attachEventListeners();
-    
+
     if (isDevMode) {
         showProgramSelection();
     } else {
@@ -182,10 +182,10 @@ function startWorkout() {
 function generateExerciseInterface(exercises) {
     const container = document.getElementById('exercises-container');
     container.innerHTML = '';
-    
+
     // Initialize workout data
     workoutData = { exercises: exercises.map(() => ({ sets: [], notes: '' })) };
-    
+
     exercises.forEach((exercise, exerciseIndex) => {
         const exerciseCard = document.createElement('div');
         exerciseCard.className = 'exercise-card';
@@ -364,9 +364,23 @@ function updateCounters(exerciseIndex) {
 
 // New function to handle exercise completion prompts
 function updateExercisePrompts(exerciseIndex) {
+    console.log(`=== PROMPT DEBUG START ===`);
+    console.log('currentProgram:', currentProgram);
+    console.log('currentDay:', currentDay, '(type:', typeof currentDay, ')');
+
     const program = programs[currentProgram];
+    console.log('program found:', !!program);
+    console.log('program.days:', program ? Object.keys(program.days) : 'N/A');
+
     const day = program.days[currentDay];
+    console.log('day found:', !!day);
+    console.log('day name:', day ? day.name : 'N/A');
+
     const exercise = day.exercises[exerciseIndex];
+    console.log('exercise found:', !!exercise);
+    console.log('exercise name:', exercise ? exercise.name : 'N/A');
+    console.log('exercise repsMin/Max:', exercise ? `${exercise.repsMin}-${exercise.repsMax}` : 'N/A');
+
     const exerciseData = workoutData.exercises[exerciseIndex];
     
     console.log(`=== WORKOUT DATA DEBUG ===`);
@@ -385,8 +399,8 @@ function updateExercisePrompts(exerciseIndex) {
     
     // Check if all sets are completed (have both weight and reps)
     const expectedSets = exercise.sets;
-    const completedSets = exerciseData.sets.filter(set => 
-        set && set.weight && set.reps && set.weight > 0 && set.reps > 0
+    const completedSets = exerciseData.sets.filter(set =>
+        set && set.reps && set.reps > 0
     ).length;
     
     console.log('Expected sets:', expectedSets);
@@ -405,8 +419,8 @@ function updateExercisePrompts(exerciseIndex) {
 }
 
 function evaluatePromptTier(exerciseIndex, exercise, exerciseData) {
-    const completedSets = exerciseData.sets.filter(set => 
-        set && set.weight && set.reps && set.weight > 0 && set.reps > 0
+    const completedSets = exerciseData.sets.filter(set =>
+        set && set.reps && set.reps > 0
     );
     
     console.log(`=== DEBUG Exercise ${exerciseIndex}: ${exercise.name} ===`);
@@ -646,8 +660,8 @@ function generateSummaryData() {
         });
         
         // Check if exercise is ready to progress
-        const completedSetsForExercise = exerciseData.sets.filter(set => 
-            set && set.weight && set.reps && set.weight > 0 && set.reps > 0
+        const completedSetsForExercise = exerciseData.sets.filter(set =>
+            set && set.reps && set.reps > 0
         );
         const setsExceedingRange = completedSetsForExercise.filter(set => 
             set.reps >= exercise.repsMax

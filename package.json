@@ -1,0 +1,42 @@
+{
+  "name": "train-app",
+  "version": "1.0.0",
+  "description": "trAIn - AI-Powered Personal Training App",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "cd backend && npm run dev",
+    "build": "echo 'Static files ready for deployment'",
+    "install-backend": "cd backend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.11.2",
+    "express-validator": "^7.2.1",
+    "helmet": "^7.2.0",
+    "nodemailer": "^7.0.6",
+    "pg": "^8.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "fitness",
+    "training",
+    "ai",
+    "personal-training",
+    "workout",
+    "questionnaire"
+  ],
+  "author": "Luke Vassor & Brody Bastiman",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/train-app.git"
+  }
+}

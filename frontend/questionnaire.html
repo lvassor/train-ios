@@ -26,6 +26,14 @@
 <body class="min-h-screen bg-white">
     <main class="min-h-screen bg-white">
         <header>
+            <!-- Dark Mode Toggle -->
+            <div class="dark-mode-toggle">
+                <button id="darkModeToggle" class="dark-toggle-btn" aria-label="Toggle dark mode">
+                    <span class="toggle-icon">🌙</span>
+                    <span class="toggle-text">Dark</span>
+                </button>
+            </div>
+
             <div class="max-w-7xl mx-auto text-center">
                 <img src="assets/images/logo_light.png" alt="trAIn" class="header-logo">
                 <h1 class="header-title">
@@ -87,7 +95,7 @@
                             <div style="display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 1rem; padding: 1rem; background-color: #f8fafc; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
                                 <input type="checkbox" id="emailOptOut" style="margin-top: 0.25rem;">
                                 <label for="emailOptOut" style="font-size: 0.875rem; color: #6b7280; line-height: 1.4;">
-                                    Opt out of notifications when the full version is released. We will not use your information for marketing purposes.
+                                    We will let you know when the full version of the app has been released. Tick this box if you would like to opt-out of further updates beyond this.
                                 </label>
                             </div>
                         </div>
@@ -242,6 +250,7 @@
         </footer>
     </main>
 
+    <script src="js/dark-mode.js"></script>
     <script src="js/questionnaire.js"></script>
 </body>
 
