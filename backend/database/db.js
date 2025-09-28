@@ -49,6 +49,8 @@ async function createTable() {
                 overall_rating INTEGER,
                 loved_most TEXT,
                 improvements TEXT,
+                current_app TEXT,
+                missing_features TEXT,
 
                 -- Timestamps
                 questionnaire_completed_at TIMESTAMPTZ,
@@ -127,13 +129,16 @@ async function saveUATFeedback(feedbackData) {
         overallRating,
         lovedMost,
         improvements,
+        currentApp,
+        missingFeatures,
         timestamp
     } = feedbackData;
 
     try {
         const result = await sql`
             UPDATE uat_users
-            SET overall_rating = ${overallRating}, loved_most = ${lovedMost}, improvements = ${improvements}, feedback_completed_at = ${timestamp}
+            SET overall_rating = ${overallRating}, loved_most = ${lovedMost}, improvements = ${improvements},
+                current_app = ${currentApp}, missing_features = ${missingFeatures}, feedback_completed_at = ${timestamp}
             WHERE email = ${email}
             RETURNING email
         `;

@@ -98,6 +98,46 @@
                                 <span id="improvementsCount">0</span>/500 characters
                             </div>
                         </div>
+
+                        <!-- Separator -->
+                        <div style="border-top: 1px solid #e5e7eb; margin: 1rem 0; padding-top: 1.5rem;">
+                            <p style="font-size: 0.875rem; color: #6b7280; text-align: center; margin-bottom: 1.5rem;">
+                                <em>Optional: Help us understand the competitive landscape</em>
+                            </p>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label for="currentApp" style="font-size: 1rem; font-weight: 600; color: #374151;">
+                                Are you currently using a training app? If so, which one? 📱
+                            </label>
+                            <input
+                                type="text"
+                                id="currentApp"
+                                class="text-input"
+                                placeholder="e.g., StrongApp, Jefit, MyFitnessPal, or 'None'"
+                                maxlength="100"
+                                style="padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem;"
+                            />
+                            <div style="font-size: 0.75rem; color: #9ca3af; text-align: right;">
+                                <span id="currentAppCount">0</span>/100 characters
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label for="missingFeatures" style="font-size: 1rem; font-weight: 600; color: #374151;">
+                                For this app, or any you've used before, what were they missing that you wished they had? 💭
+                            </label>
+                            <textarea
+                                id="missingFeatures"
+                                class="notes-textarea"
+                                style="min-height: 4rem;"
+                                placeholder="What gaps or frustrations did you experience with other fitness apps?"
+                                maxlength="500"
+                            ></textarea>
+                            <div style="font-size: 0.75rem; color: #9ca3af; text-align: right;">
+                                <span id="missingFeaturesCount">0</span>/500 characters
+                            </div>
+                        </div>
                     </form>
 
                     <div class="nav-buttons" style="justify-content: center;">

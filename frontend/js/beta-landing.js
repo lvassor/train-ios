@@ -66,17 +66,19 @@ function setupFeedbackFormListeners() {
 }
 
 function setupCharacterCounters() {
-    const textareas = [
+    const fields = [
         { id: 'lovedMost', countId: 'lovedMostCount' },
-        { id: 'improvements', countId: 'improvementsCount' }
+        { id: 'improvements', countId: 'improvementsCount' },
+        { id: 'currentApp', countId: 'currentAppCount' },
+        { id: 'missingFeatures', countId: 'missingFeaturesCount' }
     ];
 
-    textareas.forEach(({ id, countId }) => {
-        const textarea = document.getElementById(id);
+    fields.forEach(({ id, countId }) => {
+        const field = document.getElementById(id);
         const counter = document.getElementById(countId);
-        if (textarea && counter) {
-            textarea.addEventListener('input', () => {
-                counter.textContent = textarea.value.length;
+        if (field && counter) {
+            field.addEventListener('input', () => {
+                counter.textContent = field.value.length;
             });
         }
     });
@@ -156,6 +158,8 @@ async function handleFeedbackSubmit(event) {
         overallRating: document.getElementById('overallRating').value,
         lovedMost: document.getElementById('lovedMost').value.trim(),
         improvements: document.getElementById('improvements').value.trim(),
+        currentApp: document.getElementById('currentApp').value.trim(),
+        missingFeatures: document.getElementById('missingFeatures').value.trim(),
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
         url: window.location.href

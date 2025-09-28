@@ -179,7 +179,9 @@ const validateFeedback = [
     body('email').isEmail().normalizeEmail(),
     body('overallRating').isInt({ min: 1, max: 5 }),
     body('lovedMost').optional().trim().isLength({ max: 500 }).escape(),
-    body('improvements').optional().trim().isLength({ max: 500 }).escape()
+    body('improvements').optional().trim().isLength({ max: 500 }).escape(),
+    body('currentApp').optional().trim().isLength({ max: 100 }).escape(),
+    body('missingFeatures').optional().trim().isLength({ max: 500 }).escape()
 ];
 
 // Beta signup (Step 1: Landing page form submission)
@@ -309,7 +311,9 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
             programId,
             overallRating,
             lovedMost,
-            improvements
+            improvements,
+            currentApp,
+            missingFeatures
         } = req.body;
 
         // Rating is required
@@ -368,6 +372,8 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
             overallRating: parseInt(overallRating),
             lovedMost: lovedMost?.trim() || null,
             improvements: improvements?.trim() || null,
+            currentApp: currentApp?.trim() || null,
+            missingFeatures: missingFeatures?.trim() || null,
             timestamp: new Date().toISOString()
         };
 
