@@ -3,9 +3,9 @@
  * PostgreSQL operations for UAT users (questionnaires + feedback)
  */
 
-const { Pool } = require('pg');
+const { neon } = require('@neondatabase/serverless');
 
-let pool;
+let sql;
 
 // Initialize database connection
 async function initDB() {
@@ -16,10 +16,8 @@ async function initDB() {
         throw new Error('❌ No database connection string found. Please set DATABASE_URL or POSTGRES_URL environment variable.');
     }
 
-    pool = new Pool({
-        connectionString,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    });
+    // Create Neon connection
+    sql = neon(connectionString);
 
     // Test connection and create table
     await createTable();
@@ -28,7 +26,7 @@ async function initDB() {
 async function createTable() {
     try {
         // Create consolidated UAT users table
-        await pool.query(`
+        await sql`
             CREATE TABLE IF NOT EXISTS uat_users (
                 id SERIAL PRIMARY KEY,
                 -- Basic Info
@@ -57,11 +55,11 @@ async function createTable() {
                 feedback_completed_at TIMESTAMPTZ,
                 created_at TIMESTAMPTZ DEFAULT NOW()
             )
-        `);
+        `;
 
         // Create indexes for better performance
-        await pool.query('CREATE INDEX IF NOT EXISTS idx_uat_users_email ON uat_users(email)');
-        await pool.query('CREATE INDEX IF NOT EXISTS idx_uat_users_created_at ON uat_users(created_at)');
+        await sql`CREATE INDEX IF NOT EXISTS idx_uat_users_email ON uat_users(email)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_uat_users_created_at ON uat_users(created_at)`;
 
         console.log('✅ Database table and indexes created successfully');
     } catch (error) {
@@ -87,11 +85,14 @@ async function saveQuestionnaire(questionnaireData) {
     } = questionnaireData;
 
     try {
-        const result = await pool.query(`
+        const result = await sql`
             INSERT INTO uat_users
             (first_name, last_name, email, email_opt_out, experience, goals, equipment, equipment_confidence,
              training_days, session_duration, program_id, program_name, questionnaire_completed_at, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            VALUES (${firstName}, ${lastName}, ${email}, ${emailOptOut ? 1 : 0}, ${experience},
+                    ${JSON.stringify(whyUsingApp || [])}, ${JSON.stringify(equipmentAvailable || [])},
+                    ${JSON.stringify(equipmentConfidence || {})}, ${trainingDays}, ${sessionDuration},
+                    ${program.id}, ${program.name}, ${new Date().toISOString()}, ${new Date().toISOString()})
             ON CONFLICT (email) DO UPDATE SET
             first_name = EXCLUDED.first_name,
             last_name = EXCLUDED.last_name,
@@ -106,26 +107,11 @@ async function saveQuestionnaire(questionnaireData) {
             program_name = EXCLUDED.program_name,
             questionnaire_completed_at = EXCLUDED.questionnaire_completed_at
             RETURNING id, email
-        `, [
-            firstName,
-            lastName,
-            email,
-            emailOptOut ? 1 : 0,
-            experience,
-            JSON.stringify(whyUsingApp || []),
-            JSON.stringify(equipmentAvailable || []),
-            JSON.stringify(equipmentConfidence || {}),
-            trainingDays,
-            sessionDuration,
-            program.id,
-            program.name,
-            new Date().toISOString(),
-            new Date().toISOString()
-        ]);
+        `;
 
         return {
-            id: result.rows[0].id,
-            email: result.rows[0].email,
+            id: result[0].id,
+            email: result[0].email,
             program: program
         };
     } catch (error) {
@@ -145,14 +131,14 @@ async function saveUATFeedback(feedbackData) {
     } = feedbackData;
 
     try {
-        const result = await pool.query(`
+        const result = await sql`
             UPDATE uat_users
-            SET overall_rating = $1, loved_most = $2, improvements = $3, feedback_completed_at = $4
-            WHERE email = $5
+            SET overall_rating = ${overallRating}, loved_most = ${lovedMost}, improvements = ${improvements}, feedback_completed_at = ${timestamp}
+            WHERE email = ${email}
             RETURNING email
-        `, [overallRating, lovedMost, improvements, timestamp, email]);
+        `;
 
-        if (result.rowCount === 0) {
+        if (result.length === 0) {
             throw new Error('No user found with that email');
         }
 
@@ -169,13 +155,10 @@ async function saveUATFeedback(feedbackData) {
 // Get user by email
 async function getUATUser(email) {
     try {
-        const result = await pool.query(
-            'SELECT * FROM uat_users WHERE email = $1',
-            [email]
-        );
+        const result = await sql`SELECT * FROM uat_users WHERE email = ${email}`;
 
-        if (result.rows.length > 0) {
-            const row = result.rows[0];
+        if (result.length > 0) {
+            const row = result[0];
             // Parse JSON fields (PostgreSQL JSONB automatically parses)
             return {
                 ...row,
@@ -200,11 +183,9 @@ function getQuestionnaire(email) {
 // Get all UAT users (for analysis)
 async function getAllUATUsers() {
     try {
-        const result = await pool.query(
-            'SELECT * FROM uat_users ORDER BY created_at DESC'
-        );
+        const result = await sql`SELECT * FROM uat_users ORDER BY created_at DESC`;
 
-        return result.rows.map(row => ({
+        return result.map(row => ({
             ...row,
             goals: row.goals || [],
             equipment: row.equipment || [],
@@ -219,13 +200,13 @@ async function getAllUATUsers() {
 // Get all UAT feedback (for backward compatibility)
 async function getAllUATFeedback() {
     try {
-        const result = await pool.query(`
+        const result = await sql`
             SELECT * FROM uat_users
             WHERE overall_rating IS NOT NULL
             ORDER BY feedback_completed_at DESC
-        `);
+        `;
 
-        return result.rows;
+        return result;
     } catch (error) {
         console.error('❌ Error getting UAT feedback:', error);
         throw error;
@@ -238,20 +219,20 @@ async function getUATStats() {
         const stats = {};
 
         // Get total user count
-        const totalResult = await pool.query('SELECT COUNT(*) as count FROM uat_users');
-        stats.totalUsers = parseInt(totalResult.rows[0].count);
+        const totalResult = await sql`SELECT COUNT(*) as count FROM uat_users`;
+        stats.totalUsers = parseInt(totalResult[0].count);
 
         // Get questionnaire completion count
-        const questionnaireResult = await pool.query('SELECT COUNT(*) as count FROM uat_users WHERE questionnaire_completed_at IS NOT NULL');
-        stats.questionnaireCompletions = parseInt(questionnaireResult.rows[0].count);
+        const questionnaireResult = await sql`SELECT COUNT(*) as count FROM uat_users WHERE questionnaire_completed_at IS NOT NULL`;
+        stats.questionnaireCompletions = parseInt(questionnaireResult[0].count);
 
         // Get feedback count
-        const feedbackResult = await pool.query('SELECT COUNT(*) as count FROM uat_users WHERE overall_rating IS NOT NULL');
-        stats.feedbackSubmissions = parseInt(feedbackResult.rows[0].count);
+        const feedbackResult = await sql`SELECT COUNT(*) as count FROM uat_users WHERE overall_rating IS NOT NULL`;
+        stats.feedbackSubmissions = parseInt(feedbackResult[0].count);
 
         // Get program breakdown
-        const programsResult = await pool.query('SELECT program_id, program_name, COUNT(*) as count FROM uat_users WHERE program_id IS NOT NULL GROUP BY program_id, program_name ORDER BY count DESC');
-        stats.programBreakdown = programsResult.rows.map(row => ({
+        const programsResult = await sql`SELECT program_id, program_name, COUNT(*) as count FROM uat_users WHERE program_id IS NOT NULL GROUP BY program_id, program_name ORDER BY count DESC`;
+        stats.programBreakdown = programsResult.map(row => ({
             ...row,
             count: parseInt(row.count)
         }));
@@ -324,14 +305,14 @@ function generateProgram(questionnaire) {
 // Legacy functions for backward compatibility
 async function saveUser(email) {
     try {
-        const result = await pool.query(`
+        const result = await sql`
             INSERT INTO uat_users (email)
-            VALUES ($1)
+            VALUES (${email})
             ON CONFLICT (email) DO NOTHING
             RETURNING id
-        `, [email]);
+        `;
 
-        return result.rows[0]?.id || null;
+        return result[0]?.id || null;
     } catch (error) {
         console.error('❌ Error saving user:', error);
         throw error;
@@ -342,17 +323,17 @@ async function saveBetaUser(userData) {
     const { firstName, lastName, email } = userData;
 
     try {
-        const result = await pool.query(`
+        const result = await sql`
             INSERT INTO uat_users (first_name, last_name, email)
-            VALUES ($1, $2, $3)
+            VALUES (${firstName}, ${lastName}, ${email})
             ON CONFLICT (email) DO UPDATE SET
             first_name = EXCLUDED.first_name,
             last_name = EXCLUDED.last_name
             RETURNING id
-        `, [firstName, lastName, email]);
+        `;
 
         return {
-            id: result.rows[0].id,
+            id: result[0].id,
             firstName,
             lastName,
             email
@@ -367,18 +348,11 @@ function getBetaUser(email) {
     return getUATUser(email);
 }
 
-// Close database connection (for serverless, this isn't needed but kept for compatibility)
+// Close database connection (Neon serverless doesn't need explicit cleanup)
 async function closeDB() {
-    if (pool) {
-        await pool.end();
-    }
+    // Neon serverless connections are automatically managed
+    console.log('✅ Database connection closed (auto-managed by Neon)');
 }
-
-// Handle graceful shutdown (in serverless, this might not be called)
-process.on('SIGINT', async () => {
-    await closeDB();
-    process.exit(0);
-});
 
 module.exports = {
     initDB,
