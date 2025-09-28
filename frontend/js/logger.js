@@ -28,7 +28,7 @@ async function init() {
 
 async function loadWorkoutTemplates() {
     try {
-        const response = await fetch('/backend/workout-templates.json');
+        const response = await fetch('/api/programs');
         programs = await response.json();
     } catch (error) {
         console.error('Could not load workout templates:', error);
@@ -38,7 +38,7 @@ async function loadWorkoutTemplates() {
 
 async function loadDummyLogData() {
     try {
-        const response = await fetch('/backend/dummy_log_data.json');
+        const response = await fetch('/api/dummy-logs');
         dummyLogData = await response.json();
     } catch (error) {
         console.warn('Could not load dummy log data:', error);

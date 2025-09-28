@@ -388,6 +388,33 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
     }
 });
 
+// Workout data API endpoints (for serverless compatibility)
+app.get('/api/programs', (req, res) => {
+    try {
+        const workoutTemplates = require('./workout-templates.json');
+        res.json(workoutTemplates);
+    } catch (error) {
+        console.error('❌ Error loading workout templates:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Unable to load workout programs'
+        });
+    }
+});
+
+app.get('/api/dummy-logs', (req, res) => {
+    try {
+        const dummyLogs = require('./dummy_log_data.json');
+        res.json(dummyLogs);
+    } catch (error) {
+        console.error('❌ Error loading dummy log data:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Unable to load dummy log data'
+        });
+    }
+});
+
 // Legacy email capture (backwards compatibility)
 app.post('/api/email-capture', async (req, res) => {
     try {
