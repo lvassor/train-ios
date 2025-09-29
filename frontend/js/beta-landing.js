@@ -101,15 +101,22 @@ function setupStarRating() {
         star.addEventListener('click', () => {
             const rating = parseInt(star.dataset.rating);
 
-            // Update visual state with smooth transition
+            // Update visual state with immediate color change
             stars.forEach((s, i) => {
-                s.style.transition = 'color 0.2s ease, transform 0.1s ease';
+                // Set color immediately before changing content
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                const color = isDark ? '#ffffff' : '#2563eb';
+                s.style.color = color + ' !important';
+
+                s.style.transition = 'transform 0.1s ease';
                 if (i < rating) {
-                    s.style.color = '#f59e0b'; // bright orange/yellow
+                    s.classList.add('filled');
+                    s.textContent = '★'; // Filled star
                     s.style.transform = 'scale(1.1)';
                     setTimeout(() => s.style.transform = 'scale(1)', 100);
                 } else {
-                    s.style.color = '#d1d5db'; // gray
+                    s.classList.remove('filled');
+                    s.textContent = '☆'; // Outline star
                     s.style.transform = 'scale(1)';
                 }
             });
@@ -122,12 +129,16 @@ function setupStarRating() {
         // Hover effects
         star.addEventListener('mouseenter', () => {
             const rating = parseInt(star.dataset.rating);
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const hoverColor = isDark ? '#ffffff' : '#2563eb';
+            const defaultColor = isDark ? '#6b7280' : '#d1d5db';
+
             stars.forEach((s, i) => {
                 s.style.transition = 'color 0.15s ease';
                 if (i < rating) {
-                    s.style.color = '#fbbf24'; // lighter yellow on hover
+                    s.style.color = hoverColor;
                 } else {
-                    s.style.color = '#d1d5db';
+                    s.style.color = defaultColor;
                 }
             });
         });
@@ -138,12 +149,16 @@ function setupStarRating() {
     if (ratingContainer) {
         ratingContainer.addEventListener('mouseleave', () => {
             const currentRating = parseInt(ratingInput.value) || 0;
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const activeColor = isDark ? '#ffffff' : '#2563eb';
+            const defaultColor = isDark ? '#6b7280' : '#d1d5db';
+
             stars.forEach((s, i) => {
                 s.style.transition = 'color 0.2s ease';
                 if (i < currentRating) {
-                    s.style.color = '#f59e0b'; // match the clicked color
+                    s.style.color = activeColor;
                 } else {
-                    s.style.color = '#d1d5db';
+                    s.style.color = defaultColor;
                 }
             });
         });

@@ -358,10 +358,35 @@
 .rating-star {
     background: none;
     border: none;
-    font-size: 2rem;
-    color: #d1d5db;
+    font-size: 2.5rem;
+    color: #2563eb !important; /* Force blue immediately */
     cursor: pointer;
-    transition: color 0.2s;
+    transition: transform 0.2s ease; /* Remove color from transition */
+    font-family: 'Times New Roman', serif; /* Use serif font */
+    font-variant-emoji: text !important; /* Force text rendering */
+    -webkit-font-feature-settings: 'liga' off; /* Disable ligatures */
+    font-feature-settings: 'liga' off;
+    text-rendering: geometricPrecision;
+}
+
+.rating-star.filled {
+    color: #2563eb !important;
+}
+
+.rating-star:hover {
+    color: #2563eb !important;
+}
+
+[data-theme="dark"] .rating-star {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .rating-star.filled {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .rating-star:hover {
+    color: #ffffff !important;
 }
 
 .textarea-field {
