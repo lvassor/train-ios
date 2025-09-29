@@ -154,6 +154,17 @@
 }
 
 /* Beta landing page classes */
+/* Reduce top padding for cards containing feature grids */
+.card:has(.features-grid) {
+    padding-top: 0.5rem;
+}
+
+/* Ensure button stays centered in feature grid cards */
+.card:has(.features-grid) .centered-nav {
+    justify-content: center !important;
+    display: flex !important;
+}
+
 .features-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr) !important;
@@ -172,7 +183,7 @@
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 0.3rem;
     text-align: center;
     min-width: 0; /* Allows content to shrink */
     max-width: 100%; /* Prevents overflow */
@@ -213,7 +224,7 @@
     }
 
     .feature-card {
-        padding: 0.5rem 0.25rem;
+        padding: 0.4rem 0.2rem;
     }
 
     .feature-title {
