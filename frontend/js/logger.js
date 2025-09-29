@@ -8,6 +8,7 @@ let programs = {};
 let dummyLogData = {};
 let isDevMode = false;
 let promptTimers = {}; // Store debounce timers for each exercise
+let counterTimers = {}; // Store debounce timers for rep counters
 
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
@@ -240,8 +241,8 @@ function generateExerciseInterface(exercises) {
             <div class="regression-prompt hidden" id="regression-prompt-${exerciseIndex}">
                 <div class="progression-prompt-icon">⚠️</div>
                 <div class="progression-prompt-text">
-                    <div class="progression-prompt-title">Form check needed</div>
-                    <div class="progression-prompt-subtitle">Consider reducing weight for better form</div>
+                    <div class="progression-prompt-title">Lower the weight</div>
+                    <div class="progression-prompt-subtitle">You're struggling too early in the exercise</div>
                 </div>
             </div>
             
@@ -249,8 +250,8 @@ function generateExerciseInterface(exercises) {
             <div class="progression-prompt hidden" id="consistency-prompt-${exerciseIndex}">
                 <div class="progression-prompt-icon">🎯</div>
                 <div class="progression-prompt-text">
-                    <div class="progression-prompt-title">Great consistency!</div>
-                    <div class="progression-prompt-subtitle">Try pushing a bit harder next time</div>
+                    <div class="progression-prompt-title">Keep up the good work</div>
+                    <div class="progression-prompt-subtitle">Stay at this weight until you can complete all sets in the target range</div>
                 </div>
             </div>
             
@@ -258,8 +259,8 @@ function generateExerciseInterface(exercises) {
             <div class="progression-success hidden" id="progression-prompt-${exerciseIndex}">
                 <div class="progression-prompt-icon">💪</div>
                 <div class="progression-prompt-text">
-                    <div class="progression-prompt-title">Ready to progress!</div>
-                    <div class="progression-prompt-subtitle">Consider increasing weight next time</div>
+                    <div class="progression-prompt-title">Great work! Time to increase the weight</div>
+                    <div class="progression-prompt-subtitle">You've mastered this weight - level up!</div>
                 </div>
             </div>
             
@@ -317,13 +318,22 @@ function handleInput(event) {
     
     // Update counters and prompts if reps changed
     if (type === 'reps') {
-        updateCounters(exerciseIndex);
-        
+        // Clear existing counter timer for this exercise
+        if (counterTimers[exerciseIndex]) {
+            clearTimeout(counterTimers[exerciseIndex]);
+        }
+
+        // Set new debounced timer for counter evaluation
+        counterTimers[exerciseIndex] = setTimeout(() => {
+            updateCountersWithAnimation(exerciseIndex);
+            delete counterTimers[exerciseIndex];
+        }, 500); // 500ms debounce delay
+
         // Clear existing timer for this exercise
         if (promptTimers[exerciseIndex]) {
             clearTimeout(promptTimers[exerciseIndex]);
         }
-        
+
         // Set new debounced timer for prompt evaluation
         promptTimers[exerciseIndex] = setTimeout(() => {
             updateExercisePrompts(exerciseIndex);
@@ -332,34 +342,57 @@ function handleInput(event) {
     }
 }
 
-// Updated function to compare against previous session data
-function updateCounters(exerciseIndex) {
+// Updated function to compare against previous session data with animation
+function updateCountersWithAnimation(exerciseIndex) {
     const exerciseData = workoutData.exercises[exerciseIndex];
-    
+
     // Calculate excess reps compared to previous session
     let excessReps = 0;
-    
+
     exerciseData.sets.forEach((currentSet, setIndex) => {
         if (currentSet && currentSet.reps) {
             const previousSetData = getPreviousSetData(exerciseIndex, setIndex);
             const previousReps = previousSetData?.reps || 0;
-            
+
             if (currentSet.reps > previousReps) {
                 excessReps += (currentSet.reps - previousReps);
             }
         }
     });
-    
+
     // Update rep counter display
     const repCounter = document.getElementById(`rep-counter-${exerciseIndex}`);
     const counterValue = repCounter.querySelector('.counter-value');
-    
+    const previousValue = counterValue.textContent;
+
     if (excessReps > 0) {
         counterValue.textContent = excessReps;
         repCounter.classList.remove('hidden');
+
+        // Trigger animation only if the value changed
+        if (previousValue !== excessReps.toString()) {
+            // Remove existing animation class
+            repCounter.classList.remove('rep-counter-pop');
+
+            // Force reflow to restart animation
+            repCounter.offsetHeight;
+
+            // Add animation class
+            repCounter.classList.add('rep-counter-pop');
+
+            // Remove animation class after completion
+            setTimeout(() => {
+                repCounter.classList.remove('rep-counter-pop');
+            }, 300);
+        }
     } else {
         repCounter.classList.add('hidden');
     }
+}
+
+// Legacy function for compatibility - now just calls the animated version
+function updateCounters(exerciseIndex) {
+    updateCountersWithAnimation(exerciseIndex);
 }
 
 // New function to handle exercise completion prompts
@@ -422,31 +455,56 @@ function evaluatePromptTier(exerciseIndex, exercise, exerciseData) {
     const completedSets = exerciseData.sets.filter(set =>
         set && set.reps && set.reps > 0
     );
-    
+
     console.log(`=== DEBUG Exercise ${exerciseIndex}: ${exercise.name} ===`);
     console.log('Completed sets:', completedSets);
     console.log('Target range:', exercise.repsMin, '-', exercise.repsMax);
-    
-    // Check for regression (any set below minimum reps)
-    const hasRegression = completedSets.some(set => set.reps < exercise.repsMin);
-    console.log('Has regression:', hasRegression);
-    
-    if (hasRegression) {
-        console.log('RETURNING: regression');
+
+    // Extract reps from completed sets
+    const reps = completedSets.map(set => set.reps);
+    const lowerBound = exercise.repsMin;
+    const upperBound = exercise.repsMax;
+
+    console.log('Reps array:', reps);
+
+    if (reps.length === 0) {
+        console.log('RETURNING: consistency (no completed sets)');
+        return 'consistency';
+    }
+
+    // Get first set, second set, and all other sets
+    const firstSet = reps[0];
+    const secondSet = reps.length > 1 ? reps[1] : null;
+    const allOtherSets = reps.slice(2); // third, fourth, etc.
+
+    console.log('First set reps:', firstSet);
+    console.log('Second set reps:', secondSet);
+    console.log('All other sets:', allOtherSets);
+
+    // Check first two sets
+    if (firstSet < lowerBound || (secondSet !== null && secondSet < lowerBound)) {
+        console.log('RETURNING: regression (first two sets struggling)');
         return 'regression';
     }
-    
-    // Check for progression (2+ sets above maximum reps)
-    const setsAboveMax = completedSets.filter(set => set.reps >= exercise.repsMax).length;
-    console.log('Sets above max:', setsAboveMax);
-    
-    if (setsAboveMax >= 2) {
-        console.log('RETURNING: progression');
+
+    // Check if all sets hit upper bound or above
+    const allSetsAtOrAboveUpper = reps.every(repCount => repCount >= upperBound);
+    if (allSetsAtOrAboveUpper) {
+        console.log('RETURNING: progression (all sets hit upper bound+)');
         return 'progression';
     }
-    
-    // Default to consistency (all sets within range)
-    console.log('RETURNING: consistency');
+
+    // Check if first two are on/above target but later sets drop below
+    if (firstSet >= lowerBound &&
+        (secondSet === null || secondSet >= lowerBound) &&
+        allOtherSets.length > 0 &&
+        allOtherSets.some(repCount => repCount < lowerBound)) {
+        console.log('RETURNING: consistency (later sets dropped below target)');
+        return 'consistency';
+    }
+
+    // Default case: everything is within range
+    console.log('RETURNING: consistency (default - everything within range)');
     return 'consistency';
 }
 

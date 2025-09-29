@@ -67,13 +67,13 @@
                             <p class="question-subtitle">We'll use this to personalize your experience</p>
                         </div>
                         <div class="options-container">
-                            <div style="display: flex; gap: 1rem; width: 100%;">
-                                <div style="flex: 1;">
-                                    <input type="text" id="firstName" class="email-input" placeholder="First name" required style="border: 2px solid #e5e7eb; border-radius: 0.5rem; width: 100%;">
+                            <div class="name-input-container">
+                                <div class="name-input-group">
+                                    <input type="text" id="firstName" class="email-input name-input-field" placeholder="First name" required>
                                     <div class="form-error" id="firstName-error"></div>
                                 </div>
-                                <div style="flex: 1;">
-                                    <input type="text" id="lastName" class="email-input" placeholder="Last name" required style="border: 2px solid #e5e7eb; border-radius: 0.5rem; width: 100%;">
+                                <div class="name-input-group">
+                                    <input type="text" id="lastName" class="email-input name-input-field" placeholder="Last name" required>
                                     <div class="form-error" id="lastName-error"></div>
                                 </div>
                             </div>
@@ -89,12 +89,12 @@
                         </div>
                         <div class="options-container">
                             <div>
-                                <input type="email" id="email" class="email-input" placeholder="Enter your email address" required style="border: 2px solid #e5e7eb; border-radius: 0.5rem; width: 100%;">
+                                <input type="email" id="email" class="email-input name-input-field" placeholder="Enter your email address" required>
                                 <div class="form-error" id="email-error"></div>
                             </div>
-                            <div style="display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 1rem; padding: 1rem; background-color: #f8fafc; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
-                                <input type="checkbox" id="emailOptOut" style="margin-top: 0.25rem;">
-                                <label for="emailOptOut" style="font-size: 0.875rem; color: #6b7280; line-height: 1.4;">
+                            <div class="email-opt-out-container">
+                                <input type="checkbox" id="emailOptOut" class="email-opt-out-checkbox">
+                                <label for="emailOptOut" class="email-opt-out-label">
                                     We will let you know when the full version of the app has been released. Tick this box if you would like to opt-out of further updates beyond this.
                                 </label>
                             </div>
@@ -105,7 +105,7 @@
                     <!-- Step 3: Experience -->
                     <div class="step hidden" id="step-3">
                         <div class="question-container">
-                            <h2 class="question-title">What's your current training experience?</h2>
+                            <h2 class="question-title">What's your current experience with strength training?</h2>
                             <p class="question-subtitle">Help us understand your background</p>
                         </div>
                         <div class="options-container">

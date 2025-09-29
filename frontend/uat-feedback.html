@@ -49,65 +49,65 @@
                         </p>
                     </div>
 
-                    <form class="options-container" id="feedbackForm" style="gap: 1.5rem;">
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <label for="overallRating" style="font-size: 1rem; font-weight: 600; color: #374151;">
+                    <form class="options-container feedback-form" id="feedbackForm">
+                        <div class="form-field">
+                            <label for="overallRating" class="feedback-label">
                                 How would you rate your overall experience? ⭐
                             </label>
-                            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <div class="rating-container" style="display: flex; gap: 0.25rem;">
-                                    <button type="button" class="rating-star" data-rating="1" style="background: none; border: none; font-size: 2rem; color: #d1d5db; cursor: pointer; transition: color 0.2s;">⭐</button>
-                                    <button type="button" class="rating-star" data-rating="2" style="background: none; border: none; font-size: 2rem; color: #d1d5db; cursor: pointer; transition: color 0.2s;">⭐</button>
-                                    <button type="button" class="rating-star" data-rating="3" style="background: none; border: none; font-size: 2rem; color: #d1d5db; cursor: pointer; transition: color 0.2s;">⭐</button>
-                                    <button type="button" class="rating-star" data-rating="4" style="background: none; border: none; font-size: 2rem; color: #d1d5db; cursor: pointer; transition: color 0.2s;">⭐</button>
-                                    <button type="button" class="rating-star" data-rating="5" style="background: none; border: none; font-size: 2rem; color: #d1d5db; cursor: pointer; transition: color 0.2s;">⭐</button>
+                            <div class="rating-section">
+                                <div class="rating-stars">
+                                    <button type="button" class="rating-star" data-rating="1">⭐</button>
+                                    <button type="button" class="rating-star" data-rating="2">⭐</button>
+                                    <button type="button" class="rating-star" data-rating="3">⭐</button>
+                                    <button type="button" class="rating-star" data-rating="4">⭐</button>
+                                    <button type="button" class="rating-star" data-rating="5">⭐</button>
                                 </div>
-                                <span id="ratingText" style="font-size: 0.875rem; color: #6b7280; margin-left: 1rem;"></span>
+                                <span id="ratingText" class="feedback-rating-text"></span>
                             </div>
                             <input type="hidden" id="overallRating" name="overallRating" value="">
                         </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <label for="lovedMost" style="font-size: 1rem; font-weight: 600; color: #374151;">
+                        <div class="form-field">
+                            <label for="lovedMost" class="feedback-label">
                                 What did you love most? 💚
                             </label>
                             <textarea
                                 id="lovedMost"
                                 class="notes-textarea"
-                                style="min-height: 4rem;"
+class="textarea-field"
                                 placeholder="What stood out to you in a positive way?"
                                 maxlength="500"
                             ></textarea>
-                            <div style="font-size: 0.75rem; color: #9ca3af; text-align: right;">
+                            <div class="feedback-count-text">
                                 <span id="lovedMostCount">0</span>/500 characters
                             </div>
                         </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <label for="improvements" style="font-size: 1rem; font-weight: 600; color: #374151;">
+                        <div class="form-field">
+                            <label for="improvements" class="feedback-label">
                                 What could be improved? 🔧
                             </label>
                             <textarea
                                 id="improvements"
                                 class="notes-textarea"
-                                style="min-height: 4rem;"
+class="textarea-field"
                                 placeholder="Any pain points, bugs, or confusing parts?"
                                 maxlength="500"
                             ></textarea>
-                            <div style="font-size: 0.75rem; color: #9ca3af; text-align: right;">
+                            <div class="feedback-count-text">
                                 <span id="improvementsCount">0</span>/500 characters
                             </div>
                         </div>
 
                         <!-- Separator -->
-                        <div style="border-top: 1px solid #e5e7eb; margin: 1rem 0; padding-top: 1.5rem;">
-                            <p style="font-size: 0.875rem; color: #6b7280; text-align: center; margin-bottom: 1.5rem;">
+                        <div class="form-separator">
+                            <p class="feedback-helper-text feedback-optional-text">
                                 <em>Optional: Help us understand the competitive landscape</em>
                             </p>
                         </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <label for="currentApp" style="font-size: 1rem; font-weight: 600; color: #374151;">
+                        <div class="form-field">
+                            <label for="currentApp" class="feedback-label">
                                 Are you currently using a training app? If so, which one? 📱
                             </label>
                             <input
@@ -116,31 +116,30 @@
                                 class="text-input"
                                 placeholder="e.g., StrongApp, Jefit, MyFitnessPal, or 'None'"
                                 maxlength="100"
-                                style="padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem;"
                             />
-                            <div style="font-size: 0.75rem; color: #9ca3af; text-align: right;">
+                            <div class="feedback-count-text">
                                 <span id="currentAppCount">0</span>/100 characters
                             </div>
                         </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <label for="missingFeatures" style="font-size: 1rem; font-weight: 600; color: #374151;">
+                        <div class="form-field">
+                            <label for="missingFeatures" class="feedback-label">
                                 For this app, or any you've used before, what were they missing that you wished they had? 💭
                             </label>
                             <textarea
                                 id="missingFeatures"
                                 class="notes-textarea"
-                                style="min-height: 4rem;"
+class="textarea-field"
                                 placeholder="What gaps or frustrations did you experience with other fitness apps?"
                                 maxlength="500"
                             ></textarea>
-                            <div style="font-size: 0.75rem; color: #9ca3af; text-align: right;">
+                            <div class="feedback-count-text">
                                 <span id="missingFeaturesCount">0</span>/500 characters
                             </div>
                         </div>
                     </form>
 
-                    <div class="nav-buttons" style="justify-content: center;">
+                    <div class="nav-buttons centered-nav">
                         <button type="submit" class="btn btn-primary" id="submitFeedback" form="feedbackForm">
                             Submit Feedback
                         </button>
@@ -153,21 +152,21 @@
         <!-- Thank You Section -->
         <section class="hidden" id="thankYouSection">
             <div class="container">
-                <div class="card" style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #bbf7d0;">
+                <div class="card thank-you-card">
                     <div class="question-container">
                         <div class="success-icon">🙏</div>
-                        <h2 class="question-title" style="color: #166534;">Thank You!</h2>
-                        <p class="question-subtitle" style="color: #15803d; margin-bottom: 2rem;">
+                        <h2 class="question-title thank-you-title">Thank You!</h2>
+                        <p class="question-subtitle thank-you-subtitle">
                             Thank you for being part of our user test! Your feedback has been submitted successfully and will help us build a better trAIn. We truly appreciate you taking the time to help us improve.
                         </p>
                         
-                        <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #bbf7d0; text-align: left;">
-                            <h4 style="font-size: 1rem; font-weight: 600; color: #166534; margin-bottom: 0.75rem;">What happens next:</h4>
-                            <ul style="list-style: none; padding: 0;">
-                                <li style="padding: 0.25rem 0; color: #15803d; font-size: 0.875rem;">✓ We'll review all feedback within 48 hours</li>
-                                <li style="padding: 0.25rem 0; color: #15803d; font-size: 0.875rem;">✓ Common suggestions will be prioritized for development</li>
-                                <li style="padding: 0.25rem 0; color: #15803d; font-size: 0.875rem;">✓ You'll be first to know about major updates</li>
-                                <li style="padding: 0.25rem 0; color: #15803d; font-size: 0.875rem;">✓ We may reach out for follow-up questions</li>
+                        <div class="next-steps-box">
+                            <h4 class="next-steps-title">What happens next:</h4>
+                            <ul class="next-steps-list">
+                                <li class="next-steps-item">✓ We'll review all feedback within 48 hours</li>
+                                <li class="next-steps-item">✓ Common suggestions will be prioritized for development</li>
+                                <li class="next-steps-item">✓ You'll be first to know about major updates</li>
+                                <li class="next-steps-item">✓ We may reach out for follow-up questions</li>
                             </ul>
                         </div>
                     </div>

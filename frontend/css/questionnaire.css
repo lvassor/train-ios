@@ -107,6 +107,12 @@
     border: 2px solid #dbeafe;
 }
 
+[data-theme="dark"] .slider-value {
+    color: #ffffff;
+    background: #374151;
+    border: 2px solid #4b5563;
+}
+
 /* ===============================================
    CONFIDENCE RATINGS
    =============================================== */
@@ -220,6 +226,10 @@
     font-size: 1rem;
     color: #4b5563;
     font-weight: 500;
+}
+
+[data-theme="dark"] .loading-text {
+    color: #ffffff;
 }
 
 .loading-steps {

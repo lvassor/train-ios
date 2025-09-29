@@ -305,10 +305,10 @@ function createSuccessScreen() {
                 <div class="success-icon">✅</div>
                 <h2 class="question-title">Your bespoke program is ready!</h2>
                 <p class="question-subtitle" style="margin-bottom: 2rem;">
-                    We've created a <strong>personalized training program</strong> just for you and sent it to your email.
+                    We've created a <strong>personalized training program</strong> just for you.
                 </p>
                 <p style="color: #6b7280; margin-bottom: 2rem;">
-                    Check your inbox for your custom workout plan!
+                    Let's get started with your custom workout plan!
                 </p>
                 
                 <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 2rem; border-radius: 1rem; border: 2px solid #93c5fd; margin-bottom: 2rem;">
@@ -342,7 +342,7 @@ function createSuccessScreen() {
                 
                 <div style="text-align: center; margin-top: 1rem;">
                     <p style="color: #6b7280; font-size: 0.875rem;">
-                        Your program has been sent to your email and is ready to log!
+                        Your program is ready to log!
                     </p>
                 </div>
             </div>
