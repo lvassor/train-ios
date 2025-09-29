@@ -330,7 +330,7 @@
 }
 
 .centered-nav {
-    justify-content: center;
+    justify-content: center !important;
 }
 
 /* Feedback form layout classes */
@@ -903,8 +903,7 @@ footer {
     }
     
     .email-input {
-        border-radius: 0.75rem 0 0 0.75rem;
-        border-right: none;
+        border-radius: 0.75rem;
     }
     
     .email-submit-btn {
