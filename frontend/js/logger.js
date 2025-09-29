@@ -191,31 +191,44 @@ function generateExerciseInterface(exercises) {
         const exerciseCard = document.createElement('div');
         exerciseCard.className = 'exercise-card';
         
-        let setsHTML = '';
+        // Generate mobile-friendly table structure
+        let setsHTML = `
+            <div class="sets-container">
+                <div class="sets-header mobile-only">
+                    <div class="header-item">Set</div>
+                    <div class="header-item">Weight</div>
+                    <div class="header-item">Reps</div>
+                    <div class="header-item">✓</div>
+                </div>
+                <div class="sets-list">
+        `;
+
         for (let setNum = 1; setNum <= exercise.sets; setNum++) {
             const previousData = getPreviousSetData(exerciseIndex, setNum - 1);
             const weightPlaceholder = previousData?.weight || 0;
             const repsPlaceholder = previousData?.reps || 0;
-            
+
             setsHTML += `
                 <div class="set-row">
-                    <div class="set-number">Set ${setNum}</div>
+                    <div class="set-number">
+                        <span class="desktop-label">Set </span>${setNum}
+                    </div>
                     <div class="input-group">
-                        <label class="input-label">Weight (lbs)</label>
-                        <input type="number" class="set-input" 
-                               data-exercise="${exerciseIndex}" 
-                               data-set="${setNum}" 
-                               data-type="weight" 
-                               placeholder="${weightPlaceholder}" 
+                        <label class="input-label desktop-only">Weight (lbs)</label>
+                        <input type="number" class="set-input"
+                               data-exercise="${exerciseIndex}"
+                               data-set="${setNum}"
+                               data-type="weight"
+                               placeholder="${weightPlaceholder}"
                                min="0" step="2.5">
                     </div>
                     <div class="input-group">
-                        <label class="input-label">Reps</label>
-                        <input type="number" class="set-input" 
-                               data-exercise="${exerciseIndex}" 
-                               data-set="${setNum}" 
-                               data-type="reps" 
-                               placeholder="${repsPlaceholder}" 
+                        <label class="input-label desktop-only">Reps</label>
+                        <input type="number" class="set-input"
+                               data-exercise="${exerciseIndex}"
+                               data-set="${setNum}"
+                               data-type="reps"
+                               placeholder="${repsPlaceholder}"
                                min="0">
                     </div>
                     <div class="set-complete">
@@ -224,6 +237,11 @@ function generateExerciseInterface(exercises) {
                 </div>
             `;
         }
+
+        setsHTML += `
+                </div>
+            </div>
+        `;
         
         const previousNotes = getPreviousExerciseNotes(exerciseIndex);
         
