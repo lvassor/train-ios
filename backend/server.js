@@ -202,10 +202,10 @@ const validateQuestionnaire = [
 const validateFeedback = [
     body('email').optional().isEmail().normalizeEmail(),
     body('overallRating').isInt({ min: 1, max: 5 }),
-    body('lovedMost').optional().trim().isLength({ max: 500 }).escape(),
-    body('improvements').optional().trim().isLength({ max: 500 }).escape(),
-    body('currentApp').optional().trim().isLength({ max: 100 }).escape(),
-    body('missingFeatures').optional().trim().isLength({ max: 500 }).escape()
+    body('lovedMost').optional().trim().isLength({ max: 500 }),
+    body('improvements').optional().trim().isLength({ max: 500 }),
+    body('currentApp').optional().trim().isLength({ max: 100 }),
+    body('missingFeatures').optional().trim().isLength({ max: 500 })
 ];
 
 // Beta signup (Step 1: Landing page form submission)
@@ -330,6 +330,8 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
         });
     }
     try {
+        console.log('📝 Feedback request body:', JSON.stringify(req.body, null, 2));
+
         const {
             firstName,
             lastName,
@@ -397,6 +399,8 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
             timestamp: new Date().toISOString()
         };
 
+        console.log('💾 Saving feedback data:', JSON.stringify(feedbackData, null, 2));
+
         await db.saveUATFeedback(feedbackData);
 
         res.json({
@@ -407,9 +411,11 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
 
     } catch (error) {
         console.error('❌ Feedback submission error:', error);
+        console.error('Error details:', error.message, error.stack);
         res.status(500).json({
             success: false,
-            message: 'Unable to submit feedback. Please try again.'
+            message: 'Unable to submit feedback. Please try again.',
+            ...(process.env.NODE_ENV === 'development' && { error: error.message })
         });
     }
 });
