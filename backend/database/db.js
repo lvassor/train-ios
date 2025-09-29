@@ -13,10 +13,6 @@ async function initDB() {
     // Use Vercel's DATABASE_URL or fallback to local development
     const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
-    console.log('🔄 Initializing database connection...');
-    console.log('Environment:', process.env.NODE_ENV);
-    console.log('Has DATABASE_URL:', !!process.env.DATABASE_URL);
-    console.log('Has POSTGRES_URL:', !!process.env.POSTGRES_URL);
 
     if (!connectionString) {
         throw new Error('❌ No database connection string found. Please set DATABASE_URL or POSTGRES_URL environment variable.');
@@ -28,7 +24,6 @@ async function initDB() {
     try {
         // Test connection and create table
         await createTable();
-        console.log('✅ Database initialized successfully');
     } catch (error) {
         console.error('❌ Database initialization failed:', error);
         throw error;
@@ -75,7 +70,6 @@ async function createTable() {
         await sql`CREATE INDEX IF NOT EXISTS idx_uat_users_email ON uat_users(email)`;
         await sql`CREATE INDEX IF NOT EXISTS idx_uat_users_created_at ON uat_users(created_at)`;
 
-        console.log('✅ Database table and indexes created successfully');
     } catch (error) {
         console.error('❌ Error creating database table:', error);
         throw error;
@@ -137,7 +131,6 @@ async function saveQuestionnaire(questionnaireData) {
 // Ensure database is initialized before operations
 async function ensureInitialized() {
     if (!isInitialized && !sql) {
-        console.log('🔄 Lazy initializing database connection...');
         await initDB();
         isInitialized = true;
     }
@@ -159,7 +152,6 @@ async function saveUATFeedback(feedbackData) {
     } = feedbackData;
 
     try {
-        console.log('🔄 Attempting to save feedback to database...');
         // Use UPSERT to handle both existing and new users
         const result = await sql`
             INSERT INTO uat_users
@@ -177,15 +169,12 @@ async function saveUATFeedback(feedbackData) {
             RETURNING email
         `;
 
-        console.log('✅ Database operation completed successfully');
         return {
             email,
             feedbackReceived: true
         };
     } catch (error) {
         console.error('❌ Database error saving feedback:', error);
-        console.error('Database error stack:', error.stack);
-        console.error('SQL state:', error.code);
         throw error;
     }
 }

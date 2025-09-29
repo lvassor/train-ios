@@ -192,12 +192,6 @@ async function handleFeedbackSubmit(event) {
         return;
     }
 
-    if (!formData.email || formData.email === 'anonymous@feedback.com') {
-        console.log('Using anonymous feedback submission');
-    }
-
-    // Debug: log the data being sent
-    console.log('Submitting feedback data:', JSON.stringify(formData, null, 2));
 
     // Show loading state
     setFeedbackLoadingState(true);
@@ -212,22 +206,12 @@ async function handleFeedbackSubmit(event) {
             body: JSON.stringify(formData)
         });
 
-        let result;
-        try {
-            result = await response.json();
-        } catch (parseError) {
-            console.error('Failed to parse response as JSON:', parseError);
-            result = { message: 'Server error - invalid response format' };
-        }
-
-        console.log('Response status:', response.status);
-        console.log('Response data:', JSON.stringify(result, null, 2));
+        const result = await response.json();
 
         if (response.ok) {
             // Show thank you section
             showThankYouSection();
         } else {
-            console.error('API error response:', JSON.stringify(result, null, 2));
             throw new Error(result.message || 'Feedback submission failed');
         }
 

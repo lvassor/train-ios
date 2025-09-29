@@ -361,7 +361,17 @@ function createSuccessScreen() {
 function validateCurrentStep() {
     switch (currentStep) {
         case 1: return validateField('firstName') && validateField('lastName');
-        case 2: return validateField('email');
+        case 2:
+            // Basic email validation first
+            if (!validateField('email')) {
+                return false;
+            }
+            // Check for duplicate feedback
+            if (hasDuplicateFeedback) {
+                showError('email', 'This email has already submitted feedback. Please use a different email address.');
+                return false;
+            }
+            return true;
         case 3: return !!formData.experience;
         case 4: return formData.whyUsingApp?.length > 0;
         case 5: return formData.equipmentAvailable?.length > 0;
@@ -410,7 +420,7 @@ function validateField(fieldName) {
                 showError(fieldName, 'Please enter a valid email address');
                 return false;
             }
-            // Check for duplicate feedback submission
+            // Check for duplicate feedback submission (async, handled separately)
             checkFeedbackStatus(value);
             break;
     }
@@ -423,18 +433,27 @@ function isValidEmail(email) {
     return emailRegex.test(email);
 }
 
+let hasDuplicateFeedback = false;
+
 async function checkFeedbackStatus(email) {
     try {
         const response = await fetch(`/api/feedback-status/${encodeURIComponent(email)}`);
         const data = await response.json();
 
         if (data.success && data.hasSubmittedFeedback) {
+            hasDuplicateFeedback = true;
             showError('email', 'This email has already submitted feedback. Each person can only submit feedback once.');
+
             return false;
+        } else {
+            hasDuplicateFeedback = false;
+            clearError('email');
+
+            return true;
         }
-        return true;
     } catch (error) {
         console.log('Could not check feedback status:', error);
+        hasDuplicateFeedback = false;
         // Don't block the user if the check fails
         return true;
     }

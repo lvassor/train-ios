@@ -316,8 +316,9 @@ app.post('/api/submit-questionnaire', formLimiter, validateQuestionnaire, async 
     }
 });
 
-// Check feedback status for email
-app.get('/api/feedback-status/:email', async (req, res) => {
+
+// Check feedback status for email (rate limited)
+app.get('/api/feedback-status/:email', formLimiter, async (req, res) => {
     try {
         const { email } = req.params;
 
@@ -331,10 +332,11 @@ app.get('/api/feedback-status/:email', async (req, res) => {
         const user = await db.getUATUser(email);
         const hasSubmittedFeedback = user && user.feedback_completed_at;
 
+        // Only return feedback status, not user existence
+        // This prevents email enumeration while still blocking duplicates
         res.json({
             success: true,
-            hasSubmittedFeedback: !!hasSubmittedFeedback,
-            userExists: !!user
+            hasSubmittedFeedback: !!hasSubmittedFeedback
         });
 
     } catch (error) {
@@ -348,12 +350,9 @@ app.get('/api/feedback-status/:email', async (req, res) => {
 
 // UAT feedback submission (Step 4: Final feedback)
 app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) => {
-    console.log('📥 Feedback submission received:', JSON.stringify(req.body, null, 2));
-
     // Check validation results
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        console.error('❌ Validation errors:', errors.array());
         return res.status(400).json({
             success: false,
             message: 'Invalid feedback data',
@@ -428,20 +427,7 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
             timestamp: new Date().toISOString()
         };
 
-        console.log('💾 Saving feedback to database:', JSON.stringify(feedbackData, null, 2));
-
-        try {
-            await db.saveUATFeedback(feedbackData);
-            console.log('✅ Feedback saved successfully');
-        } catch (dbError) {
-            console.error('❌ Database save failed, logging to console for manual recovery:', dbError);
-            // In production, still return success to avoid blocking users
-            if (process.env.NODE_ENV === 'production') {
-                console.log('🚨 PRODUCTION FEEDBACK DATA (MANUAL RECOVERY NEEDED):', JSON.stringify(feedbackData, null, 2));
-            } else {
-                throw dbError; // Re-throw in development
-            }
-        }
+        await db.saveUATFeedback(feedbackData);
 
         res.json({
             success: true,
@@ -451,11 +437,9 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
 
     } catch (error) {
         console.error('❌ Feedback submission error:', error);
-        console.error('Error stack:', error.stack);
         res.status(500).json({
             success: false,
-            message: 'Unable to submit feedback. Please try again.',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            message: 'Unable to submit feedback. Please try again.'
         });
     }
 });
