@@ -197,7 +197,7 @@ async function handleFeedbackSubmit(event) {
     }
 
     // Debug: log the data being sent
-    console.log('Submitting feedback data:', formData);
+    console.log('Submitting feedback data:', JSON.stringify(formData, null, 2));
 
     // Show loading state
     setFeedbackLoadingState(true);
@@ -212,16 +212,22 @@ async function handleFeedbackSubmit(event) {
             body: JSON.stringify(formData)
         });
 
-        const result = await response.json();
+        let result;
+        try {
+            result = await response.json();
+        } catch (parseError) {
+            console.error('Failed to parse response as JSON:', parseError);
+            result = { message: 'Server error - invalid response format' };
+        }
 
         console.log('Response status:', response.status);
-        console.log('Response data:', result);
+        console.log('Response data:', JSON.stringify(result, null, 2));
 
         if (response.ok) {
             // Show thank you section
             showThankYouSection();
         } else {
-            console.error('API error response:', result);
+            console.error('API error response:', JSON.stringify(result, null, 2));
             throw new Error(result.message || 'Feedback submission failed');
         }
 

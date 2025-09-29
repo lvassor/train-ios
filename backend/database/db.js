@@ -6,11 +6,17 @@
 const { neon } = require('@neondatabase/serverless');
 
 let sql;
+let isInitialized = false;
 
 // Initialize database connection
 async function initDB() {
     // Use Vercel's DATABASE_URL or fallback to local development
     const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+    console.log('🔄 Initializing database connection...');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Has DATABASE_URL:', !!process.env.DATABASE_URL);
+    console.log('Has POSTGRES_URL:', !!process.env.POSTGRES_URL);
 
     if (!connectionString) {
         throw new Error('❌ No database connection string found. Please set DATABASE_URL or POSTGRES_URL environment variable.');
@@ -19,8 +25,14 @@ async function initDB() {
     // Create Neon connection
     sql = neon(connectionString);
 
-    // Test connection and create table
-    await createTable();
+    try {
+        // Test connection and create table
+        await createTable();
+        console.log('✅ Database initialized successfully');
+    } catch (error) {
+        console.error('❌ Database initialization failed:', error);
+        throw error;
+    }
 }
 
 async function createTable() {
@@ -122,8 +134,18 @@ async function saveQuestionnaire(questionnaireData) {
     }
 }
 
+// Ensure database is initialized before operations
+async function ensureInitialized() {
+    if (!isInitialized && !sql) {
+        console.log('🔄 Lazy initializing database connection...');
+        await initDB();
+        isInitialized = true;
+    }
+}
+
 // Save UAT feedback
 async function saveUATFeedback(feedbackData) {
+    await ensureInitialized();
     const {
         firstName,
         lastName,
@@ -137,6 +159,7 @@ async function saveUATFeedback(feedbackData) {
     } = feedbackData;
 
     try {
+        console.log('🔄 Attempting to save feedback to database...');
         // Use UPSERT to handle both existing and new users
         const result = await sql`
             INSERT INTO uat_users
@@ -154,18 +177,22 @@ async function saveUATFeedback(feedbackData) {
             RETURNING email
         `;
 
+        console.log('✅ Database operation completed successfully');
         return {
             email,
             feedbackReceived: true
         };
     } catch (error) {
-        console.error('❌ Error saving feedback:', error);
+        console.error('❌ Database error saving feedback:', error);
+        console.error('Database error stack:', error.stack);
+        console.error('SQL state:', error.code);
         throw error;
     }
 }
 
 // Get user by email
 async function getUATUser(email) {
+    await ensureInitialized();
     try {
         const result = await sql`SELECT * FROM uat_users WHERE email = ${email}`;
 
