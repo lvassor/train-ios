@@ -84,6 +84,7 @@ function setupCharacterCounters() {
     });
 }
 
+
 function setupStarRating() {
     const stars = document.querySelectorAll('.rating-star');
     const ratingInput = document.getElementById('overallRating');
@@ -168,13 +169,15 @@ function setupStarRating() {
 async function handleFeedbackSubmit(event) {
     event.preventDefault();
 
+    const userEmail = sessionStorage.getItem('userEmail') || sessionStorage.getItem('betaEmail') || 'anonymous@feedback.com';
+
     const formData = {
-        email: sessionStorage.getItem('userEmail'),
-        overallRating: document.getElementById('overallRating').value,
-        lovedMost: document.getElementById('lovedMost').value.trim(),
-        improvements: document.getElementById('improvements').value.trim(),
-        currentApp: document.getElementById('currentApp').value.trim(),
-        missingFeatures: document.getElementById('missingFeatures').value.trim(),
+        email: userEmail,
+        overallRating: parseInt(document.getElementById('overallRating').value) || 0,
+        lovedMost: document.getElementById('lovedMost').value.trim() || '',
+        improvements: document.getElementById('improvements').value.trim() || '',
+        currentApp: document.getElementById('currentApp').value.trim() || '',
+        missingFeatures: document.getElementById('missingFeatures').value.trim() || '',
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
         url: window.location.href
@@ -186,9 +189,8 @@ async function handleFeedbackSubmit(event) {
         return;
     }
 
-    if (!formData.email) {
-        showFeedbackError('Session expired. Please complete the questionnaire first.');
-        return;
+    if (!formData.email || formData.email === 'anonymous@feedback.com') {
+        console.log('Using anonymous feedback submission');
     }
 
     // Show loading state

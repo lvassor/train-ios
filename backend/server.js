@@ -176,7 +176,7 @@ const validateQuestionnaire = [
 ];
 
 const validateFeedback = [
-    body('email').isEmail().normalizeEmail(),
+    body('email').optional().isEmail().normalizeEmail(),
     body('overallRating').isInt({ min: 1, max: 5 }),
     body('lovedMost').optional().trim().isLength({ max: 500 }).escape(),
     body('improvements').optional().trim().isLength({ max: 500 }).escape(),
@@ -292,6 +292,36 @@ app.post('/api/submit-questionnaire', formLimiter, validateQuestionnaire, async 
     }
 });
 
+// Check feedback status for email
+app.get('/api/feedback-status/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+
+        if (!email || !isValidEmail(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid email required'
+            });
+        }
+
+        const user = await db.getUATUser(email);
+        const hasSubmittedFeedback = user && user.feedback_completed_at;
+
+        res.json({
+            success: true,
+            hasSubmittedFeedback: !!hasSubmittedFeedback,
+            userExists: !!user
+        });
+
+    } catch (error) {
+        console.error('❌ Feedback status check error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Unable to check feedback status'
+        });
+    }
+});
+
 // UAT feedback submission (Step 4: Final feedback)
 app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) => {
     // Check validation results
@@ -327,15 +357,9 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
         // Try to get user info if not provided
         let userFirstName = firstName;
         let userLastName = lastName;
-        let userEmail = email;
+        let userEmail = email || 'anonymous@feedback.com';
 
-        if (!userEmail) {
-            // Try to get from session or require it
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required to submit feedback'
-            });
-        }
+        // Allow anonymous feedback - no email requirement for MVP
 
         // Get user details from beta_users if name not provided
         if (!userFirstName || !userLastName) {

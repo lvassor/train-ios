@@ -125,6 +125,8 @@ async function saveQuestionnaire(questionnaireData) {
 // Save UAT feedback
 async function saveUATFeedback(feedbackData) {
     const {
+        firstName,
+        lastName,
         email,
         overallRating,
         lovedMost,
@@ -135,17 +137,22 @@ async function saveUATFeedback(feedbackData) {
     } = feedbackData;
 
     try {
+        // Use UPSERT to handle both existing and new users
         const result = await sql`
-            UPDATE uat_users
-            SET overall_rating = ${overallRating}, loved_most = ${lovedMost}, improvements = ${improvements},
-                current_app = ${currentApp}, missing_features = ${missingFeatures}, feedback_completed_at = ${timestamp}
-            WHERE email = ${email}
+            INSERT INTO uat_users
+            (first_name, last_name, email, overall_rating, loved_most, improvements,
+             current_app, missing_features, feedback_completed_at, created_at)
+            VALUES (${firstName || null}, ${lastName || null}, ${email}, ${overallRating}, ${lovedMost}, ${improvements},
+                    ${currentApp}, ${missingFeatures}, ${timestamp}, ${new Date().toISOString()})
+            ON CONFLICT (email) DO UPDATE SET
+            overall_rating = EXCLUDED.overall_rating,
+            loved_most = EXCLUDED.loved_most,
+            improvements = EXCLUDED.improvements,
+            current_app = EXCLUDED.current_app,
+            missing_features = EXCLUDED.missing_features,
+            feedback_completed_at = EXCLUDED.feedback_completed_at
             RETURNING email
         `;
-
-        if (result.length === 0) {
-            throw new Error('No user found with that email');
-        }
 
         return {
             email,

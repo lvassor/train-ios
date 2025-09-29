@@ -410,6 +410,8 @@ function validateField(fieldName) {
                 showError(fieldName, 'Please enter a valid email address');
                 return false;
             }
+            // Check for duplicate feedback submission
+            checkFeedbackStatus(value);
             break;
     }
 
@@ -419,6 +421,23 @@ function validateField(fieldName) {
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+}
+
+async function checkFeedbackStatus(email) {
+    try {
+        const response = await fetch(`/api/feedback-status/${encodeURIComponent(email)}`);
+        const data = await response.json();
+
+        if (data.success && data.hasSubmittedFeedback) {
+            showError('email', 'This email has already submitted feedback. Each person can only submit feedback once.');
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.log('Could not check feedback status:', error);
+        // Don't block the user if the check fails
+        return true;
+    }
 }
 
 function showError(fieldName, message) {
