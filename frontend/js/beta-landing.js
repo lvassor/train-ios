@@ -217,19 +217,7 @@ async function handleFeedbackSubmit(event) {
 
     } catch (error) {
         console.error('Feedback submission error:', error);
-
-        // For beta version, assume "Unable to submit feedback" = duplicate email issue
-        if (error.message && error.message.includes('Unable to submit feedback. Please try again.')) {
-            handleDuplicateEmail();
-        } else {
-            // For MVP/development: Still show success if backend fails
-            if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
-                console.log('Dev mode: Simulating successful feedback submission');
-                showThankYouSection();
-            } else {
-                showFeedbackError('Something went wrong. Please try again.');
-            }
-        }
+        showFeedbackError('Something went wrong. Please try again.');
     } finally {
         setFeedbackLoadingState(false);
     }
