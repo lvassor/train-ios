@@ -247,19 +247,6 @@
     display: inline-block;
 }
 
-/* Enhanced Trust Indicators */
-.trust-indicators {
-    justify-content: center;
-    margin: 2rem 0 3rem;
-}
-
-.trust-item {
-    background: rgba(16, 185, 129, 0.05);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-}
-
 /* Responsive Design */
 @media (max-width: 640px) {
     .beta-badge {
