@@ -169,18 +169,21 @@ function setupStarRating() {
 async function handleFeedbackSubmit(event) {
     event.preventDefault();
 
-    const userEmail = sessionStorage.getItem('userEmail') || sessionStorage.getItem('betaEmail') || 'anonymous@feedback.com';
+    const userEmail = sessionStorage.getItem('userEmail') || 'anonymous@feedback.com';
+    const betaUser = JSON.parse(sessionStorage.getItem('betaUser') || '{}');
+    const userProgram = JSON.parse(sessionStorage.getItem('userProgram') || '{}');
 
     const formData = {
+        firstName: betaUser.firstName || null,
+        lastName: betaUser.lastName || null,
         email: userEmail,
+        programId: userProgram.id || null,
         overallRating: parseInt(document.getElementById('overallRating').value) || 0,
         lovedMost: document.getElementById('lovedMost').value.trim() || '',
         improvements: document.getElementById('improvements').value.trim() || '',
         currentApp: document.getElementById('currentApp').value.trim() || '',
         missingFeatures: document.getElementById('missingFeatures').value.trim() || '',
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        url: window.location.href
+        timestamp: new Date().toISOString()
     };
 
     // Basic validation
@@ -192,6 +195,9 @@ async function handleFeedbackSubmit(event) {
     if (!formData.email || formData.email === 'anonymous@feedback.com') {
         console.log('Using anonymous feedback submission');
     }
+
+    // Debug: log the data being sent
+    console.log('Submitting feedback data:', formData);
 
     // Show loading state
     setFeedbackLoadingState(true);
@@ -208,10 +214,14 @@ async function handleFeedbackSubmit(event) {
 
         const result = await response.json();
 
+        console.log('Response status:', response.status);
+        console.log('Response data:', result);
+
         if (response.ok) {
             // Show thank you section
             showThankYouSection();
         } else {
+            console.error('API error response:', result);
             throw new Error(result.message || 'Feedback submission failed');
         }
 
