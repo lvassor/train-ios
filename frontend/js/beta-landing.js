@@ -218,16 +218,66 @@ async function handleFeedbackSubmit(event) {
     } catch (error) {
         console.error('Feedback submission error:', error);
 
-        // For MVP/development: Still show success if backend fails
-        if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
-            console.log('Dev mode: Simulating successful feedback submission');
-            showThankYouSection();
+        // For beta version, assume "Unable to submit feedback" = duplicate email issue
+        if (error.message && error.message.includes('Unable to submit feedback. Please try again.')) {
+            handleDuplicateEmail();
         } else {
-            showFeedbackError('Something went wrong. Please try again.');
+            // For MVP/development: Still show success if backend fails
+            if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
+                console.log('Dev mode: Simulating successful feedback submission');
+                showThankYouSection();
+            } else {
+                showFeedbackError('Something went wrong. Please try again.');
+            }
         }
     } finally {
         setFeedbackLoadingState(false);
     }
+}
+
+function handleDuplicateEmail() {
+    const currentEmail = sessionStorage.getItem('userEmail') || 'your email';
+
+    const newEmail = prompt(
+        `It looks like ${currentEmail} has already been used to submit feedback.\n\n` +
+        `Each person can only submit feedback once. If you'd like to submit feedback ` +
+        `with a different email address, please enter it below:`,
+        ''
+    );
+
+    if (newEmail && newEmail.trim() && isValidEmailFormat(newEmail.trim())) {
+        // Update session storage with new email
+        sessionStorage.setItem('userEmail', newEmail.trim());
+
+        // Update betaUser object if it exists
+        const betaUser = JSON.parse(sessionStorage.getItem('betaUser') || '{}');
+        if (betaUser.email) {
+            betaUser.email = newEmail.trim();
+            sessionStorage.setItem('betaUser', JSON.stringify(betaUser));
+        }
+
+        // Show success message
+        showFeedbackError(`Email updated to ${newEmail.trim()}. Please click "Submit Feedback" again.`);
+
+        // Clear the error after a few seconds
+        setTimeout(() => {
+            const errorElement = document.getElementById('feedbackError');
+            if (errorElement) {
+                errorElement.style.display = 'none';
+            }
+        }, 5000);
+
+    } else if (newEmail !== null) { // User didn't cancel but entered invalid email
+        showFeedbackError('Please enter a valid email address.');
+    } else {
+        // User cancelled
+        showFeedbackError('Feedback submission cancelled. This email has already been used.');
+    }
+}
+
+function isValidEmailFormat(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
 
 function showFeedbackError(message) {

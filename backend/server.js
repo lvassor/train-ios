@@ -317,36 +317,6 @@ app.post('/api/submit-questionnaire', formLimiter, validateQuestionnaire, async 
 });
 
 
-// Check feedback status for email (rate limited)
-app.get('/api/feedback-status/:email', formLimiter, async (req, res) => {
-    try {
-        const { email } = req.params;
-
-        if (!email || !isValidEmail(email)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Valid email required'
-            });
-        }
-
-        const user = await db.getUATUser(email);
-        const hasSubmittedFeedback = user && user.feedback_completed_at;
-
-        // Only return feedback status, not user existence
-        // This prevents email enumeration while still blocking duplicates
-        res.json({
-            success: true,
-            hasSubmittedFeedback: !!hasSubmittedFeedback
-        });
-
-    } catch (error) {
-        console.error('❌ Feedback status check error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Unable to check feedback status'
-        });
-    }
-});
 
 // UAT feedback submission (Step 4: Final feedback)
 app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) => {
