@@ -183,13 +183,18 @@
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
-    padding: 0.5rem 0.3rem;
+    padding: 0.05rem;
     text-align: center;
     min-width: 0; /* Allows content to shrink */
     max-width: 100%; /* Prevents overflow */
     word-wrap: break-word; /* Forces text to wrap */
     overflow-wrap: break-word; /* Alternative text wrapping */
     box-sizing: border-box; /* Includes padding in width calculation */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
 }
 
 [data-theme="dark"] .feature-card {
@@ -198,18 +203,24 @@
 }
 
 .feature-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.25rem;
+    font-size: 1rem;
+    margin: 0;
+    padding: 0;
+    line-height: 0.8;
+    display: block;
 }
 
 .feature-title {
-    font-size: 1rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: #111827;
     word-break: break-word; /* Forces long words to break */
     overflow-wrap: break-word; /* Alternative word breaking */
     hyphens: auto; /* Enables hyphenation */
-    line-height: 1.2; /* Tighter line spacing for wrapped text */
+    line-height: 0.9; /* Ultra tight line spacing */
+    margin: 0; /* Remove default h3 margins */
+    padding: 0; /* Remove any padding */
+    display: block;
 }
 
 [data-theme="dark"] .feature-title {
@@ -224,7 +235,7 @@
     }
 
     .feature-card {
-        padding: 0.4rem 0.2rem;
+        padding: 0.2rem 0.1rem;
     }
 
     .feature-title {
@@ -234,6 +245,7 @@
 
     .feature-icon {
         font-size: 1.25rem;
+        margin-bottom: 0.05rem;
     }
 }
 
@@ -244,7 +256,7 @@
     }
 
     .feature-card {
-        padding: 0.4rem 0.2rem;
+        padding: 0.15rem 0.05rem;
     }
 
     .feature-title {
@@ -254,6 +266,7 @@
 
     .feature-icon {
         font-size: 1rem;
+        margin-bottom: 0.05rem;
     }
 }
 
