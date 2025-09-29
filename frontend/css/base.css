@@ -537,21 +537,30 @@ footer {
 /* ===============================================
    TYPOGRAPHY
    =============================================== */
-.header-logo, .footer-logo {
-    height: 50px;
-    margin-bottom: 1rem;
+.header-logo {
+    height: 6rem;
+    width: 6rem;
+    margin: 0 auto 1rem;
+    display: block;
 }
 
 /* Logo styles - using CSS masks for color control */
 .logo-svg {
-    height: inherit;
-    width: auto;
+    height: 4rem;
+    width: 4rem;
     background-color: #2563eb; /* Blue in light mode */
     -webkit-mask: url('../assets/images/svg_logo.svg') no-repeat center;
     mask: url('../assets/images/svg_logo.svg') no-repeat center;
     -webkit-mask-size: contain;
     mask-size: contain;
     transition: background-color 0.3s ease;
+    display: block;
+}
+
+/* Header logo override for larger size */
+.header-logo.logo-svg {
+    height: 6rem;
+    width: 6rem;
 }
 
 [data-theme="dark"] .logo-svg {
@@ -611,7 +620,9 @@ footer {
 
 .footer-logo {
     height: 4rem;
-    margin-bottom: 1rem;
+    width: 4rem;
+    margin: 0 auto 1rem;
+    display: block;
 }
 
 .footer-text {
@@ -884,7 +895,6 @@ footer {
    RESPONSIVE DESIGN
    =============================================== */
 @media (min-width: 640px) {
-    .header-logo { height: 4rem; }
     .question-title { font-size: 1.875rem; }
     
     .email-input-container {
