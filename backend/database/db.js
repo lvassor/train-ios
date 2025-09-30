@@ -66,6 +66,16 @@ async function createTable() {
             )
         `;
 
+        // Add missing columns if they don't exist (for existing tables)
+        try {
+            await sql`ALTER TABLE uat_users ADD COLUMN IF NOT EXISTS current_app TEXT`;
+            await sql`ALTER TABLE uat_users ADD COLUMN IF NOT EXISTS missing_features TEXT`;
+            console.log('✅ Database schema updated with feedback columns');
+        } catch (alterError) {
+            // Columns might already exist, that's fine
+            console.log('ℹ️ Feedback columns already exist or could not be added:', alterError.message);
+        }
+
         // Create indexes for better performance
         await sql`CREATE INDEX IF NOT EXISTS idx_uat_users_email ON uat_users(email)`;
         await sql`CREATE INDEX IF NOT EXISTS idx_uat_users_created_at ON uat_users(created_at)`;

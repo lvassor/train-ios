@@ -40,6 +40,9 @@ if (process.env.DATABASE_URL || process.env.POSTGRES_URL) {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy for Vercel/reverse proxy environments
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
     contentSecurityPolicy: {
