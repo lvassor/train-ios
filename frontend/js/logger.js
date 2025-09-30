@@ -257,28 +257,28 @@ function generateExerciseInterface(exercises) {
             
             <!-- Regression Prompt (Red) -->
             <div class="regression-prompt hidden" id="regression-prompt-${exerciseIndex}">
-                <div class="progression-prompt-icon">⚠️</div>
+                <div class="progression-prompt-icon">💪</div>
                 <div class="progression-prompt-text">
-                    <div class="progression-prompt-title">Lower the weight</div>
-                    <div class="progression-prompt-subtitle">You're struggling too early in the exercise</div>
+                    <div class="progression-prompt-title">Great effort today!</div>
+                    <div class="progression-prompt-subtitle">Try choosing a weight that allows you to hit the target range for all sets</div>
                 </div>
             </div>
-            
+
             <!-- Consistency Prompt (Amber) -->
             <div class="progression-prompt hidden" id="consistency-prompt-${exerciseIndex}">
                 <div class="progression-prompt-icon">🎯</div>
                 <div class="progression-prompt-text">
-                    <div class="progression-prompt-title">Keep up the good work</div>
-                    <div class="progression-prompt-subtitle">Stay at this weight until you can complete all sets in the target range</div>
+                    <div class="progression-prompt-title">You're doing great!</div>
+                    <div class="progression-prompt-subtitle">Try to hit the top end of the range or exceed it for all sets</div>
                 </div>
             </div>
-            
+
             <!-- Progression Prompt (Green) -->
             <div class="progression-success hidden" id="progression-prompt-${exerciseIndex}">
-                <div class="progression-prompt-icon">💪</div>
+                <div class="progression-prompt-icon">🎉</div>
                 <div class="progression-prompt-text">
-                    <div class="progression-prompt-title">Great work! Time to increase the weight</div>
-                    <div class="progression-prompt-subtitle">You've mastered this weight - level up!</div>
+                    <div class="progression-prompt-title">Excellent! You hit or exceeded the top end for your first two sets!</div>
+                    <div class="progression-prompt-subtitle">Time to increase the weight next session</div>
                 </div>
             </div>
             
@@ -448,18 +448,16 @@ function updateExercisePrompts(exerciseIndex) {
         }
     });
     
-    // Check if all sets are completed (have both weight and reps)
-    const expectedSets = exercise.sets;
+    // Check if all 3 sets are completed (have reps > 0)
     const completedSets = exerciseData.sets.filter(set =>
         set && set.reps && set.reps > 0
     ).length;
-    
-    console.log('Expected sets:', expectedSets);
+
     console.log('Completed sets:', completedSets);
-    
-    // Only show prompts when exercise is fully completed
-    if (completedSets !== expectedSets) {
-        console.log('Not all sets completed, hiding prompts');
+
+    // Only show prompts when all 3 sets are fully completed
+    if (completedSets !== 3) {
+        console.log('Not all 3 sets completed, hiding prompts');
         hideAllPrompts(exerciseIndex);
         return;
     }
@@ -480,64 +478,66 @@ function evaluatePromptTier(exerciseIndex, exercise, exerciseData) {
 
     // Extract reps from completed sets
     const reps = completedSets.map(set => set.reps);
-    const lowerBound = exercise.repsMin;
-    const upperBound = exercise.repsMax;
+    const repsMin = exercise.repsMin;
+    const repsMax = exercise.repsMax;
 
     console.log('Reps array:', reps);
 
-    if (reps.length === 0) {
-        console.log('RETURNING: consistency (no completed sets)');
-        return 'consistency';
+    // All exercises have exactly 3 sets, so we need all 3 to be completed
+    if (reps.length < 3) {
+        console.log('RETURNING: null (not all 3 sets completed yet)');
+        return null;
     }
 
-    // Get first set, second set, and all other sets
-    const firstSet = reps[0];
-    const secondSet = reps.length > 1 ? reps[1] : null;
-    const allOtherSets = reps.slice(2); // third, fourth, etc.
+    const set1Reps = reps[0];
+    const set2Reps = reps[1];
+    const set3Reps = reps[2];
 
-    console.log('First set reps:', firstSet);
-    console.log('Second set reps:', secondSet);
-    console.log('All other sets:', allOtherSets);
+    console.log('Set 1 reps:', set1Reps);
+    console.log('Set 2 reps:', set2Reps);
+    console.log('Set 3 reps:', set3Reps);
 
-    // Check first two sets
-    if (firstSet < lowerBound || (secondSet !== null && secondSet < lowerBound)) {
-        console.log('RETURNING: regression (first two sets struggling)');
+    // REGRESS: Either of first 2 sets fall below range
+    if (set1Reps < repsMin || set2Reps < repsMin) {
+        console.log('RETURNING: regression (first 2 sets below range)');
         return 'regression';
     }
 
-    // Check if all sets hit upper bound or above
-    const allSetsAtOrAboveUpper = reps.every(repCount => repCount >= upperBound);
-    if (allSetsAtOrAboveUpper) {
-        console.log('RETURNING: progression (all sets hit upper bound+)');
+    // PROGRESS: First 2 sets at or above max, 3rd set in range
+    if (set1Reps >= repsMax && set2Reps >= repsMax && set3Reps >= repsMin) {
+        console.log('RETURNING: progression (first 2 at/above max, 3rd in range)');
         return 'progression';
     }
 
-    // Check if first two are on/above target but later sets drop below
-    if (firstSet >= lowerBound &&
-        (secondSet === null || secondSet >= lowerBound) &&
-        allOtherSets.length > 0 &&
-        allOtherSets.some(repCount => repCount < lowerBound)) {
-        console.log('RETURNING: consistency (later sets dropped below target)');
+    // CONSISTENCY: First 2 sets at or above max, 3rd set below range
+    if (set1Reps >= repsMax && set2Reps >= repsMax && set3Reps < repsMin) {
+        console.log('RETURNING: consistency (first 2 at/above max, 3rd below range)');
         return 'consistency';
     }
 
-    // Default case: everything is within range
-    console.log('RETURNING: consistency (default - everything within range)');
+    // CONSISTENCY: Everything else
+    console.log('RETURNING: consistency (default)');
     return 'consistency';
 }
 
 function showPrompt(exerciseIndex, promptType) {
     console.log(`=== SHOWING PROMPT ===`);
     console.log(`Exercise: ${exerciseIndex}, Type: ${promptType}`);
-    
+
     // Hide all prompts first
     hideAllPrompts(exerciseIndex);
-    
+
+    // If promptType is null, don't show any prompt
+    if (promptType === null) {
+        console.log('Prompt type is null, not showing any prompt');
+        return;
+    }
+
     // Show the appropriate prompt
     const promptElement = document.getElementById(`${promptType}-prompt-${exerciseIndex}`);
     console.log('Looking for element ID:', `${promptType}-prompt-${exerciseIndex}`);
     console.log('Element found:', promptElement);
-    
+
     if (promptElement) {
         console.log('Removing hidden class...');
         promptElement.classList.remove('hidden');

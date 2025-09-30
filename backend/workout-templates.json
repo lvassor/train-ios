@@ -44,7 +44,7 @@
           { "name": "Overhead Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Lat Pulldown", "icon": "⬇️", "target": "Back, Biceps", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Hip Thrust", "icon": "🍑", "target": "Glutes, Hamstrings", "sets": 3, "repsMin": 12, "repsMax": 15 },
-          { "name": "Side Plank", "icon": "📐", "target": "Core", "sets": 2, "repsMin": 20, "repsMax": 30 }
+          { "name": "Side Plank", "icon": "📐", "target": "Core", "sets": 3, "repsMin": 20, "repsMax": 30 }
         ]
       },
       "3": {
@@ -65,8 +65,8 @@
       "1": {
         "name": "Upper Body A",
         "exercises": [
-          { "name": "Bench Press", "icon": "🏋️", "target": "Chest, Triceps", "sets": 4, "repsMin": 8, "repsMax": 10 },
-          { "name": "Bent Over Row", "icon": "🚣", "target": "Back, Biceps", "sets": 4, "repsMin": 8, "repsMax": 10 },
+          { "name": "Bench Press", "icon": "🏋️", "target": "Chest, Triceps", "sets": 3, "repsMin": 8, "repsMax": 10 },
+          { "name": "Bent Over Row", "icon": "🚣", "target": "Back, Biceps", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Overhead Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Lat Pulldown", "icon": "⬇️", "target": "Back, Biceps", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Dumbbell Curl", "icon": "💪", "target": "Biceps", "sets": 3, "repsMin": 10, "repsMax": 12 }
@@ -75,8 +75,8 @@
       "2": {
         "name": "Lower Body A",
         "exercises": [
-          { "name": "Squat", "icon": "🦵", "target": "Legs, Glutes", "sets": 4, "repsMin": 8, "repsMax": 10 },
-          { "name": "Romanian Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 4, "repsMin": 8, "repsMax": 10 },
+          { "name": "Squat", "icon": "🦵", "target": "Legs, Glutes", "sets": 3, "repsMin": 8, "repsMax": 10 },
+          { "name": "Romanian Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Bulgarian Split Squat", "icon": "🚶", "target": "Legs, Glutes", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Leg Curl", "icon": "🦵", "target": "Hamstrings", "sets": 3, "repsMin": 12, "repsMax": 15 },
           { "name": "Calf Raise", "icon": "👠", "target": "Calves", "sets": 3, "repsMin": 15, "repsMax": 20 }
@@ -85,8 +85,8 @@
       "3": {
         "name": "Upper Body B",
         "exercises": [
-          { "name": "Incline Dumbbell Press", "icon": "📐", "target": "Chest, Triceps", "sets": 4, "repsMin": 8, "repsMax": 10 },
-          { "name": "Seated Cable Row", "icon": "🪑", "target": "Back, Biceps", "sets": 4, "repsMin": 8, "repsMax": 10 },
+          { "name": "Incline Dumbbell Press", "icon": "📐", "target": "Chest, Triceps", "sets": 3, "repsMin": 8, "repsMax": 10 },
+          { "name": "Seated Cable Row", "icon": "🪑", "target": "Back, Biceps", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Dumbbell Shoulder Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Pull-up/Assisted Pull-up", "icon": "⬆️", "target": "Back, Biceps", "sets": 3, "repsMin": 5, "repsMax": 8 },
           { "name": "Tricep Dip", "icon": "💪", "target": "Triceps", "sets": 3, "repsMin": 8, "repsMax": 12 }
@@ -95,8 +95,8 @@
       "4": {
         "name": "Lower Body B",
         "exercises": [
-          { "name": "Leg Press", "icon": "🦵", "target": "Legs, Glutes", "sets": 4, "repsMin": 10, "repsMax": 12 },
-          { "name": "Stiff Leg Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 4, "repsMin": 10, "repsMax": 12 },
+          { "name": "Leg Press", "icon": "🦵", "target": "Legs, Glutes", "sets": 3, "repsMin": 10, "repsMax": 12 },
+          { "name": "Stiff Leg Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Walking Lunge", "icon": "🚶", "target": "Legs, Glutes", "sets": 3, "repsMin": 12, "repsMax": 15 },
           { "name": "Leg Extension", "icon": "🦵", "target": "Quadriceps", "sets": 3, "repsMin": 12, "repsMax": 15 },
           { "name": "Seated Calf Raise", "icon": "🪑", "target": "Calves", "sets": 3, "repsMin": 15, "repsMax": 20 }
@@ -110,20 +110,20 @@
       "1": {
         "name": "Power Day A",
         "exercises": [
-          { "name": "Squat", "icon": "🦵", "target": "Legs, Glutes", "sets": 5, "repsMin": 3, "repsMax": 5 },
-          { "name": "Bench Press", "icon": "🏋️", "target": "Chest, Triceps", "sets": 5, "repsMin": 3, "repsMax": 5 },
-          { "name": "Bent Over Row", "icon": "🚣", "target": "Back, Biceps", "sets": 4, "repsMin": 5, "repsMax": 6 },
-          { "name": "Deadlift", "icon": "🏋️", "target": "Full Body", "sets": 4, "repsMin": 3, "repsMax": 5 },
+          { "name": "Squat", "icon": "🦵", "target": "Legs, Glutes", "sets": 3, "repsMin": 3, "repsMax": 5 },
+          { "name": "Bench Press", "icon": "🏋️", "target": "Chest, Triceps", "sets": 3, "repsMin": 3, "repsMax": 5 },
+          { "name": "Bent Over Row", "icon": "🚣", "target": "Back, Biceps", "sets": 3, "repsMin": 5, "repsMax": 6 },
+          { "name": "Deadlift", "icon": "🏋️", "target": "Full Body", "sets": 3, "repsMin": 3, "repsMax": 5 },
           { "name": "Weighted Plank", "icon": "🏋️", "target": "Core", "sets": 3, "repsMin": 30, "repsMax": 45 }
         ]
       },
       "2": {
         "name": "Power Day B",
         "exercises": [
-          { "name": "Front Squat", "icon": "🦵", "target": "Legs, Core", "sets": 5, "repsMin": 4, "repsMax": 6 },
-          { "name": "Overhead Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 5, "repsMin": 3, "repsMax": 5 },
-          { "name": "Pull-up", "icon": "⬆️", "target": "Back, Biceps", "sets": 4, "repsMin": 6, "repsMax": 8 },
-          { "name": "Romanian Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 4, "repsMin": 5, "repsMax": 6 },
+          { "name": "Front Squat", "icon": "🦵", "target": "Legs, Core", "sets": 3, "repsMin": 4, "repsMax": 6 },
+          { "name": "Overhead Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 3, "repsMin": 3, "repsMax": 5 },
+          { "name": "Pull-up", "icon": "⬆️", "target": "Back, Biceps", "sets": 3, "repsMin": 6, "repsMax": 8 },
+          { "name": "Romanian Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 3, "repsMin": 5, "repsMax": 6 },
           { "name": "L-Sit", "icon": "🏋️", "target": "Core", "sets": 3, "repsMin": 15, "repsMax": 30 }
         ]
       }
@@ -135,8 +135,8 @@
       "1": {
         "name": "Push (Chest, Shoulders, Triceps)",
         "exercises": [
-          { "name": "Bench Press", "icon": "🏋️", "target": "Chest, Triceps", "sets": 4, "repsMin": 6, "repsMax": 8 },
-          { "name": "Overhead Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 4, "repsMin": 6, "repsMax": 8 },
+          { "name": "Bench Press", "icon": "🏋️", "target": "Chest, Triceps", "sets": 3, "repsMin": 6, "repsMax": 8 },
+          { "name": "Overhead Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 3, "repsMin": 6, "repsMax": 8 },
           { "name": "Incline Dumbbell Press", "icon": "📐", "target": "Upper Chest", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Dumbbell Lateral Raise", "icon": "🤲", "target": "Side Delts", "sets": 3, "repsMin": 12, "repsMax": 15 },
           { "name": "Close Grip Bench Press", "icon": "🏋️", "target": "Triceps", "sets": 3, "repsMin": 8, "repsMax": 10 },
@@ -146,9 +146,9 @@
       "2": {
         "name": "Pull (Back, Biceps)",
         "exercises": [
-          { "name": "Deadlift", "icon": "🏋️", "target": "Back, Hamstrings", "sets": 4, "repsMin": 5, "repsMax": 6 },
-          { "name": "Pull-up", "icon": "⬆️", "target": "Back, Biceps", "sets": 4, "repsMin": 6, "repsMax": 10 },
-          { "name": "Bent Over Row", "icon": "🚣", "target": "Back, Biceps", "sets": 4, "repsMin": 8, "repsMax": 10 },
+          { "name": "Deadlift", "icon": "🏋️", "target": "Back, Hamstrings", "sets": 3, "repsMin": 5, "repsMax": 6 },
+          { "name": "Pull-up", "icon": "⬆️", "target": "Back, Biceps", "sets": 3, "repsMin": 6, "repsMax": 10 },
+          { "name": "Bent Over Row", "icon": "🚣", "target": "Back, Biceps", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Seated Cable Row", "icon": "🪑", "target": "Back, Biceps", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Barbell Curl", "icon": "💪", "target": "Biceps", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Hammer Curl", "icon": "🔨", "target": "Biceps", "sets": 3, "repsMin": 10, "repsMax": 12 }
@@ -157,12 +157,12 @@
       "3": {
         "name": "Legs (Quads, Hamstrings, Glutes, Calves)",
         "exercises": [
-          { "name": "Squat", "icon": "🦵", "target": "Legs, Glutes", "sets": 4, "repsMin": 6, "repsMax": 8 },
-          { "name": "Romanian Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 4, "repsMin": 8, "repsMax": 10 },
+          { "name": "Squat", "icon": "🦵", "target": "Legs, Glutes", "sets": 3, "repsMin": 6, "repsMax": 8 },
+          { "name": "Romanian Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Bulgarian Split Squat", "icon": "🚶", "target": "Legs, Glutes", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Leg Curl", "icon": "🦵", "target": "Hamstrings", "sets": 3, "repsMin": 12, "repsMax": 15 },
           { "name": "Leg Extension", "icon": "🦵", "target": "Quadriceps", "sets": 3, "repsMin": 12, "repsMax": 15 },
-          { "name": "Standing Calf Raise", "icon": "👠", "target": "Calves", "sets": 4, "repsMin": 15, "repsMax": 20 }
+          { "name": "Standing Calf Raise", "icon": "👠", "target": "Calves", "sets": 3, "repsMin": 15, "repsMax": 20 }
         ]
       }
     }
@@ -173,18 +173,18 @@
       "1": {
         "name": "Upper Power",
         "exercises": [
-          { "name": "Bench Press", "icon": "🏋️", "target": "Chest, Triceps", "sets": 5, "repsMin": 3, "repsMax": 5 },
-          { "name": "Bent Over Row", "icon": "🚣", "target": "Back, Biceps", "sets": 5, "repsMin": 3, "repsMax": 5 },
-          { "name": "Overhead Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 4, "repsMin": 5, "repsMax": 6 },
-          { "name": "Weighted Pull-up", "icon": "⬆️", "target": "Back, Biceps", "sets": 4, "repsMin": 5, "repsMax": 8 },
+          { "name": "Bench Press", "icon": "🏋️", "target": "Chest, Triceps", "sets": 3, "repsMin": 3, "repsMax": 5 },
+          { "name": "Bent Over Row", "icon": "🚣", "target": "Back, Biceps", "sets": 3, "repsMin": 3, "repsMax": 5 },
+          { "name": "Overhead Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 3, "repsMin": 5, "repsMax": 6 },
+          { "name": "Weighted Pull-up", "icon": "⬆️", "target": "Back, Biceps", "sets": 3, "repsMin": 5, "repsMax": 8 },
           { "name": "Close Grip Bench Press", "icon": "🏋️", "target": "Triceps", "sets": 3, "repsMin": 6, "repsMax": 8 }
         ]
       },
       "2": {
         "name": "Lower Power",
         "exercises": [
-          { "name": "Squat", "icon": "🦵", "target": "Legs, Glutes", "sets": 5, "repsMin": 3, "repsMax": 5 },
-          { "name": "Deadlift", "icon": "🏋️", "target": "Full Body", "sets": 4, "repsMin": 3, "repsMax": 5 },
+          { "name": "Squat", "icon": "🦵", "target": "Legs, Glutes", "sets": 3, "repsMin": 3, "repsMax": 5 },
+          { "name": "Deadlift", "icon": "🏋️", "target": "Full Body", "sets": 3, "repsMin": 3, "repsMax": 5 },
           { "name": "Front Squat", "icon": "🦵", "target": "Legs, Core", "sets": 3, "repsMin": 5, "repsMax": 6 },
           { "name": "Romanian Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 3, "repsMin": 6, "repsMax": 8 },
           { "name": "Walking Lunge", "icon": "🚶", "target": "Legs, Glutes", "sets": 3, "repsMin": 8, "repsMax": 10 }
@@ -193,8 +193,8 @@
       "3": {
         "name": "Upper Hypertrophy",
         "exercises": [
-          { "name": "Incline Dumbbell Press", "icon": "📐", "target": "Upper Chest", "sets": 4, "repsMin": 8, "repsMax": 10 },
-          { "name": "Seated Cable Row", "icon": "🪑", "target": "Back, Biceps", "sets": 4, "repsMin": 8, "repsMax": 10 },
+          { "name": "Incline Dumbbell Press", "icon": "📐", "target": "Upper Chest", "sets": 3, "repsMin": 8, "repsMax": 10 },
+          { "name": "Seated Cable Row", "icon": "🪑", "target": "Back, Biceps", "sets": 3, "repsMin": 8, "repsMax": 10 },
           { "name": "Dumbbell Shoulder Press", "icon": "🏋️‍♀️", "target": "Shoulders", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Lat Pulldown", "icon": "⬇️", "target": "Back, Biceps", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Barbell Curl", "icon": "💪", "target": "Biceps", "sets": 3, "repsMin": 10, "repsMax": 12 },
@@ -204,12 +204,12 @@
       "4": {
         "name": "Lower Hypertrophy",
         "exercises": [
-          { "name": "Leg Press", "icon": "🦵", "target": "Legs, Glutes", "sets": 4, "repsMin": 10, "repsMax": 12 },
-          { "name": "Stiff Leg Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 4, "repsMin": 10, "repsMax": 12 },
+          { "name": "Leg Press", "icon": "🦵", "target": "Legs, Glutes", "sets": 3, "repsMin": 10, "repsMax": 12 },
+          { "name": "Stiff Leg Deadlift", "icon": "🏋️", "target": "Hamstrings, Glutes", "sets": 3, "repsMin": 10, "repsMax": 12 },
           { "name": "Bulgarian Split Squat", "icon": "🚶", "target": "Legs, Glutes", "sets": 3, "repsMin": 12, "repsMax": 15 },
           { "name": "Leg Curl", "icon": "🦵", "target": "Hamstrings", "sets": 3, "repsMin": 12, "repsMax": 15 },
           { "name": "Leg Extension", "icon": "🦵", "target": "Quadriceps", "sets": 3, "repsMin": 12, "repsMax": 15 },
-          { "name": "Calf Raise", "icon": "👠", "target": "Calves", "sets": 4, "repsMin": 15, "repsMax": 20 }
+          { "name": "Calf Raise", "icon": "👠", "target": "Calves", "sets": 3, "repsMin": 15, "repsMax": 20 }
         ]
       }
     }
