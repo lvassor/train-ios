@@ -305,8 +305,6 @@ app.post('/api/submit-questionnaire', formLimiter, async (req, res) => {
 // UAT feedback submission (Step 4: Final feedback)
 app.post('/api/uat-feedback', formLimiter, async (req, res) => {
     try {
-        console.log('📝 Feedback request body:', JSON.stringify(req.body, null, 2));
-
         const {
             firstName,
             lastName,
@@ -345,8 +343,6 @@ app.post('/api/uat-feedback', formLimiter, async (req, res) => {
         let userFirstName = firstName;
         let userLastName = lastName;
         let userEmail = email || 'anonymous@feedback.com';
-
-        console.log('🔍 Raw values from request:', { firstName, lastName, email, lovedMost, improvements, currentApp, missingFeatures });
 
         // Allow anonymous feedback - no email requirement for MVP
 
@@ -390,19 +386,13 @@ app.post('/api/uat-feedback', formLimiter, async (req, res) => {
             timestamp: new Date().toISOString()
         };
 
-        console.log('💾 Saving feedback data:', JSON.stringify(feedbackData, null, 2));
-
-        const result = await db.saveUATFeedback(feedbackData);
-
-        console.log('✅ Database save completed, result:', result);
+        await db.saveUATFeedback(feedbackData);
 
         res.json({
             success: true,
             message: 'Thank you for your feedback! Your input helps us improve trAIn.',
             feedbackId: `fb_${Date.now()}`
         });
-
-        console.log('✅ Response sent successfully');
 
     } catch (error) {
         console.error('❌ Feedback submission error:', error);

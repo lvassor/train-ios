@@ -162,14 +162,8 @@ async function saveUATFeedback(feedbackData) {
     } = feedbackData;
 
     try {
-        console.log('💽 Database: Inserting feedback for:', email);
-        console.log('💽 Database: lovedMost =', lovedMost);
-        console.log('💽 Database: improvements =', improvements);
-        console.log('💽 Database: currentApp =', currentApp);
-        console.log('💽 Database: missingFeatures =', missingFeatures);
-
         // Use UPSERT to handle both existing and new users
-        const result = await sql`
+        await sql`
             INSERT INTO uat_users
             (first_name, last_name, email, overall_rating, loved_most, improvements,
              current_app, missing_features, feedback_completed_at, created_at)
@@ -184,11 +178,7 @@ async function saveUATFeedback(feedbackData) {
             current_app = EXCLUDED.current_app,
             missing_features = EXCLUDED.missing_features,
             feedback_completed_at = EXCLUDED.feedback_completed_at
-            RETURNING email, loved_most, improvements, current_app, missing_features
         `;
-
-        console.log('✅ Database: Feedback saved successfully');
-        console.log('✅ Database: Returned values:', result[0]);
 
         return {
             email,

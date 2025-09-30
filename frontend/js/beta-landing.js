@@ -169,16 +169,6 @@ function setupStarRating() {
 async function handleFeedbackSubmit(event) {
     event.preventDefault();
 
-    console.log('🔍 Form submission started');
-    console.log('🔍 lovedMost element:', document.getElementById('lovedMost'));
-    console.log('🔍 lovedMost value:', document.getElementById('lovedMost')?.value);
-    console.log('🔍 improvements element:', document.getElementById('improvements'));
-    console.log('🔍 improvements value:', document.getElementById('improvements')?.value);
-    console.log('🔍 currentApp element:', document.getElementById('currentApp'));
-    console.log('🔍 currentApp value:', document.getElementById('currentApp')?.value);
-    console.log('🔍 missingFeatures element:', document.getElementById('missingFeatures'));
-    console.log('🔍 missingFeatures value:', document.getElementById('missingFeatures')?.value);
-
     const userEmail = sessionStorage.getItem('userEmail') || 'anonymous@feedback.com';
     const betaUser = JSON.parse(sessionStorage.getItem('betaUser') || '{}');
     const userProgram = JSON.parse(sessionStorage.getItem('userProgram') || '{}');
@@ -195,8 +185,6 @@ async function handleFeedbackSubmit(event) {
         missingFeatures: document.getElementById('missingFeatures').value.trim() || '',
         timestamp: new Date().toISOString()
     };
-
-    console.log('📤 Submitting feedback:', formData);
 
     // Basic validation
     if (!formData.overallRating) {
