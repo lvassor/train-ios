@@ -343,6 +343,8 @@ app.post('/api/uat-feedback', formLimiter, async (req, res) => {
         let userLastName = lastName;
         let userEmail = email || 'anonymous@feedback.com';
 
+        console.log('🔍 Raw values from request:', { firstName, lastName, email, lovedMost, improvements, currentApp, missingFeatures });
+
         // Allow anonymous feedback - no email requirement for MVP
 
         // Get user details from beta_users if name not provided
@@ -402,11 +404,17 @@ app.post('/api/uat-feedback', formLimiter, async (req, res) => {
     } catch (error) {
         console.error('❌ Feedback submission error:', error);
         console.error('Error details:', error.message, error.stack);
-        res.status(500).json({
-            success: false,
-            message: 'Unable to submit feedback. Please try again.',
-            ...(process.env.NODE_ENV === 'development' && { error: error.message })
-        });
+
+        // Check if response was already sent
+        if (!res.headersSent) {
+            res.status(500).json({
+                success: false,
+                message: 'Unable to submit feedback. Please try again.',
+                error: error.message
+            });
+        } else {
+            console.error('❌ Headers already sent, cannot send error response');
+        }
     }
 });
 
