@@ -163,9 +163,9 @@ async function saveUATFeedback(feedbackData) {
             INSERT INTO uat_users
             (first_name, last_name, email, overall_rating, loved_most, improvements,
              current_app, missing_features, feedback_completed_at, created_at)
-            VALUES (${firstName || null}, ${lastName || null}, ${email}, ${overallRating},
-                    ${lovedMost || null}, ${improvements || null},
-                    ${currentApp || null}, ${missingFeatures || null},
+            VALUES (${firstName}, ${lastName}, ${email}, ${overallRating},
+                    ${lovedMost}, ${improvements},
+                    ${currentApp}, ${missingFeatures},
                     ${timestamp}, ${new Date().toISOString()})
             ON CONFLICT (email) DO UPDATE SET
             overall_rating = EXCLUDED.overall_rating,

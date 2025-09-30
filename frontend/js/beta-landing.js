@@ -174,6 +174,10 @@ async function handleFeedbackSubmit(event) {
     console.log('🔍 lovedMost value:', document.getElementById('lovedMost')?.value);
     console.log('🔍 improvements element:', document.getElementById('improvements'));
     console.log('🔍 improvements value:', document.getElementById('improvements')?.value);
+    console.log('🔍 currentApp element:', document.getElementById('currentApp'));
+    console.log('🔍 currentApp value:', document.getElementById('currentApp')?.value);
+    console.log('🔍 missingFeatures element:', document.getElementById('missingFeatures'));
+    console.log('🔍 missingFeatures value:', document.getElementById('missingFeatures')?.value);
 
     const userEmail = sessionStorage.getItem('userEmail') || 'anonymous@feedback.com';
     const betaUser = JSON.parse(sessionStorage.getItem('betaUser') || '{}');

@@ -183,9 +183,18 @@ app.get('/api/health', async (req, res) => {
 
 // Simple validation helper
 const cleanText = (value, maxLength = 500, allowEmpty = false) => {
-    if (!value) return allowEmpty ? 'None' : null;
-    const trimmed = String(value).trim().substring(0, maxLength);
-    return trimmed.length > 0 ? trimmed : (allowEmpty ? 'None' : null);
+    // Handle null, undefined, or empty string
+    if (value === null || value === undefined || value === '') {
+        return allowEmpty ? 'None' : null;
+    }
+    // Convert to string and clean
+    try {
+        const trimmed = String(value).trim().substring(0, maxLength);
+        return trimmed.length > 0 ? trimmed : (allowEmpty ? 'None' : null);
+    } catch (error) {
+        console.error('Error in cleanText:', error, 'value:', value);
+        return allowEmpty ? 'None' : null;
+    }
 };
 
 const isValidEmail = (email) => {
@@ -378,13 +387,17 @@ app.post('/api/uat-feedback', formLimiter, async (req, res) => {
 
         console.log('💾 Saving feedback data:', JSON.stringify(feedbackData, null, 2));
 
-        await db.saveUATFeedback(feedbackData);
+        const result = await db.saveUATFeedback(feedbackData);
+
+        console.log('✅ Database save completed, result:', result);
 
         res.json({
             success: true,
             message: 'Thank you for your feedback! Your input helps us improve trAIn.',
             feedbackId: `fb_${Date.now()}`
         });
+
+        console.log('✅ Response sent successfully');
 
     } catch (error) {
         console.error('❌ Feedback submission error:', error);

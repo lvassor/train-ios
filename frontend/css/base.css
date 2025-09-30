@@ -61,6 +61,19 @@
     background-color: var(--input-bg);
     color: var(--text-primary);
     border-color: var(--input-border);
+    font-family: inherit;
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+textarea.text-input {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
 }
 
 [data-theme="dark"] .feedback-label {
