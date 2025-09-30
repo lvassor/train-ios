@@ -435,6 +435,14 @@ textarea.text-input {
     margin-bottom: 2rem;
 }
 
+[data-theme="dark"] .thank-you-title {
+    color: #22c55e;
+}
+
+[data-theme="dark"] .thank-you-subtitle {
+    color: #4ade80;
+}
+
 .next-steps-box {
     background: white;
     padding: 1.5rem;
