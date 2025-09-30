@@ -12,7 +12,6 @@ const cors = require('cors');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const { body, validationResult } = require('express-validator');
 
 // Only import database functions if we have a DATABASE_URL
 let db = {};
@@ -182,50 +181,32 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// Input validation middleware
-const validateBetaSignup = [
-    body('firstName').trim().isLength({ min: 1, max: 50 }).escape(),
-    body('lastName').trim().isLength({ min: 1, max: 50 }).escape(),
-    body('email').isEmail().normalizeEmail(),
-    body('signupType').optional().isIn(['beta', 'waitlist']).escape()
-];
+// Simple validation helper
+const cleanText = (value, maxLength = 500, allowEmpty = false) => {
+    if (!value) return allowEmpty ? 'None' : null;
+    const trimmed = String(value).trim().substring(0, maxLength);
+    return trimmed.length > 0 ? trimmed : (allowEmpty ? 'None' : null);
+};
 
-const validateQuestionnaire = [
-    body('questionnaire.firstName').trim().isLength({ min: 1, max: 50 }).escape(),
-    body('questionnaire.lastName').trim().isLength({ min: 1, max: 50 }).escape(),
-    body('questionnaire.email').isEmail().normalizeEmail(),
-    body('questionnaire.experience').isIn(['0_months', '0_6_months', '6_months_2_years', '2_years_plus']),
-    body('questionnaire.trainingDays').isInt({ min: 1, max: 7 }),
-    body('questionnaire.sessionDuration').isInt({ min: 15, max: 180 })
-];
-
-const validateFeedback = [
-    body('email').optional().isEmail().normalizeEmail(),
-    body('overallRating').isInt({ min: 1, max: 5 }),
-    body('lovedMost').optional().trim().isLength({ max: 500 }),
-    body('improvements').optional().trim().isLength({ max: 500 }),
-    body('currentApp').optional().trim().isLength({ max: 100 }),
-    body('missingFeatures').optional().trim().isLength({ max: 500 })
-];
+const isValidEmail = (email) => {
+    return email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
 
 // Beta signup (Step 1: Landing page form submission)
-app.post('/api/beta-signup', formLimiter, validateBetaSignup, async (req, res) => {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid input data',
-            errors: errors.array()
-        });
-    }
+app.post('/api/beta-signup', formLimiter, async (req, res) => {
     try {
         const { firstName, lastName, email, signupType, timestamp } = req.body;
 
-        // Save beta user
+        if (!firstName || !lastName || !isValidEmail(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide valid name and email'
+            });
+        }
+
         const userData = {
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
+            firstName: cleanText(firstName, 50),
+            lastName: cleanText(lastName, 50),
             email: email.trim().toLowerCase(),
             signupType: signupType || 'beta',
             timestamp: timestamp || new Date().toISOString()
@@ -262,16 +243,7 @@ app.post('/api/beta-signup', formLimiter, validateBetaSignup, async (req, res) =
 });
 
 // Questionnaire submission (Step 2: Generate program)
-app.post('/api/submit-questionnaire', formLimiter, validateQuestionnaire, async (req, res) => {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid questionnaire data',
-            errors: errors.array()
-        });
-    }
+app.post('/api/submit-questionnaire', formLimiter, async (req, res) => {
     try {
         const { questionnaire, program } = req.body;
         const { email } = questionnaire;
@@ -319,16 +291,7 @@ app.post('/api/submit-questionnaire', formLimiter, validateQuestionnaire, async 
 
 
 // UAT feedback submission (Step 4: Final feedback)
-app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) => {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid feedback data',
-            errors: errors.array()
-        });
-    }
+app.post('/api/uat-feedback', formLimiter, async (req, res) => {
     try {
         console.log('📝 Feedback request body:', JSON.stringify(req.body, null, 2));
 
@@ -344,11 +307,25 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
             missingFeatures
         } = req.body;
 
-        // Rating is required
+        // Basic validation
         if (!overallRating || overallRating < 1 || overallRating > 5) {
             return res.status(400).json({
                 success: false,
                 message: 'Please provide a rating between 1 and 5 stars'
+            });
+        }
+
+        if (!lovedMost || !lovedMost.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please tell us what you loved most'
+            });
+        }
+
+        if (!improvements || !improvements.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please tell us what could be improved'
             });
         }
 
@@ -387,15 +364,15 @@ app.post('/api/uat-feedback', formLimiter, validateFeedback, async (req, res) =>
 
         // Save feedback
         const feedbackData = {
-            firstName: userFirstName?.trim() || null,
-            lastName: userLastName?.trim() || null,
+            firstName: cleanText(userFirstName, 50),
+            lastName: cleanText(userLastName, 50),
             email: userEmail.trim().toLowerCase(),
-            programId: feedbackProgramId?.trim() || null,
+            programId: cleanText(feedbackProgramId),
             overallRating: parseInt(overallRating),
-            lovedMost: lovedMost?.trim() || null,
-            improvements: improvements?.trim() || null,
-            currentApp: currentApp?.trim() || null,
-            missingFeatures: missingFeatures?.trim() || null,
+            lovedMost: cleanText(lovedMost),
+            improvements: cleanText(improvements),
+            currentApp: cleanText(currentApp, 100, true),  // Optional - save as 'None' if empty
+            missingFeatures: cleanText(missingFeatures, 500, true),  // Optional - save as 'None' if empty
             timestamp: new Date().toISOString()
         };
 
@@ -515,14 +492,6 @@ app.get('*', (req, res) => {
     res.redirect('/');
 });
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
 
 // ============================================================================
 // ERROR HANDLING & MIDDLEWARE

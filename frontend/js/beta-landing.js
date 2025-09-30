@@ -169,6 +169,12 @@ function setupStarRating() {
 async function handleFeedbackSubmit(event) {
     event.preventDefault();
 
+    console.log('🔍 Form submission started');
+    console.log('🔍 lovedMost element:', document.getElementById('lovedMost'));
+    console.log('🔍 lovedMost value:', document.getElementById('lovedMost')?.value);
+    console.log('🔍 improvements element:', document.getElementById('improvements'));
+    console.log('🔍 improvements value:', document.getElementById('improvements')?.value);
+
     const userEmail = sessionStorage.getItem('userEmail') || 'anonymous@feedback.com';
     const betaUser = JSON.parse(sessionStorage.getItem('betaUser') || '{}');
     const userProgram = JSON.parse(sessionStorage.getItem('userProgram') || '{}');
@@ -186,12 +192,24 @@ async function handleFeedbackSubmit(event) {
         timestamp: new Date().toISOString()
     };
 
+    console.log('📤 Submitting feedback:', formData);
+
     // Basic validation
     if (!formData.overallRating) {
         showFeedbackError('Please rate your overall experience');
         return;
     }
 
+    // Validate required text fields
+    if (!formData.lovedMost || formData.lovedMost.length === 0) {
+        showFeedbackError('Please tell us what you loved most');
+        return;
+    }
+
+    if (!formData.improvements || formData.improvements.length === 0) {
+        showFeedbackError('Please tell us what could be improved');
+        return;
+    }
 
     // Show loading state
     setFeedbackLoadingState(true);

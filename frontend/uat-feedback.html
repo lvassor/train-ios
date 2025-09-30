@@ -52,7 +52,7 @@
                     <form class="options-container feedback-form" id="feedbackForm">
                         <div class="form-field">
                             <label for="overallRating" class="feedback-label">
-                                How would you rate your overall experience?
+                                How would you rate your overall experience? <span style="color: #ef4444;">*</span>
                             </label>
                             <div class="rating-section">
                                 <div class="rating-stars">
@@ -69,14 +69,15 @@
 
                         <div class="form-field">
                             <label for="lovedMost" class="feedback-label">
-                                What did you love most?
+                                What did you love most? <span style="color: #ef4444;">*</span>
                             </label>
                             <textarea
                                 id="lovedMost"
-                                class="notes-textarea"
-class="textarea-field"
+                                name="lovedMost"
+                                class="notes-textarea textarea-field"
                                 placeholder="What stood out to you in a positive way?"
                                 maxlength="500"
+                                required
                             ></textarea>
                             <div class="feedback-count-text">
                                 <span id="lovedMostCount">0</span>/500 characters
@@ -85,14 +86,15 @@ class="textarea-field"
 
                         <div class="form-field">
                             <label for="improvements" class="feedback-label">
-                                What could be improved?
+                                What could be improved? <span style="color: #ef4444;">*</span>
                             </label>
                             <textarea
                                 id="improvements"
-                                class="notes-textarea"
-class="textarea-field"
+                                name="improvements"
+                                class="notes-textarea textarea-field"
                                 placeholder="Any pain points, bugs, or confusing parts?"
                                 maxlength="500"
+                                required
                             ></textarea>
                             <div class="feedback-count-text">
                                 <span id="improvementsCount">0</span>/500 characters
@@ -113,6 +115,7 @@ class="textarea-field"
                             <input
                                 type="text"
                                 id="currentApp"
+                                name="currentApp"
                                 class="text-input"
                                 placeholder="e.g., StrongApp, Jefit, MyFitnessPal, or 'None'"
                                 maxlength="100"
@@ -128,8 +131,8 @@ class="textarea-field"
                             </label>
                             <textarea
                                 id="missingFeatures"
-                                class="notes-textarea"
-class="textarea-field"
+                                name="missingFeatures"
+                                class="notes-textarea textarea-field"
                                 placeholder="What gaps or frustrations did you experience with other fitness apps?"
                                 maxlength="500"
                             ></textarea>
