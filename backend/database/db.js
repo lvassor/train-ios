@@ -21,13 +21,9 @@ async function initDB() {
     // Create Neon connection
     sql = neon(connectionString);
 
-    try {
-        // Test connection and create table
-        await createTable();
-    } catch (error) {
-        console.error('❌ Database initialization failed:', error);
-        throw error;
-    }
+    // Tables already exist in Neon - no need to run CREATE TABLE on every cold start
+    // This was causing timeout errors and unnecessary latency
+    console.log('✅ Neon database connection initialized');
 }
 
 async function createTable() {
@@ -163,7 +159,7 @@ async function saveUATFeedback(feedbackData) {
 
     try {
         // Use UPSERT to handle both existing and new users
-        await sql`
+        const result = await sql`
             INSERT INTO uat_users
             (first_name, last_name, email, overall_rating, loved_most, improvements,
              current_app, missing_features, feedback_completed_at, created_at)
@@ -178,11 +174,22 @@ async function saveUATFeedback(feedbackData) {
             current_app = EXCLUDED.current_app,
             missing_features = EXCLUDED.missing_features,
             feedback_completed_at = EXCLUDED.feedback_completed_at
+            RETURNING id, email, loved_most, improvements, feedback_completed_at
         `;
+
+        // Verify the save actually worked
+        if (!result || result.length === 0) {
+            throw new Error('Feedback save failed: No rows returned');
+        }
+
+        if (!result[0].loved_most || !result[0].improvements) {
+            throw new Error('Feedback save failed: Required fields are NULL in database');
+        }
 
         return {
             email,
-            feedbackReceived: true
+            feedbackReceived: true,
+            verified: true
         };
     } catch (error) {
         console.error('❌ Database error saving feedback:', error);

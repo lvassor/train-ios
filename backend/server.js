@@ -372,21 +372,40 @@ app.post('/api/uat-feedback', formLimiter, async (req, res) => {
             }
         }
 
-        // Save feedback
+        // Save feedback - use raw user input, just trim whitespace
         const feedbackData = {
-            firstName: cleanText(userFirstName, 50),
-            lastName: cleanText(userLastName, 50),
+            firstName: userFirstName ? userFirstName.trim() : null,
+            lastName: userLastName ? userLastName.trim() : null,
             email: userEmail.trim().toLowerCase(),
-            programId: cleanText(feedbackProgramId),
+            programId: feedbackProgramId ? feedbackProgramId.trim() : null,
             overallRating: parseInt(overallRating),
-            lovedMost: cleanText(lovedMost),
-            improvements: cleanText(improvements),
-            currentApp: cleanText(currentApp, 100, true),  // Optional - save as 'None' if empty
-            missingFeatures: cleanText(missingFeatures, 500, true),  // Optional - save as 'None' if empty
+            lovedMost: lovedMost.trim(),
+            improvements: improvements.trim(),
+            currentApp: currentApp ? currentApp.trim() : null,
+            missingFeatures: missingFeatures ? missingFeatures.trim() : null,
             timestamp: new Date().toISOString()
         };
 
-        await db.saveUATFeedback(feedbackData);
+        // Retry logic for database saves (handles Neon timeouts)
+        let lastError;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                await db.saveUATFeedback(feedbackData);
+                break; // Success - exit retry loop
+            } catch (error) {
+                lastError = error;
+                console.error(`❌ Feedback save attempt ${attempt}/3 failed:`, error.message);
+
+                if (attempt < 3) {
+                    // Wait before retrying (exponential backoff: 1s, 2s)
+                    const delayMs = attempt * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
+                } else {
+                    // All retries failed - throw the error
+                    throw error;
+                }
+            }
+        }
 
         res.json({
             success: true,
