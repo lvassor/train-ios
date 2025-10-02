@@ -372,17 +372,17 @@ app.post('/api/uat-feedback', formLimiter, async (req, res) => {
             }
         }
 
-        // Save feedback - use raw user input, just trim whitespace
+        // Save feedback - convert empty/whitespace-only strings to 'No answer'
         const feedbackData = {
             firstName: userFirstName ? userFirstName.trim() : null,
             lastName: userLastName ? userLastName.trim() : null,
             email: userEmail.trim().toLowerCase(),
             programId: feedbackProgramId ? feedbackProgramId.trim() : null,
             overallRating: parseInt(overallRating),
-            lovedMost: lovedMost.trim(),
-            improvements: improvements.trim(),
-            currentApp: currentApp ? currentApp.trim() : null,
-            missingFeatures: missingFeatures ? missingFeatures.trim() : null,
+            lovedMost: (lovedMost && lovedMost.trim()) || 'No answer',
+            improvements: (improvements && improvements.trim()) || 'No answer',
+            currentApp: (currentApp && currentApp.trim()) || 'No answer',
+            missingFeatures: (missingFeatures && missingFeatures.trim()) || 'No answer',
             timestamp: new Date().toISOString()
         };
 
