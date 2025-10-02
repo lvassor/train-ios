@@ -302,37 +302,24 @@ async function getUATStats() {
 function generateProgram(questionnaire) {
     const { experience, trainingDays } = questionnaire;
 
-    // Simple program matching logic
-    let programName, programId;
+    // Map experience to difficulty level
+    // Only 0_months gets beginner, everyone else gets intermediate
+    const difficultyLevel = experience === '0_months' ? 'beginner' : 'intermediate';
 
-    if (experience === '0_months' || experience === '0_6_months') {
-        if (trainingDays <= 2) {
-            programName = 'Beginner Full Body Foundation';
-            programId = 'beginner-2day';
-        } else if (trainingDays === 3) {
-            programName = 'Beginner Full Body Builder';
-            programId = 'beginner-3day';
-        } else {
-            programName = 'Beginner Upper/Lower Split';
-            programId = 'beginner-4day';
-        }
-    } else if (experience === '6_months_2_years') {
-        if (trainingDays <= 3) {
-            programName = 'Intermediate Push/Pull/Legs';
-            programId = 'intermediate-3day';
-        } else {
-            programName = 'Intermediate Upper/Lower Power';
-            programId = 'intermediate-4day';
-        }
-    } else {
-        if (trainingDays <= 3) {
-            programName = 'Advanced Push/Pull/Legs';
-            programId = 'advanced-3day';
-        } else {
-            programName = 'Advanced Upper/Lower Power';
-            programId = 'advanced-4day';
-        }
-    }
+    // Generate program ID
+    const programId = `${difficultyLevel}-${trainingDays}day`;
+
+    // Map to program names
+    const programNames = {
+        'beginner-2day': 'Beginner Full Body Foundation',
+        'beginner-3day': 'Beginner Full Body Builder',
+        'beginner-4day': 'Beginner Upper/Lower Split',
+        'intermediate-2day': 'Intermediate Full Body Power',
+        'intermediate-3day': 'Intermediate Push/Pull/Legs',
+        'intermediate-4day': 'Intermediate Upper/Lower Power'
+    };
+
+    const programName = programNames[programId];
 
     return {
         id: programId,

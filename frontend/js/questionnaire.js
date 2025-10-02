@@ -182,12 +182,10 @@ function handleConfidenceSlider(slider) {
 // ============================================================================
 function generateProgramId(questionnaire) {
     const { experience, trainingDays } = questionnaire;
-    
-    let difficultyLevel = 'beginner';
-    if (experience === '6_months_2_years' || experience === '2_plus_years') {
-        difficultyLevel = 'intermediate';
-    }
-    
+
+    // Only 0_months gets beginner, everyone else gets intermediate
+    const difficultyLevel = experience === '0_months' ? 'beginner' : 'intermediate';
+
     return `${difficultyLevel}-${trainingDays}day`;
 }
 
