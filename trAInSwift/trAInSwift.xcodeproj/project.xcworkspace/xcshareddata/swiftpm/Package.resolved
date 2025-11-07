@@ -1,0 +1,42 @@
+{
+  "originHash" : "384c27d67247bf73d9edca6d1f7d48fea15e48b6f7d804a4b634fafe42454374",
+  "pins" : [
+    {
+      "identity" : "coregeometry",
+      "kind" : "remoteSourceControl",
+      "location" : "https://gitlab.com/Pyroh/CoreGeometry.git",
+      "state" : {
+        "revision" : "c8604b90dc60084e9d08f289573e537585b84129",
+        "version" : "4.0.0"
+      }
+    },
+    {
+      "identity" : "grdb.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDB.swift",
+      "state" : {
+        "branch" : "master",
+        "revision" : "18497b68fdbb3a09528d260a0a0e1e7e61c8c53d"
+      }
+    },
+    {
+      "identity" : "slidingruler",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Pyroh/SlidingRuler",
+      "state" : {
+        "revision" : "707b15e0ade64b488e7146a487cc5ee9570af9fa",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "smoothoperators",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Pyroh/SmoothOperators.git",
+      "state" : {
+        "revision" : "dd013309755d75d8636fd7fb89bb25da34b92c7e",
+        "version" : "0.20.0"
+      }
+    }
+  ],
+  "version" : 3
+}

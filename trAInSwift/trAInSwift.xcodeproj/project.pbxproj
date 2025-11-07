@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CA1776AA2EBD0AE6000CCD0C /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = CA1776A92EBD0AE6000CCD0C /* GRDB */; };
+		CA798F212EBE67B6004EC83D /* SlidingRuler in Frameworks */ = {isa = PBXBuildFile; productRef = CA798F202EBE67B6004EC83D /* SlidingRuler */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		CAE736482EA10CD60072B5DB /* trAInSwift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = trAInSwift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +28,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA798F212EBE67B6004EC83D /* SlidingRuler in Frameworks */,
+				CA1776AA2EBD0AE6000CCD0C /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +72,8 @@
 			);
 			name = trAInSwift;
 			packageProductDependencies = (
+				CA1776A92EBD0AE6000CCD0C /* GRDB */,
+				CA798F202EBE67B6004EC83D /* SlidingRuler */,
 			);
 			productName = trAInSwift;
 			productReference = CAE736482EA10CD60072B5DB /* trAInSwift.app */;
@@ -94,6 +103,10 @@
 			);
 			mainGroup = CAE7363F2EA10CD60072B5DB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CA1776A82EBD0AE6000CCD0C /* XCRemoteSwiftPackageReference "GRDB" */,
+				CA798F1F2EBE67B6004EC83D /* XCRemoteSwiftPackageReference "SlidingRuler" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CAE736492EA10CD60072B5DB /* Products */;
 			projectDirPath = "";
@@ -270,13 +283,14 @@
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
@@ -312,13 +326,14 @@
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
@@ -345,6 +360,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CA1776A82EBD0AE6000CCD0C /* XCRemoteSwiftPackageReference "GRDB" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		CA798F1F2EBE67B6004EC83D /* XCRemoteSwiftPackageReference "SlidingRuler" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Pyroh/SlidingRuler";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CA1776A92EBD0AE6000CCD0C /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA1776A82EBD0AE6000CCD0C /* XCRemoteSwiftPackageReference "GRDB" */;
+			productName = GRDB;
+		};
+		CA798F202EBE67B6004EC83D /* SlidingRuler */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA798F1F2EBE67B6004EC83D /* XCRemoteSwiftPackageReference "SlidingRuler" */;
+			productName = SlidingRuler;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CAE736402EA10CD60072B5DB /* Project object */;
 }

@@ -1,0 +1,59 @@
+//
+//  CustomButton.swift
+//  trAInApp
+//
+//  Reusable button component
+//
+
+import SwiftUI
+
+struct CustomButton: View {
+    let title: String
+    let action: () -> Void
+    var isEnabled: Bool = true
+    var style: ButtonStyle = .primary
+
+    enum ButtonStyle {
+        case primary
+        case secondary
+        case text
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.trainBodyMedium)
+                .foregroundColor(textColor)
+                .frame(maxWidth: .infinity)
+                .frame(height: ButtonHeight.standard)
+                .background(backgroundColor)
+                .cornerRadius(CornerRadius.md)
+        }
+        .disabled(!isEnabled)
+        .scaleEffect(isEnabled ? 1.0 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isEnabled)
+    }
+
+    private var backgroundColor: Color {
+        if !isEnabled {
+            return .trainDisabled
+        }
+        switch style {
+        case .primary:
+            return .trainPrimary
+        case .secondary:
+            return .clear
+        case .text:
+            return .clear
+        }
+    }
+
+    private var textColor: Color {
+        switch style {
+        case .primary:
+            return .white
+        case .secondary, .text:
+            return .trainPrimary
+        }
+    }
+}

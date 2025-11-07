@@ -62,7 +62,7 @@ struct QuestionnaireView: View {
                     // Continue button
                     VStack {
                         CustomButton(
-                            title: currentStep == totalSteps ? "Complete" : "Continue",
+                            title: currentStep == totalSteps ? "Generate Your Programme" : "Continue",
                             action: nextStep,
                             isEnabled: isCurrentStepValid
                         )
@@ -79,41 +79,41 @@ struct QuestionnaireView: View {
     private var currentStepView: some View {
         switch currentStep {
         case 1:
-            GenderStepView(selectedGender: $viewModel.questionnaireData.gender)
-        case 2:
-            AgeStepView(age: $viewModel.questionnaireData.age)
-        case 3:
-            HeightStepView(
-                heightCm: $viewModel.questionnaireData.heightCm,
-                heightFt: $viewModel.questionnaireData.heightFt,
-                heightIn: $viewModel.questionnaireData.heightIn,
-                unit: $viewModel.questionnaireData.heightUnit
-            )
-        case 4:
-            WeightStepView(
-                weightKg: $viewModel.questionnaireData.weightKg,
-                weightLbs: $viewModel.questionnaireData.weightLbs,
-                unit: $viewModel.questionnaireData.weightUnit
-            )
-        case 5:
             GoalsStepView(selectedGoal: $viewModel.questionnaireData.primaryGoal)
-        case 6:
-            MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
-        case 7:
+        case 2:
             ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
+        case 3:
+            MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
+        case 4:
+            EquipmentStepView(selectedEquipment: $viewModel.questionnaireData.equipmentAvailable)
+        case 5:
+            InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+        case 6:
+            TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek)
+        case 7:
+            SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
         case 8:
             MotivationStepView(
                 selectedMotivations: $viewModel.questionnaireData.motivations,
                 otherText: $viewModel.questionnaireData.motivationOther
             )
         case 9:
-            EquipmentStepView(selectedEquipment: $viewModel.questionnaireData.equipmentAvailable)
+            WeightStepView(
+                weightKg: $viewModel.questionnaireData.weightKg,
+                weightLbs: $viewModel.questionnaireData.weightLbs,
+                unit: $viewModel.questionnaireData.weightUnit
+            )
         case 10:
-            TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek)
+            HeightStepView(
+                heightCm: $viewModel.questionnaireData.heightCm,
+                heightFt: $viewModel.questionnaireData.heightFt,
+                heightIn: $viewModel.questionnaireData.heightIn,
+                unit: $viewModel.questionnaireData.heightUnit
+            )
         case 11:
-            SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
+            GenderStepView(selectedGender: $viewModel.questionnaireData.gender)
         case 12:
-            InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+            AgeStepView(age: $viewModel.questionnaireData.age)
         default:
             EmptyView()
         }
@@ -121,42 +121,42 @@ struct QuestionnaireView: View {
 
     private var isCurrentStepValid: Bool {
         switch currentStep {
-        case 1:
-            return !viewModel.questionnaireData.gender.isEmpty
-        case 2:
-            return viewModel.questionnaireData.age >= 18
-        case 3:
-            if viewModel.questionnaireData.heightUnit == .cm {
-                return viewModel.questionnaireData.heightCm >= 100 && viewModel.questionnaireData.heightCm <= 250
-            } else {
-                return viewModel.questionnaireData.heightFt >= 3 && viewModel.questionnaireData.heightFt <= 8
+        case 1: // Goals
+            return !viewModel.questionnaireData.primaryGoal.isEmpty
+        case 2: // Experience
+            return !viewModel.questionnaireData.experienceLevel.isEmpty
+        case 3: // Muscle Groups
+            let count = viewModel.questionnaireData.targetMuscleGroups.count
+            return count >= 1 && count <= 3
+        case 4: // Equipment
+            return !viewModel.questionnaireData.equipmentAvailable.isEmpty
+        case 5: // Injuries
+            return true // Injuries are optional
+        case 6: // Training Days
+            return viewModel.questionnaireData.trainingDaysPerWeek >= 2
+        case 7: // Session Duration
+            return !viewModel.questionnaireData.sessionDuration.isEmpty
+        case 8: // Motivation
+            if viewModel.questionnaireData.motivations.contains("other") {
+                return !viewModel.questionnaireData.motivationOther.isEmpty
             }
-        case 4:
+            return !viewModel.questionnaireData.motivations.isEmpty
+        case 9: // Weight
             if viewModel.questionnaireData.weightUnit == .kg {
                 return viewModel.questionnaireData.weightKg >= 30 && viewModel.questionnaireData.weightKg <= 200
             } else {
                 return viewModel.questionnaireData.weightLbs >= 65 && viewModel.questionnaireData.weightLbs <= 440
             }
-        case 5:
-            return !viewModel.questionnaireData.primaryGoal.isEmpty
-        case 6:
-            let count = viewModel.questionnaireData.targetMuscleGroups.count
-            return count >= 1 && count <= 3
-        case 7:
-            return !viewModel.questionnaireData.experienceLevel.isEmpty
-        case 8:
-            if viewModel.questionnaireData.motivations.contains("other") {
-                return !viewModel.questionnaireData.motivationOther.isEmpty
+        case 10: // Height
+            if viewModel.questionnaireData.heightUnit == .cm {
+                return viewModel.questionnaireData.heightCm >= 100 && viewModel.questionnaireData.heightCm <= 250
+            } else {
+                return viewModel.questionnaireData.heightFt >= 3 && viewModel.questionnaireData.heightFt <= 8
             }
-            return !viewModel.questionnaireData.motivations.isEmpty
-        case 9:
-            return !viewModel.questionnaireData.equipmentAvailable.isEmpty
-        case 10:
-            return viewModel.questionnaireData.trainingDaysPerWeek >= 2
-        case 11:
-            return !viewModel.questionnaireData.sessionDuration.isEmpty
-        case 12:
-            return true // Injuries are optional
+        case 11: // Gender
+            return !viewModel.questionnaireData.gender.isEmpty
+        case 12: // Age
+            return viewModel.questionnaireData.age >= 18
         default:
             return true
         }

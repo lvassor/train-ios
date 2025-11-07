@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UIKit
+import SlidingRuler
 
 // MARK: - Q1: Gender
 struct GenderStepView: View {
@@ -125,9 +126,6 @@ struct GenderStepView: View {
 struct AgeStepView: View {
     @Binding var age: Int
 
-    @State private var ageText: String = ""
-    @FocusState private var isFocused: Bool
-
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -139,47 +137,20 @@ struct AgeStepView: View {
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
             }
+            .padding(.horizontal, Spacing.lg)
 
-            // Large centered age display
-            HStack(spacing: Spacing.sm) {
-                TextField("", text: $ageText)
-                    .font(.trainLargeNumber)
-                    .foregroundColor(.trainPrimary)
-                    .multilineTextAlignment(.center)
-                    .keyboardType(.numberPad)
-                    .focused($isFocused)
-                    .onChange(of: ageText) { _, newValue in
-                        if let value = Int(newValue) {
-                            age = value
-                        } else if newValue.isEmpty {
-                            age = 0
-                        }
-                    }
-
-                Text("years")
-                    .font(.trainTitle)
-                    .foregroundColor(.trainTextSecondary)
-            }
-            .padding(Spacing.xl)
-            .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .cornerRadius(CornerRadius.md)
-            .onAppear {
-                if age > 0 {
-                    ageText = "\(age)"
-                }
-                isFocused = true
-            }
+            // Age Scroller Picker
+            AgeScrollerPicker(age: $age)
 
             if age > 0 && age < 18 {
                 Text("You must be at least 18 years old")
                     .font(.trainCaption)
                     .foregroundColor(.red)
+                    .padding(.horizontal, Spacing.lg)
             }
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.lg)
     }
 }
 
@@ -189,10 +160,6 @@ struct HeightStepView: View {
     @Binding var heightFt: Int
     @Binding var heightIn: Int
     @Binding var unit: QuestionnaireData.HeightUnit
-
-    @State private var cmText: String = ""
-    @State private var ftText: String = ""
-    @State private var inText: String = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
@@ -205,10 +172,17 @@ struct HeightStepView: View {
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
             }
+            .padding(.horizontal, Spacing.lg)
 
             // Unit toggle - center aligned with spacing
             HStack(spacing: Spacing.sm) {
-                Button(action: { unit = .cm }) {
+                Button(action: {
+                    unit = .cm
+                    // Convert ft/in to cm if needed
+                    if heightFt > 0 || heightIn > 0 {
+                        heightCm = Double(heightFt) * 30.48 + Double(heightIn) * 2.54
+                    }
+                }) {
                     Text("cm")
                         .font(.trainBodyMedium)
                         .foregroundColor(unit == .cm ? .white : .trainTextPrimary)
@@ -222,7 +196,15 @@ struct HeightStepView: View {
                         )
                 }
 
-                Button(action: { unit = .ftIn }) {
+                Button(action: {
+                    unit = .ftIn
+                    // Convert cm to ft/in if needed
+                    if heightCm > 0 {
+                        let totalInches = heightCm / 2.54
+                        heightFt = Int(totalInches / 12)
+                        heightIn = Int(totalInches.truncatingRemainder(dividingBy: 12))
+                    }
+                }) {
                     Text("ft/in")
                         .font(.trainBodyMedium)
                         .foregroundColor(unit == .ftIn ? .white : .trainTextPrimary)
@@ -238,85 +220,100 @@ struct HeightStepView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Input
-            if unit == .ftIn {
-                HStack(alignment: .center, spacing: Spacing.lg) {
-                    HStack(spacing: Spacing.sm) {
-                        TextField("", text: $ftText)
-                            .font(.system(size: 48, weight: .bold))
-                            .foregroundColor(.trainPrimary)
-                            .multilineTextAlignment(.center)
-                            .keyboardType(.numberPad)
-                            .frame(width: 80)
-                            .onChange(of: ftText) { _, newValue in
-                                if let value = Int(newValue) {
-                                    heightFt = value
-                                }
-                            }
-
-                        Text("ft")
-                            .font(.trainHeadline)
-                            .foregroundColor(.trainTextSecondary)
-                    }
-
-                    HStack(spacing: Spacing.sm) {
-                        TextField("", text: $inText)
-                            .font(.system(size: 48, weight: .bold))
-                            .foregroundColor(.trainPrimary)
-                            .multilineTextAlignment(.center)
-                            .keyboardType(.numberPad)
-                            .frame(width: 80)
-                            .onChange(of: inText) { _, newValue in
-                                if let value = Int(newValue) {
-                                    heightIn = value
-                                }
-                            }
-
-                        Text("in")
-                            .font(.trainHeadline)
-                            .foregroundColor(.trainTextSecondary)
-                    }
-                }
-                .padding(Spacing.xl)
-                .frame(maxWidth: .infinity)
-                .background(Color.white)
-                .cornerRadius(CornerRadius.md)
-            } else {
-                HStack(spacing: Spacing.sm) {
-                    TextField("", text: $cmText)
-                        .font(.trainLargeNumber)
+            // Sliding Ruler for Height
+            if unit == .cm {
+                VStack(spacing: Spacing.md) {
+                    // Display current value
+                    Text("\(Int(heightCm))")
+                        .font(.system(size: 56, weight: .bold))
                         .foregroundColor(.trainPrimary)
-                        .multilineTextAlignment(.center)
-                        .keyboardType(.decimalPad)
-                        .onChange(of: cmText) { _, newValue in
-                            if let value = Double(newValue) {
-                                heightCm = value
-                            }
-                        }
+                        .frame(height: 80)
 
                     Text("cm")
                         .font(.trainTitle)
                         .foregroundColor(.trainTextSecondary)
+                        .offset(y: -20)
+
+                    // SlidingRuler
+                    SlidingRuler(
+                        value: $heightCm,
+                        bounds: 120...220,
+                        step: 1,
+                        snap: .unit,
+                        tick: .unit
+                    )
+                    .frame(height: 60)
+                    .padding(.horizontal, Spacing.lg)
+                    .onChange(of: heightCm) { _, newValue in
+                        let totalInches = newValue / 2.54
+                        heightFt = Int(totalInches / 12)
+                        heightIn = Int(totalInches.truncatingRemainder(dividingBy: 12))
+                    }
                 }
-                .padding(Spacing.xl)
-                .frame(maxWidth: .infinity)
-                .background(Color.white)
-                .cornerRadius(CornerRadius.md)
+            } else {
+                // For ft/in, we'll use a combined height in cm and display conversion
+                VStack(spacing: Spacing.md) {
+                    let combinedHeightCm = Double(heightFt) * 30.48 + Double(heightIn) * 2.54
+
+                    HStack(spacing: Spacing.sm) {
+                        Text("\(heightFt)")
+                            .font(.trainLargeNumber)
+                            .foregroundColor(.trainPrimary)
+                        Text("ft")
+                            .font(.trainTitle)
+                            .foregroundColor(.trainTextSecondary)
+
+                        Text("\(heightIn)")
+                            .font(.trainLargeNumber)
+                            .foregroundColor(.trainPrimary)
+                        Text("in")
+                            .font(.trainTitle)
+                            .foregroundColor(.trainTextSecondary)
+                    }
+                    .frame(height: 80)
+
+                    HStack(spacing: Spacing.lg) {
+                        // Feet picker
+                        VStack {
+                            Text("Feet")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                            Picker("Feet", selection: $heightFt) {
+                                ForEach(3...8, id: \.self) { ft in
+                                    Text("\(ft)").tag(ft)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(width: 80, height: 120)
+                            .onChange(of: heightFt) { _, _ in
+                                heightCm = Double(heightFt) * 30.48 + Double(heightIn) * 2.54
+                            }
+                        }
+
+                        // Inches picker
+                        VStack {
+                            Text("Inches")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                            Picker("Inches", selection: $heightIn) {
+                                ForEach(0...11, id: \.self) { inches in
+                                    Text("\(inches)").tag(inches)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(width: 80, height: 120)
+                            .onChange(of: heightIn) { _, _ in
+                                heightCm = Double(heightFt) * 30.48 + Double(heightIn) * 2.54
+                            }
+                        }
+                    }
+                    .background(Color.white)
+                    .cornerRadius(CornerRadius.md)
+                }
+                .padding(.horizontal, Spacing.lg)
             }
 
             Spacer()
-        }
-        .padding(.horizontal, Spacing.lg)
-        .onAppear {
-            if heightCm > 0 {
-                cmText = String(format: "%.0f", heightCm)
-            }
-            if heightFt > 0 {
-                ftText = "\(heightFt)"
-            }
-            if heightIn > 0 {
-                inText = "\(heightIn)"
-            }
         }
     }
 }
@@ -326,9 +323,6 @@ struct WeightStepView: View {
     @Binding var weightKg: Double
     @Binding var weightLbs: Double
     @Binding var unit: QuestionnaireData.WeightUnit
-
-    @State private var kgText: String = ""
-    @State private var lbsText: String = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
@@ -341,10 +335,17 @@ struct WeightStepView: View {
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
             }
+            .padding(.horizontal, Spacing.lg)
 
             // Unit toggle - center aligned with spacing
             HStack(spacing: Spacing.sm) {
-                Button(action: { unit = .kg }) {
+                Button(action: {
+                    unit = .kg
+                    // Convert lbs to kg if needed
+                    if weightLbs > 0 {
+                        weightKg = weightLbs * 0.453592
+                    }
+                }) {
                     Text("kg")
                         .font(.trainBodyMedium)
                         .foregroundColor(unit == .kg ? .white : .trainTextPrimary)
@@ -358,7 +359,13 @@ struct WeightStepView: View {
                         )
                 }
 
-                Button(action: { unit = .lbs }) {
+                Button(action: {
+                    unit = .lbs
+                    // Convert kg to lbs if needed
+                    if weightKg > 0 {
+                        weightLbs = weightKg * 2.20462
+                    }
+                }) {
                     Text("lbs")
                         .font(.trainBodyMedium)
                         .foregroundColor(unit == .lbs ? .white : .trainTextPrimary)
@@ -374,43 +381,64 @@ struct WeightStepView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Input
-            HStack(spacing: Spacing.sm) {
-                TextField("", text: unit == .kg ? $kgText : $lbsText)
-                    .font(.trainLargeNumber)
-                    .foregroundColor(.trainPrimary)
-                    .multilineTextAlignment(.center)
-                    .keyboardType(.decimalPad)
-                    .onChange(of: kgText) { _, newValue in
-                        if let value = Double(newValue) {
-                            weightKg = value
-                        }
+            // Sliding Ruler for Weight
+            if unit == .kg {
+                VStack(spacing: Spacing.md) {
+                    // Display current value
+                    HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
+                        Text(String(format: "%.1f", weightKg))
+                            .font(.system(size: 56, weight: .bold))
+                            .foregroundColor(.trainPrimary)
+                        Text("kg")
+                            .font(.trainTitle)
+                            .foregroundColor(.trainTextSecondary)
                     }
-                    .onChange(of: lbsText) { _, newValue in
-                        if let value = Double(newValue) {
-                            weightLbs = value
-                        }
-                    }
+                    .frame(height: 80)
 
-                Text(unit == .kg ? "kg" : "lbs")
-                    .font(.trainTitle)
-                    .foregroundColor(.trainTextSecondary)
+                    // SlidingRuler
+                    SlidingRuler(
+                        value: $weightKg,
+                        bounds: 30...200,
+                        step: 0.5,
+                        snap: .half,
+                        tick: .unit
+                    )
+                    .frame(height: 60)
+                    .padding(.horizontal, Spacing.lg)
+                    .onChange(of: weightKg) { _, newValue in
+                        weightLbs = newValue * 2.20462
+                    }
+                }
+            } else {
+                VStack(spacing: Spacing.md) {
+                    // Display current value
+                    HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
+                        Text(String(format: "%.1f", weightLbs))
+                            .font(.system(size: 56, weight: .bold))
+                            .foregroundColor(.trainPrimary)
+                        Text("lbs")
+                            .font(.trainTitle)
+                            .foregroundColor(.trainTextSecondary)
+                    }
+                    .frame(height: 80)
+
+                    // SlidingRuler
+                    SlidingRuler(
+                        value: $weightLbs,
+                        bounds: 65...440,
+                        step: 1,
+                        snap: .unit,
+                        tick: .unit
+                    )
+                    .frame(height: 60)
+                    .padding(.horizontal, Spacing.lg)
+                    .onChange(of: weightLbs) { _, newValue in
+                        weightKg = newValue * 0.453592
+                    }
+                }
             }
-            .padding(Spacing.xl)
-            .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .cornerRadius(CornerRadius.md)
 
             Spacer()
-        }
-        .padding(.horizontal, Spacing.lg)
-        .onAppear {
-            if weightKg > 0 {
-                kgText = String(format: "%.0f", weightKg)
-            }
-            if weightLbs > 0 {
-                lbsText = String(format: "%.0f", weightLbs)
-            }
         }
     }
 }
@@ -745,9 +773,9 @@ struct SessionDurationStepView: View {
     @Binding var sessionDuration: String
 
     let durations = [
-        ("30-45 min", "Short", "Quick and efficient"),
-        ("45-60 min", "Medium", "Balanced approach"),
-        ("60-90 min", "Long", "Maximum volume")
+        ("30-45 min", "30-45 minutes", "Quick and efficient"),
+        ("45-60 min", "45-60 minutes", "Balanced approach"),
+        ("60-90 min", "60-90 minutes", "Maximum volume")
     ]
 
     var body: some View {

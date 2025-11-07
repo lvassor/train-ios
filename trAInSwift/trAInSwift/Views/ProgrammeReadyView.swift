@@ -9,8 +9,38 @@ import SwiftUI
 
 struct ProgrammeReadyView: View {
     let onStart: () -> Void
+    @State private var showSignup = false
+    @State private var showLoading = false
+    @State private var showPaywall = false
 
     var body: some View {
+        ZStack {
+            // Show different screens based on state
+            if showPaywall {
+                PaywallView(onComplete: {
+                    // After paywall, complete the whole flow
+                    onStart()
+                })
+            } else if showLoading {
+                AccountCreationLoadingView(onComplete: {
+                    withAnimation {
+                        showPaywall = true
+                    }
+                })
+            } else if showSignup {
+                PostQuestionnaireSignupView(onSignupSuccess: {
+                    withAnimation {
+                        showLoading = true
+                    }
+                })
+            } else {
+                // Original Programme Ready View
+                programmeReadyContent
+            }
+        }
+    }
+
+    private var programmeReadyContent: some View {
         ZStack {
             Color.trainBackground
                 .ignoresSafeArea()
@@ -68,8 +98,12 @@ struct ProgrammeReadyView: View {
 
                 // Start button
                 CustomButton(
-                    title: "Let's Get Started",
-                    action: onStart
+                    title: "Start Training Now!",
+                    action: {
+                        withAnimation {
+                            showSignup = true
+                        }
+                    }
                 )
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
