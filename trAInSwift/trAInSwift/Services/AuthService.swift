@@ -1,28 +1,29 @@
 //
 //  AuthService.swift
-//  trAInApp
+//  trAInSwift
 //
-//  Offline authentication service for MVP testing
+//  Authentication service using Core Data + Keychain
+//  Passwords stored securely in Keychain
+//  User data stored in Core Data
 //
 
 import Foundation
 import Combine
+import CoreData
 
 class AuthService: ObservableObject {
     static let shared = AuthService()
 
-    @Published var currentUser: User?
+    @Published var currentUser: UserProfile?
     @Published var isAuthenticated: Bool = false
 
-    private let usersKey = "train_users"
-    private let currentUserIdKey = "train_current_user_id"
+    private let keychain = KeychainService.shared
+    private let persistence = PersistenceController.shared
+    private var context: NSManagedObjectContext {
+        persistence.container.viewContext
+    }
 
-    // Hardcoded test accounts
-    private let testAccounts = [
-        ("test@test.com", "password123"),
-        ("demo@train.com", "demo123"),
-        ("user@example.com", "user123")
-    ]
+    private let currentUserIdKey = "train_current_user_id"
 
     private init() {
         loadSession()
@@ -31,19 +32,25 @@ class AuthService: ObservableObject {
     // MARK: - Session Management
 
     func loadSession() {
-        if let userId = UserDefaults.standard.string(forKey: currentUserIdKey) {
-            if let user = loadUser(id: userId) {
+        if let userIdString = UserDefaults.standard.string(forKey: currentUserIdKey),
+           let userId = UUID(uuidString: userIdString) {
+            if let user = UserProfile.fetch(byId: userId, context: context) {
                 currentUser = user
                 isAuthenticated = true
-                print("Session restored for user: \(user.email)")
+                AppLogger.logAuth("Session restored for user")
             }
         }
     }
 
     func saveSession() {
-        if let user = currentUser {
-            UserDefaults.standard.set(user.id, forKey: currentUserIdKey)
-            saveUser(user)
+        guard let user = currentUser else { return }
+
+        UserDefaults.standard.set(user.id?.uuidString, forKey: currentUserIdKey)
+        do {
+            try context.save()
+            AppLogger.logAuth("User session saved successfully")
+        } catch {
+            AppLogger.logAuth("Failed to save user session: \(error.localizedDescription)", level: .error)
         }
     }
 
@@ -51,105 +58,79 @@ class AuthService: ObservableObject {
         UserDefaults.standard.removeObject(forKey: currentUserIdKey)
         currentUser = nil
         isAuthenticated = false
-        print("Session cleared")
+        AppLogger.logAuth("Session cleared")
     }
 
     // MARK: - Authentication
 
-    func login(email: String, password: String) -> Result<User, AuthError> {
+    func login(email: String, password: String) -> Result<UserProfile, AuthError> {
         let normalizedEmail = email.lowercased().trimmingCharacters(in: .whitespaces)
 
-        // First check test accounts
-        if let testAccount = testAccounts.first(where: { $0.0 == normalizedEmail && $0.1 == password }) {
-            // Check if user already exists in storage
-            if let existingUser = findUser(byEmail: testAccount.0) {
-                var updatedUser = existingUser
-                updatedUser.lastLoginAt = Date()
+        #if DEBUG
+        // Check test accounts first
+        if TestAccounts.isTestAccount(email: normalizedEmail),
+           let testPassword = TestAccounts.getPassword(for: normalizedEmail),
+           testPassword == password {
+            // Check if user already exists in Core Data
+            if let existingUser = UserProfile.fetch(byEmail: normalizedEmail, context: context) {
+                existingUser.updateLastLogin()
 
-                // Ensure user has a program (add hardcoded program if missing)
-                if updatedUser.currentProgram == nil {
-                    updatedUser.currentProgram = createTestUserProgram()
+                // Ensure user has a program
+                if let userId = existingUser.id,
+                   WorkoutProgram.fetchCurrent(forUserId: userId, context: context) == nil {
+                    let testProgram = TestProgramHelper.createTestProgram()
+                    _ = WorkoutProgram.create(userId: userId, program: testProgram.program, context: context)
                 }
 
-                currentUser = updatedUser
+                currentUser = existingUser
                 isAuthenticated = true
                 saveSession()
-                return .success(updatedUser)
+                AppLogger.logAuth("Test user logged in successfully")
+                return .success(existingUser)
             } else {
-                // Create new user for test account with hardcoded program
-                var newUser = User(email: testAccount.0, password: testAccount.1)
-                newUser.currentProgram = createTestUserProgram()
+                // Create new test user
+                let newUser = UserProfile.create(email: normalizedEmail, context: context)
+                do {
+                    try keychain.savePassword(testPassword, for: normalizedEmail)
+                } catch {
+                    AppLogger.logAuth("Failed to save test password to keychain: \(error.localizedDescription)", level: .warning)
+                }
+
+                if let userId = newUser.id {
+                    let testProgram = TestProgramHelper.createTestProgram()
+                    _ = WorkoutProgram.create(userId: userId, program: testProgram.program, context: context)
+                }
+
                 currentUser = newUser
                 isAuthenticated = true
                 saveSession()
+                AppLogger.logAuth("New test user created and logged in")
                 return .success(newUser)
             }
         }
+        #endif
 
         // Check stored users
-        if let user = findUser(byEmail: normalizedEmail) {
-            if user.password == password {
-                var updatedUser = user
-                updatedUser.lastLoginAt = Date()
-                currentUser = updatedUser
-                isAuthenticated = true
-                saveSession()
-                return .success(updatedUser)
-            } else {
-                return .failure(.invalidCredentials)
-            }
+        guard let user = UserProfile.fetch(byEmail: normalizedEmail, context: context) else {
+            AppLogger.logAuth("Login failed: user not found", level: .notice)
+            return .failure(.userNotFound)
         }
 
-        return .failure(.userNotFound)
+        // Verify password from Keychain
+        if keychain.verifyPassword(password, for: normalizedEmail) {
+            user.updateLastLogin()
+            currentUser = user
+            isAuthenticated = true
+            saveSession()
+            AppLogger.logAuth("User logged in successfully")
+            return .success(user)
+        } else {
+            AppLogger.logAuth("Login failed: invalid credentials", level: .notice)
+            return .failure(.invalidCredentials)
+        }
     }
 
-    // Create a hardcoded program for test users
-    private func createTestUserProgram() -> UserProgram {
-        let pushSession = ProgramSession(
-            dayName: "Push",
-            exercises: [
-                ProgramExercise(exerciseId: "1", exerciseName: "Bench Press", sets: 4, repRange: "8-12", restSeconds: 120, primaryMuscle: "Chest", equipmentType: "Barbell"),
-                ProgramExercise(exerciseId: "2", exerciseName: "Overhead Press", sets: 3, repRange: "8-12", restSeconds: 90, primaryMuscle: "Shoulders", equipmentType: "Barbell"),
-                ProgramExercise(exerciseId: "3", exerciseName: "Incline Dumbbell Press", sets: 3, repRange: "10-15", restSeconds: 90, primaryMuscle: "Chest", equipmentType: "Dumbbell"),
-                ProgramExercise(exerciseId: "4", exerciseName: "Lateral Raises", sets: 3, repRange: "12-15", restSeconds: 60, primaryMuscle: "Shoulders", equipmentType: "Dumbbell"),
-                ProgramExercise(exerciseId: "5", exerciseName: "Tricep Pushdowns", sets: 3, repRange: "12-15", restSeconds: 60, primaryMuscle: "Triceps", equipmentType: "Cable")
-            ]
-        )
-
-        let pullSession = ProgramSession(
-            dayName: "Pull",
-            exercises: [
-                ProgramExercise(exerciseId: "6", exerciseName: "Deadlift", sets: 4, repRange: "6-10", restSeconds: 180, primaryMuscle: "Back", equipmentType: "Barbell"),
-                ProgramExercise(exerciseId: "7", exerciseName: "Pull-ups", sets: 3, repRange: "8-12", restSeconds: 90, primaryMuscle: "Back", equipmentType: "Bodyweight"),
-                ProgramExercise(exerciseId: "8", exerciseName: "Barbell Rows", sets: 3, repRange: "8-12", restSeconds: 90, primaryMuscle: "Back", equipmentType: "Barbell"),
-                ProgramExercise(exerciseId: "9", exerciseName: "Face Pulls", sets: 3, repRange: "15-20", restSeconds: 60, primaryMuscle: "Shoulders", equipmentType: "Cable"),
-                ProgramExercise(exerciseId: "10", exerciseName: "Bicep Curls", sets: 3, repRange: "10-15", restSeconds: 60, primaryMuscle: "Biceps", equipmentType: "Dumbbell")
-            ]
-        )
-
-        let legsSession = ProgramSession(
-            dayName: "Legs",
-            exercises: [
-                ProgramExercise(exerciseId: "11", exerciseName: "Squats", sets: 4, repRange: "8-12", restSeconds: 150, primaryMuscle: "Quads", equipmentType: "Barbell"),
-                ProgramExercise(exerciseId: "12", exerciseName: "Romanian Deadlifts", sets: 3, repRange: "10-12", restSeconds: 120, primaryMuscle: "Hamstrings", equipmentType: "Barbell"),
-                ProgramExercise(exerciseId: "13", exerciseName: "Leg Press", sets: 3, repRange: "12-15", restSeconds: 90, primaryMuscle: "Quads", equipmentType: "Machine"),
-                ProgramExercise(exerciseId: "14", exerciseName: "Leg Curls", sets: 3, repRange: "12-15", restSeconds: 90, primaryMuscle: "Hamstrings", equipmentType: "Machine"),
-                ProgramExercise(exerciseId: "15", exerciseName: "Calf Raises", sets: 4, repRange: "15-20", restSeconds: 60, primaryMuscle: "Calves", equipmentType: "Machine")
-            ]
-        )
-
-        let program = Program(
-            type: .pushPullLegs,
-            daysPerWeek: 3,
-            sessionDuration: .medium,
-            sessions: [pushSession, pullSession, legsSession],
-            totalWeeks: 12
-        )
-
-        return UserProgram(program: program)
-    }
-
-    func signup(email: String, password: String) -> Result<User, AuthError> {
+    func signup(email: String, password: String) -> Result<UserProfile, AuthError> {
         let normalizedEmail = email.lowercased().trimmingCharacters(in: .whitespaces)
 
         // Validate email
@@ -163,12 +144,22 @@ class AuthService: ObservableObject {
         }
 
         // Check if user already exists
-        if findUser(byEmail: normalizedEmail) != nil {
+        if UserProfile.fetch(byEmail: normalizedEmail, context: context) != nil {
             return .failure(.emailAlreadyExists)
         }
 
         // Create new user
-        let newUser = User(email: normalizedEmail, password: password)
+        let newUser = UserProfile.create(email: normalizedEmail, context: context)
+
+        // Save password to Keychain
+        do {
+            try keychain.savePassword(password, for: normalizedEmail)
+        } catch {
+            // Rollback user creation if password save fails
+            context.delete(newUser)
+            return .failure(.keychainError)
+        }
+
         currentUser = newUser
         isAuthenticated = true
         saveSession()
@@ -182,59 +173,88 @@ class AuthService: ObservableObject {
 
     // MARK: - User Management
 
-    func updateUser(_ user: User) {
+    func updateUser(_ user: UserProfile) {
         currentUser = user
         saveSession()
     }
 
     func updateQuestionnaireData(_ data: QuestionnaireData) {
-        guard var user = currentUser else { return }
-        user.questionnaireData = data
-        updateUser(user)
+        guard let user = currentUser else { return }
+        user.setQuestionnaireData(data)
+
+        // Also update related fields
+        user.age = Int16(data.age)
+        user.weight = data.weightUnit == .kg ? data.weightKg : data.weightLbs
+        user.height = data.heightUnit == .cm ? data.heightCm : Double(data.heightFt * 12 + data.heightIn) * 2.54
+        user.experience = data.experienceLevel
+        user.equipmentArray = data.equipmentAvailable
+        user.injuriesArray = data.injuries
+        user.priorityMusclesArray = data.targetMuscleGroups
+
+        saveSession()
     }
 
-    func updateProgram(_ program: UserProgram) {
-        guard var user = currentUser else { return }
-        user.currentProgram = program
-        updateUser(user)
+    func updateProgram(_ program: Program) {
+        guard let user = currentUser, let userId = user.id else {
+            AppLogger.logAuth("Cannot update program: no current user", level: .error)
+            return
+        }
+
+        // Create new WorkoutProgram in Core Data
+        _ = WorkoutProgram.create(userId: userId, program: program, context: context)
+        saveSession()
+        AppLogger.logProgram("Program updated successfully")
     }
 
-    func addWorkoutSession(_ session: WorkoutSession) {
-        guard var user = currentUser else { return }
-        user.workoutHistory.append(session)
-        updateUser(user)
+    func getCurrentProgram() -> WorkoutProgram? {
+        guard let user = currentUser, let userId = user.id else { return nil }
+        return WorkoutProgram.fetchCurrent(forUserId: userId, context: context)
     }
 
-    // MARK: - Storage
+    func addWorkoutSession(
+        sessionName: String,
+        weekNumber: Int,
+        exercises: [LoggedExercise],
+        durationMinutes: Int
+    ) {
+        guard let user = currentUser, let userId = user.id else {
+            AppLogger.logWorkout("Cannot add workout session: no current user", level: .error)
+            return
+        }
 
-    private func saveUser(_ user: User) {
-        var users = loadAllUsers()
-        // Remove existing user with same ID
-        users.removeAll { $0.id == user.id }
-        // Add updated user
-        users.append(user)
+        let programId = getCurrentProgram()?.id
 
-        if let encoded = try? JSONEncoder().encode(users) {
-            UserDefaults.standard.set(encoded, forKey: usersKey)
+        _ = CDWorkoutSession.create(
+            userId: userId,
+            programId: programId,
+            sessionName: sessionName,
+            weekNumber: weekNumber,
+            exercises: exercises,
+            durationMinutes: durationMinutes,
+            context: context
+        )
+
+        do {
+            try context.save()
+            AppLogger.logWorkout("Workout session saved successfully")
+        } catch {
+            AppLogger.logWorkout("Failed to save workout session: \(error.localizedDescription)", level: .error)
         }
     }
 
-    private func loadUser(id: String) -> User? {
-        let users = loadAllUsers()
-        return users.first { $0.id == id }
+    func getWorkoutHistory() -> [CDWorkoutSession] {
+        guard let user = currentUser, let userId = user.id else { return [] }
+        return CDWorkoutSession.fetchAll(forUserId: userId, context: context)
     }
 
-    private func findUser(byEmail email: String) -> User? {
-        let users = loadAllUsers()
-        return users.first { $0.email.lowercased() == email.lowercased() }
-    }
-
-    private func loadAllUsers() -> [User] {
-        guard let data = UserDefaults.standard.data(forKey: usersKey),
-              let users = try? JSONDecoder().decode([User].self, from: data) else {
-            return []
+    func completeCurrentSession() {
+        guard let program = getCurrentProgram() else {
+            AppLogger.logWorkout("Cannot complete session: no current program", level: .warning)
+            return
         }
-        return users
+        program.completeSession()
+        saveSession()
+        AppLogger.logWorkout("Session marked as complete")
     }
 }
 
@@ -244,6 +264,7 @@ enum AuthError: LocalizedError {
     case emailAlreadyExists
     case userNotFound
     case invalidCredentials
+    case keychainError
 
     var errorDescription: String? {
         switch self {
@@ -257,6 +278,8 @@ enum AuthError: LocalizedError {
             return "No account found with this email"
         case .invalidCredentials:
             return "Invalid email or password"
+        case .keychainError:
+            return "Failed to securely store password"
         }
     }
 }

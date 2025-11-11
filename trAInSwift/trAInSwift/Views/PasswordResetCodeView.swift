@@ -1,0 +1,169 @@
+//
+//  PasswordResetCodeView.swift
+//  trAInSwift
+//
+//  Password reset - enter verification code
+//
+
+import SwiftUI
+
+struct PasswordResetCodeView: View {
+    let email: String
+    let expectedCode: String
+    let onSuccess: () -> Void
+    let onDismiss: () -> Void
+
+    @State private var code: [String] = Array(repeating: "", count: 6)
+    @FocusState private var focusedField: Int?
+    @State private var showError: Bool = false
+    @State private var navigateToNewPassword: Bool = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: Spacing.xl) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(Color.trainPrimary.opacity(0.1))
+                        .frame(width: 80, height: 80)
+
+                    Image(systemName: "envelope.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.trainPrimary)
+                }
+                .padding(.top, Spacing.xl)
+
+                // Title and subtitle
+                VStack(spacing: Spacing.sm) {
+                    Text("Reset Email Sent")
+                        .font(.trainTitle)
+                        .foregroundColor(.trainTextPrimary)
+
+                    Text("Enter the 6 digit code")
+                        .font(.trainBody)
+                        .foregroundColor(.trainTextSecondary)
+                }
+
+                // Warning text
+                Text("Check your junk inbox if you do not receive your code")
+                    .font(.trainCaption)
+                    .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Spacing.lg)
+
+                // Code input boxes
+                HStack(spacing: 8) {
+                    ForEach(0..<6, id: \.self) { index in
+                        TextField("", text: $code[index])
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.center)
+                            .frame(width: 48, height: 56)
+                            .background(Color.white)
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(showError ? Color.red : Color.trainBorder, lineWidth: 2)
+                            )
+                            .font(.system(size: 24, weight: .bold))
+                            .focused($focusedField, equals: index)
+                            .onChange(of: code[index]) { oldValue, newValue in
+                                handleCodeInput(index: index, oldValue: oldValue, newValue: newValue)
+                            }
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.md)
+
+                if showError {
+                    Text("Invalid code. Please try again.")
+                        .font(.trainCaption)
+                        .foregroundColor(.red)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .background(Color.trainBackground)
+            .cornerRadius(20, corners: [.topLeft, .topRight])
+            .shadow(radius: 20)
+
+            if navigateToNewPassword {
+                Color.clear
+                    .frame(height: 0)
+                    .sheet(isPresented: $navigateToNewPassword) {
+                        PasswordResetNewPasswordView(onSuccess: onSuccess)
+                    }
+            }
+        }
+        .onAppear {
+            // Auto-focus first field
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                focusedField = 0
+            }
+        }
+    }
+
+    private func handleCodeInput(index: Int, oldValue: String, newValue: String) {
+        // Limit to single digit
+        if newValue.count > 1 {
+            code[index] = String(newValue.suffix(1))
+        }
+
+        // Auto-advance to next field
+        if !newValue.isEmpty && index < 5 {
+            focusedField = index + 1
+        }
+
+        // Auto-submit when all 6 digits entered
+        if index == 5 && !newValue.isEmpty {
+            verifyCode()
+        }
+
+        // Clear error when user types
+        if showError {
+            showError = false
+        }
+    }
+
+    private func verifyCode() {
+        let enteredCode = code.joined()
+
+        if enteredCode == expectedCode {
+            // Code is correct
+            print("✅ Code verified successfully")
+            showError = false
+            onDismiss()
+
+            // Navigate to new password screen
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                navigateToNewPassword = true
+            }
+        } else {
+            // Code is incorrect
+            print("❌ Invalid code entered")
+            showError = true
+
+            // Clear all fields and refocus first
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                code = Array(repeating: "", count: 6)
+                focusedField = 0
+            }
+        }
+    }
+}
+
+// RoundedCorner helper is already defined in QuestionnaireSteps.swift
+
+#Preview {
+    ZStack {
+        Color.black.opacity(0.3)
+            .ignoresSafeArea()
+
+        PasswordResetCodeView(
+            email: "test@test.com",
+            expectedCode: "123456",
+            onSuccess: {},
+            onDismiss: {}
+        )
+    }
+}

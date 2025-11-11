@@ -24,15 +24,10 @@ class WorkoutViewModel: ObservableObject {
         let generator = ProgramGenerator()
         let program = generator.generateProgram(from: questionnaireData)
 
-        // Create UserProgram wrapper
-        let userProgram = UserProgram(program: program)
-
         // Save to current user
-        if var user = AuthService.shared.currentUser {
-            user.questionnaireData = questionnaireData
-            user.currentProgram = userProgram
-            AuthService.shared.currentUser = user
-            AuthService.shared.saveSession()
+        if AuthService.shared.currentUser != nil {
+            AuthService.shared.updateQuestionnaireData(questionnaireData)
+            AuthService.shared.updateProgram(program)
 
             print("✅ Program generated and saved: \(program.type.description)")
             print("✅ Sessions: \(program.sessions.map { $0.dayName }.joined(separator: ", "))")

@@ -1,26 +1,30 @@
 //
 //  User.swift
-//  trAInApp
+//  trAInSwift
 //
-//  User authentication and profile data model
+//  Legacy User model - DEPRECATED
+//  Now using Core Data UserProfile entity instead
+//  Kept for backward compatibility during migration
 //
 
 import Foundation
 
+// DEPRECATED: Use Core Data UserProfile entity instead
+// This struct is kept only for compatibility with existing code
+// that hasn't been migrated yet
 struct User: Codable, Identifiable {
     let id: String
     let email: String
-    var password: String // Stored as plain text for MVP (offline only)
+    // Password removed - now stored in Keychain
     var questionnaireData: QuestionnaireData?
     var currentProgram: UserProgram?
     var workoutHistory: [WorkoutSession]
     var createdAt: Date
     var lastLoginAt: Date
 
-    init(id: String = UUID().uuidString, email: String, password: String) {
+    init(id: String = UUID().uuidString, email: String) {
         self.id = id
         self.email = email
-        self.password = password
         self.questionnaireData = nil
         self.currentProgram = nil
         self.workoutHistory = []

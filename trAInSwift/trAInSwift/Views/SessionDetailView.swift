@@ -6,16 +6,19 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct SessionDetailView: View {
-    let userProgram: UserProgram
+    let userProgram: WorkoutProgram
     let weekNumber: Int
     let sessionIndex: Int
 
     @State private var startWorkout = false
+    @State private var selectedExercise: ProgramExercise?
+    @State private var selectedDBExercise: DBExercise?
 
     var session: ProgramSession {
-        userProgram.program.sessions[sessionIndex]
+        userProgram.getProgram()!.sessions[sessionIndex]
     }
 
     var sessionId: String {
@@ -23,7 +26,7 @@ struct SessionDetailView: View {
     }
 
     var isCompleted: Bool {
-        userProgram.completedSessions.contains(sessionId)
+        userProgram.completedSessionsSet.contains(sessionId)
     }
 
     var estimatedDuration: String {
@@ -79,6 +82,10 @@ struct SessionDetailView: View {
                     ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, exercise in
                         ExerciseCard(exercise: exercise, index: index + 1)
                             .padding(.horizontal, Spacing.lg)
+                            .onTapGesture {
+                                selectedExercise = exercise
+                                loadExerciseDetails(exerciseId: exercise.exerciseId)
+                            }
                     }
                 }
 
@@ -109,16 +116,40 @@ struct SessionDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(isPresented: $startWorkout) {
             WorkoutLoggerView(
-                userProgram: userProgram,
+                
                 weekNumber: weekNumber,
                 sessionIndex: sessionIndex
             )
+        }
+        .sheet(item: $selectedDBExercise) { exercise in
+            NavigationStack {
+                ExerciseDetailView(exercise: exercise, showLoggerTab: true)
+            }
         }
     }
 
     private func getTargetMuscles() -> String {
         let muscles = Set(session.exercises.map { $0.primaryMuscle })
         return muscles.sorted().joined(separator: ", ")
+    }
+
+    private func loadExerciseDetails(exerciseId: String) {
+        // Convert exerciseId string to Int and fetch from database
+        guard let id = Int(exerciseId) else { return }
+
+        Task {
+            do {
+                let exercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: id)
+
+                if let exercise = exercise {
+                    await MainActor.run {
+                        selectedDBExercise = exercise
+                    }
+                }
+            } catch {
+                print("❌ Error loading exercise details: \(error)")
+            }
+        }
     }
 }
 
@@ -199,41 +230,43 @@ struct ExerciseCard: View {
 // MARK: - Preview
 
 #Preview {
-    NavigationStack {
+    let context = PersistenceController.preview.container.viewContext
+    let program = Program(
+        type: .pushPullLegs,
+        daysPerWeek: 3,
+        sessionDuration: .medium,
+        sessions: [
+            ProgramSession(
+                dayName: "Push",
+                exercises: [
+                    ProgramExercise(
+                        exerciseId: "1",
+                        exerciseName: "Bench Press",
+                        sets: 3,
+                        repRange: "8-12",
+                        restSeconds: 120,
+                        primaryMuscle: "Chest",
+                        equipmentType: "Barbell"
+                    ),
+                    ProgramExercise(
+                        exerciseId: "2",
+                        exerciseName: "Overhead Press",
+                        sets: 3,
+                        repRange: "8-12",
+                        restSeconds: 120,
+                        primaryMuscle: "Shoulders",
+                        equipmentType: "Barbell"
+                    )
+                ]
+            )
+        ],
+        totalWeeks: 8
+    )
+    let workoutProgram = WorkoutProgram.create(userId: UUID(), program: program, context: context)
+
+    return NavigationStack {
         SessionDetailView(
-            userProgram: UserProgram(
-                program: Program(
-                    type: .pushPullLegs,
-                    daysPerWeek: 3,
-                    sessionDuration: .medium,
-                    sessions: [
-                        ProgramSession(
-                            dayName: "Push",
-                            exercises: [
-                                ProgramExercise(
-                                    exerciseId: "1",
-                                    exerciseName: "Bench Press",
-                                    sets: 3,
-                                    repRange: "8-12",
-                                    restSeconds: 120,
-                                    primaryMuscle: "Chest",
-                                    equipmentType: "Barbell"
-                                ),
-                                ProgramExercise(
-                                    exerciseId: "2",
-                                    exerciseName: "Overhead Press",
-                                    sets: 3,
-                                    repRange: "8-12",
-                                    restSeconds: 120,
-                                    primaryMuscle: "Shoulders",
-                                    equipmentType: "Barbell"
-                                )
-                            ]
-                        )
-                    ],
-                    totalWeeks: 8
-                )
-            ),
+            userProgram: workoutProgram,
             weekNumber: 1,
             sessionIndex: 0
         )

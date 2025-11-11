@@ -14,6 +14,7 @@ struct ContentView: View {
     @ObservedObject private var authService = AuthService.shared
 
     @State private var showQuestionnaire = false
+    @State private var showLogin = false
 
     var body: some View {
         Group {
@@ -22,7 +23,10 @@ struct ContentView: View {
                 DashboardView()
             } else {
                 // Not authenticated - show onboarding flow
-                if showQuestionnaire {
+                if showLogin {
+                    // Show login screen
+                    LoginView()
+                } else if showQuestionnaire {
                     // Show questionnaire (internally handles: questionnaire → programme ready → signup → loading → REAL paywall)
                     QuestionnaireView(onComplete: {
                         // After paywall completion, create authenticated user with program
@@ -31,9 +35,14 @@ struct ContentView: View {
                     .environmentObject(workoutViewModel)
                 } else {
                     // Show welcome screen first
-                    WelcomeView(onContinue: {
-                        showQuestionnaire = true
-                    })
+                    WelcomeView(
+                        onContinue: {
+                            showQuestionnaire = true
+                        },
+                        onLogin: {
+                            showLogin = true
+                        }
+                    )
                 }
             }
         }
@@ -43,43 +52,37 @@ struct ContentView: View {
     private func createAuthenticatedUserWithProgram() {
         print("🎉 Creating authenticated user with database-generated program after paywall")
 
-        // Create user
-        var newUser = User(
-            id: UUID().uuidString,
-            email: "user@train.com",
-            password: "password123"
-        )
+        // For now, use signup to create a demo user
+        // In production, this would be a real signup flow
+        let email = "demo\(Int.random(in: 1000...9999))@train.com"
+        let password = "demo123"
 
-        // Set questionnaire data
-        newUser.questionnaireData = workoutViewModel.questionnaireData
+        let result = authService.signup(email: email, password: password)
 
-        // Generate personalized program using database and questionnaire data
-        let generator = ProgramGenerator()
-        let program = generator.generateProgram(from: workoutViewModel.questionnaireData)
+        switch result {
+        case .success:
+            // Save questionnaire data
+            authService.updateQuestionnaireData(workoutViewModel.questionnaireData)
 
-        // Log program details for verification
-        print("✅ Generated program type: \(program.type.description)")
-        print("✅ Days per week: \(program.daysPerWeek)")
-        print("✅ Session duration: \(program.sessionDuration.rawValue)")
-        print("✅ Total sessions: \(program.sessions.count)")
-        print("✅ Session names: \(program.sessions.map { $0.dayName }.joined(separator: ", "))")
+            // Generate personalized program
+            let generator = ProgramGenerator()
+            let program = generator.generateProgram(from: workoutViewModel.questionnaireData)
 
-        for (index, session) in program.sessions.enumerated() {
-            print("✅ Session \(index + 1) - \(session.dayName): \(session.exercises.count) exercises")
-            for exercise in session.exercises {
-                print("   - \(exercise.exerciseName) (\(exercise.equipmentType))")
-            }
+            // Log program details for verification
+            print("✅ Generated program type: \(program.type.description)")
+            print("✅ Days per week: \(program.daysPerWeek)")
+            print("✅ Session duration: \(program.sessionDuration.rawValue)")
+            print("✅ Total sessions: \(program.sessions.count)")
+            print("✅ Session names: \(program.sessions.map { $0.dayName }.joined(separator: ", "))")
+
+            // Save program
+            authService.updateProgram(program)
+
+            print("✅ User authenticated with personalized program")
+
+        case .failure(let error):
+            print("❌ Failed to create user: \(error.localizedDescription)")
         }
-
-        let userProgram = UserProgram(program: program)
-        newUser.currentProgram = userProgram
-
-        // Authenticate user
-        authService.currentUser = newUser
-        authService.isAuthenticated = true
-        authService.saveSession()
-
-        print("✅ User authenticated with personalized program")
     }
 }
 

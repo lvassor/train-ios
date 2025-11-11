@@ -15,7 +15,7 @@ struct GenderStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Gender")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
@@ -23,7 +23,9 @@ struct GenderStepView: View {
                 Text("We may require this for exercise prescription")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
                 // Male and Female as large square cards side by side
@@ -128,7 +130,7 @@ struct AgeStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Age")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
@@ -136,7 +138,9 @@ struct AgeStepView: View {
                 Text("This helps us tailor your training intensity")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, Spacing.lg)
 
             // Age Scroller Picker
@@ -163,7 +167,7 @@ struct HeightStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Height")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
@@ -171,7 +175,9 @@ struct HeightStepView: View {
                 Text("This helps us calculate your body metrics")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, Spacing.lg)
 
             // Unit toggle - center aligned with spacing
@@ -223,27 +229,32 @@ struct HeightStepView: View {
             // Sliding Ruler for Height
             if unit == .cm {
                 VStack(spacing: Spacing.md) {
-                    // Display current value
-                    Text("\(Int(heightCm))")
-                        .font(.system(size: 56, weight: .bold))
-                        .foregroundColor(.trainPrimary)
-                        .frame(height: 80)
+                    // Display current value with unit on same line
+                    HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
+                        Text("\(Int(heightCm))")
+                            .font(.system(size: 56, weight: .bold))
+                            .foregroundColor(.trainPrimary)
+                        Text("cm")
+                            .font(.trainTitle)
+                            .foregroundColor(.trainTextSecondary)
+                    }
+                    .frame(height: 80)
 
-                    Text("cm")
-                        .font(.trainTitle)
-                        .foregroundColor(.trainTextSecondary)
-                        .offset(y: -20)
-
-                    // SlidingRuler
+                    // SlidingRuler - Each major tick = 10cm (e.g., 140, 150, 160)
                     SlidingRuler(
                         value: $heightCm,
-                        bounds: 120...220,
-                        step: 1,
+                        in: 120...220,
+                        step: 10,  // Step of 10 means each major tick is 10cm
                         snap: .unit,
-                        tick: .unit
+                        tick: .unit  // Major ticks every 10 units
                     )
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
+                    .onAppear {
+                        if heightCm < 120 {
+                            heightCm = 170 // Default to 170cm
+                        }
+                    }
                     .onChange(of: heightCm) { _, newValue in
                         let totalInches = newValue / 2.54
                         heightFt = Int(totalInches / 12)
@@ -251,20 +262,29 @@ struct HeightStepView: View {
                     }
                 }
             } else {
-                // For ft/in, we'll use a combined height in cm and display conversion
+                // For ft/in, use sliding ruler in feet (with decimal for inches)
                 VStack(spacing: Spacing.md) {
-                    let combinedHeightCm = Double(heightFt) * 30.48 + Double(heightIn) * 2.54
+                    // Convert height to feet as decimal for the slider
+                    let heightInFeet = Binding<Double>(
+                        get: { Double(heightFt) + Double(heightIn) / 12.0 },
+                        set: { newFeet in
+                            heightFt = Int(newFeet)
+                            heightIn = Int((newFeet - Double(Int(newFeet))) * 12.0)
+                            heightCm = (Double(heightFt) * 30.48) + (Double(heightIn) * 2.54)
+                        }
+                    )
 
-                    HStack(spacing: Spacing.sm) {
+                    // Display current value as Xft Yin
+                    HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                         Text("\(heightFt)")
-                            .font(.trainLargeNumber)
+                            .font(.system(size: 56, weight: .bold))
                             .foregroundColor(.trainPrimary)
                         Text("ft")
                             .font(.trainTitle)
                             .foregroundColor(.trainTextSecondary)
 
                         Text("\(heightIn)")
-                            .font(.trainLargeNumber)
+                            .font(.system(size: 56, weight: .bold))
                             .foregroundColor(.trainPrimary)
                         Text("in")
                             .font(.trainTitle)
@@ -272,45 +292,24 @@ struct HeightStepView: View {
                     }
                     .frame(height: 80)
 
-                    HStack(spacing: Spacing.lg) {
-                        // Feet picker
-                        VStack {
-                            Text("Feet")
-                                .font(.trainCaption)
-                                .foregroundColor(.trainTextSecondary)
-                            Picker("Feet", selection: $heightFt) {
-                                ForEach(3...8, id: \.self) { ft in
-                                    Text("\(ft)").tag(ft)
-                                }
-                            }
-                            .pickerStyle(.wheel)
-                            .frame(width: 80, height: 120)
-                            .onChange(of: heightFt) { _, _ in
-                                heightCm = Double(heightFt) * 30.48 + Double(heightIn) * 2.54
-                            }
-                        }
-
-                        // Inches picker
-                        VStack {
-                            Text("Inches")
-                                .font(.trainCaption)
-                                .foregroundColor(.trainTextSecondary)
-                            Picker("Inches", selection: $heightIn) {
-                                ForEach(0...11, id: \.self) { inches in
-                                    Text("\(inches)").tag(inches)
-                                }
-                            }
-                            .pickerStyle(.wheel)
-                            .frame(width: 80, height: 120)
-                            .onChange(of: heightIn) { _, _ in
-                                heightCm = Double(heightFt) * 30.48 + Double(heightIn) * 2.54
-                            }
+                    // SlidingRuler - Each major tick = 1 foot, labels show 4, 5, 6, 7
+                    SlidingRuler(
+                        value: heightInFeet,
+                        in: 3...8,
+                        step: 1,  // Step of 1 means each major tick is 1 foot
+                        snap: .unit,
+                        tick: .unit  // Major ticks every 1 foot
+                    )
+                    .frame(height: 60)
+                    .padding(.horizontal, Spacing.lg)
+                    .onAppear {
+                        if heightFt == 0 && heightIn == 0 {
+                            heightFt = 5
+                            heightIn = 7
+                            heightCm = 170.18 // 5ft 7in in cm
                         }
                     }
-                    .background(Color.white)
-                    .cornerRadius(CornerRadius.md)
                 }
-                .padding(.horizontal, Spacing.lg)
             }
 
             Spacer()
@@ -326,7 +325,7 @@ struct WeightStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Weight")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
@@ -334,7 +333,9 @@ struct WeightStepView: View {
                 Text("This helps us calculate your body metrics")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, Spacing.lg)
 
             // Unit toggle - center aligned with spacing
@@ -386,7 +387,7 @@ struct WeightStepView: View {
                 VStack(spacing: Spacing.md) {
                     // Display current value
                     HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
-                        Text(String(format: "%.1f", weightKg))
+                        Text("\(Int(weightKg))")
                             .font(.system(size: 56, weight: .bold))
                             .foregroundColor(.trainPrimary)
                         Text("kg")
@@ -395,16 +396,21 @@ struct WeightStepView: View {
                     }
                     .frame(height: 80)
 
-                    // SlidingRuler
+                    // SlidingRuler - Each major tick = 10kg (e.g., 60, 70, 80)
                     SlidingRuler(
                         value: $weightKg,
-                        bounds: 30...200,
-                        step: 0.5,
-                        snap: .half,
-                        tick: .unit
+                        in: 30...200,
+                        step: 10,  // Step of 10 means each major tick is 10kg
+                        snap: .unit,
+                        tick: .unit  // Major ticks every 10 units
                     )
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
+                    .onAppear {
+                        if weightKg < 30 {
+                            weightKg = 70 // Default to 70kg
+                        }
+                    }
                     .onChange(of: weightKg) { _, newValue in
                         weightLbs = newValue * 2.20462
                     }
@@ -413,7 +419,7 @@ struct WeightStepView: View {
                 VStack(spacing: Spacing.md) {
                     // Display current value
                     HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
-                        Text(String(format: "%.1f", weightLbs))
+                        Text("\(Int(weightLbs))")
                             .font(.system(size: 56, weight: .bold))
                             .foregroundColor(.trainPrimary)
                         Text("lbs")
@@ -422,16 +428,21 @@ struct WeightStepView: View {
                     }
                     .frame(height: 80)
 
-                    // SlidingRuler
+                    // SlidingRuler - Each major tick = 20lbs (e.g., 140, 160, 180)
                     SlidingRuler(
                         value: $weightLbs,
-                        bounds: 65...440,
-                        step: 1,
+                        in: 60...440,
+                        step: 20,  // Step of 20 means each major tick is 20lbs
                         snap: .unit,
-                        tick: .unit
+                        tick: .unit  // Major ticks every 20 units
                     )
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
+                    .onAppear {
+                        if weightLbs < 65 {
+                            weightLbs = 154 // Default to 154lbs (70kg equivalent)
+                        }
+                    }
                     .onChange(of: weightLbs) { _, newValue in
                         weightKg = newValue * 0.453592
                     }
@@ -455,15 +466,18 @@ struct GoalsStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("What are your primary goals?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
 
-                Text("Let's customise your training programme")
+                Text("Let's customise your training program")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
                 ForEach(goals, id: \.0) { value, title, subtitle in
@@ -496,15 +510,18 @@ struct MuscleGroupsStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Which muscle groups do you want to prioritise?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
 
                 Text("Select up to 3 muscle groups")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
                 ForEach(muscleGroups, id: \.self) { row in
@@ -570,22 +587,25 @@ struct ExperienceStepView: View {
 
     let experiences = [
         ("0_months", "0 months", "Complete beginner"),
-        ("0_6_months", "0-6 months", "Learning the basics"),
+        ("0_6_months", "0 - 6 months", "Learning the basics"),
         ("6_months_2_years", "6 months - 2 years", "Starting to find your feet"),
         ("2_plus_years", "2+ years", "Feeling confident")
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("What's your current experience with strength training?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
 
                 Text("This helps us set the right difficulty level")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
                 ForEach(experiences, id: \.0) { value, title, subtitle in
@@ -610,25 +630,28 @@ struct MotivationStepView: View {
     @Binding var otherText: String
 
     let motivations = [
-        ("lack_structure", "I lack structure in the gym"),
-        ("lack_knowledge", "I lack knowledge in the gym"),
-        ("lack_confidence", "I lack confidence in the gym"),
-        ("need_motivation", "I need more motivation"),
-        ("need_accountability", "I need more accountability"),
+        ("lack_structure", "I lack structure in my workouts"),
+        ("need_guidance", "I need more guidance"),
+        ("lack_confidence", "I lack confidence when I exercise"),
+        ("need_motivation", "I need motivation"),
+        ("need_accountability", "I need accountability"),
         ("other", "Other")
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Why have you considered using this app?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
 
                 Text("Select all that apply")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
                 ForEach(motivations, id: \.0) { value, title in
@@ -672,42 +695,56 @@ struct MotivationStepView: View {
 // MARK: - Q9: Equipment
 struct EquipmentStepView: View {
     @Binding var selectedEquipment: [String]
+    @State private var showingEquipmentInfo: String?
 
     let equipment = [
-        ("bodyweight", "Bodyweight only"),
         ("dumbbells", "Dumbbells"),
         ("barbells", "Barbells"),
-        ("cable_machines", "Cable machines"),
-        ("pin_loaded", "Pin-loaded machines"),
-        ("plate_loaded", "Plate-loaded machines"),
-        ("kettlebells", "Kettlebells")
+        ("kettlebells", "Kettlebells"),
+        ("cable_machines", "Cable Machines"),
+        ("pin_loaded", "Pin-loaded Machines"),
+        ("plate_loaded", "Plate-loaded Machines")
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.lg) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("What equipment do you have at your availability?")
-                    .font(.trainTitle2)
-                    .foregroundColor(.trainTextPrimary)
+        ZStack {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                VStack(alignment: .center, spacing: Spacing.sm) {
+                    Text("What equipment do you have at your availability?")
+                        .font(.trainTitle2)
+                        .foregroundColor(.trainTextPrimary)
+                        .multilineTextAlignment(.center)
 
-                Text("Select all that apply")
-                    .font(.trainSubtitle)
-                    .foregroundColor(.trainTextSecondary)
-            }
-
-            VStack(spacing: Spacing.md) {
-                ForEach(equipment, id: \.0) { value, title in
-                    MultiSelectCard(
-                        title: title,
-                        isSelected: selectedEquipment.contains(value),
-                        action: { toggleEquipment(value) }
-                    )
+                    Text("Select all that apply")
+                        .font(.trainSubtitle)
+                        .foregroundColor(.trainTextSecondary)
+                        .multilineTextAlignment(.center)
                 }
-            }
+                .frame(maxWidth: .infinity)
 
-            Spacer()
+                VStack(spacing: Spacing.md) {
+                    ForEach(equipment, id: \.0) { value, title in
+                        EquipmentCard(
+                            title: title,
+                            isSelected: selectedEquipment.contains(value),
+                            onSelect: { toggleEquipment(value) },
+                            onInfo: { showingEquipmentInfo = value }
+                        )
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.lg)
+
+            // Equipment Info Modal
+            if let equipmentType = showingEquipmentInfo {
+                EquipmentInfoModal(
+                    equipmentType: equipmentType,
+                    onDismiss: { showingEquipmentInfo = nil }
+                )
+            }
         }
-        .padding(.horizontal, Spacing.lg)
     }
 
     private func toggleEquipment(_ item: String) {
@@ -715,6 +752,151 @@ struct EquipmentStepView: View {
             selectedEquipment.removeAll { $0 == item }
         } else {
             selectedEquipment.append(item)
+        }
+    }
+}
+
+// MARK: - Equipment Card with Info Button
+
+struct EquipmentCard: View {
+    let title: String
+    let isSelected: Bool
+    let onSelect: () -> Void
+    let onInfo: () -> Void
+
+    var body: some View {
+        Button(action: onSelect) {
+            HStack {
+                Text(title)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(isSelected ? .white : .trainTextPrimary)
+
+                Spacer()
+
+                Button(action: {
+                    onInfo()
+                }) {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 20))
+                        .foregroundColor(isSelected ? .white.opacity(0.8) : .trainTextSecondary)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(Spacing.md)
+            .background(isSelected ? Color.trainPrimary : Color.white)
+            .cornerRadius(15)
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(isSelected ? Color.trainPrimary : Color.trainBorder, lineWidth: 2)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Equipment Info Modal
+
+struct EquipmentInfoModal: View {
+    let equipmentType: String
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            // Semi-transparent background
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    onDismiss()
+                }
+
+            // Modal card
+            VStack(spacing: 0) {
+                // Image placeholder (top 40%)
+                ZStack {
+                    Color.trainTextSecondary.opacity(0.1)
+
+                    Image(systemName: equipmentIcon)
+                        .font(.system(size: 80))
+                        .foregroundColor(.trainPrimary)
+                }
+                .frame(height: 200)
+
+                // Content (bottom 60%)
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    Text(equipmentName)
+                        .font(.trainTitle2)
+                        .foregroundColor(.trainTextPrimary)
+
+                    Text(equipmentDescription)
+                        .font(.trainBody)
+                        .foregroundColor(.trainTextSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Spacer()
+                }
+                .padding(Spacing.lg)
+            }
+            .frame(width: 320, height: 480)
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(radius: 20)
+            .overlay(
+                // Close button
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.trainTextPrimary)
+                        .frame(width: 32, height: 32)
+                        .background(Color.trainBackground)
+                        .clipShape(Circle())
+                }
+                .padding(Spacing.md),
+                alignment: .topTrailing
+            )
+            .transition(.scale.combined(with: .opacity))
+        }
+        .animation(.spring(response: 0.3), value: equipmentType)
+    }
+
+    private var equipmentIcon: String {
+        switch equipmentType {
+        case "dumbbells": return "dumbbell.fill"
+        case "barbells": return "figure.strengthtraining.traditional"
+        case "kettlebells": return "figure.strengthtraining.functional"
+        case "cable_machines": return "cable.connector"
+        case "pin_loaded", "plate_loaded": return "gearshape.2.fill"
+        default: return "dumbbell.fill"
+        }
+    }
+
+    private var equipmentName: String {
+        switch equipmentType {
+        case "dumbbells": return "Dumbbells"
+        case "barbells": return "Barbells"
+        case "kettlebells": return "Kettlebells"
+        case "cable_machines": return "Cable Machines"
+        case "pin_loaded": return "Pin-loaded Machines"
+        case "plate_loaded": return "Plate-loaded Machines"
+        default: return "Equipment"
+        }
+    }
+
+    private var equipmentDescription: String {
+        switch equipmentType {
+        case "dumbbells":
+            return "Free weights held in each hand. Excellent for unilateral training and building stabilizer muscles. Great for home gyms."
+        case "barbells":
+            return "A long bar with weight plates on each end. Ideal for heavy compound movements like squats, deadlifts, and bench press."
+        case "kettlebells":
+            return "Cast iron weights with a handle on top. Perfect for dynamic movements, swings, and functional training."
+        case "cable_machines":
+            return "Adjustable pulley systems with weight stacks. Provide constant tension throughout movements and allow for various angles."
+        case "pin_loaded":
+            return "Machines with weight stacks selected by pins. User-friendly and great for isolating specific muscle groups safely."
+        case "plate_loaded":
+            return "Machines where you manually load weight plates. Combine the benefits of free weights with guided movement patterns."
+        default:
+            return "Equipment description coming soon."
         }
     }
 }
@@ -727,15 +909,18 @@ struct TrainingDaysStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("How many days per week would you like to train?")
+            VStack(alignment: .center, spacing: Spacing.sm) {
+                Text("How many days per week would you like to commit to strength training?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
 
                 Text("Be realistic with your commitment")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
             HStack(spacing: Spacing.md) {
                 ForEach(dayOptions, id: \.self) { days in
@@ -780,15 +965,18 @@ struct SessionDurationStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("How long can you spend per session?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
 
                 Text("This affects the number of exercises in your program")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
                 ForEach(durations, id: \.0) { value, title, subtitle in
@@ -824,15 +1012,18 @@ struct InjuriesStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Do you have any current injuries or limitations?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
 
-                Text("We'll avoid exercises that may aggravate these areas")
+                Text("Select any that may impact your training")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
                 ForEach(injuryOptions, id: \.self) { injury in

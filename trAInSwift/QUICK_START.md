@@ -119,9 +119,8 @@ Injuries: []
 
 Once it's working:
 
-1. **Read**: [DATABASE_INTEGRATION.md](DATABASE_INTEGRATION.md) for full details
-2. **Learn**: [MIGRATION_NOTES.md](MIGRATION_NOTES.md) to understand the architecture
-3. **Update**: [database-management/README.md](database-management/README.md) when you need to modify exercises
+1. **Update exercises**: See [database-management/README.md](database-management/README.md) for modifying exercise data
+2. **Historical docs**: Archived implementation details are in `Documentation/Archive/` if needed
 
 ## 🔄 Updating Exercise Data
 
@@ -139,32 +138,17 @@ The Python script automatically copies the new database to `trAInSwift/Resources
 
 ## 🆘 Still Having Issues?
 
-Check the detailed logs in Xcode console (⌘⇧Y to show console). Look for:
-- `❌` error messages
-- `⚠️` warning messages
-- Database initialization logs
-- Program generation logs
-
-Most issues are from:
+Check the detailed logs in Xcode console (⌘⇧Y to show console). Most issues are from:
 1. GRDB not installed
 2. exercises.db not in bundle
 3. Database file permissions
 
 ## 🎉 Success!
 
-When you see exercises with real names (like "Barbell Back Squat", "Dumbbell Bulgarian Split Squat") instead of generic names (like "Bench Press", "Squat"), you know it's working!
+When you see exercises with real names (like "Barbell Back Squat", "Dumbbell Bulgarian Split Squat"), you know it's working!
 
-The program will now be personalized based on:
-- User's experience level (complexity filtering)
-- Available equipment
-- Injuries (contraindications)
-- Fitness goal (rep ranges)
-- Training frequency (split type)
+The program is now personalized based on experience level, equipment, injuries, fitness goal, and training frequency.
 
 ---
 
-**Estimated Setup Time**: ~5 minutes
-**Difficulty**: Easy
-**Prerequisites**: Xcode, macOS
-
-Need more help? Check [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) for the complete overview.
+**Estimated Setup Time**: ~5 minutes | **Difficulty**: Easy | **Prerequisites**: Xcode, macOS

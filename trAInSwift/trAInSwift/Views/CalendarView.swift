@@ -30,7 +30,7 @@ struct CalendarView: View {
                             // Calendar Grid
                             CalendarGridView(
                                 currentMonth: currentMonth,
-                                workouts: authService.currentUser?.workoutHistory ?? [],
+                                workouts: [], // TODO: Implement workout history from Core Data
                                 selectedDate: $selectedDate
                             )
                             .padding(.horizontal, Spacing.lg)
@@ -65,10 +65,8 @@ struct CalendarView: View {
     }
 
     private func getWorkouts(for date: Date) -> [WorkoutSession] {
-        let calendar = Calendar.current
-        return (authService.currentUser?.workoutHistory ?? []).filter { workout in
-            calendar.isDate(workout.date, inSameDayAs: date)
-        }
+        // TODO: Implement filtering from Core Data WorkoutSessions
+        return []
     }
 }
 

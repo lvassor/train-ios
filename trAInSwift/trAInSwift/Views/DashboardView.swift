@@ -12,75 +12,104 @@ struct DashboardView: View {
     @State private var showProgramOverview = false
     @State private var showCalendar = false
     @State private var showProfile = false
+    @State private var showExerciseLibrary = false
+    @State private var showMilestones = false
+    @State private var showVideoLibrary = false
+    @State private var isProgramProgressExpanded = false
 
-    var user: User? {
+    var user: UserProfile? {
         authService.currentUser
     }
 
-    var userProgram: UserProgram? {
-        user?.currentProgram
+    var userProgram: WorkoutProgram? {
+        authService.getCurrentProgram()
+    }
+
+    var programData: Program? {
+        userProgram?.getProgram()
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.xl) {
-                    // Header
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text("Welcome back,")
-                            .font(.trainSubtitle)
-                            .foregroundColor(.trainTextSecondary)
+            ZStack {
+                Color.trainBackground.ignoresSafeArea()
 
-                        Text(getUserFirstName())
-                            .font(.trainTitle)
-                            .foregroundColor(.trainTextPrimary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.top, Spacing.md)
+                VStack(spacing: 0) {
+                    // Main content
+                    ScrollView {
+                        VStack(spacing: Spacing.lg) {
+                            // Header
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Hey, \(getUserFirstName()) 🔥")
+                                        .font(.trainTitle)
+                                        .foregroundColor(.trainTextPrimary)
 
-                    if let program = userProgram {
-                        // Your Program Card
-                        Button(action: { showProgramOverview = true }) {
-                            ProgramCard(userProgram: program)
-                        }
-                        .padding(.horizontal, Spacing.lg)
+                                    Text("You're killing it this week")
+                                        .font(.trainBody)
+                                        .foregroundColor(.trainTextSecondary)
+                                }
 
-                        // Quick Stats
-                        QuickStatsCard(userProgram: program)
+                                Spacer()
+
+                                // Streak counter
+                                HStack(spacing: 4) {
+                                    Text("🔥")
+                                        .font(.system(size: 20))
+
+                                    Text("0")
+                                        .font(.trainBodyMedium)
+                                        .foregroundColor(.trainTextPrimary)
+                                }
+                            }
                             .padding(.horizontal, Spacing.lg)
+                            .padding(.top, Spacing.md)
 
-                        // Action Buttons
-                        VStack(spacing: Spacing.md) {
-                            ActionButton(
-                                icon: "calendar",
-                                title: "View Full Program",
-                                action: { showProgramOverview = true }
-                            )
+                            if let program = userProgram {
+                                // Program Progress Card
+                                ProgramProgressCard(
+                                    userProgram: program,
+                                    isExpanded: $isProgramProgressExpanded,
+                                    onTap: { isProgramProgressExpanded.toggle() }
+                                )
+                                .padding(.horizontal, Spacing.lg)
 
-                            ActionButton(
-                                icon: "chart.bar.fill",
-                                title: "Workout History",
-                                action: { showCalendar = true }
-                            )
+                                // Your Weekly Sessions
+                                WeeklySessionsSection(userProgram: program)
+                                    .padding(.horizontal, Spacing.lg)
 
-                            ActionButton(
-                                icon: "person.circle",
-                                title: "Profile & Settings",
-                                action: { showProfile = true }
-                            )
+                                // Upcoming Workouts
+                                UpcomingWorkoutsSection(userProgram: program)
+                                    .padding(.horizontal, Spacing.lg)
+                            }
+
+                            Spacer()
+                                .frame(height: 100) // Space for bottom nav
                         }
-                        .padding(.horizontal, Spacing.lg)
                     }
 
-                    Spacer()
+                    // Bottom Navigation Bar
+                    BottomNavigationBar(
+                        onExerciseLibrary: { showExerciseLibrary = true },
+                        onMilestones: { showMilestones = true },
+                        onVideoLibrary: { showVideoLibrary = true },
+                        onAccount: { showProfile = true }
+                    )
                 }
             }
-            .background(Color.trainBackground.ignoresSafeArea())
             .navigationDestination(isPresented: $showProgramOverview) {
                 if let program = userProgram {
                     ProgramOverviewView(userProgram: program)
                 }
+            }
+            .navigationDestination(isPresented: $showExerciseLibrary) {
+                ExerciseLibraryView()
+            }
+            .navigationDestination(isPresented: $showMilestones) {
+                MilestonesView()
+            }
+            .navigationDestination(isPresented: $showVideoLibrary) {
+                VideoLibraryView()
             }
             .sheet(isPresented: $showCalendar) {
                 CalendarView()
@@ -97,165 +126,513 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Program Card
+// MARK: - Program Progress Card
 
-struct ProgramCard: View {
-    let userProgram: UserProgram
+struct ProgramProgressCard: View {
+    let userProgram: WorkoutProgram
+    @Binding var isExpanded: Bool
+    let onTap: () -> Void
+
+    var programData: Program {
+        userProgram.getProgram()!
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            HStack {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("Your Program")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-
-                    Text(userProgram.program.type.description)
-                        .font(.trainHeadline)
+            Button(action: onTap) {
+                HStack {
+                    Text("Program Progress")
+                        .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
 
-                    Text("\(userProgram.program.daysPerWeek) days/week • \(userProgram.program.sessionDuration.rawValue)")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-                }
+                    Spacer()
 
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: Spacing.xs) {
-                    Text("Week \(userProgram.currentWeek)")
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.trainPrimary)
-
-                    Text("of \(userProgram.program.totalWeeks)")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.trainTextPrimary)
                 }
             }
 
-            Divider()
-
-            // Next Session
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("Next Session")
-                    .font(.trainCaption)
-                    .foregroundColor(.trainTextSecondary)
-
-                Text(userProgram.nextSessionType)
-                    .font(.trainBodyMedium)
+                Text("Week \(userProgram.currentWeek) of \(userProgram.totalWeeks)")
+                    .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
+
+                // Progress bar
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.trainTextSecondary.opacity(0.2))
+                            .frame(height: 8)
+
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.trainPrimary)
+                            .frame(
+                                width: geometry.size.width * CGFloat(userProgram.currentWeek) / CGFloat(userProgram.totalWeeks),
+                                height: 8
+                            )
+                    }
+                }
+                .frame(height: 8)
             }
 
-            HStack {
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.trainPrimary)
-                Spacer()
-                Text("Tap to view")
-                    .font(.trainCaption)
-                    .foregroundColor(.trainPrimary)
+            // Expanded content
+            if isExpanded {
+                VStack(spacing: Spacing.md) {
+                    // Split Type Card
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text("Split Type")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+                        Text(programData.type.description)
+                            .font(.trainBodyMedium)
+                            .foregroundColor(.trainTextPrimary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(Spacing.md)
+                    .background(Color.white)
+                    .cornerRadius(20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.black, lineWidth: 2)
+                    )
+
+                    // Duration and Frequency Cards
+                    HStack(spacing: Spacing.md) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            Text("Duration")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                            Text("\(programData.totalWeeks) weeks")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(.trainTextPrimary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(Spacing.md)
+                        .background(Color.white)
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.black, lineWidth: 2)
+                        )
+
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            Text("Frequency")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                            Text("\(programData.daysPerWeek) days/week")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(.trainTextPrimary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(Spacing.md)
+                        .background(Color.white)
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.black, lineWidth: 2)
+                        )
+                    }
+
+                    // Priority Muscle Groups
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        Text("Priority Muscle Groups")
+                            .font(.trainBodyMedium)
+                            .foregroundColor(.trainTextPrimary)
+
+                        HStack(spacing: Spacing.lg) {
+                            // Chest
+                            VStack(spacing: Spacing.sm) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(hex: "FFD700").opacity(0.3))
+                                        .frame(width: 60, height: 60)
+                                    Image(systemName: "heart.fill")
+                                        .font(.system(size: 28))
+                                        .foregroundColor(Color(hex: "FFD700"))
+                                }
+                                Text("Chest")
+                                    .font(.trainCaption)
+                                    .foregroundColor(.trainTextSecondary)
+                            }
+
+                            // Quads
+                            VStack(spacing: Spacing.sm) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(hex: "FFD700").opacity(0.3))
+                                        .frame(width: 60, height: 60)
+                                    Image(systemName: "figure.walk")
+                                        .font(.system(size: 28))
+                                        .foregroundColor(Color(hex: "FFD700"))
+                                }
+                                Text("Quads")
+                                    .font(.trainCaption)
+                                    .foregroundColor(.trainTextSecondary)
+                            }
+
+                            // Shoulders
+                            VStack(spacing: Spacing.sm) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(hex: "FFD700").opacity(0.3))
+                                        .frame(width: 60, height: 60)
+                                    Image(systemName: "arrow.up")
+                                        .font(.system(size: 28))
+                                        .foregroundColor(Color(hex: "FFD700"))
+                                }
+                                Text("Shoulders")
+                                    .font(.trainCaption)
+                                    .foregroundColor(.trainTextSecondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(Spacing.md)
+                    .background(Color.white)
+                    .cornerRadius(20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.black, lineWidth: 2)
+                    )
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
         }
         .padding(Spacing.md)
         .background(Color.white)
-        .cornerRadius(CornerRadius.md)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .cornerRadius(15)
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.trainBorder, lineWidth: 1)
+        )
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isExpanded)
     }
 }
 
-// MARK: - Quick Stats Card
+// MARK: - Weekly Sessions Section
 
-struct QuickStatsCard: View {
-    let userProgram: UserProgram
+struct WeeklySessionsSection: View {
+    let userProgram: WorkoutProgram
 
     var body: some View {
-        VStack(spacing: Spacing.md) {
-            Text("Quick Stats")
-                .font(.trainCaption)
-                .foregroundColor(.trainTextSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Your Weekly Sessions")
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
 
-            HStack(spacing: Spacing.md) {
-                StatPill(
-                    icon: "flame.fill",
-                    value: "\(userProgram.totalWorkoutsCompleted)",
-                    label: "Workouts"
-                )
+                Text("\(completedThisWeek)/\(Int(userProgram.daysPerWeek)) complete")
+                    .font(.trainBody)
+                    .foregroundColor(.trainTextSecondary)
+            }
 
-                StatPill(
-                    icon: "calendar",
-                    value: "\(getThisWeekCount())/\(userProgram.program.daysPerWeek)",
-                    label: "This Week"
-                )
+            VStack(spacing: Spacing.sm) {
+                // Only show sessions up to daysPerWeek (e.g., 3 for PPL, 4 for ULUL)
+                // FIX: This was showing all sessions instead of limiting to daysPerWeek
+                let sessionsToShow = Array(userProgram.getProgram()!.sessions.prefix(Int(userProgram.daysPerWeek)))
+                ForEach(Array(sessionsToShow.enumerated()), id: \.offset) { index, session in
+                    let isNextSession = index == nextSessionIndex
 
-                StatPill(
-                    icon: "bolt.fill",
-                    value: "\(min(userProgram.totalWorkoutsCompleted, 7))",
-                    label: "Streak"
-                )
+                    if isNextSession {
+                        // Expanded session with log button
+                        ExpandedSessionBubble(
+                            sessionName: session.dayName,
+                            exerciseCount: session.exercises.count,
+                            userProgram: userProgram,
+                            sessionIndex: index
+                        )
+                    } else {
+                        // Regular session bubble
+                        SessionBubble(
+                            sessionName: session.dayName,
+                            isCompleted: isSessionCompleted(sessionIndex: index)
+                        )
+                    }
+                }
             }
         }
-        .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(CornerRadius.md)
-        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
 
-    private func getThisWeekCount() -> Int {
-        let currentWeekSessions = userProgram.completedSessions.filter { sessionId in
+    private var completedThisWeek: Int {
+        let currentWeekSessions = userProgram.completedSessionsSet.filter { sessionId in
             sessionId.hasPrefix("week\(userProgram.currentWeek)-")
         }
         return currentWeekSessions.count
     }
-}
 
-struct StatPill: View {
-    let icon: String
-    let value: String
-    let label: String
-
-    var body: some View {
-        VStack(spacing: Spacing.xs) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundColor(.trainPrimary)
-
-            Text(value)
-                .font(.trainBodyMedium)
-                .foregroundColor(.trainTextPrimary)
-
-            Text(label)
-                .font(.trainCaption)
-                .foregroundColor(.trainTextSecondary)
+    private var nextSessionIndex: Int? {
+        // Find first incomplete session within daysPerWeek limit
+        for index in 0..<Int(userProgram.daysPerWeek) {
+            let sessionId = "week\(userProgram.currentWeek)-session\(index)"
+            if !userProgram.completedSessionsSet.contains(sessionId) {
+                return index
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, Spacing.sm)
-        .background(Color.trainBackground)
-        .cornerRadius(CornerRadius.sm)
+        return nil
+    }
+
+    private func isSessionCompleted(sessionIndex: Int) -> Bool {
+        let sessionId = "week\(userProgram.currentWeek)-session\(sessionIndex)"
+        return userProgram.completedSessionsSet.contains(sessionId)
     }
 }
 
-// MARK: - Action Button
+struct SessionBubble: View {
+    let sessionName: String
+    let isCompleted: Bool
 
-struct ActionButton: View {
+    var body: some View {
+        HStack {
+            Text(sessionName)
+                .font(.trainBodyMedium)
+                .foregroundColor(isCompleted ? .white : .trainTextPrimary)
+
+            Spacer()
+
+            if isCompleted {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+            }
+        }
+        .padding(Spacing.md)
+        .background(isCompleted ? Color.trainPrimary : Color.white)
+        .cornerRadius(25)
+        .overlay(
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(isCompleted ? Color.clear : Color.trainBorder, lineWidth: 1)
+        )
+    }
+}
+
+struct ExpandedSessionBubble: View {
+    let sessionName: String
+    let exerciseCount: Int
+    let userProgram: WorkoutProgram
+    let sessionIndex: Int
+    @State private var navigateToWorkout = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            HStack {
+                Text(sessionName)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+
+                Spacer()
+            }
+
+            Text("Next Workout")
+                .font(.trainCaption)
+                .foregroundColor(.trainTextSecondary)
+
+            Text("\(exerciseCount) exercises")
+                .font(.trainBody)
+                .foregroundColor(.trainTextSecondary)
+
+            NavigationLink(destination: WorkoutLoggerView(
+                weekNumber: Int(userProgram.currentWeek),
+                sessionIndex: sessionIndex
+            )) {
+                Text("Log this workout")
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Spacing.md)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.trainPrimary, lineWidth: 2)
+                    )
+            }
+        }
+        .padding(Spacing.md)
+        .background(Color.white)
+        .cornerRadius(25)
+        .overlay(
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(Color.trainBorder, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Next Workout Card
+
+struct NextWorkoutCard: View {
+    let userProgram: WorkoutProgram
+    let sessionIndex: Int
+    let onLogWorkout: () -> Void
+
+    var session: ProgramSession {
+        userProgram.getProgram()!.sessions[sessionIndex]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Next Workout")
+                .font(.trainBodyMedium)
+                .foregroundColor(.trainTextPrimary)
+
+            Text("\(session.dayName) • \(session.exercises.count) exercises")
+                .font(.trainBody)
+                .foregroundColor(.trainTextSecondary)
+
+            Button(action: onLogWorkout) {
+                Text("Log this workout")
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Spacing.md)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.trainPrimary, lineWidth: 2)
+                    )
+            }
+        }
+        .padding(Spacing.md)
+        .background(Color.white)
+        .cornerRadius(15)
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.trainBorder, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Upcoming Workouts Section
+
+struct UpcomingWorkoutsSection: View {
+    let userProgram: WorkoutProgram
+
+    var body: some View {
+        VStack(spacing: Spacing.sm) {
+            ForEach(upcomingSessions) { sessionInfo in
+                UpcomingWorkoutCard(
+                    sessionName: sessionInfo.name,
+                    exerciseCount: sessionInfo.exerciseCount
+                )
+            }
+        }
+    }
+
+    private var upcomingSessions: [SessionInfo] {
+        var upcoming: [SessionInfo] = []
+        guard let programData = userProgram.getProgram() else { return [] }
+        let sessions = programData.sessions
+
+        // Find first incomplete session
+        var foundNext = false
+        for (index, session) in sessions.enumerated() {
+            let sessionId = "week\(userProgram.currentWeek)-session\(index)"
+            if !userProgram.completedSessionsSet.contains(sessionId) {
+                if foundNext {
+                    // This is an upcoming session
+                    upcoming.append(SessionInfo(
+                        id: index,
+                        name: session.dayName,
+                        exerciseCount: session.exercises.count
+                    ))
+                } else {
+                    // This is the next session, skip it
+                    foundNext = true
+                }
+            }
+        }
+
+        return upcoming
+    }
+
+    struct SessionInfo: Identifiable {
+        let id: Int
+        let name: String
+        let exerciseCount: Int
+    }
+}
+
+struct UpcomingWorkoutCard: View {
+    let sessionName: String
+    let exerciseCount: Int
+
+    var body: some View {
+        HStack {
+            Text("\(sessionName) • \(exerciseCount) exercises")
+                .font(.trainBody)
+                .foregroundColor(.trainTextPrimary)
+
+            Spacer()
+        }
+        .padding(Spacing.md)
+        .background(Color.white)
+        .cornerRadius(15)
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.trainBorder, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Bottom Navigation Bar
+
+struct BottomNavigationBar: View {
+    let onExerciseLibrary: () -> Void
+    let onMilestones: () -> Void
+    let onVideoLibrary: () -> Void
+    let onAccount: () -> Void
+
+    var body: some View {
+        HStack(spacing: 0) {
+            BottomNavItem(
+                icon: "dumbbell.fill",
+                label: "Exercises",
+                action: onExerciseLibrary
+            )
+
+            BottomNavItem(
+                icon: "rosette",
+                label: "Milestones",
+                action: onMilestones
+            )
+
+            BottomNavItem(
+                icon: "play.circle.fill",
+                label: "Videos",
+                action: onVideoLibrary
+            )
+
+            BottomNavItem(
+                icon: "person.circle.fill",
+                label: "Account",
+                action: onAccount
+            )
+        }
+        .frame(height: 70)
+        .background(Color.white)
+        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
+    }
+}
+
+struct BottomNavItem: View {
     let icon: String
-    let title: String
+    let label: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack {
+            VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.title3)
-                Text(title)
-                    .font(.trainBodyMedium)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(.system(size: 24))
+                    .foregroundColor(.trainTextPrimary)
+
+                Text(label)
+                    .font(.system(size: 10))
+                    .foregroundColor(.trainTextSecondary)
             }
-            .foregroundColor(.trainTextPrimary)
-            .padding(Spacing.md)
-            .background(Color.white)
-            .cornerRadius(CornerRadius.md)
+            .frame(maxWidth: .infinity)
         }
     }
 }

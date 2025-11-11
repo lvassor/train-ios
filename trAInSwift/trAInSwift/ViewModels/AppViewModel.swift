@@ -36,10 +36,9 @@ class AppViewModel: ObservableObject {
             guard let self = self else { return }
 
             let program = self.programGenerator.generateProgram(from: self.questionnaireData)
-            let userProgram = UserProgram(program: program)
 
             DispatchQueue.main.async {
-                self.authService.updateProgram(userProgram)
+                self.authService.updateProgram(program)
                 self.isGeneratingProgram = false
             }
         }
@@ -54,10 +53,10 @@ class AppViewModel: ObservableObject {
     // MARK: - User State
 
     var hasActiveProgram: Bool {
-        authService.currentUser?.currentProgram != nil
+        authService.getCurrentProgram() != nil
     }
 
     var needsQuestionnaire: Bool {
-        authService.currentUser?.questionnaireData == nil
+        authService.currentUser?.getQuestionnaireData() == nil
     }
 }

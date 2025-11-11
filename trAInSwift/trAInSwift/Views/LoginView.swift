@@ -14,8 +14,9 @@ struct LoginView: View {
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
     @State private var showSignup: Bool = false
+    @State private var showPasswordReset: Bool = false
 
-    var onLoginSuccess: () -> Void
+    var onLoginSuccess: (() -> Void)? = nil
 
     var body: some View {
         ZStack {
@@ -61,9 +62,19 @@ struct LoginView: View {
                         }
 
                         VStack(alignment: .leading, spacing: Spacing.sm) {
-                            Text("Password")
-                                .font(.trainBodyMedium)
-                                .foregroundColor(.trainTextPrimary)
+                            HStack {
+                                Text("Password")
+                                    .font(.trainBodyMedium)
+                                    .foregroundColor(.trainTextPrimary)
+
+                                Spacer()
+
+                                Button(action: { showPasswordReset = true }) {
+                                    Text("Forgot Password?")
+                                        .font(.trainCaption)
+                                        .foregroundColor(.trainPrimary)
+                                }
+                            }
 
                             SecureField("Enter your password", text: $password)
                                 .padding(Spacing.md)
@@ -94,7 +105,8 @@ struct LoginView: View {
                         .disabled(email.isEmpty || password.isEmpty)
                         .opacity(email.isEmpty || password.isEmpty ? 0.6 : 1.0)
 
-                        // Test account hint
+                        // Test account hint (DEBUG only)
+                        #if DEBUG
                         VStack(spacing: Spacing.xs) {
                             Text("Test Account")
                                 .font(.trainCaption)
@@ -105,6 +117,7 @@ struct LoginView: View {
                                 .foregroundColor(.trainPrimary)
                         }
                         .padding(.top, Spacing.sm)
+                        #endif
                     }
                     .padding(.horizontal, Spacing.lg)
 
@@ -129,8 +142,11 @@ struct LoginView: View {
         .sheet(isPresented: $showSignup) {
             SignupView(onSignupSuccess: {
                 showSignup = false
-                onLoginSuccess()
+                onLoginSuccess?()
             })
+        }
+        .sheet(isPresented: $showPasswordReset) {
+            PasswordResetRequestView()
         }
     }
 
@@ -141,7 +157,7 @@ struct LoginView: View {
 
         switch result {
         case .success:
-            onLoginSuccess()
+            onLoginSuccess?()
         case .failure(let error):
             errorMessage = error.localizedDescription
             showError = true

@@ -11,18 +11,31 @@ struct WorkoutLoggerView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var authService = AuthService.shared
 
-    let userProgram: UserProgram
     let weekNumber: Int
     let sessionIndex: Int
+
+    var userProgram: WorkoutProgram {
+        authService.getCurrentProgram()!
+    }
+
+    var programData: Program {
+        userProgram.getProgram()!
+    }
 
     @State private var currentExerciseIndex = 0
     @State private var loggedExercises: [LoggedExercise] = []
     @State private var startTime = Date()
     @State private var showCancelConfirmation = false
     @State private var showCompletionModal = false
+    @State private var selectedTab: WorkoutTab = .logger
+    @State private var selectedDBExercise: DBExercise?
+
+    enum WorkoutTab {
+        case logger, demo
+    }
 
     var session: ProgramSession {
-        userProgram.program.sessions[sessionIndex]
+        programData.sessions[sessionIndex]
     }
 
     var body: some View {
@@ -43,26 +56,135 @@ struct WorkoutLoggerView: View {
                         onCancel: { showCancelConfirmation = true }
                     )
 
+                    // Tab toggle
+                    HStack(spacing: 0) {
+                        Button(action: { selectedTab = .logger }) {
+                            Text("Logger")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(selectedTab == .logger ? .trainTextPrimary : .trainTextSecondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, Spacing.md)
+                                .background(selectedTab == .logger ? Color.white : Color.clear)
+                                .cornerRadius(20, corners: [.topLeft, .bottomLeft])
+                        }
+
+                        Button(action: {
+                            selectedTab = .demo
+                            loadExerciseDetails()
+                        }) {
+                            Text("Demo")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(selectedTab == .demo ? .trainTextPrimary : .trainTextSecondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, Spacing.md)
+                                .background(selectedTab == .demo ? Color.white : Color.clear)
+                                .cornerRadius(20, corners: [.topRight, .bottomRight])
+                        }
+                    }
+                    .background(Color.trainTextSecondary.opacity(0.1))
+                    .cornerRadius(20)
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.sm)
+
                     // Current Exercise
                     if currentExerciseIndex < session.exercises.count && currentExerciseIndex < loggedExercises.count {
                         let programExercise = session.exercises[currentExerciseIndex]
 
-                        ScrollView {
-                            VStack(spacing: Spacing.lg) {
-                                // Exercise Info
-                                ExerciseInfoCard(exercise: programExercise)
+                        if selectedTab == .logger {
+                            ScrollView {
+                                VStack(spacing: Spacing.lg) {
+                                    // Exercise Info
+                                    ExerciseInfoCard(exercise: programExercise)
+                                        .padding(.horizontal, Spacing.lg)
+                                        .padding(.top, Spacing.md)
+
+                                    // Set Logging
+                                    SetLoggingView(
+                                        programExercise: programExercise,
+                                        loggedExercise: binding(for: currentExerciseIndex)
+                                    )
                                     .padding(.horizontal, Spacing.lg)
-                                    .padding(.top, Spacing.md)
 
-                                // Set Logging
-                                SetLoggingView(
-                                    programExercise: programExercise,
-                                    loggedExercise: binding(for: currentExerciseIndex)
-                                )
-                                .padding(.horizontal, Spacing.lg)
+                                    Spacer()
+                                        .frame(height: 100)
+                                }
+                            }
+                        } else {
+                            // Demo view
+                            if let dbExercise = selectedDBExercise {
+                                ScrollView {
+                                    VStack(spacing: Spacing.lg) {
+                                        // Video placeholder
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 15)
+                                                .fill(Color.trainTextSecondary.opacity(0.1))
+                                                .frame(height: 220)
 
-                                Spacer()
-                                    .frame(height: 100)
+                                            VStack(spacing: Spacing.md) {
+                                                Image(systemName: "play.circle.fill")
+                                                    .font(.system(size: 60))
+                                                    .foregroundColor(.trainPrimary)
+
+                                                Text("Video coming soon")
+                                                    .font(.trainCaption)
+                                                    .foregroundColor(.trainTextSecondary)
+                                            }
+                                        }
+                                        .padding(.horizontal, Spacing.lg)
+                                        .padding(.top, Spacing.md)
+
+                                        // Exercise name
+                                        Text(dbExercise.displayName)
+                                            .font(.trainTitle2)
+                                            .foregroundColor(.trainTextPrimary)
+                                            .padding(.horizontal, Spacing.lg)
+
+                                        // Instructions
+                                        if let instructions = dbExercise.instructions, !instructions.isEmpty {
+                                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                                let steps = instructions.split(separator: "\n")
+                                                ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                                                    HStack(alignment: .top, spacing: Spacing.sm) {
+                                                        Text("\(index + 1).")
+                                                            .font(.trainBodyMedium)
+                                                            .foregroundColor(.trainPrimary)
+
+                                                        Text(String(step))
+                                                            .font(.trainBody)
+                                                            .foregroundColor(.trainTextPrimary)
+                                                    }
+                                                }
+                                            }
+                                            .padding(Spacing.md)
+                                            .background(Color.white)
+                                            .cornerRadius(15)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 15)
+                                                    .stroke(Color.trainBorder, lineWidth: 1)
+                                            )
+                                            .padding(.horizontal, Spacing.lg)
+                                        } else {
+                                            Text("Instructions coming soon")
+                                                .font(.trainBody)
+                                                .foregroundColor(.trainTextSecondary)
+                                                .padding(Spacing.lg)
+                                                .frame(maxWidth: .infinity)
+                                                .background(Color.white)
+                                                .cornerRadius(15)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 15)
+                                                        .stroke(Color.trainBorder, lineWidth: 1)
+                                                )
+                                                .padding(.horizontal, Spacing.lg)
+                                        }
+
+                                        Spacer()
+                                            .frame(height: 100)
+                                    }
+                                }
+                            } else {
+                                ProgressView("Loading exercise...")
+                                    .foregroundColor(.trainTextPrimary)
                             }
                         }
 
@@ -148,40 +270,52 @@ struct WorkoutLoggerView: View {
     private func nextExercise() {
         withAnimation {
             currentExerciseIndex += 1
+            selectedTab = .logger
+            selectedDBExercise = nil
+        }
+    }
+
+    private func loadExerciseDetails() {
+        guard currentExerciseIndex < session.exercises.count else { return }
+        let programExercise = session.exercises[currentExerciseIndex]
+        guard let id = Int(programExercise.exerciseId) else { return }
+
+        Task {
+            do {
+                let exercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: id)
+                if let exercise = exercise {
+                    await MainActor.run {
+                        selectedDBExercise = exercise
+                    }
+                }
+            } catch {
+                print("❌ Error loading exercise details: \(error)")
+            }
         }
     }
 
     private func saveWorkout() {
-        guard var user = authService.currentUser,
-              var program = user.currentProgram else { return }
+        guard authService.currentUser != nil else {
+            print("❌ No current user to save workout")
+            return
+        }
 
         // Calculate duration
         let duration = Int(Date().timeIntervalSince(startTime) / 60)
 
-        // Create workout session
-        let workoutSession = WorkoutSession(
-            userId: user.id,
-            date: Date(),
-            sessionType: session.dayName,
+        // Save workout session to Core Data
+        authService.addWorkoutSession(
+            sessionName: session.dayName,
             weekNumber: weekNumber,
             exercises: loggedExercises,
-            durationMinutes: duration,
-            completed: true
+            durationMinutes: duration
         )
 
-        // Add to workout history
-        user.workoutHistory.append(workoutSession)
-
-        // Mark session as completed and progress
-        program.completeSession()
-        user.currentProgram = program
-
-        // Save to auth service
-        authService.currentUser = user
-        authService.saveSession()
+        // Mark session as completed and progress to next
+        authService.completeCurrentSession()
 
         print("✅ Workout saved: Week \(weekNumber), Session \(sessionIndex)")
-        print("✅ Next session: Week \(program.currentWeek), Session \(program.currentSessionIndex)")
+        print("✅ Session marked as complete in Core Data")
     }
 }
 
@@ -375,54 +509,107 @@ struct SetRowView: View {
     let restSeconds: Int
     let weightUnit: SetLoggingView.WeightUnit
 
+    @State private var showRestTimer: Bool = false
+    @State private var repsText: String = ""
+    @State private var weightText: String = ""
+
     var body: some View {
-        HStack(spacing: Spacing.md) {
-            // Set number
-            Text("\(setNumber)")
-                .font(.trainBodyMedium)
-                .fontWeight(.bold)
-                .foregroundColor(.trainTextPrimary)
-                .frame(width: 32)
+        VStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.md) {
+                // Set number
+                Text("\(setNumber)")
+                    .font(.trainBodyMedium)
+                    .fontWeight(.bold)
+                    .foregroundColor(.trainTextPrimary)
+                    .frame(width: 32)
 
-            // Reps picker (no label - header has it)
-            Picker("", selection: $set.reps) {
-                ForEach(0...50, id: \.self) { reps in
-                    Text("\(reps)").tag(reps)
+                // Reps text input
+                TextField("0", text: $repsText)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.center)
+                    .font(.trainBody)
+                    .foregroundColor(.trainTextPrimary)
+                    .padding(Spacing.sm)
+                    .frame(width: 60)
+                    .background(Color.white)
+                    .cornerRadius(CornerRadius.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerRadius.sm)
+                            .stroke(Color.trainBorder, lineWidth: 1)
+                    )
+                    .onChange(of: repsText) { _, newValue in
+                        if let reps = Int(newValue) {
+                            set.reps = reps
+                        }
+                    }
+
+                // Weight text input
+                TextField("0", text: $weightText)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.center)
+                    .font(.trainBody)
+                    .foregroundColor(.trainTextPrimary)
+                    .padding(Spacing.sm)
+                    .frame(width: 80)
+                    .background(Color.white)
+                    .cornerRadius(CornerRadius.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerRadius.sm)
+                            .stroke(Color.trainBorder, lineWidth: 1)
+                    )
+                    .onChange(of: weightText) { _, newValue in
+                        if let weight = Double(newValue) {
+                            set.weight = weightUnit == .kg ? weight : weight / 2.20462
+                        }
+                    }
+
+                Spacer()
+
+                // Completion toggle
+                Button(action: toggleCompletion) {
+                    Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
+                        .font(.title2)
+                        .foregroundColor(set.completed ? .trainPrimary : .trainTextSecondary)
                 }
             }
-            .pickerStyle(.menu)
-            .frame(width: 60)
-            .background(Color.white)
+            .padding(Spacing.sm)
+            .background(set.completed ? Color.trainPrimary.opacity(0.05) : Color.trainBackground)
             .cornerRadius(CornerRadius.sm)
 
-            // Weight picker (no label - header has it)
-            Picker("", selection: $set.weight) {
-                ForEach(Array(stride(from: 0.0, through: 200.0, by: 2.5)), id: \.self) { weight in
-                    Text(String(format: "%.1f", convertWeight(weight))).tag(weight)
+            // Rest timer (appears after completing a set)
+            if showRestTimer {
+                RestTimerView(totalSeconds: restSeconds) {
+                    showRestTimer = false
                 }
-            }
-            .pickerStyle(.menu)
-            .frame(width: 80)
-            .background(Color.white)
-            .cornerRadius(CornerRadius.sm)
-
-            Spacer()
-
-            // Completion toggle
-            Button(action: { set.completed.toggle() }) {
-                Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
-                    .font(.title2)
-                    .foregroundColor(set.completed ? .trainPrimary : .trainTextSecondary)
             }
         }
-        .padding(Spacing.sm)
-        .background(set.completed ? Color.trainPrimary.opacity(0.05) : Color.trainBackground)
-        .cornerRadius(CornerRadius.sm)
+        .onAppear {
+            // Initialize text fields with existing values
+            if set.reps > 0 {
+                repsText = "\(set.reps)"
+            }
+            if set.weight > 0 {
+                let displayWeight = weightUnit == .kg ? set.weight : set.weight * 2.20462
+                weightText = String(format: "%.1f", displayWeight)
+            }
+        }
+        .onChange(of: weightUnit) { _, newUnit in
+            // Update weight display when unit changes
+            if set.weight > 0 {
+                let displayWeight = newUnit == .kg ? set.weight : set.weight * 2.20462
+                weightText = String(format: "%.1f", displayWeight)
+            }
+        }
     }
 
-    // Convert weight based on selected unit
-    private func convertWeight(_ kgWeight: Double) -> Double {
-        weightUnit == .kg ? kgWeight : kgWeight * 2.20462
+    private func toggleCompletion() {
+        let wasCompleted = set.completed
+        set.completed.toggle()
+
+        // Show rest timer when completing a set (not when un-completing)
+        if !wasCompleted && set.completed && restSeconds > 0 {
+            showRestTimer = true
+        }
     }
 }
 
@@ -485,30 +672,6 @@ struct WorkoutCompletionView: View {
 #Preview {
     NavigationStack {
         WorkoutLoggerView(
-            userProgram: UserProgram(
-                program: Program(
-                    type: .pushPullLegs,
-                    daysPerWeek: 3,
-                    sessionDuration: .medium,
-                    sessions: [
-                        ProgramSession(
-                            dayName: "Push",
-                            exercises: [
-                                ProgramExercise(
-                                    exerciseId: "1",
-                                    exerciseName: "Bench Press",
-                                    sets: 3,
-                                    repRange: "8-12",
-                                    restSeconds: 120,
-                                    primaryMuscle: "Chest",
-                                    equipmentType: "Barbell"
-                                )
-                            ]
-                        )
-                    ],
-                    totalWeeks: 8
-                )
-            ),
             weekNumber: 1,
             sessionIndex: 0
         )

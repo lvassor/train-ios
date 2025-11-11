@@ -6,46 +6,53 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct ProgramOverviewView: View {
     @ObservedObject var authService = AuthService.shared
-    let userProgram: UserProgram
+    let userProgram: WorkoutProgram
 
     @State private var selectedSession: SelectedSessionInfo?
+
+    var programData: Program? {
+        userProgram.getProgram()
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.lg) {
                 // Header
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Your Program")
-                        .font(.trainTitle)
-                        .foregroundColor(.trainTextPrimary)
+                if let program = programData {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text("Your Program")
+                            .font(.trainTitle)
+                            .foregroundColor(.trainTextPrimary)
 
-                    Text(userProgram.program.type.description)
-                        .font(.trainHeadline)
-                        .foregroundColor(.trainTextSecondary)
+                        Text(program.type.description)
+                            .font(.trainHeadline)
+                            .foregroundColor(.trainTextSecondary)
 
-                    Text("\(userProgram.program.totalWeeks) weeks • \(userProgram.program.daysPerWeek) days/week")
-                        .font(.trainBody)
-                        .foregroundColor(.trainTextSecondary)
-                }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.md)
-
-                // Weeks
-                ForEach(1...userProgram.program.totalWeeks, id: \.self) { week in
-                    WeekSection(
-                        weekNumber: week,
-                        userProgram: userProgram,
-                        onSessionTap: { sessionIndex in
-                            selectedSession = SelectedSessionInfo(
-                                weekNumber: week,
-                                sessionIndex: sessionIndex
-                            )
-                        }
-                    )
+                        Text("\(program.totalWeeks) weeks • \(program.daysPerWeek) days/week")
+                            .font(.trainBody)
+                            .foregroundColor(.trainTextSecondary)
+                    }
                     .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.md)
+
+                    // Weeks
+                    ForEach(1...program.totalWeeks, id: \.self) { week in
+                        WeekSection(
+                            weekNumber: week,
+                            userProgram: userProgram,
+                            onSessionTap: { sessionIndex in
+                                selectedSession = SelectedSessionInfo(
+                                    weekNumber: week,
+                                    sessionIndex: sessionIndex
+                                )
+                            }
+                        )
+                        .padding(.horizontal, Spacing.lg)
+                    }
                 }
 
                 Spacer()
@@ -69,15 +76,15 @@ struct ProgramOverviewView: View {
 
 struct WeekSection: View {
     let weekNumber: Int
-    let userProgram: UserProgram
+    let userProgram: WorkoutProgram
     let onSessionTap: (Int) -> Void
 
     var isCurrentWeek: Bool {
-        weekNumber == userProgram.currentWeek
+        weekNumber == Int(userProgram.currentWeek)
     }
 
     var isFutureWeek: Bool {
-        weekNumber > userProgram.currentWeek
+        weekNumber > Int(userProgram.currentWeek)
     }
 
     var body: some View {
@@ -103,15 +110,17 @@ struct WeekSection: View {
             }
 
             // Sessions
-            VStack(spacing: Spacing.sm) {
-                ForEach(Array(userProgram.program.sessions.enumerated()), id: \.element.id) { index, session in
-                    SessionRow(
-                        session: session,
-                        sessionIndex: index,
-                        weekNumber: weekNumber,
-                        userProgram: userProgram,
-                        onTap: { onSessionTap(index) }
-                    )
+            if let sessions = userProgram.getProgram()?.sessions {
+                VStack(spacing: Spacing.sm) {
+                    ForEach(Array(sessions.enumerated()), id: \.element.id) { index, session in
+                        SessionRow(
+                            session: session,
+                            sessionIndex: index,
+                            weekNumber: weekNumber,
+                            userProgram: userProgram,
+                            onTap: { onSessionTap(index) }
+                        )
+                    }
                 }
             }
         }
@@ -128,7 +137,7 @@ struct SessionRow: View {
     let session: ProgramSession
     let sessionIndex: Int
     let weekNumber: Int
-    let userProgram: UserProgram
+    let userProgram: WorkoutProgram
     let onTap: () -> Void
 
     var sessionId: String {
@@ -136,16 +145,16 @@ struct SessionRow: View {
     }
 
     var isCompleted: Bool {
-        userProgram.completedSessions.contains(sessionId)
+        userProgram.completedSessionsSet.contains(sessionId)
     }
 
     var isNextSession: Bool {
-        weekNumber == userProgram.currentWeek && sessionIndex == userProgram.currentSessionIndex && !isCompleted
+        weekNumber == Int(userProgram.currentWeek) && sessionIndex == Int(userProgram.currentSessionIndex) && !isCompleted
     }
 
     var isFuture: Bool {
-        weekNumber > userProgram.currentWeek ||
-        (weekNumber == userProgram.currentWeek && sessionIndex > userProgram.currentSessionIndex)
+        weekNumber > Int(userProgram.currentWeek) ||
+        (weekNumber == Int(userProgram.currentWeek) && sessionIndex > Int(userProgram.currentSessionIndex))
     }
 
     var body: some View {
@@ -217,21 +226,23 @@ struct SelectedSessionInfo: Identifiable, Hashable {
 // MARK: - Preview
 
 #Preview {
-    NavigationStack {
+    let context = PersistenceController.preview.container.viewContext
+    let program = Program(
+        type: .pushPullLegs,
+        daysPerWeek: 3,
+        sessionDuration: .medium,
+        sessions: [
+            ProgramSession(dayName: "Push", exercises: []),
+            ProgramSession(dayName: "Pull", exercises: []),
+            ProgramSession(dayName: "Legs", exercises: [])
+        ],
+        totalWeeks: 8
+    )
+    let workoutProgram = WorkoutProgram.create(userId: UUID(), program: program, context: context)
+
+    return NavigationStack {
         ProgramOverviewView(
-            userProgram: UserProgram(
-                program: Program(
-                    type: .pushPullLegs,
-                    daysPerWeek: 3,
-                    sessionDuration: .medium,
-                    sessions: [
-                        ProgramSession(dayName: "Push", exercises: []),
-                        ProgramSession(dayName: "Pull", exercises: []),
-                        ProgramSession(dayName: "Legs", exercises: [])
-                    ],
-                    totalWeeks: 8
-                )
-            )
+            userProgram: workoutProgram
         )
     }
 }

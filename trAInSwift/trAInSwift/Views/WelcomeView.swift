@@ -9,6 +9,7 @@ import SwiftUI
 
 struct WelcomeView: View {
     let onContinue: () -> Void
+    let onLogin: () -> Void
 
     var body: some View {
         ZStack {
@@ -31,17 +32,32 @@ struct WelcomeView: View {
 
                 Spacer()
 
-                Button(action: onContinue) {
-                    Text("Get Started")
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(Color.trainPrimary)
-                        .cornerRadius(12)
+                VStack(spacing: 16) {
+                    Button(action: onContinue) {
+                        Text("Get Started")
+                            .font(.trainBodyMedium)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.trainPrimary)
+                            .cornerRadius(30)
+                    }
+                    .padding(.horizontal, 20)
+
+                    HStack(spacing: 4) {
+                        Text("If you already have an account,")
+                            .font(.trainBody)
+                            .foregroundColor(.white.opacity(0.8))
+
+                        Button(action: onLogin) {
+                            Text("log in")
+                                .font(.trainBody)
+                                .foregroundColor(.trainPrimary)
+                                .underline()
+                        }
+                    }
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 32)
+                .padding(.bottom, 40)
             }
         }
     }

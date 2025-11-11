@@ -14,7 +14,7 @@ struct ProgramDetailView: View {
         ZStack {
             Color.trainBackground.ignoresSafeArea()
 
-            if let program = authService.currentUser?.currentProgram?.program {
+            if let program = authService.getCurrentProgram()?.getProgram() {
                 ScrollView {
                     VStack(spacing: Spacing.lg) {
                         // Program Info
