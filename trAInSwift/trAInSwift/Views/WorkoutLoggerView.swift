@@ -14,12 +14,12 @@ struct WorkoutLoggerView: View {
     let weekNumber: Int
     let sessionIndex: Int
 
-    var userProgram: WorkoutProgram {
-        authService.getCurrentProgram()!
+    var userProgram: WorkoutProgram? {
+        authService.getCurrentProgram()
     }
 
-    var programData: Program {
-        userProgram.getProgram()!
+    var programData: Program? {
+        userProgram?.getProgram()
     }
 
     @State private var currentExerciseIndex = 0
@@ -34,25 +34,49 @@ struct WorkoutLoggerView: View {
         case logger, demo
     }
 
-    var session: ProgramSession {
-        programData.sessions[sessionIndex]
+    var session: ProgramSession? {
+        guard let program = programData,
+              sessionIndex < program.sessions.count else {
+            return nil
+        }
+        return program.sessions[sessionIndex]
     }
 
     var body: some View {
         ZStack {
             Color.trainBackground.ignoresSafeArea()
 
-            if loggedExercises.isEmpty {
+            if session == nil {
+                // Error state - no valid session
+                VStack(spacing: Spacing.lg) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 50))
+                        .foregroundColor(.trainTextSecondary)
+                    Text("Unable to load workout session")
+                        .font(.trainHeadline)
+                        .foregroundColor(.trainTextPrimary)
+                    Text("Please return to dashboard and try again")
+                        .font(.trainBody)
+                        .foregroundColor(.trainTextSecondary)
+                        .multilineTextAlignment(.center)
+                    Button("Go Back") {
+                        dismiss()
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .padding(.horizontal, Spacing.xl)
+                }
+                .padding(Spacing.xl)
+            } else if loggedExercises.isEmpty {
                 // Loading state
                 ProgressView("Loading workout...")
                     .foregroundColor(.trainTextPrimary)
-            } else {
+            } else if let validSession = session {
                 VStack(spacing: 0) {
                     // Header
                     WorkoutHeader(
-                        sessionName: session.dayName,
+                        sessionName: validSession.dayName,
                         exerciseNumber: currentExerciseIndex + 1,
-                        totalExercises: session.exercises.count,
+                        totalExercises: validSession.exercises.count,
                         onCancel: { showCancelConfirmation = true }
                     )
 
@@ -87,8 +111,8 @@ struct WorkoutLoggerView: View {
                     .padding(.vertical, Spacing.sm)
 
                     // Current Exercise
-                    if currentExerciseIndex < session.exercises.count && currentExerciseIndex < loggedExercises.count {
-                        let programExercise = session.exercises[currentExerciseIndex]
+                    if currentExerciseIndex < validSession.exercises.count && currentExerciseIndex < loggedExercises.count {
+                        let programExercise = validSession.exercises[currentExerciseIndex]
 
                         if selectedTab == .logger {
                             ScrollView {
@@ -190,7 +214,7 @@ struct WorkoutLoggerView: View {
 
                         // Bottom Actions
                         VStack(spacing: Spacing.md) {
-                            if currentExerciseIndex < session.exercises.count - 1 {
+                            if currentExerciseIndex < validSession.exercises.count - 1 {
                                 Button(action: nextExercise) {
                                     Text("Next Exercise")
                                         .font(.trainBodyMedium)
@@ -240,7 +264,11 @@ struct WorkoutLoggerView: View {
     }
 
     private func initializeLoggedExercises() {
-        loggedExercises = session.exercises.map { exercise in
+        guard let validSession = session else {
+            AppLogger.logWorkout("Cannot initialize exercises: no valid session", level: .error)
+            return
+        }
+        loggedExercises = validSession.exercises.map { exercise in
             LoggedExercise(
                 exerciseName: exercise.exerciseName,
                 sets: (0..<exercise.sets).map { _ in LoggedSet() },
@@ -276,8 +304,9 @@ struct WorkoutLoggerView: View {
     }
 
     private func loadExerciseDetails() {
-        guard currentExerciseIndex < session.exercises.count else { return }
-        let programExercise = session.exercises[currentExerciseIndex]
+        guard let validSession = session,
+              currentExerciseIndex < validSession.exercises.count else { return }
+        let programExercise = validSession.exercises[currentExerciseIndex]
         guard let id = Int(programExercise.exerciseId) else { return }
 
         Task {
@@ -296,7 +325,12 @@ struct WorkoutLoggerView: View {
 
     private func saveWorkout() {
         guard authService.currentUser != nil else {
-            print("❌ No current user to save workout")
+            AppLogger.logWorkout("Cannot save workout: no current user", level: .error)
+            return
+        }
+
+        guard let validSession = session else {
+            AppLogger.logWorkout("Cannot save workout: no valid session", level: .error)
             return
         }
 
@@ -305,7 +339,7 @@ struct WorkoutLoggerView: View {
 
         // Save workout session to Core Data
         authService.addWorkoutSession(
-            sessionName: session.dayName,
+            sessionName: validSession.dayName,
             weekNumber: weekNumber,
             exercises: loggedExercises,
             durationMinutes: duration

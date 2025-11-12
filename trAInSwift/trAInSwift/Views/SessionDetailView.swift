@@ -17,8 +17,12 @@ struct SessionDetailView: View {
     @State private var selectedExercise: ProgramExercise?
     @State private var selectedDBExercise: DBExercise?
 
-    var session: ProgramSession {
-        userProgram.getProgram()!.sessions[sessionIndex]
+    var session: ProgramSession? {
+        guard let program = userProgram.getProgram(),
+              sessionIndex < program.sessions.count else {
+            return nil
+        }
+        return program.sessions[sessionIndex]
     }
 
     var sessionId: String {
@@ -30,18 +34,20 @@ struct SessionDetailView: View {
     }
 
     var estimatedDuration: String {
-        let minutes = session.exercises.count * 3 * 2 // exercises × sets × minutes per set
+        guard let validSession = session else { return "N/A" }
+        let minutes = validSession.exercises.count * 3 * 2 // exercises × sets × minutes per set
         return "\(minutes)-\(minutes + 10) min"
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.lg) {
-                // Header
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text(session.dayName)
-                        .font(.trainTitle)
-                        .foregroundColor(.trainTextPrimary)
+                if let validSession = session {
+                    // Header
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text(validSession.dayName)
+                            .font(.trainTitle)
+                            .foregroundColor(.trainTextPrimary)
 
                     Text("Week \(weekNumber)")
                         .font(.trainSubtitle)
@@ -61,25 +67,25 @@ struct SessionDetailView: View {
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.md)
 
-                // Session Info Card
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    InfoRow(icon: "figure.strengthtraining.traditional", text: "\(session.exercises.count) exercises")
-                    InfoRow(icon: "clock", text: "~\(estimatedDuration)")
-                    InfoRow(icon: "target", text: getTargetMuscles())
-                }
-                .padding(Spacing.md)
-                .background(Color.trainPrimary.opacity(0.1))
-                .cornerRadius(CornerRadius.md)
-                .padding(.horizontal, Spacing.lg)
+                    // Session Info Card
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        InfoRow(icon: "figure.strengthtraining.traditional", text: "\(validSession.exercises.count) exercises")
+                        InfoRow(icon: "clock", text: "~\(estimatedDuration)")
+                        InfoRow(icon: "target", text: getTargetMuscles())
+                    }
+                    .padding(Spacing.md)
+                    .background(Color.trainPrimary.opacity(0.1))
+                    .cornerRadius(CornerRadius.md)
+                    .padding(.horizontal, Spacing.lg)
 
-                // Exercises List
-                VStack(alignment: .leading, spacing: Spacing.md) {
-                    Text("Exercises")
-                        .font(.trainHeadline)
-                        .foregroundColor(.trainTextPrimary)
-                        .padding(.horizontal, Spacing.lg)
+                    // Exercises List
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        Text("Exercises")
+                            .font(.trainHeadline)
+                            .foregroundColor(.trainTextPrimary)
+                            .padding(.horizontal, Spacing.lg)
 
-                    ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, exercise in
+                        ForEach(Array(validSession.exercises.enumerated()), id: \.element.id) { index, exercise in
                         ExerciseCard(exercise: exercise, index: index + 1)
                             .padding(.horizontal, Spacing.lg)
                             .onTapGesture {
@@ -108,8 +114,21 @@ struct SessionDetailView: View {
                     .padding(.top, Spacing.md)
                 }
 
-                Spacer()
-                    .frame(height: 40)
+                    Spacer()
+                        .frame(height: 40)
+                } else {
+                    // Error state
+                    VStack(spacing: Spacing.lg) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 50))
+                            .foregroundColor(.trainTextSecondary)
+                        Text("Unable to load session")
+                            .font(.trainHeadline)
+                            .foregroundColor(.trainTextPrimary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(Spacing.xl)
+                }
             }
         }
         .background(Color.trainBackground.ignoresSafeArea())
@@ -129,7 +148,8 @@ struct SessionDetailView: View {
     }
 
     private func getTargetMuscles() -> String {
-        let muscles = Set(session.exercises.map { $0.primaryMuscle })
+        guard let validSession = session else { return "N/A" }
+        let muscles = Set(validSession.exercises.map { $0.primaryMuscle })
         return muscles.sorted().joined(separator: ", ")
     }
 

@@ -133,8 +133,8 @@ struct ProgramProgressCard: View {
     @Binding var isExpanded: Bool
     let onTap: () -> Void
 
-    var programData: Program {
-        userProgram.getProgram()!
+    var programData: Program? {
+        userProgram.getProgram()
     }
 
     var body: some View {
@@ -177,14 +177,14 @@ struct ProgramProgressCard: View {
             }
 
             // Expanded content
-            if isExpanded {
+            if isExpanded, let validProgram = programData {
                 VStack(spacing: Spacing.md) {
                     // Split Type Card
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("Split Type")
                             .font(.trainCaption)
                             .foregroundColor(.trainTextSecondary)
-                        Text(programData.type.description)
+                        Text(validProgram.type.description)
                             .font(.trainBodyMedium)
                             .foregroundColor(.trainTextPrimary)
                     }
@@ -203,7 +203,7 @@ struct ProgramProgressCard: View {
                             Text("Duration")
                                 .font(.trainCaption)
                                 .foregroundColor(.trainTextSecondary)
-                            Text("\(programData.totalWeeks) weeks")
+                            Text("\(validProgram.totalWeeks) weeks")
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.trainTextPrimary)
                         }
@@ -220,7 +220,7 @@ struct ProgramProgressCard: View {
                             Text("Frequency")
                                 .font(.trainCaption)
                                 .foregroundColor(.trainTextSecondary)
-                            Text("\(programData.daysPerWeek) days/week")
+                            Text("\(validProgram.daysPerWeek) days/week")
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.trainTextPrimary)
                         }
@@ -330,9 +330,9 @@ struct WeeklySessionsSection: View {
 
             VStack(spacing: Spacing.sm) {
                 // Only show sessions up to daysPerWeek (e.g., 3 for PPL, 4 for ULUL)
-                // FIX: This was showing all sessions instead of limiting to daysPerWeek
-                let sessionsToShow = Array(userProgram.getProgram()!.sessions.prefix(Int(userProgram.daysPerWeek)))
-                ForEach(Array(sessionsToShow.enumerated()), id: \.offset) { index, session in
+                if let programData = userProgram.getProgram() {
+                    let sessionsToShow = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
+                    ForEach(Array(sessionsToShow.enumerated()), id: \.offset) { index, session in
                     let isNextSession = index == nextSessionIndex
 
                     if isNextSession {
@@ -349,6 +349,7 @@ struct WeeklySessionsSection: View {
                             sessionName: session.dayName,
                             isCompleted: isSessionCompleted(sessionIndex: index)
                         )
+                    }
                     }
                 }
             }
