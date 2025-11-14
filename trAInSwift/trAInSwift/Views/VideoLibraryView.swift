@@ -47,14 +47,6 @@ struct VideoLibraryView: View {
         }
         .navigationTitle("Video Library")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "arrow.left")
-                        .foregroundColor(.trainTextPrimary)
-                }
-            }
-        }
     }
 }
 

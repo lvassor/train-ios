@@ -41,7 +41,7 @@ struct DashboardView: View {
                             // Header
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Hey, \(getUserFirstName()) 🔥")
+                                    Text("Hey, \(getUserFirstName())")
                                         .font(.trainTitle)
                                         .foregroundColor(.trainTextPrimary)
 
@@ -121,6 +121,11 @@ struct DashboardView: View {
     }
 
     private func getUserFirstName() -> String {
+        // Try to use the stored name first
+        if let name = user?.name, !name.isEmpty {
+            return name.components(separatedBy: " ").first ?? name
+        }
+        // Fall back to email
         guard let email = user?.email else { return "User" }
         return email.components(separatedBy: "@").first?.capitalized ?? "User"
     }

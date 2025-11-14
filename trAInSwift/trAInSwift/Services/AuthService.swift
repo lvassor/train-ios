@@ -67,28 +67,22 @@ class AuthService: ObservableObject {
         let normalizedEmail = email.lowercased().trimmingCharacters(in: .whitespaces)
 
         #if DEBUG
-        // Check test accounts first
+        // Check test accounts first - but NO automatic program creation
+        // All users, including test accounts, MUST complete the questionnaire
         if TestAccounts.isTestAccount(email: normalizedEmail),
            let testPassword = TestAccounts.getPassword(for: normalizedEmail),
            testPassword == password {
             // Check if user already exists in Core Data
             if let existingUser = UserProfile.fetch(byEmail: normalizedEmail, context: context) {
                 existingUser.updateLastLogin()
-
-                // Ensure user has a program
-                if let userId = existingUser.id,
-                   WorkoutProgram.fetchCurrent(forUserId: userId, context: context) == nil {
-                    let testProgram = TestProgramHelper.createTestProgram()
-                    _ = WorkoutProgram.create(userId: userId, program: testProgram.program, context: context)
-                }
-
                 currentUser = existingUser
                 isAuthenticated = true
                 saveSession()
                 AppLogger.logAuth("Test user logged in successfully")
                 return .success(existingUser)
             } else {
-                // Create new test user
+                // Create new test user WITHOUT any program
+                // They must go through questionnaire like everyone else
                 let newUser = UserProfile.create(email: normalizedEmail, context: context)
                 do {
                     try keychain.savePassword(testPassword, for: normalizedEmail)
@@ -96,15 +90,10 @@ class AuthService: ObservableObject {
                     AppLogger.logAuth("Failed to save test password to keychain: \(error.localizedDescription)", level: .warning)
                 }
 
-                if let userId = newUser.id {
-                    let testProgram = TestProgramHelper.createTestProgram()
-                    _ = WorkoutProgram.create(userId: userId, program: testProgram.program, context: context)
-                }
-
                 currentUser = newUser
                 isAuthenticated = true
                 saveSession()
-                AppLogger.logAuth("New test user created and logged in")
+                AppLogger.logAuth("New test user created - must complete questionnaire")
                 return .success(newUser)
             }
         }
@@ -130,7 +119,7 @@ class AuthService: ObservableObject {
         }
     }
 
-    func signup(email: String, password: String) -> Result<UserProfile, AuthError> {
+    func signup(email: String, password: String, name: String = "") -> Result<UserProfile, AuthError> {
         let normalizedEmail = email.lowercased().trimmingCharacters(in: .whitespaces)
 
         // Validate email
@@ -150,6 +139,7 @@ class AuthService: ObservableObject {
 
         // Create new user
         let newUser = UserProfile.create(email: normalizedEmail, context: context)
+        newUser.name = name
 
         // Save password to Keychain
         do {

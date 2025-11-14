@@ -168,14 +168,6 @@ struct ExerciseLibraryView: View {
         }
         .navigationTitle("Exercise Library")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "arrow.left")
-                        .foregroundColor(.trainTextPrimary)
-                }
-            }
-        }
         .sheet(isPresented: $showMuscleFilter) {
             FilterSheet(
                 title: "Filter by Muscle Group",

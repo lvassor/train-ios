@@ -47,14 +47,6 @@ struct MilestonesView: View {
         }
         .navigationTitle("Milestones")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "arrow.left")
-                        .foregroundColor(.trainTextPrimary)
-                }
-            }
-        }
     }
 }
 

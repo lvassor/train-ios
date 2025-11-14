@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct PostQuestionnaireSignupView: View {
+    @ObservedObject var authService = AuthService.shared
     @State private var fullName: String = ""
     @State private var email: String = ""
     @State private var password: String = ""
@@ -154,6 +155,13 @@ struct PostQuestionnaireSignupView: View {
     private func handleSignup() {
         showError = false
 
+        // Name validation
+        guard !fullName.isEmpty else {
+            errorMessage = "Please enter your full name"
+            showError = true
+            return
+        }
+
         // Basic email validation
         guard email.contains("@") && email.contains(".") else {
             errorMessage = "Please enter a valid email address"
@@ -168,14 +176,28 @@ struct PostQuestionnaireSignupView: View {
             return
         }
 
-        // Dummy signup - just validate and proceed
-        print("📝 Dummy Signup:")
-        print("   Name: \(fullName)")
-        print("   Email: \(email)")
-        print("   T&C Accepted: \(acceptedTerms)")
+        // Call AuthService signup
+        let result = authService.signup(email: email, password: password, name: fullName)
 
-        // Proceed to next screen
-        onSignupSuccess()
+        switch result {
+        case .success:
+            print("✅ Signup successful:")
+            print("   Name: \(fullName)")
+            print("   Email: \(email)")
+            onSignupSuccess()
+        case .failure(let error):
+            switch error {
+            case .emailAlreadyExists:
+                errorMessage = "An account with this email already exists"
+            case .invalidEmail:
+                errorMessage = "Please enter a valid email address"
+            case .passwordTooShort:
+                errorMessage = "Password must be at least 6 characters"
+            default:
+                errorMessage = "Signup failed. Please try again."
+            }
+            showError = true
+        }
     }
 }
 

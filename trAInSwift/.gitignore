@@ -88,5 +88,8 @@ Documentation/Videos/
 .vscode/
 .idea/
 
+## Configuration (credentials)
+trAInSwift/Services/Config.swift
+
 ## Database (don't ignore the actual exercise database)
 !trAInSwift/Resources/exercises.db

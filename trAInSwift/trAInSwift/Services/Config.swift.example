@@ -1,0 +1,25 @@
+//
+//  Config.swift.example
+//  trAInSwift
+//
+//  Configuration template for external services
+//  Copy this file to Config.swift and fill in your credentials
+//
+
+import Foundation
+
+struct Config {
+    // MARK: - Supabase Configuration
+    // Get these from: https://app.supabase.com/project/_/settings/api
+
+    static let supabaseURL = "https://your-project.supabase.co"
+    static let supabaseAnonKey = "your-anon-key-here"
+
+    // MARK: - Environment
+
+    #if DEBUG
+    static let isDebug = true
+    #else
+    static let isDebug = false
+    #endif
+}

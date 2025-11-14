@@ -65,12 +65,19 @@ struct QuestionnaireView: View {
                     }
 
                     // Current step content
-                    ScrollView {
-                        VStack(spacing: 32) {
-                            currentStepView
+                    if currentSection == 0 || currentSection == 2 {
+                        // Cover pages - don't use ScrollView, fill entire space
+                        currentStepView
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        // Question pages - use ScrollView
+                        ScrollView {
+                            VStack(spacing: 32) {
+                                currentStepView
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 16)
                     }
 
                     // Continue button

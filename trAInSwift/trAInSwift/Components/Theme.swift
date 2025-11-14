@@ -36,24 +36,8 @@ extension Color {
 }
 
 // MARK: - Color System
-extension Color {
-    // Primary Colors
-    static let trainPrimary = Color(hex: "0F7A6B")
-    static let trainLight = Color(hex: "72A99C")
-    static let trainHover = Color(hex: "F0F9F7")
-
-    // Backgrounds
-    static let trainBackground = Color(hex: "F5F5F5")
-    static let trainDark = Color(hex: "1A1A1A")
-
-    // Text
-    static let trainTextPrimary = Color(hex: "1A1A1A")
-    static let trainTextSecondary = Color(hex: "6B6B6B")
-
-    // UI Elements
-    static let trainBorder = Color(hex: "E0E0E0")
-    static let trainDisabled = Color(hex: "72A99C")
-}
+// NOTE: Colors are now defined in ColorPalette.swift for easy theme changes
+// The Color extensions are applied there automatically
 
 // MARK: - Typography
 extension Font {

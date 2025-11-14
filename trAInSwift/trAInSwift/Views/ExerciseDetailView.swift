@@ -68,14 +68,6 @@ struct ExerciseDetailView: View {
         }
         .navigationTitle(exercise.displayName)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "arrow.left")
-                        .foregroundColor(.trainTextPrimary)
-                }
-            }
-        }
     }
 }
 

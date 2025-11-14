@@ -1,8 +1,23 @@
-# TrainSwift
+# trAInSwift
 
-**AI-Powered Personalized Fitness Training App**
+AI-powered personalized fitness training app for iOS.
 
-An iOS fitness app that generates personalized workout programs based on user goals, experience, equipment availability, and injury history.
+---
+
+## Overview
+
+trAInSwift generates customized workout programs based on user goals, experience level, available equipment, and injury history. Built with Swift/SwiftUI and powered by Supabase.
+
+---
+
+## Tech Stack
+
+- **Language**: Swift 5.9
+- **UI Framework**: SwiftUI
+- **Backend**: Supabase (Authentication, Database)
+- **Local Database**: SQLite (GRDB) - 500+ exercise library
+- **Architecture**: MVVM
+- **iOS Version**: 17.0+
 
 ---
 
@@ -11,103 +26,58 @@ An iOS fitness app that generates personalized workout programs based on user go
 ### Prerequisites
 - Xcode 15.0+
 - iOS 17.0+
-- Swift 5.9+
+- Supabase account
 
-### Installation
-```bash
-git clone <repository-url>
-cd trAInSwift
-open trAInSwift.xcodeproj
-```
+### Setup
 
-### Test Accounts (DEBUG builds only)
+1. **Clone and navigate:**
+   ```bash
+   git clone <repository-url>
+   cd trAInSwift
+   ```
+
+2. **Configure Supabase:**
+   - Copy `trAInSwift/Services/Config.swift.example` to `Config.swift`
+   - Add your Supabase URL and anon key
+
+3. **Build & Run:**
+   ```bash
+   open trAInSwift.xcodeproj
+   ```
+   Press **⌘R** to build and run
+
+### Test Accounts (DEBUG only)
 - `test@test.com` / `password123`
 - `demo@train.com` / `demo123`
 - `user@example.com` / `user123`
 
-### Build & Run
-1. Select scheme: **trAInSwift**
-2. Select target: **iPhone Simulator**
-3. Press **⌘R** to build and run
-
 ---
 
-## Architecture
+## Project Structure
 
-### Tech Stack
-- **Language**: Swift 5.9
-- **UI Framework**: SwiftUI
-- **Data Persistence**: Core Data + Keychain
-- **Exercise Database**: SQLite (GRDB)
-- **Architecture Pattern**: MVVM
-
-### Project Structure
 ```
 trAInSwift/
-├── Components/          # Reusable UI components
 ├── Models/              # Data models
-├── Services/            # Business logic & APIs
 ├── Views/               # SwiftUI screens
 ├── ViewModels/          # View state management
-├── Persistence/         # Core Data layer
+├── Services/            # Supabase client, business logic
+├── Components/          # Reusable UI components
 ├── Utilities/           # Helper utilities
-└── Resources/           # Assets, database files
+├── Resources/           # Exercise database, assets
+├── Persistence/         # Core Data layer
+└── Assets.xcassets/     # App icons, images
 ```
 
 ---
 
 ## Key Features
 
-### ✅ Implemented
-- **Dynamic Program Generation** - SQLite-based exercise selection with injury contraindications
-- **Personalized Questionnaire** - 10-step onboarding (gender, age, goals, experience, equipment)
+- **Dynamic Program Generation** - Personalized workout plans with injury contraindications
+- **Onboarding Questionnaire** - 10-step flow (gender, age, goals, experience, equipment)
 - **Workout Logging** - Track sets, reps, weight with rest timer
-- **Progress Tracking** - Weekly session completion, program progress
+- **Progress Tracking** - Session completion, program progress
 - **Exercise Library** - Browse 500+ exercises with filters
-- **Core Data Persistence** - User profiles, programs, workout history
-- **Secure Authentication** - Keychain password storage
-
-### 🚧 In Progress
-- Exercise video library
-- Progress charts & analytics
-- Milestone tracking
-
----
-
-## Development
-
-### Code Quality
-- ✅ Unified logging with OSLog
-- ✅ No force unwraps in critical paths
-- ✅ Test accounts properly gated (#if DEBUG)
-- ✅ Privacy-compliant logging (no PII)
-
-### Recent Optimizations
-See [OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md) for details on recent improvements.
-
-### Build Status
-```
-Configuration: Debug
-Platform: iOS Simulator
-Status: ✅ BUILD SUCCEEDED
-Warnings: 0
-Errors: 0
-```
-
----
-
-## Documentation
-
-- **[Quick Start Guide](QUICK_START.md)** - Get started quickly
-- **[Optimization Summary](OPTIMIZATION_SUMMARY.md)** - Recent code improvements
-- **[Database Management](database-management/README.md)** - Exercise database info
-
-### Archived Documentation
-Historical implementation docs are in `Documentation/Archive/`:
-- Database Integration details
-- Migration notes
-- Flowchart comparisons
-- Build verification logs
+- **Secure Authentication** - Supabase Auth with keychain storage
 
 ---
 
@@ -115,13 +85,9 @@ Historical implementation docs are in `Documentation/Archive/`:
 
 ### Exercise Database (SQLite)
 - **Location**: `trAInSwift/Resources/exercises.db`
-- **Exercises**: 500+ exercises
+- **Size**: 500+ exercises
 - **Management**: Python scripts in `database-management/`
-- **Features**:
-  - Injury contraindications
-  - Experience level filtering
-  - Equipment-based selection
-  - Movement pattern categorization
+- **Features**: Injury contraindications, experience filtering, equipment-based selection
 
 ### Core Data Entities
 - `UserProfile` - User account data
@@ -130,19 +96,26 @@ Historical implementation docs are in `Documentation/Archive/`:
 
 ---
 
-## Contributing
+## Development
 
-### Code Style
-- Follow Swift naming conventions
-- Use SwiftUI best practices
-- Add documentation comments for public APIs
-- Use structured logging (AppLogger) instead of print()
+### Code Quality Standards
+- ✅ Unified logging with OSLog
+- ✅ No force unwraps in critical paths
+- ✅ Test accounts gated with `#if DEBUG`
+- ✅ Privacy-compliant logging (no PII)
 
 ### Before Committing
-1. Ensure build succeeds
-2. No force unwraps added
-3. Test accounts remain in #if DEBUG blocks
-4. Run on simulator to verify functionality
+1. Build succeeds with no warnings
+2. No new force unwraps added
+3. Test on simulator
+4. Test accounts remain in DEBUG blocks
+
+---
+
+## Documentation
+
+- [App Specification](Documentation/app-specification.md) - Feature specifications
+- [Database Management](database-management/README.md) - Exercise database tools
 
 ---
 
@@ -152,10 +125,4 @@ Proprietary - All rights reserved
 
 ---
 
-## Contact
-
-For questions or support, contact the development team.
-
----
-
-**Last Updated**: November 11, 2025
+**Last Updated**: November 14, 2024
