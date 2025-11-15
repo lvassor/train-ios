@@ -26,9 +26,98 @@
 
 ---
 
-## 🔴 CRITICAL BLOCKERS (Must Fix - 6-8 hours)
+## 🔴 CRITICAL BLOCKERS (Must Fix - 8-10 hours)
 
-### 1. Password Reset is Broken ⚠️ **BLOCKING** (2-3 hours)
+### 1. Rep Counter Query Logic is Broken ⚠️ **BLOCKING** (2-3 hours)
+**Problem**: Rep Counter and Progression Prompts try to query by `sessionIndex` which doesn't exist in Core Data schema. This breaks the core value proposition of the app.
+
+**Files**:
+- `trAInSwift/Services/AuthService.swift` (lines 254-286)
+- `trAInSwift/Views/WorkoutLoggerView.swift` (lines 339-342)
+
+**Business Requirement**:
+- Programs never repeat exercises across session types (Bench Press only in Push, not Pull)
+- Rep Counter should find **most recent log of specific exercise** across ALL previous sessions
+- Handle edge cases:
+  - Week 1: No previous data → Hide badge ✅
+  - Skipped exercise: No previous data → Hide badge ✅
+  - Skipped weeks: Find most recent, however far back ✅
+  - Always-skipped exercise: Return nil gracefully ✅
+
+**Example Scenario**:
+```
+Week 1 Push: Bench Press (10, 9, 8 reps)
+Week 2 Push: SKIPPED
+Week 3 Push: Bench Press (logging now) → Should compare to Week 1 ✅
+```
+
+**Fix Required**:
+
+**Step 1 - Update AuthService.swift (lines 254-262)**:
+```swift
+// Change function signature - remove sessionIndex parameter
+func getPreviousSessionData(
+    programId: String,
+    exerciseName: String  // Only 2 parameters needed
+) -> [LoggedSet]? {
+    let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+
+    // Query by program and date only (no session type filter)
+    fetchRequest.predicate = NSPredicate(
+        format: "programId == %@ AND completedAt < %@",
+        programId, Date() as CVarArg
+    )
+    fetchRequest.sortDescriptors = [NSSortDescriptor(key: "completedAt", ascending: false)]
+
+    do {
+        let results = try context.fetch(fetchRequest)
+
+        // Iterate through sessions to find first one with this exercise
+        for session in results {
+            guard let loggedExercisesData = session.loggedExercises,
+                  let loggedExercises = try? JSONDecoder().decode([LoggedExercise].self, from: loggedExercisesData) else {
+                continue
+            }
+
+            if let matchingExercise = loggedExercises.first(where: { $0.exerciseName == exerciseName }) {
+                AppLogger.logWorkout("Found previous data for \(exerciseName): \(matchingExercise.sets.count) sets")
+                return matchingExercise.sets
+            }
+        }
+
+        AppLogger.logWorkout("No previous data found for \(exerciseName)")
+        return nil  // Exercise never logged before (Week 1 or always skipped)
+    } catch {
+        AppLogger.logApp("Failed to fetch previous session: \(error)", level: .error)
+        return nil
+    }
+}
+```
+
+**Step 2 - Update WorkoutLoggerView.swift (lines 339-342)**:
+```swift
+// Remove sessionIndex parameter from call
+guard let previousSets = authService.getPreviousSessionData(
+    programId: userProgram?.id?.uuidString ?? "",
+    exerciseName: exerciseName  // Only pass exercise name
+) else {
+    return 0  // No previous data - hide badge
+}
+```
+
+**Testing Checklist**:
+- [ ] Week 1 workout: Badge hidden (no previous data)
+- [ ] Week 2 same exercise: Badge shows "+X reps"
+- [ ] Skipped week: Compares to most recent (however far back)
+- [ ] Skipped exercise: Badge hidden for that exercise only
+- [ ] Always-skipped exercise: Graceful null handling
+- [ ] Progression prompts work alongside rep counter
+
+**PRIORITY**: Fix this FIRST - it unblocks your core differentiating features.
+
+---
+
+### 2. Password Reset is Broken ⚠️ **BLOCKING** (2-3 hours)
 **Problem**: Password reset generates code and prints to console but doesn't actually reset password
 
 **Files**:
@@ -58,7 +147,7 @@ func resetPassword(email: String, newPassword: String, resetCode: String) -> Boo
 
 ---
 
-### 2. App Crashes if Core Data Fails ⚠️ **BLOCKING** (1 hour)
+### 3. App Crashes if Core Data Fails ⚠️ **BLOCKING** (1 hour)
 **Problem**: Uses `fatalError()` instead of graceful degradation
 
 **File**: `trAInSwift/Persistence/PersistenceController.swift:27`
@@ -88,7 +177,7 @@ if let error = error {
 
 ---
 
-### 3. Config File is Misleading ⚠️ **BLOCKING** (30 mins)
+### 4. Config File is Misleading ⚠️ **BLOCKING** (30 mins)
 **Problem**: `Config.swift.example` references Supabase but app doesn't use it
 
 **File**: `trAInSwift/Services/Config.swift.example`
@@ -124,7 +213,7 @@ trAInSwift/Services/Config.swift
 
 ---
 
-### 4. Verify Exercise Database in Bundle ⚠️ **CRITICAL** (5 mins)
+### 5. Verify Exercise Database in Bundle ⚠️ **CRITICAL** (5 mins)
 **Problem**: App won't work if database isn't bundled
 
 **File**: `trAInSwift/Resources/exercises.db`
@@ -141,7 +230,7 @@ trAInSwift/Services/Config.swift
 
 ---
 
-### 5. Update Paywall Product IDs ⚠️ **CRITICAL** (15 mins)
+### 6. Update Paywall Product IDs ⚠️ **CRITICAL** (15 mins)
 **Problem**: Hardcoded placeholder IDs won't match App Store Connect
 
 **File**: `trAInSwift/Views/PaywallView.swift:163-166`
@@ -158,7 +247,7 @@ let productIDs = [
 
 ---
 
-### 6. Fix Crash Risk in Dashboard ⚠️ **HIGH** (1 hour)
+### 7. Fix Crash Risk in Dashboard ⚠️ **HIGH** (1 hour)
 **Problem**: Force unwrap can crash if program data corrupted
 
 **File**: `trAInSwift/Views/DashboardView.swift:476`
@@ -192,7 +281,7 @@ if let session = session {
 
 ## 🟡 HIGH PRIORITY (Should Fix - 5-6 hours)
 
-### 7. Add Logout Button (30 mins)
+### 8. Add Logout Button (30 mins)
 **Problem**: Users can login but can't logout (except by deleting app)
 
 **File**: `trAInSwift/Views/ProfileView.swift`
@@ -212,7 +301,7 @@ The logout function already exists in AuthService!
 
 ---
 
-### 8. Connect Workout History to Calendar (4-5 hours)
+### 9. Connect Workout History to Calendar (4-5 hours)
 **Problem**: Workout data saves but Calendar/History views show placeholders
 
 **Files**:
@@ -231,7 +320,7 @@ private var workoutSessions: FetchedResults<CDWorkoutSession>
 
 ---
 
-### 9. Implement Streak Counter (1 hour)
+### 10. Implement Streak Counter (1 hour)
 **Problem**: Dashboard always shows 0 days streak
 
 **File**: `trAInSwift/Views/DashboardView.swift:60`
@@ -259,7 +348,7 @@ func calculateStreak() -> Int {
 
 ## 🟢 NICE TO HAVE (Can Ship Without - 3-4 hours)
 
-### 10. Add Workout Duration Timer (1 hour)
+### 11. Add Workout Duration Timer (1 hour)
 **Problem**: Timer shows "00:00" instead of elapsed time
 
 **File**: `trAInSwift/Views/WorkoutLoggerView.swift:388`
@@ -277,7 +366,7 @@ func calculateStreak() -> Int {
 
 ---
 
-### 11. Show Dynamic Priority Muscles (1 hour)
+### 12. Show Dynamic Priority Muscles (1 hour)
 **Problem**: Dashboard shows hardcoded "Chest, Quads, Shoulders"
 
 **File**: `trAInSwift/Views/DashboardView.swift:248-295`
@@ -286,7 +375,7 @@ func calculateStreak() -> Int {
 
 ---
 
-### 12. Implement Questionnaire Restart (1 hour)
+### 13. Implement Questionnaire Restart (1 hour)
 **Problem**: TODO in ProfileView for re-taking questionnaire
 
 **File**: `trAInSwift/Views/ProfileView.swift:261`
@@ -384,13 +473,14 @@ func calculateStreak() -> Int {
 ### Critical Path to MVP (Must Do)
 | Task | Effort | Priority |
 |------|--------|----------|
+| **Rep Counter query fix** | **2-3h** | **CRITICAL** |
 | Password reset fix | 2-3h | CRITICAL |
 | Core Data error handling | 1h | CRITICAL |
 | Config cleanup | 30m | CRITICAL |
 | Bundle verification | 5m | CRITICAL |
 | Paywall product IDs | 15m | CRITICAL |
 | Force unwrap fixes | 1-2h | HIGH |
-| **TOTAL** | **5-7 hours** | - |
+| **TOTAL** | **7-10 hours** | - |
 
 ### High Value Additions (Should Do)
 | Task | Effort | Priority |
@@ -408,7 +498,7 @@ func calculateStreak() -> Int {
 | Questionnaire restart | 1h | MEDIUM |
 | **TOTAL** | **3 hours** | - |
 
-### **GRAND TOTAL TO SHIPPABLE MVP: 10-14 hours** (1.5-2 days)
+### **GRAND TOTAL TO SHIPPABLE MVP: 12-16 hours** (1.5-2 days)
 
 ---
 
@@ -459,12 +549,13 @@ func calculateStreak() -> Int {
 
 ## 📝 NEXT STEPS
 
-1. **TODAY**: Fix critical blockers (items 1-6)
-2. **TOMORROW**: Add high priority features (items 7-9)
-3. **DAY 3**: Internal testing + bug fixes
-4. **DAY 4**: TestFlight beta to 10 users
-5. **WEEK 2**: Iterate based on feedback
-6. **WEEK 3**: Submit to App Store
+1. **TODAY**: Fix Rep Counter query logic (item 1) - **PRIORITY #1** - This unblocks core features
+2. **TODAY**: Fix remaining critical blockers (items 2-7)
+3. **TOMORROW**: Add high priority features (items 8-10)
+4. **DAY 3**: Internal testing + bug fixes
+5. **DAY 4**: TestFlight beta to 10 users
+6. **WEEK 2**: Iterate based on feedback
+7. **WEEK 3**: Submit to App Store
 
 ---
 
@@ -481,11 +572,12 @@ func calculateStreak() -> Int {
 - ✅ Real StoreKit 2 subscription implementation
 
 **What Needs Work**:
-- 🔴 3 critical bugs (password reset, error handling, config)
+- 🔴 **1 CRITICAL blocker: Rep Counter query logic (breaks core value prop)**
+- 🔴 6 other critical bugs (password reset, error handling, config, etc.)
 - 🟡 3 high-priority UX gaps (logout, history, streak)
 - 🟢 3 nice-to-have polish items
 
-**Bottom Line**: **Fix 6 critical items (6-8 hours work) and you can ship.** The rest can be added post-launch based on user feedback.
+**Bottom Line**: **Fix Rep Counter FIRST (2-3 hours), then remaining critical items (5-7 hours).** Total 7-10 hours to shippable MVP. The rest can be added post-launch based on user feedback.
 
 The codebase quality is high - this is production-ready code that just needs the rough edges smoothed out. Ship fast, iterate based on real user feedback.
 

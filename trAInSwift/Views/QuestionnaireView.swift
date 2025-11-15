@@ -23,13 +23,16 @@ struct QuestionnaireView: View {
 
     var body: some View {
         ZStack {
-            if showingProgramReady {
-                ProgramReadyView(onStart: {
+            if showingProgramReady, let program = viewModel.generatedProgram {
+                ProgramReadyView(program: program, onStart: {
                     viewModel.completeQuestionnaire()
                     onComplete()
                 })
             } else if showingProgramLoading {
                 ProgramLoadingView(onComplete: {
+                    // Generate program when loading completes
+                    viewModel.generateProgram()
+
                     withAnimation {
                         showingProgramReady = true
                     }

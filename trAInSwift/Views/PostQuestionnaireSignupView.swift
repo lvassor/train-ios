@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PostQuestionnaireSignupView: View {
     @ObservedObject var authService = AuthService.shared
+    @EnvironmentObject var viewModel: WorkoutViewModel
     @State private var fullName: String = ""
     @State private var email: String = ""
     @State private var password: String = ""
@@ -180,10 +181,25 @@ struct PostQuestionnaireSignupView: View {
         let result = authService.signup(email: email, password: password, name: fullName)
 
         switch result {
-        case .success:
+        case .success(let user):
             print("✅ Signup successful:")
             print("   Name: \(fullName)")
             print("   Email: \(email)")
+            print("   User ID: \(user.id?.uuidString ?? "nil")")
+
+            // CRITICAL: Save the questionnaire data and program immediately
+            // This ensures the user has their data even if paywall fails
+            authService.updateQuestionnaireData(viewModel.questionnaireData)
+            print("✅ Questionnaire data saved to user profile")
+
+            // Also save the program immediately if it exists
+            if let program = viewModel.generatedProgram {
+                authService.updateProgram(program)
+                print("✅ Program saved to database immediately after signup")
+            } else {
+                print("⚠️ WARNING: No program generated yet!")
+            }
+
             onSignupSuccess()
         case .failure(let error):
             switch error {

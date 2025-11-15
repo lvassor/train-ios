@@ -8,10 +8,16 @@
 import SwiftUI
 
 struct ProgramReadyView: View {
+    let program: Program
     let onStart: () -> Void
     @State private var showSignup = false
     @State private var showLoading = false
     @State private var showPaywall = false
+
+    // MARK: - Feature Flags
+    // Set to true to skip paywall for MVP/TestFlight
+    // Set to false to enable paywall for production
+    private let skipPaywallForMVP = true
 
     var body: some View {
         ZStack {
@@ -24,7 +30,14 @@ struct ProgramReadyView: View {
             } else if showLoading {
                 AccountCreationLoadingView(onComplete: {
                     withAnimation {
-                        showPaywall = true
+                        if skipPaywallForMVP {
+                            // MVP: Skip paywall and go straight to dashboard
+                            print("🚀 MVP Mode: Skipping paywall")
+                            onStart()
+                        } else {
+                            // Production: Show paywall
+                            showPaywall = true
+                        }
                     }
                 })
             } else if showSignup {
@@ -74,22 +87,22 @@ struct ProgramReadyView: View {
                 VStack(spacing: 12) {
                     ProgramInfoCard(
                         label: "Program Duration",
-                        value: "12 weeks"
+                        value: "\(program.totalWeeks) weeks"
                     )
 
                     ProgramInfoCard(
                         label: "Exercise Split",
-                        value: "Upper/Lower"
+                        value: program.type.rawValue
                     )
 
                     ProgramInfoCard(
                         label: "Frequency",
-                        value: "4 days per week"
+                        value: "\(program.daysPerWeek) days per week"
                     )
 
                     ProgramInfoCard(
                         label: "Session Length",
-                        value: "45-60 minutes"
+                        value: program.sessionDuration.rawValue
                     )
                 }
                 .padding(.horizontal, 24)

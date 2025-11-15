@@ -69,11 +69,13 @@ struct LoginView: View {
 
                                 Spacer()
 
-                                Button(action: { showPasswordReset = true }) {
-                                    Text("Forgot Password?")
-                                        .font(.trainCaption)
-                                        .foregroundColor(.trainPrimary)
-                                }
+                                // Disabled for MVP - password reset not fully implemented
+                                // TODO: Re-enable when password reset is properly implemented
+                                // Button(action: { showPasswordReset = true }) {
+                                //     Text("Forgot Password?")
+                                //         .font(.trainCaption)
+                                //         .foregroundColor(.trainPrimary)
+                                // }
                             }
 
                             SecureField("Enter your password", text: $password)

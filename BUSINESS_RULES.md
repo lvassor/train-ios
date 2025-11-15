@@ -153,75 +153,157 @@ FOR each exercise:
 ## 3. Program Generation - Split Selection (iOS App)
 
 ### What This Does
-Based on how many days per week you can train and how long each session is, the app picks the best workout split for you.
+Based on how many days per week you can train and how long each session is, the app picks the best workout split for you and determines the exact exercise composition for each session.
 
 ### The Rules
 
 ```
-GET user's training days per week (2, 3, 4, 5, or 6)
+GET user's training days per week (2, 3, 4, or 5)
 GET user's session duration ("30-45 min", "45-60 min", or "60-90 min")
 
-CHOOSE split type:
+CHOOSE split type and session structure:
 
   IF days = 2:
     IF duration = "30-45 min":
       ASSIGN "Upper/Lower Split"
-      REASON: Short sessions need focused splits
-    ELSE:
+      SESSIONS:
+        - Upper: 1 Chest, 1 Shoulder, 1 Back
+        - Lower: 2 Quads, 1 Hamstring, 1 Glute, 1 Core
+
+    IF duration = "45-60 min":
       ASSIGN "Full Body"
-      REASON: Longer sessions can handle full body
+      SESSIONS (2x):
+        - Full Body: 1 Chest, 1 Shoulder, 1 Back, 1 Quad, 1 Hamstring, 1 Glute, 1 Core
+
+    IF duration = "60-90 min":
+      ASSIGN "Full Body"
+      SESSIONS (2x):
+        - Full Body: 1 Chest, 1 Shoulder, 1 Back, 1 Bicep, 1 Tricep, 1 Quad, 1 Hamstring, 1 Glute, 1 Core
 
   IF days = 3:
-    ASSIGN "Push/Pull/Legs"
-    REASON: Perfect for 3-day split
+    ASSIGN "Push/Pull/Legs" (all durations)
+
+    IF duration = "30-45 min":
+      SESSIONS:
+        - Push: 1 Chest, 2 Shoulders, 1 Tricep
+        - Pull: 2 Back, 2 Biceps
+        - Legs: 1 Quad, 1 Hamstring, 1 Glute, 1 Core
+
+    IF duration = "45-60 min":
+      SESSIONS:
+        - Push: 2 Chest, 2 Shoulders, 1 Tricep
+        - Pull: 3 Back, 2 Biceps
+        - Legs: 2 Quads, 2 Hamstrings, 1 Glute, 1 Core
+
+    IF duration = "60-90 min":
+      SESSIONS:
+        - Push: 3 Chest, 3 Shoulders, 2 Triceps
+        - Pull: 3 Back, 3 Biceps
+        - Legs: 2 Quads, 2 Hamstrings, 1 Glute, 1 Core
 
   IF days = 4:
-    ASSIGN "Upper/Lower Split"
-    REASON: Best for 4 days (Upper/Lower/Upper/Lower)
+    ASSIGN "Upper/Lower Split" (all durations)
 
-  IF days = 5 OR days = 6:
-    ASSIGN "Push/Pull/Legs"
-    REASON: Can repeat the cycle (Push/Pull/Legs/Push/Pull/Legs)
+    IF duration = "30-45 min":
+      SESSIONS (2x Upper, 2x Lower):
+        - Upper: 1 Chest, 1 Shoulder, 1 Back
+        - Lower: 1 Quad, 1 Hamstring, 1 Glute, 1 Core
+
+    IF duration = "45-60 min":
+      SESSIONS (2x Upper, 2x Lower):
+        - Upper: 2 Chest, 2 Shoulders, 2 Back
+        - Lower: 2 Quads, 2 Hamstrings, 1 Glute, 1 Core
+
+    IF duration = "60-90 min":
+      SESSIONS (2x Upper, 2x Lower):
+        - Upper: 2 Chest, 2 Shoulders, 2 Back, 1 Tricep, 1 Bicep
+        - Lower: 2 Quads, 2 Hamstrings, 1 Glute, 1 Core
+
+  IF days = 5:
+    ASSIGN "Hybrid Split" (Push/Pull/Legs + Upper/Lower)
+
+    IF duration = "30-45 min":
+      SESSIONS:
+        - Push: 1 Chest, 2 Shoulders, 1 Tricep
+        - Pull: 2 Back, 2 Biceps
+        - Legs: 1 Quad, 1 Hamstring, 1 Glute, 1 Core
+        - Upper: 1 Chest, 1 Shoulder, 1 Back
+        - Lower: 1 Quad, 1 Hamstring, 1 Glute, 1 Core
+
+    IF duration = "45-60 min":
+      SESSIONS:
+        - Push: 2 Chest, 2 Shoulders, 1 Tricep
+        - Pull: 3 Back, 2 Biceps
+        - Legs: 2 Quads, 2 Hamstrings, 1 Glute, 1 Core
+        - Upper: 2 Chest, 2 Shoulders, 2 Back
+        - Lower: 2 Quads, 2 Hamstrings, 1 Glute, 1 Core
+
+    IF duration = "60-90 min":
+      SESSIONS:
+        - Push: 3 Chest, 3 Shoulders, 2 Triceps
+        - Pull: 3 Back, 3 Biceps
+        - Legs: 2 Quads, 2 Hamstrings, 1 Glute, 1 Core
+        - Upper: 2 Chest, 2 Shoulders, 2 Back, 1 Tricep, 1 Bicep
+        - Lower: 2 Quads, 2 Hamstrings, 1 Glute, 1 Core
 
   IF days = anything else:
     ASSIGN "Full Body" (fallback)
-    REASON: Safe default
 ```
+
+### Important Notes
+- Exercise counts (e.g., "1 Chest", "2 Back") represent the number of different exercises for that muscle group
+- Exercises NEVER repeat across different session types within the same program
+- For example: Bench Press might appear in "Push" day, but will never appear in "Upper" day of the same program
+- Session order in the arrays determines the order exercises appear in the workout
 
 ### What Each Split Means
 
 **Full Body**
 - Train all muscle groups each session
-- 2 different workouts (A and B) that alternate
-- Best for: 2-3 days/week with longer sessions
+- 2 identical sessions per week
+- Best for: 2 days/week with 45-90 min sessions
 
 **Upper/Lower Split**
 - One day for upper body, one day for lower body
-- Repeat the pattern (Upper/Lower/Upper/Lower)
-- Best for: 2 or 4 days/week
+- Repeat the pattern (Upper/Lower/Upper/Lower for 4-day)
+- Best for: 2 days/week (30-45 min) or 4 days/week (all durations)
 
 **Push/Pull/Legs (PPL)**
 - Push day: Chest, Shoulders, Triceps
 - Pull day: Back, Biceps
-- Legs day: Quads, Hamstrings, Glutes, Calves
-- Best for: 3, 5, or 6 days/week
+- Legs day: Quads, Hamstrings, Glutes, Core
+- Best for: 3 days/week (all durations)
+
+**Hybrid Split (5-day)**
+- Combines Push/Pull/Legs with Upper/Lower
+- Provides variety and higher training frequency
+- Best for: 5 days/week (all durations)
 
 ### Examples
 
 **Example 1**: 2 days/week, 30-45 min sessions
 - **Result**: Upper/Lower Split
+- **Upper**: 3 exercises (Chest, Shoulder, Back)
+- **Lower**: 5 exercises (2 Quad, Hamstring, Glute, Core)
 
 **Example 2**: 2 days/week, 60-90 min sessions
 - **Result**: Full Body
+- **Each session**: 9 exercises (all major muscle groups + arms)
 
-**Example 3**: 3 days/week (any duration)
+**Example 3**: 3 days/week, 45-60 min
 - **Result**: Push/Pull/Legs
+- **Push**: 5 exercises (2 Chest, 2 Shoulder, Tricep)
+- **Pull**: 5 exercises (3 Back, 2 Bicep)
+- **Legs**: 6 exercises (2 Quad, 2 Hamstring, Glute, Core)
 
-**Example 4**: 4 days/week (any duration)
-- **Result**: Upper/Lower Split
+**Example 4**: 4 days/week, 60-90 min
+- **Result**: Upper/Lower Split (2x each)
+- **Upper**: 8 exercises (includes arm isolation)
+- **Lower**: 6 exercises (comprehensive leg training)
 
-**Example 5**: 5 days/week (any duration)
-- **Result**: Push/Pull/Legs
+**Example 5**: 5 days/week, 60-90 min
+- **Result**: Hybrid Split
+- **Total**: 5 different sessions combining PPL and Upper/Lower patterns
 
 ---
 

@@ -12,6 +12,7 @@ class PersistenceController {
     static let shared = PersistenceController()
 
     let container: NSPersistentContainer
+    private(set) var isUsingFallbackStore = false
 
     // MARK: - Initialization
 
@@ -24,13 +25,36 @@ class PersistenceController {
 
         container.loadPersistentStores { description, error in
             if let error = error {
-                fatalError("❌ Core Data failed to load: \(error.localizedDescription)")
+                AppLogger.logDatabase("❌ Core Data failed to load: \(error.localizedDescription)", level: .fault)
+
+                // Fallback to in-memory store instead of crashing
+                self.isUsingFallbackStore = true
+                self.setupFallbackStore()
+
+                AppLogger.logDatabase("⚠️ Using in-memory fallback store - data will not persist", level: .warning)
+            } else {
+                print("✅ Core Data loaded successfully")
             }
-            print("✅ Core Data loaded successfully")
         }
 
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+    }
+
+    // MARK: - Fallback Store Setup
+
+    private func setupFallbackStore() {
+        let description = NSPersistentStoreDescription()
+        description.type = NSInMemoryStoreType
+        container.persistentStoreDescriptions = [description]
+
+        container.loadPersistentStores { storeDescription, error in
+            if let error = error {
+                AppLogger.logDatabase("❌ Even fallback store failed: \(error)", level: .fault)
+            } else {
+                AppLogger.logDatabase("✅ Fallback in-memory store initialized", level: .warning)
+            }
+        }
     }
 
     // MARK: - Preview Helper

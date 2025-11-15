@@ -32,27 +32,28 @@ struct OptionCard: View {
                         .frame(width: 32, height: 32)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text(title)
-                        .font(.trainBodyMedium)
+                        .font(.trainHeadline)  // 20px Medium from Figma
                         .foregroundColor(isSelected ? .white : .trainTextPrimary)
 
                     if let subtitle = subtitle {
                         Text(subtitle)
-                            .font(.trainCaption)
+                            .font(.trainBody)  // 16px Light from Figma
                             .foregroundColor(isSelected ? .white.opacity(0.9) : .trainTextSecondary)
                     }
                 }
 
                 Spacer()
             }
-            .padding(Spacing.md)
+            .padding(Spacing.lg)  // 24px padding from Figma
             .frame(maxWidth: .infinity)
+            .frame(height: ElementHeight.optionCard)  // 80px from Figma
             .background(isSelected ? Color.trainPrimary : Color.white)
-            .cornerRadius(CornerRadius.md)
+            .cornerRadius(CornerRadius.md)  // 16px from Figma
             .overlay(
                 RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(isSelected ? Color.clear : Color.trainBorder, lineWidth: 1)
+                    .stroke(isSelected ? Color.clear : Color.black, lineWidth: 1)  // Black border from Figma
             )
         }
         .buttonStyle(ScaleButtonStyle())

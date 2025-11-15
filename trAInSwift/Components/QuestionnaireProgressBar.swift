@@ -12,15 +12,14 @@ struct QuestionnaireProgressBar: View {
     let totalSteps: Int
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {  // 4px gap from Figma
             ForEach(1...totalSteps, id: \.self) { step in
-                Rectangle()
-                    .fill(step <= currentStep ? Color.trainPrimary : Color.trainBorder)
-                    .frame(height: 4)
-                    .cornerRadius(2)
+                Capsule()  // Rounded pill shape for progress segments
+                    .fill(step <= currentStep ? Color(hex: "#666666") : Color(hex: "#E0E0E0"))  // Colors from Figma
+                    .frame(height: ElementHeight.progressBar)  // 4px from Figma
             }
         }
-        .frame(height: 4)
+        .frame(height: ElementHeight.progressBar)
         .animation(.easeInOut(duration: 0.3), value: currentStep)
     }
 }

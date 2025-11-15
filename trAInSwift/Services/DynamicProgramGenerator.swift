@@ -45,7 +45,8 @@ class DynamicProgramGenerator {
             userInjuries: questionnaireData.injuries,
             targetMuscles: questionnaireData.targetMuscleGroups,
             fitnessGoal: questionnaireData.primaryGoal,
-            complexityRules: complexityRules
+            complexityRules: complexityRules,
+            daysPerWeek: questionnaireData.trainingDaysPerWeek
         )
 
         let program = Program(
@@ -69,12 +70,17 @@ class DynamicProgramGenerator {
     private func determineSplitType(days: Int, duration: String) -> ProgramType {
         switch days {
         case 2:
+            // 2-day: 30-45min = Upper/Lower, 45-90min = Full Body
             return duration == "30-45 min" ? .upperLower : .fullBody
         case 3:
+            // 3-day: Always Push/Pull/Legs
             return .pushPullLegs
         case 4:
+            // 4-day: Always Upper/Lower
             return .upperLower
-        case 5, 6:
+        case 5:
+            // 5-day: Hybrid - sessions will be Push/Pull/Legs/Upper/Lower
+            // Return pushPullLegs as the "type" but sessions will include Upper/Lower too
             return .pushPullLegs
         default:
             return .fullBody
@@ -91,10 +97,11 @@ class DynamicProgramGenerator {
         userInjuries: [String],
         targetMuscles: [String],
         fitnessGoal: String,
-        complexityRules: DBUserExperienceComplexity
+        complexityRules: DBUserExperienceComplexity,
+        daysPerWeek: Int
     ) throws -> [ProgramSession] {
 
-        let templates = getSessionTemplates(splitType: splitType, duration: sessionDuration)
+        let templates = getSessionTemplates(splitType: splitType, duration: sessionDuration, daysPerWeek: daysPerWeek)
         var generatedSessions: [ProgramSession] = []
         var usedExerciseIds = Set<Int>()
 
@@ -266,80 +273,361 @@ class DynamicProgramGenerator {
 
     private func getSessionTemplates(
         splitType: ProgramType,
-        duration: SessionDuration
+        duration: SessionDuration,
+        daysPerWeek: Int
     ) -> [SessionTemplate] {
+        // Need to handle 5-day specially since it's a hybrid
+        if daysPerWeek == 5 {
+            return get5DayTemplates(duration: duration)
+        }
+
         switch splitType {
         case .fullBody:
             return getFullBodyTemplates(duration: duration)
         case .upperLower:
-            return getUpperLowerTemplates(duration: duration)
+            return getUpperLowerTemplates(duration: duration, daysPerWeek: daysPerWeek)
         case .pushPullLegs:
             return getPushPullLegsTemplates(duration: duration)
         }
     }
 
     private func getFullBodyTemplates(duration: SessionDuration) -> [SessionTemplate] {
-        let isShort = duration == .short
+        // Based on split_templates.json
+        // 45-60 min: ["1 Chest", "1 Shoulder", "1 Back", "1 Quad", "1 Hamstring", "1 Glute", "1 Core"]
+        // 60-90 min: ["1 Chest", "1 Shoulder", "1 Back", "1 Bicep", "1 Tricep", "1 Quad", "1 Hamstring", "1 Glute", "1 Core"]
 
-        return [
-            SessionTemplate(dayName: "Full Body A", muscleGroups: [
-                (muscle: "Quads", count: isShort ? 1 : 2, movementPattern: "Squat"),
-                (muscle: "Chest", count: isShort ? 1 : 2, movementPattern: "Horizontal Push"),
-                (muscle: "Back", count: isShort ? 1 : 2, movementPattern: "Horizontal Pull"),
-                (muscle: "Shoulders", count: 1, movementPattern: "Vertical Push"),
-                (muscle: "Hamstrings", count: 1, movementPattern: "Hinge")
-            ]),
-            SessionTemplate(dayName: "Full Body B", muscleGroups: [
-                (muscle: "Hamstrings", count: 1, movementPattern: "Hinge"),
-                (muscle: "Chest", count: isShort ? 1 : 2, movementPattern: "Horizontal Push"),
-                (muscle: "Back", count: isShort ? 1 : 2, movementPattern: "Vertical Pull"),
-                (muscle: "Quads", count: 1, movementPattern: "Squat"),
-                (muscle: "Shoulders", count: 1, movementPattern: "Isolation")
-            ])
-        ]
+        switch duration {
+        case .medium:
+            // 45-60 min: 2 Full Body sessions
+            return [
+                SessionTemplate(dayName: "Full Body", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 1, movementPattern: nil),
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Full Body", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 1, movementPattern: nil),
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case .long:
+            // 60-90 min: 2 Full Body sessions
+            return [
+                SessionTemplate(dayName: "Full Body", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 1, movementPattern: nil),
+                    (muscle: "Biceps", count: 1, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil),
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Full Body", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 1, movementPattern: nil),
+                    (muscle: "Biceps", count: 1, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil),
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        default:
+            return []
+        }
     }
 
-    private func getUpperLowerTemplates(duration: SessionDuration) -> [SessionTemplate] {
-        let isShort = duration == .short
+    private func getUpperLowerTemplates(duration: SessionDuration, daysPerWeek: Int) -> [SessionTemplate] {
+        // Based on split_templates.json
+        // 2-day 30-45min: Upper ["1 Chest", "1 Shoulder", "1 Back"], Lower ["1 Quad", "1 Quad", "1 Hamstring", "1 Glute", "1 Core"]
+        // 4-day 30-45min: 2x Upper, 2x Lower
+        // 4-day 45-60min: Upper ["2 Chest", "2 Shoulder", "2 Back"], Lower ["2 Quad", "2 Hamstring", "1 Glute", "1 Core"]
+        // 4-day 60-90min: Upper ["2 Chest", "2 Shoulder", "2 Back", "1 Tricep", "1 Bicep"], Lower ["2 Quad", "2 Hamstring", "1 Glute", "1 Core"]
 
-        return [
-            SessionTemplate(dayName: "Upper", muscleGroups: [
-                (muscle: "Chest", count: 2, movementPattern: "Horizontal Push"),
-                (muscle: "Back", count: 2, movementPattern: "Horizontal Pull"),
-                (muscle: "Shoulders", count: isShort ? 1 : 2, movementPattern: "Vertical Push"),
-                (muscle: "Biceps", count: isShort ? 1 : 2, movementPattern: "Isolation"),
-                (muscle: "Triceps", count: isShort ? 1 : 2, movementPattern: "Isolation")
-            ]),
-            SessionTemplate(dayName: "Lower", muscleGroups: [
-                (muscle: "Quads", count: 2, movementPattern: "Squat"),
-                (muscle: "Hamstrings", count: 2, movementPattern: "Hinge"),
-                (muscle: "Glutes", count: isShort ? 1 : 2, movementPattern: "Hip Extension"),
-                (muscle: "Calves", count: 1, movementPattern: "Isolation")
-            ])
-        ]
+        switch (daysPerWeek, duration) {
+        case (2, .short):
+            // 2-day, 30-45 min
+            return [
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case (4, .short):
+            // 4-day, 30-45 min
+            return [
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case (4, .medium):
+            // 4-day, 45-60 min
+            return [
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Back", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Back", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case (4, .long):
+            // 4-day, 60-90 min
+            return [
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Back", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil),
+                    (muscle: "Biceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Back", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil),
+                    (muscle: "Biceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        default:
+            return []
+        }
     }
 
     private func getPushPullLegsTemplates(duration: SessionDuration) -> [SessionTemplate] {
-        let isShort = duration == .short
+        // Based on split_templates.json
+        // 3-day 30-45min: Push ["1 Chest", "2 Shoulder", "1 Tricep"], Pull ["2 Back", "2 Bicep"], Legs ["1 Quad", "1 Hamstring", "1 Glute", "1 Core"]
+        // 3-day 45-60min: Push ["2 Chest", "2 Shoulder", "1 Tricep"], Pull ["3 Back", "2 Bicep"], Legs ["2 Quad", "2 Hamstring", "1 Glute", "1 Core"]
+        // 3-day 60-90min: Push ["3 Chest", "3 Shoulder", "2 Tricep"], Pull ["3 Back", "3 Bicep"], Legs ["2 Quad", "2 Hamstring", "1 Glute", "1 Core"]
 
-        return [
-            SessionTemplate(dayName: "Push", muscleGroups: [
-                (muscle: "Chest", count: isShort ? 2 : 3, movementPattern: "Horizontal Push"),
-                (muscle: "Shoulders", count: 2, movementPattern: "Vertical Push"),
-                (muscle: "Triceps", count: isShort ? 1 : 2, movementPattern: "Isolation")
-            ]),
-            SessionTemplate(dayName: "Pull", muscleGroups: [
-                (muscle: "Back", count: isShort ? 2 : 3, movementPattern: "Horizontal Pull"),
-                (muscle: "Back", count: 1, movementPattern: "Vertical Pull"),
-                (muscle: "Biceps", count: 2, movementPattern: "Isolation")
-            ]),
-            SessionTemplate(dayName: "Legs", muscleGroups: [
-                (muscle: "Quads", count: 2, movementPattern: "Squat"),
-                (muscle: "Hamstrings", count: 2, movementPattern: "Hinge"),
-                (muscle: "Glutes", count: 1, movementPattern: "Hip Extension"),
-                (muscle: "Calves", count: 1, movementPattern: "Isolation")
-            ])
-        ]
+        switch duration {
+        case .short:
+            // 30-45 min
+            return [
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 2, movementPattern: nil),
+                    (muscle: "Biceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case .medium:
+            // 45-60 min
+            return [
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 3, movementPattern: nil),
+                    (muscle: "Biceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case .long:
+            // 60-90 min
+            return [
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 3, movementPattern: nil),
+                    (muscle: "Shoulders", count: 3, movementPattern: nil),
+                    (muscle: "Triceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 3, movementPattern: nil),
+                    (muscle: "Biceps", count: 3, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        }
+    }
+
+    private func get5DayTemplates(duration: SessionDuration) -> [SessionTemplate] {
+        // Based on split_templates.json
+        // 5-day is hybrid: Push/Pull/Legs/Upper/Lower
+        // 5-day 30-45min: Push ["1 Chest", "2 Shoulder", "1 Tricep"], Pull ["2 Back", "2 Bicep"], Legs ["1 Quad", "1 Hamstring", "1 Glute", "1 Core"], Upper ["1 Chest", "1 Shoulder", "1 Back"], Lower ["1 Quad", "1 Hamstring", "1 Glute", "1 Core"]
+        // 5-day 45-60min: Push ["2 Chest", "2 Shoulder", "1 Tricep"], Pull ["3 Back", "2 Bicep"], Legs ["2 Quad", "2 Hamstring", "1 Glute", "1 Core"], Upper ["2 Chest", "2 Shoulder", "2 Back"], Lower ["2 Quad", "2 Hamstring", "1 Glute", "1 Core"]
+        // 5-day 60-90min: Push ["3 Chest", "3 Shoulder", "2 Tricep"], Pull ["3 Back", "3 Bicep"], Legs ["2 Quad", "2 Hamstring", "1 Glute", "1 Core"], Upper ["2 Chest", "2 Shoulder", "2 Back", "1 Tricep", "1 Bicep"], Lower ["2 Quad", "2 Hamstring", "1 Glute", "1 Core"]
+
+        switch duration {
+        case .short:
+            // 30-45 min
+            return [
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 2, movementPattern: nil),
+                    (muscle: "Biceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case .medium:
+            // 45-60 min
+            return [
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 3, movementPattern: nil),
+                    (muscle: "Biceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Back", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case .long:
+            // 60-90 min
+            return [
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 3, movementPattern: nil),
+                    (muscle: "Shoulders", count: 3, movementPattern: nil),
+                    (muscle: "Triceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 3, movementPattern: nil),
+                    (muscle: "Biceps", count: 3, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Upper", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Back", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil),
+                    (muscle: "Biceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        }
     }
 
     // MARK: - Utility

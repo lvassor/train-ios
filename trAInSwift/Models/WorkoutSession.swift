@@ -66,7 +66,7 @@ struct LoggedExercise: Codable, Identifiable {
 }
 
 // A single logged set
-struct LoggedSet: Codable, Identifiable {
+struct LoggedSet: Codable, Identifiable, Equatable {
     let id: String
     var reps: Int
     var weight: Double // in kg or lbs

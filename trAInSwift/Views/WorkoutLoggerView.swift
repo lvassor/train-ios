@@ -118,9 +118,12 @@ struct WorkoutLoggerView: View {
                             ScrollView {
                                 VStack(spacing: Spacing.lg) {
                                     // Exercise Info
-                                    ExerciseInfoCard(exercise: programExercise)
-                                        .padding(.horizontal, Spacing.lg)
-                                        .padding(.top, Spacing.md)
+                                    ExerciseInfoCard(
+                                        exercise: programExercise,
+                                        excessReps: calculateExcessReps(for: currentExerciseIndex)
+                                    )
+                                    .padding(.horizontal, Spacing.lg)
+                                    .padding(.top, Spacing.md)
 
                                     // Set Logging
                                     SetLoggingView(
@@ -323,6 +326,77 @@ struct WorkoutLoggerView: View {
         }
     }
 
+    // MARK: - Rep Counter Logic
+
+    /// Calculate excess reps compared to previous session
+    private func calculateExcessReps(for exerciseIndex: Int) -> Int {
+        guard exerciseIndex < loggedExercises.count else { return 0 }
+
+        let currentExercise = loggedExercises[exerciseIndex]
+        let exerciseName = currentExercise.exerciseName
+
+        // Fetch previous session data (searches across all previous sessions for this exercise)
+        guard let previousSets = authService.getPreviousSessionData(
+            programId: userProgram?.id?.uuidString ?? "",
+            exerciseName: exerciseName
+        ) else {
+            return 0  // No previous data - hide badge (Week 1 or always skipped)
+        }
+
+        var excessReps = 0
+
+        // Compare set by set
+        for (index, currentSet) in currentExercise.sets.enumerated() {
+            guard index < previousSets.count else { break }
+
+            let currentReps = currentSet.reps
+            let previousReps = previousSets[index].reps
+
+            if currentReps > previousReps {
+                excessReps += (currentReps - previousReps)
+            }
+        }
+
+        return excessReps
+    }
+
+    // MARK: - Progression Prompt Logic
+
+    /// Evaluate prompt type based on completed sets vs target range
+    private func evaluatePrompt(
+        for exercise: LoggedExercise,
+        targetMin: Int,
+        targetMax: Int
+    ) -> PromptType? {
+        // Only show prompt when all sets completed (reps > 0)
+        let completedSets = exercise.sets.filter { $0.reps > 0 }
+        guard completedSets.count >= 3 else {
+            return nil
+        }
+
+        let set1Reps = completedSets[0].reps
+        let set2Reps = completedSets[1].reps
+        let set3Reps = completedSets[2].reps
+
+        // 🔴 REGRESSION: First 2 sets below minimum
+        if set1Reps < targetMin || set2Reps < targetMin {
+            return .regression
+        }
+
+        // 🟢 PROGRESSION: First 2 at/above max, 3rd in range
+        if set1Reps >= targetMax && set2Reps >= targetMax && set3Reps >= targetMin {
+            return .progression
+        }
+
+        // 🟡 CONSISTENCY: Strong start, weak finish
+        if set1Reps >= targetMax && set2Reps >= targetMax && set3Reps < targetMin {
+            return .consistency
+        }
+
+        // 🟡 CONSISTENCY: Default
+        return .consistency
+    }
+
     private func saveWorkout() {
         guard authService.currentUser != nil else {
             AppLogger.logWorkout("Cannot save workout: no current user", level: .error)
@@ -402,12 +476,22 @@ struct WorkoutHeader: View {
 
 struct ExerciseInfoCard: View {
     let exercise: ProgramExercise
+    let excessReps: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(exercise.exerciseName)
-                .font(.trainTitle2)
-                .foregroundColor(.trainTextPrimary)
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(exercise.exerciseName)
+                        .font(.trainTitle2)
+                        .foregroundColor(.trainTextPrimary)
+                }
+
+                Spacer()
+
+                // Rep Counter Badge
+                RepCounterBadge(excessReps: excessReps)
+            }
 
             // Only show equipment (removed primaryMuscle)
             InfoBadge(icon: "dumbbell", text: exercise.equipmentType)
@@ -457,10 +541,30 @@ struct SetLoggingView: View {
     let programExercise: ProgramExercise
     @Binding var loggedExercise: LoggedExercise
     @State private var weightUnit: WeightUnit = .kg
+    @State private var currentPrompt: PromptType? = nil
+    @State private var debounceTimer: Timer? = nil
 
     enum WeightUnit: String, CaseIterable {
         case kg = "kg"
         case lbs = "lbs"
+    }
+
+    private var unitToggle: some View {
+        HStack(spacing: 0) {
+            ForEach(WeightUnit.allCases, id: \.self) { unit in
+                Button(action: { weightUnit = unit }) {
+                    Text(unit.rawValue)
+                        .font(.trainCaption)
+                        .fontWeight(.medium)
+                        .foregroundColor(weightUnit == unit ? .white : .trainTextSecondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(weightUnit == unit ? Color.trainPrimary : Color.clear)
+                }
+            }
+        }
+        .background(Color.trainBackground)
+        .cornerRadius(CornerRadius.sm)
     }
 
     var body: some View {
@@ -473,22 +577,7 @@ struct SetLoggingView: View {
 
                 Spacer()
 
-                // Unit toggle
-                HStack(spacing: 0) {
-                    ForEach(WeightUnit.allCases, id: \.self) { unit in
-                        Button(action: { weightUnit = unit }) {
-                            Text(unit.rawValue)
-                                .font(.trainCaption)
-                                .fontWeight(.medium)
-                                .foregroundColor(weightUnit == unit ? .white : .trainTextSecondary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(weightUnit == unit ? Color.trainPrimary : Color.clear)
-                        }
-                    }
-                }
-                .background(Color.trainBackground)
-                .cornerRadius(CornerRadius.sm)
+                unitToggle
             }
 
             // Grid header
@@ -523,10 +612,19 @@ struct SetLoggingView: View {
                     )
                 }
             }
+
+            // Progression Prompt (shown when all sets completed)
+            if let prompt = currentPrompt {
+                ProgressionPromptCard(promptType: prompt)
+                    .padding(.top, Spacing.md)
+            }
         }
         .padding(Spacing.md)
         .background(Color.white)
         .cornerRadius(CornerRadius.md)
+        .onChange(of: loggedExercise.sets) { _, _ in
+            evaluateAndShowPrompt()
+        }
     }
 
     private func binding(for index: Int) -> Binding<LoggedSet> {
@@ -534,6 +632,67 @@ struct SetLoggingView: View {
             get: { loggedExercise.sets[index] },
             set: { loggedExercise.sets[index] = $0 }
         )
+    }
+
+    /// Evaluate and show progression prompt with 500ms debounce
+    private func evaluateAndShowPrompt() {
+        // Cancel existing timer
+        debounceTimer?.invalidate()
+
+        // Create new timer with 500ms delay
+        debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+            // Parse rep range (e.g., "8-12" -> min: 8, max: 12)
+            let repComponents = programExercise.repRange.split(separator: "-").compactMap { Int($0) }
+            guard repComponents.count == 2 else {
+                currentPrompt = nil
+                return
+            }
+
+            let targetMin = repComponents[0]
+            let targetMax = repComponents[1]
+
+            // Evaluate prompt based on completed sets
+            currentPrompt = evaluatePromptForExercise(
+                exercise: loggedExercise,
+                targetMin: targetMin,
+                targetMax: targetMax
+            )
+        }
+    }
+
+    /// Helper to evaluate prompt (calls parent's evaluatePrompt logic)
+    private func evaluatePromptForExercise(
+        exercise: LoggedExercise,
+        targetMin: Int,
+        targetMax: Int
+    ) -> PromptType? {
+        // Only show prompt when all sets completed (reps > 0)
+        let completedSets = exercise.sets.filter { $0.reps > 0 }
+        guard completedSets.count >= 3 else {
+            return nil
+        }
+
+        let set1Reps = completedSets[0].reps
+        let set2Reps = completedSets[1].reps
+        let set3Reps = completedSets[2].reps
+
+        // 🔴 REGRESSION: First 2 sets below minimum
+        if set1Reps < targetMin || set2Reps < targetMin {
+            return .regression
+        }
+
+        // 🟢 PROGRESSION: First 2 at/above max, 3rd in range
+        if set1Reps >= targetMax && set2Reps >= targetMax && set3Reps >= targetMin {
+            return .progression
+        }
+
+        // 🟡 CONSISTENCY: Strong start, weak finish
+        if set1Reps >= targetMax && set2Reps >= targetMax && set3Reps < targetMin {
+            return .consistency
+        }
+
+        // 🟡 CONSISTENCY: Default
+        return .consistency
     }
 }
 
@@ -697,6 +856,122 @@ struct WorkoutCompletionView: View {
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.xl)
             }
+        }
+    }
+}
+
+// MARK: - Rep Counter Badge
+
+struct RepCounterBadge: View {
+    let excessReps: Int
+    @State private var showAnimation = false
+
+    var body: some View {
+        if excessReps > 0 {
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 12))
+                Text("+\(excessReps)")
+                    .font(.trainCaption)
+                    .fontWeight(.bold)
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.green)
+            .cornerRadius(12)
+            .scaleEffect(showAnimation ? 1.1 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showAnimation)
+            .onAppear {
+                showAnimation = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    showAnimation = false
+                }
+            }
+            .onChange(of: excessReps) { _, _ in
+                // Re-trigger animation when value changes
+                showAnimation = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    showAnimation = false
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Progression Prompt Components
+
+enum PromptType {
+    case regression
+    case consistency
+    case progression
+
+    var color: Color {
+        switch self {
+        case .regression: return .red
+        case .consistency: return .orange
+        case .progression: return .green
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .regression: return "💪"
+        case .consistency: return "🎯"
+        case .progression: return "🎉"
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .regression: return "Great effort today!"
+        case .consistency: return "You're doing great!"
+        case .progression: return "Excellent work!"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .regression: return "Try choosing a weight that allows you to hit the target range for all sets"
+        case .consistency: return "Try to hit the top end of the range or exceed it for all sets"
+        case .progression: return "You hit or exceeded the top end for your first two sets! Time to increase weight next session"
+        }
+    }
+}
+
+struct ProgressionPromptCard: View {
+    let promptType: PromptType
+    @State private var showAnimation = false
+
+    var body: some View {
+        HStack(spacing: Spacing.md) {
+            Text(promptType.icon)
+                .font(.system(size: 32))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(promptType.title)
+                    .font(.trainBodyMedium)
+                    .fontWeight(.bold)
+                    .foregroundColor(.trainTextPrimary)
+
+                Text(promptType.subtitle)
+                    .font(.trainCaption)
+                    .foregroundColor(.trainTextSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(Spacing.md)
+        .background(promptType.color.opacity(0.1))
+        .cornerRadius(CornerRadius.md)
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.md)
+                .stroke(promptType.color, lineWidth: 2)
+        )
+        .scaleEffect(showAnimation ? 1.0 : 0.95)
+        .opacity(showAnimation ? 1.0 : 0.0)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showAnimation)
+        .onAppear {
+            showAnimation = true
         }
     }
 }

@@ -40,42 +40,70 @@ extension Color {
 // The Color extensions are applied there automatically
 
 // MARK: - Typography
+// Based on Figma design system - uses Inter font family
 extension Font {
-    // Headers
-    static let trainTitle = Font.system(size: 28, weight: .bold)
-    static let trainTitle2 = Font.system(size: 24, weight: .bold)
-    static let trainHeadline = Font.system(size: 20, weight: .semibold)
+    // Headers - using Figma specs
+    static let trainTitle = Font.system(size: 24, weight: .medium)        // 24px, Medium (500)
+    static let trainTitle2 = Font.system(size: 24, weight: .medium)       // 24px, Medium (500)
+    static let trainHeadline = Font.system(size: 20, weight: .medium)     // 20px, Medium (500)
 
-    // Body
-    static let trainSubtitle = Font.system(size: 16, weight: .regular)
-    static let trainBody = Font.system(size: 16, weight: .regular)
-    static let trainBodyMedium = Font.system(size: 16, weight: .medium)
-    static let trainCaption = Font.system(size: 14, weight: .regular)
+    // Body - using Figma specs
+    static let trainSubtitle = Font.system(size: 16, weight: .light)      // 16px, Light (300)
+    static let trainBody = Font.system(size: 16, weight: .light)          // 16px, Light (300)
+    static let trainBodyMedium = Font.system(size: 18, weight: .medium)   // 18px, Medium (500) for buttons
+    static let trainCaption = Font.system(size: 16, weight: .light)       // 16px, Light (300)
 
     // Special
     static let trainLargeNumber = Font.system(size: 72, weight: .bold)
 }
 
+// MARK: - Line Height
+// Figma uses line-height: 1.08 across the board
+extension Text {
+    func figmaLineHeight() -> some View {
+        self.lineSpacing(0)  // 1.08 line height is very tight
+            .minimumScaleFactor(0.9)
+    }
+}
+
 // MARK: - Spacing
+// Based on Figma design system
 struct Spacing {
-    static let xs: CGFloat = 4
-    static let sm: CGFloat = 8
-    static let md: CGFloat = 16
-    static let lg: CGFloat = 24
-    static let xl: CGFloat = 32
-    static let xxl: CGFloat = 48
+    static let xs: CGFloat = 4        // Gap between progress segments, small gaps
+    static let sm: CGFloat = 8        // Internal padding for compact elements
+    static let md: CGFloat = 16       // Standard spacing between elements
+    static let lg: CGFloat = 24       // Card padding, larger spacing
+    static let xl: CGFloat = 32       // Section spacing
+    static let xxl: CGFloat = 48      // Major section breaks
 }
 
 // MARK: - Corner Radius
+// Based on Figma design system
 struct CornerRadius {
-    static let sm: CGFloat = 8
-    static let md: CGFloat = 12
-    static let lg: CGFloat = 16
-    static let xl: CGFloat = 24
+    static let sm: CGFloat = 8        // Small elements
+    static let md: CGFloat = 16       // Standard cards and buttons (from Figma)
+    static let lg: CGFloat = 16       // Same as md for consistency
+    static let xl: CGFloat = 40       // Main container/screen (from Figma)
 }
 
-// MARK: - Button Heights
+// MARK: - Element Heights
+// Based on Figma design system
+struct ElementHeight {
+    static let button: CGFloat = 50           // Standard button height (from Figma)
+    static let optionCard: CGFloat = 80       // Option card height (from Figma)
+    static let progressBar: CGFloat = 4       // Progress bar height (from Figma)
+}
+
+// MARK: - Button Heights (kept for backward compatibility)
 struct ButtonHeight {
-    static let standard: CGFloat = 56
+    static let standard: CGFloat = ElementHeight.button  // 50 from Figma
     static let compact: CGFloat = 48
+}
+
+// MARK: - Layout
+// Based on Figma design system (393px viewport)
+struct Layout {
+    static let screenWidth: CGFloat = 393           // Figma viewport width
+    static let contentWidth: CGFloat = 340          // Standard content width from Figma
+    static let horizontalPadding: CGFloat = 20      // Side padding: (393-340)/2 ≈ 26.5, but Figma uses 20
 }

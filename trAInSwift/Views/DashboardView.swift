@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct DashboardView: View {
     @ObservedObject var authService = AuthService.shared
@@ -16,6 +17,7 @@ struct DashboardView: View {
     @State private var showMilestones = false
     @State private var showVideoLibrary = false
     @State private var isProgramProgressExpanded = false
+    @State private var currentStreak: Int = 0
 
     var user: UserProfile? {
         authService.currentUser
@@ -57,13 +59,16 @@ struct DashboardView: View {
                                     Text("🔥")
                                         .font(.system(size: 20))
 
-                                    Text("0")
+                                    Text("\(currentStreak)")
                                         .font(.trainBodyMedium)
                                         .foregroundColor(.trainTextPrimary)
                                 }
                             }
                             .padding(.horizontal, Spacing.lg)
                             .padding(.top, Spacing.md)
+                            .onAppear {
+                                currentStreak = calculateStreak()
+                            }
 
                             if let program = userProgram {
                                 // Program Progress Card
@@ -81,6 +86,36 @@ struct DashboardView: View {
                                 // Upcoming Workouts
                                 UpcomingWorkoutsSection(userProgram: program)
                                     .padding(.horizontal, Spacing.lg)
+                            } else {
+                                // No program found - show error message
+                                VStack(spacing: Spacing.lg) {
+                                    Image(systemName: "exclamationmark.triangle")
+                                        .font(.system(size: 48))
+                                        .foregroundColor(.orange)
+
+                                    Text("No Training Program Found")
+                                        .font(.trainTitle)
+                                        .foregroundColor(.trainTextPrimary)
+
+                                    Text("There was an issue loading your program. Please contact support or restart the questionnaire.")
+                                        .font(.trainBody)
+                                        .foregroundColor(.trainTextSecondary)
+                                        .multilineTextAlignment(.center)
+
+                                    Button(action: {
+                                        authService.logout()
+                                    }) {
+                                        Text("Log Out and Retry")
+                                            .font(.trainBodyMedium)
+                                            .foregroundColor(.white)
+                                            .frame(maxWidth: .infinity)
+                                            .frame(height: ElementHeight.button)
+                                            .background(Color.trainPrimary)
+                                            .cornerRadius(CornerRadius.md)
+                                    }
+                                }
+                                .padding(.horizontal, Spacing.lg)
+                                .padding(.top, Spacing.xxl)
                             }
 
                             Spacer()
@@ -128,6 +163,44 @@ struct DashboardView: View {
         // Fall back to email
         guard let email = user?.email else { return "User" }
         return email.components(separatedBy: "@").first?.capitalized ?? "User"
+    }
+
+    private func calculateStreak() -> Int {
+        guard let userId = user?.id else { return 0 }
+
+        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "userId == %@", userId as CVarArg
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "completedAt", ascending: false)]
+
+        do {
+            let sessions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
+
+            var streak = 0
+            var currentDate = Calendar.current.startOfDay(for: Date())
+
+            for session in sessions {
+                guard let sessionDate = session.completedAt else { continue }
+                let normalizedSessionDate = Calendar.current.startOfDay(for: sessionDate)
+
+                // Check if this session is on the current date we're looking for
+                if Calendar.current.isDate(normalizedSessionDate, inSameDayAs: currentDate) {
+                    streak += 1
+                    // Move to previous day
+                    currentDate = Calendar.current.date(byAdding: .day, value: -1, to: currentDate) ?? currentDate
+                } else if normalizedSessionDate < currentDate {
+                    // Gap in streak - stop counting
+                    break
+                }
+                // If sessionDate > currentDate, skip this session (future sessions shouldn't exist but handle gracefully)
+            }
+
+            return streak
+        } catch {
+            AppLogger.logDatabase("Failed to calculate streak: \(error)", level: .error)
+            return 0
+        }
     }
 }
 
@@ -472,8 +545,12 @@ struct NextWorkoutCard: View {
     let sessionIndex: Int
     let onLogWorkout: () -> Void
 
-    var session: ProgramSession {
-        userProgram.getProgram()!.sessions[sessionIndex]
+    var session: ProgramSession? {
+        guard let program = userProgram.getProgram(),
+              sessionIndex < program.sessions.count else {
+            return nil
+        }
+        return program.sessions[sessionIndex]
     }
 
     var body: some View {
@@ -482,22 +559,28 @@ struct NextWorkoutCard: View {
                 .font(.trainBodyMedium)
                 .foregroundColor(.trainTextPrimary)
 
-            Text("\(session.dayName) • \(session.exercises.count) exercises")
-                .font(.trainBody)
-                .foregroundColor(.trainTextSecondary)
+            if let session = session {
+                Text("\(session.dayName) • \(session.exercises.count) exercises")
+                    .font(.trainBody)
+                    .foregroundColor(.trainTextSecondary)
 
-            Button(action: onLogWorkout) {
-                Text("Log this workout")
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.trainPrimary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, Spacing.md)
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.trainPrimary, lineWidth: 2)
-                    )
+                Button(action: onLogWorkout) {
+                    Text("Log this workout")
+                        .font(.trainBodyMedium)
+                        .foregroundColor(.trainPrimary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.md)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.trainPrimary, lineWidth: 2)
+                        )
+                }
+            } else {
+                Text("Session unavailable")
+                    .font(.trainBody)
+                    .foregroundColor(.trainTextSecondary)
             }
         }
         .padding(Spacing.md)

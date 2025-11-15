@@ -22,12 +22,12 @@ struct CustomButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.trainBodyMedium)
+                .font(.trainBodyMedium)  // 18px Medium from Figma
                 .foregroundColor(textColor)
                 .frame(maxWidth: .infinity)
-                .frame(height: ButtonHeight.standard)
+                .frame(height: ElementHeight.button)  // 50px from Figma
                 .background(backgroundColor)
-                .cornerRadius(CornerRadius.md)
+                .cornerRadius(CornerRadius.md)  // 16px from Figma
         }
         .disabled(!isEnabled)
         .scaleEffect(isEnabled ? 1.0 : 1.0)

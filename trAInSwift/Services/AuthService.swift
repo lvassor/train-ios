@@ -246,6 +246,48 @@ class AuthService: ObservableObject {
         saveSession()
         AppLogger.logWorkout("Session marked as complete")
     }
+
+    // MARK: - Previous Session Data
+
+    /// Fetches the previous session's logged sets for a specific exercise
+    /// Searches across ALL previous sessions to find most recent log of this exercise
+    /// Used for rep counter and progression analysis
+    func getPreviousSessionData(
+        programId: String,
+        exerciseName: String
+    ) -> [LoggedSet]? {
+        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+
+        // Query by program and date only (no session type filter needed - exercises don't repeat across session types)
+        fetchRequest.predicate = NSPredicate(
+            format: "programId == %@ AND completedAt < %@",
+            programId, Date() as CVarArg
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "completedAt", ascending: false)]
+
+        do {
+            let results = try context.fetch(fetchRequest)
+
+            // Iterate through sessions to find first one with this exercise
+            for session in results {
+                guard let exercisesData = session.exercisesData,
+                      let loggedExercises = try? JSONDecoder().decode([LoggedExercise].self, from: exercisesData) else {
+                    continue
+                }
+
+                if let matchingExercise = loggedExercises.first(where: { $0.exerciseName == exerciseName }) {
+                    AppLogger.logWorkout("Found previous data for \(exerciseName): \(matchingExercise.sets.count) sets")
+                    return matchingExercise.sets
+                }
+            }
+
+            AppLogger.logWorkout("No previous data found for \(exerciseName)")
+            return nil  // Exercise never logged before (Week 1 or always skipped)
+        } catch {
+            AppLogger.logDatabase("Failed to fetch previous session: \(error)", level: .error)
+            return nil
+        }
+    }
 }
 
 enum AuthError: LocalizedError {
