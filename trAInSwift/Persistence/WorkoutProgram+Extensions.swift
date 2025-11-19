@@ -66,9 +66,24 @@ extension WorkoutProgram {
     // MARK: - Helper Methods
 
     func getProgram() -> Program? {
-        guard let data = exercisesData,
-              let sessions = try? JSONDecoder().decode([ProgramSession].self, from: data) else {
+        guard let data = exercisesData else {
+            print("❌ getProgram() failed: exercisesData is nil")
             return nil
+        }
+
+        print("✅ exercisesData exists: \(data.count) bytes")
+
+        guard let sessions = try? JSONDecoder().decode([ProgramSession].self, from: data) else {
+            print("❌ getProgram() failed: Could not decode sessions from JSON")
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("   JSON data: \(jsonString.prefix(200))...")
+            }
+            return nil
+        }
+
+        print("✅ Successfully decoded \(sessions.count) sessions")
+        for (index, session) in sessions.enumerated() {
+            print("   Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
         }
 
         let programType: ProgramType
@@ -76,7 +91,9 @@ extension WorkoutProgram {
         case "Full Body": programType = .fullBody
         case "Upper/Lower": programType = .upperLower
         case "Push/Pull/Legs": programType = .pushPullLegs
-        default: programType = .fullBody
+        default:
+            print("⚠️ Unknown split type: \(split ?? "nil"), defaulting to Full Body")
+            programType = .fullBody
         }
 
         let duration: SessionDuration
@@ -84,16 +101,21 @@ extension WorkoutProgram {
         case "30-45 min": duration = .short
         case "45-60 min": duration = .medium
         case "60-90 min": duration = .long
-        default: duration = .medium
+        default:
+            print("⚠️ Unknown session duration: \(sessionDuration ?? "nil"), defaulting to medium")
+            duration = .medium
         }
 
-        return Program(
+        let program = Program(
             type: programType,
             daysPerWeek: Int(daysPerWeek),
             sessionDuration: duration,
             sessions: sessions,
             totalWeeks: Int(totalWeeks)
         )
+
+        print("✅ getProgram() successful: \(programType.description), \(sessions.count) sessions")
+        return program
     }
 
     var completedSessionsSet: Set<String> {

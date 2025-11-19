@@ -1,0 +1,9 @@
+Programme overview page:
+"Hey, User". We should always title case the name so we never get "Hey, user" even if the user inputs a lower case name into account creation.
+For the MVP we can comment out the streak with the flame emoji in the top right, we won't include that feature.
+None of the elements on this page appear glassmorphic or liquidy like on the questionnaire. This is integral for continuity. 
+The log this workout button should also be glassmorphic with the glow like the questionnaire, you can fill the colour to green and turn the text to white.
+The cards themselves should be glassmorphic all over this page - ensure this is actually implemented.
+We can remove the progress bar on the programme overview.
+Under programme dropdown, we show a summary of the programme and prioritised muscle groups - all these elements have a hard border and look awful. they should also follow the liquid glass styling.
+Lastly - it is absolutely paramount that you now investigate this. I have asked probably a dozen times for this to be corrected. the programme overview displays too many sessions, look at the attached screenshot. even though we have a push/pull/leg split, we display more than 3 sessions. crucially, ONLY the exact number of sessions per week should be displayed. Because this has been missed or mistaken so many times I want you to conduct a longer investigation into this one to understand why it keeps going wrong. Out of the three sessions, if one has been completed it will change colour and be ticked - which should be liquid glass stlying and the subheading will then say 1/3 sessions complete or 2/3 sessions complete.

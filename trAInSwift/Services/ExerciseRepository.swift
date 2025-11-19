@@ -50,8 +50,27 @@ class ExerciseRepository {
             )
 
             // Find complexity-4 exercises only
-            let complexity4Exercises = try dbManager.fetchExercises(filter: complexity4Filter)
+            var complexity4Exercises = try dbManager.fetchExercises(filter: complexity4Filter)
                 .filter { $0.complexityLevel == 4 }
+
+            // FALLBACK: If no complexity-4 exercises found with injuries, try without injury filter
+            if complexity4Exercises.isEmpty && !userInjuries.isEmpty {
+                print("⚠️ No complexity-4 exercises found for \(primaryMuscle ?? "unknown") with injury filters")
+                print("   Retrying without injury contraindications as fallback...")
+
+                let fallbackFilter = ExerciseDatabaseFilter(
+                    movementPattern: movementPattern,
+                    equipmentTypes: availableEquipment,
+                    maxComplexity: 4,
+                    primaryMuscle: primaryMuscle,
+                    excludeInjuries: [], // Remove injury filter
+                    excludeExerciseIds: usedExerciseIds
+                )
+
+                complexity4Exercises = try dbManager.fetchExercises(filter: fallbackFilter)
+                    .filter { $0.complexityLevel == 4 }
+                print("   ✅ Fallback found \(complexity4Exercises.count) complexity-4 exercises")
+            }
 
             if let firstExercise = complexity4Exercises.first {
                 selectedExercises.append(firstExercise)
@@ -75,7 +94,26 @@ class ExerciseRepository {
                 excludeExerciseIds: usedExerciseIds
             )
 
-            let candidates = try dbManager.fetchExercises(filter: filter)
+            var candidates = try dbManager.fetchExercises(filter: filter)
+
+            // FALLBACK: If no exercises found and injuries were specified, retry without injury filter
+            if candidates.isEmpty && !userInjuries.isEmpty {
+                print("⚠️ No exercises found for \(primaryMuscle ?? "unknown") with injury filters")
+                print("   Retrying without injury contraindications as fallback...")
+
+                let fallbackFilter = ExerciseDatabaseFilter(
+                    movementPattern: movementPattern,
+                    equipmentTypes: availableEquipment,
+                    maxComplexity: maxComplexityForRemaining,
+                    primaryMuscle: primaryMuscle,
+                    excludeInjuries: [], // Remove injury filter
+                    excludeExerciseIds: usedExerciseIds
+                )
+
+                candidates = try dbManager.fetchExercises(filter: fallbackFilter)
+                print("   ✅ Fallback found \(candidates.count) exercises (use with caution)")
+            }
+
             let additionalExercises = selectDiverseExercises(
                 from: candidates,
                 count: remainingCount,

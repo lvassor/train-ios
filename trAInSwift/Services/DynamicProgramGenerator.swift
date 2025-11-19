@@ -49,6 +49,19 @@ class DynamicProgramGenerator {
             daysPerWeek: questionnaireData.trainingDaysPerWeek
         )
 
+        // CRITICAL VALIDATION: Check for empty sessions
+        print("🔍 Validating generated sessions...")
+        for (index, session) in sessions.enumerated() {
+            print("   Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
+            if session.exercises.isEmpty {
+                print("   ❌ CRITICAL: Session '\(session.dayName)' has 0 exercises!")
+                print("      This will cause the workout logger to fail!")
+                print("      Equipment: \(availableEquipment)")
+                print("      Injuries: \(questionnaireData.injuries)")
+                print("      Experience: \(experienceLevel)")
+            }
+        }
+
         let program = Program(
             type: splitType,
             daysPerWeek: questionnaireData.trainingDaysPerWeek,
@@ -160,6 +173,11 @@ class DynamicProgramGenerator {
             let requireComplexity4First = complexityRules.complexity4MustBeFirst
 
             // Select exercises from database
+            print("🔍 Selecting exercises for: \(muscleGroup.muscle) (need \(targetCount))")
+            print("   Equipment: \(availableEquipment)")
+            print("   Injuries: \(userInjuries)")
+            print("   Already used: \(usedExerciseIds.count) exercises")
+
             let dbExercises = try exerciseRepo.selectExercises(
                 count: targetCount,
                 movementPattern: muscleGroup.movementPattern,
@@ -171,6 +189,12 @@ class DynamicProgramGenerator {
                 allowComplexity4: allowComplexity4,
                 requireComplexity4First: requireComplexity4First
             )
+
+            print("   ✅ Found \(dbExercises.count) exercises for \(muscleGroup.muscle)")
+            if dbExercises.isEmpty {
+                print("   ❌ WARNING: NO EXERCISES FOUND for \(muscleGroup.muscle)!")
+                print("      This will create an empty session!")
+            }
 
             // Convert to ProgramExercise with sets/reps based on goal
             for dbExercise in dbExercises {

@@ -54,21 +54,21 @@ struct DashboardView: View {
 
                                 Spacer()
 
-                                // Streak counter
-                                HStack(spacing: 4) {
-                                    Text("🔥")
-                                        .font(.system(size: 20))
-
-                                    Text("\(currentStreak)")
-                                        .font(.trainBodyMedium)
-                                        .foregroundColor(.trainTextPrimary)
-                                }
+                                // Streak counter - commented out for MVP
+                                // HStack(spacing: 4) {
+                                //     Text("🔥")
+                                //         .font(.system(size: 20))
+                                //
+                                //     Text("\(currentStreak)")
+                                //         .font(.trainBodyMedium)
+                                //         .foregroundColor(.trainTextPrimary)
+                                // }
                             }
                             .padding(.horizontal, Spacing.lg)
                             .padding(.top, Spacing.md)
-                            .onAppear {
-                                currentStreak = calculateStreak()
-                            }
+                            // .onAppear {
+                            //     currentStreak = calculateStreak()
+                            // }
 
                             if let program = userProgram {
                                 // Program Progress Card
@@ -81,10 +81,6 @@ struct DashboardView: View {
 
                                 // Your Weekly Sessions
                                 WeeklySessionsSection(userProgram: program)
-                                    .padding(.horizontal, Spacing.lg)
-
-                                // Upcoming Workouts
-                                UpcomingWorkoutsSection(userProgram: program)
                                     .padding(.horizontal, Spacing.lg)
                             } else {
                                 // No program found - show error message
@@ -158,11 +154,14 @@ struct DashboardView: View {
     private func getUserFirstName() -> String {
         // Try to use the stored name first
         if let name = user?.name, !name.isEmpty {
-            return name.components(separatedBy: " ").first ?? name
+            let firstName = name.components(separatedBy: " ").first ?? name
+            // Title case the first name
+            return firstName.prefix(1).uppercased() + firstName.dropFirst().lowercased()
         }
         // Fall back to email
         guard let email = user?.email else { return "User" }
-        return email.components(separatedBy: "@").first?.capitalized ?? "User"
+        let emailName = email.components(separatedBy: "@").first ?? "User"
+        return emailName.prefix(1).uppercased() + emailName.dropFirst().lowercased()
     }
 
     private func calculateStreak() -> Int {
@@ -231,30 +230,11 @@ struct ProgramProgressCard: View {
                 }
             }
 
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                // Show program name instead of week counter
-                if let validProgram = programData {
-                    Text(validProgram.type.description)
-                        .font(.trainTitle2)
-                        .foregroundColor(.trainTextPrimary)
-                }
-
-                // Progress bar (no week counter visible, just the bar)
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.trainTextSecondary.opacity(0.2))
-                            .frame(height: 8)
-
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.trainPrimary)
-                            .frame(
-                                width: geometry.size.width * CGFloat(userProgram.currentWeek) / CGFloat(userProgram.totalWeeks),
-                                height: 8
-                            )
-                    }
-                }
-                .frame(height: 8)
+            // Show program name (progress bar removed for MVP)
+            if let validProgram = programData {
+                Text(validProgram.type.description)
+                    .font(.trainTitle2)
+                    .foregroundColor(.trainTextPrimary)
             }
 
             // Expanded content
@@ -271,12 +251,7 @@ struct ProgramProgressCard: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(Spacing.md)
-                    .background(Color.white)
-                    .cornerRadius(20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.black, lineWidth: 2)
-                    )
+                    .glassCard(cornerRadius: CornerRadius.md)
 
                     // Duration and Frequency Cards
                     HStack(spacing: Spacing.md) {
@@ -460,12 +435,9 @@ struct SessionBubble: View {
             }
         }
         .padding(Spacing.md)
-        .background(isCompleted ? Color.trainPrimary : Color.white)
-        .cornerRadius(25)
-        .overlay(
-            RoundedRectangle(cornerRadius: 25)
-                .stroke(isCompleted ? Color.clear : Color.trainBorder, lineWidth: 1)
-        )
+        .background(isCompleted ? Color.trainPrimary : .clear)
+        .glassCompactCard(cornerRadius: 25)
+        .shadow(color: isCompleted ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
     }
 }
 
@@ -500,24 +472,16 @@ struct ExpandedSessionBubble: View {
             )) {
                 Text("Log this workout")
                     .font(.trainBodyMedium)
-                    .foregroundColor(.trainPrimary)
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.md)
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.trainPrimary, lineWidth: 2)
-                    )
+                    .background(Color.trainPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                    .shadow(color: Color.trainPrimary.opacity(0.4), radius: 16, x: 0, y: 0)
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(25)
-        .overlay(
-            RoundedRectangle(cornerRadius: 25)
-                .stroke(Color.trainBorder, lineWidth: 1)
-        )
+        .glassCompactCard(cornerRadius: 25)
     }
 }
 
@@ -595,11 +559,14 @@ struct UpcomingWorkoutsSection: View {
     private var upcomingSessions: [SessionInfo] {
         var upcoming: [SessionInfo] = []
         guard let programData = userProgram.getProgram() else { return [] }
-        let sessions = programData.sessions
+
+        // CRITICAL: Only consider sessions within daysPerWeek limit
+        let daysPerWeek = Int(userProgram.daysPerWeek)
+        let sessionsToConsider = Array(programData.sessions.prefix(daysPerWeek))
 
         // Find first incomplete session
         var foundNext = false
-        for (index, session) in sessions.enumerated() {
+        for (index, session) in sessionsToConsider.enumerated() {
             let sessionId = "week\(userProgram.currentWeek)-session\(index)"
             if !userProgram.completedSessionsSet.contains(sessionId) {
                 if foundNext {
@@ -639,12 +606,7 @@ struct UpcomingWorkoutCard: View {
             Spacer()
         }
         .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(15)
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(Color.trainBorder, lineWidth: 1)
-        )
+        .glassCompactCard(cornerRadius: 15)
     }
 }
 
