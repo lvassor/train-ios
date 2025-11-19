@@ -6,12 +6,25 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct CalendarView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
     @ObservedObject var authService = AuthService.shared
     @State private var selectedDate: Date?
     @State private var currentMonth: Date = Date()
+
+    // Fetch all workout sessions for current user
+    @FetchRequest private var workoutSessions: FetchedResults<CDWorkoutSession>
+
+    init() {
+        // Initialize with empty predicate, will be updated based on current user
+        let request: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \CDWorkoutSession.completedAt, ascending: false)]
+        request.predicate = NSPredicate(value: true) // Placeholder
+        _workoutSessions = FetchRequest(fetchRequest: request)
+    }
 
     var body: some View {
         NavigationView {
@@ -21,16 +34,15 @@ struct CalendarView: View {
                 VStack(spacing: 0) {
                     // Month Navigation
                     MonthNavigationView(currentMonth: $currentMonth)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.vertical, Spacing.md)
-                        .background(Color.white)
+                        .glassCardPadding()
+                        .glassCompactCard()
 
                     ScrollView {
                         VStack(spacing: Spacing.lg) {
                             // Calendar Grid
                             CalendarGridView(
                                 currentMonth: currentMonth,
-                                workouts: [], // TODO: Implement workout history from Core Data
+                                workouts: convertToWorkoutSessions(Array(workoutSessions)),
                                 selectedDate: $selectedDate
                             )
                             .padding(.horizontal, Spacing.lg)
@@ -65,8 +77,36 @@ struct CalendarView: View {
     }
 
     private func getWorkouts(for date: Date) -> [WorkoutSession] {
-        // TODO: Implement filtering from Core Data WorkoutSessions
-        return []
+        let calendar = Calendar.current
+        let filtered = workoutSessions.filter { session in
+            guard let completedAt = session.completedAt else { return false }
+            return calendar.isDate(completedAt, inSameDayAs: date)
+        }
+        return convertToWorkoutSessions(Array(filtered))
+    }
+
+    private func convertToWorkoutSessions(_ cdSessions: [CDWorkoutSession]) -> [WorkoutSession] {
+        return cdSessions.compactMap { cdSession in
+            guard let id = cdSession.id,
+                  let userId = cdSession.userId,
+                  let completedAt = cdSession.completedAt,
+                  let sessionName = cdSession.sessionName else {
+                return nil
+            }
+
+            let loggedExercises = cdSession.getLoggedExercises()
+
+            return WorkoutSession(
+                id: id.uuidString,
+                userId: userId.uuidString,
+                date: completedAt,
+                sessionType: sessionName,
+                weekNumber: Int(cdSession.weekNumber),
+                exercises: loggedExercises,
+                durationMinutes: cdSession.durationMinutes,
+                completed: true
+            )
+        }
     }
 }
 
@@ -159,9 +199,8 @@ struct CalendarGridView: View {
                 }
             }
         }
-        .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(CornerRadius.md)
+        .glassCompactPadding()
+        .glassCard()
     }
 
     private func getDaysInMonth() -> [Date?] {
@@ -224,6 +263,7 @@ struct CalendarDayView: View {
                 if isSelected {
                     Circle()
                         .fill(Color.trainPrimary)
+                        .accentGlow()
                 } else if isToday {
                     Circle()
                         .stroke(Color.trainPrimary, lineWidth: 2)
@@ -272,9 +312,8 @@ struct WorkoutsForDateView: View {
                 }
             }
         }
-        .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(CornerRadius.md)
+        .glassCompactPadding()
+        .glassCard()
     }
 
     private func formatDate(_ date: Date) -> String {
@@ -319,9 +358,8 @@ struct WorkoutHistoryCard: View {
                 .foregroundColor(.trainTextSecondary)
             }
         }
-        .padding(Spacing.sm)
-        .background(Color.trainBackground)
-        .cornerRadius(CornerRadius.sm)
+        .padding(Spacing.md)
+        .glassCompactCard()
     }
 }
 

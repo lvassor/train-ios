@@ -49,12 +49,9 @@ struct OptionCard: View {
             .padding(Spacing.lg)  // 24px padding from Figma
             .frame(maxWidth: .infinity)
             .frame(height: ElementHeight.optionCard)  // 80px from Figma
-            .background(isSelected ? Color.trainPrimary : Color.white)
-            .cornerRadius(CornerRadius.md)  // 16px from Figma
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(isSelected ? Color.clear : Color.black, lineWidth: 1)  // Black border from Figma
-            )
+            .background(isSelected ? Color.trainPrimary : .clear)
+            .glassCard()
+            .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(ScaleButtonStyle())
     }

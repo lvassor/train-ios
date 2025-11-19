@@ -10,6 +10,7 @@ import SwiftUI
 struct ProgramReadyView: View {
     let program: Program
     let onStart: () -> Void
+    let selectedMuscleGroups: [String]  // Added for muscle groups display
     @State private var showSignup = false
     @State private var showLoading = false
     @State private var showPaywall = false
@@ -83,16 +84,16 @@ struct ProgramReadyView: View {
                         .foregroundColor(.trainTextSecondary)
                 }
 
-                // Program details
+                // Program details - reordered as requested
                 VStack(spacing: 12) {
                     ProgramInfoCard(
-                        label: "Program Duration",
-                        value: "\(program.totalWeeks) weeks"
+                        label: "Workout Split",
+                        value: program.type.description
                     )
 
                     ProgramInfoCard(
-                        label: "Exercise Split",
-                        value: program.type.rawValue
+                        label: "Prioritised Muscle Groups",
+                        value: selectedMuscleGroups.isEmpty ? "Full body" : selectedMuscleGroups.joined(separator: ", ")
                     )
 
                     ProgramInfoCard(
@@ -141,8 +142,6 @@ struct ProgramInfoCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(Spacing.lg)
-        .background(Color.white)
-        .cornerRadius(CornerRadius.md)
-        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .glassCard()
     }
 }

@@ -24,10 +24,14 @@ struct QuestionnaireView: View {
     var body: some View {
         ZStack {
             if showingProgramReady, let program = viewModel.generatedProgram {
-                ProgramReadyView(program: program, onStart: {
-                    viewModel.completeQuestionnaire()
-                    onComplete()
-                })
+                ProgramReadyView(
+                    program: program,
+                    onStart: {
+                        viewModel.completeQuestionnaire()
+                        onComplete()
+                    },
+                    selectedMuscleGroups: viewModel.questionnaireData.targetMuscleGroups
+                )
             } else if showingProgramLoading {
                 ProgramLoadingView(onComplete: {
                     // Generate program when loading completes
@@ -305,26 +309,26 @@ struct SectionCoverView: View {
             Spacer()
 
             VStack(spacing: Spacing.xl) {
-                // Icon
+                // Icon - doubled in size from 48 to 96
                 ZStack {
                     Circle()
                         .fill(Color.trainPrimary.opacity(0.1))
-                        .frame(width: 100, height: 100)
+                        .frame(width: 200, height: 200)
 
                     Image(systemName: iconName)
-                        .font(.system(size: 48))
+                        .font(.system(size: 96))
                         .foregroundColor(.trainPrimary)
                 }
 
-                // Title
+                // Title - one size larger (from trainTitle 28pt to 34pt)
                 Text(title)
-                    .font(.trainTitle)
+                    .font(.system(size: 34, weight: .semibold, design: .rounded))
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                // Subtitle
+                // Subtitle - one size larger (from trainBody 16pt to 18pt)
                 Text(subtitle)
-                    .font(.trainBody)
+                    .font(.system(size: 18, weight: .regular))
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Spacing.xl)

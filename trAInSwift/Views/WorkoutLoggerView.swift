@@ -35,10 +35,22 @@ struct WorkoutLoggerView: View {
     }
 
     var session: ProgramSession? {
-        guard let program = programData,
-              sessionIndex < program.sessions.count else {
+        guard let program = programData else {
+            AppLogger.logWorkout("Cannot get session: programData is nil", level: .error)
+            AppLogger.logWorkout("userProgram exists: \(userProgram != nil)", level: .error)
+            if let up = userProgram {
+                AppLogger.logWorkout("exercisesData exists: \(up.exercisesData != nil)", level: .error)
+                AppLogger.logWorkout("exercisesData size: \(up.exercisesData?.count ?? 0) bytes", level: .error)
+            }
             return nil
         }
+
+        guard sessionIndex < program.sessions.count else {
+            AppLogger.logWorkout("Cannot get session: sessionIndex \(sessionIndex) >= sessions.count \(program.sessions.count)", level: .error)
+            return nil
+        }
+
+        AppLogger.logWorkout("Successfully loaded session \(sessionIndex): \(program.sessions[sessionIndex].dayName)")
         return program.sessions[sessionIndex]
     }
 
@@ -88,9 +100,9 @@ struct WorkoutLoggerView: View {
                                 .foregroundColor(selectedTab == .logger ? .trainTextPrimary : .trainTextSecondary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Spacing.md)
-                                .background(selectedTab == .logger ? Color.white : Color.clear)
-                                .cornerRadius(20, corners: [.topLeft, .bottomLeft])
                         }
+                        .background(selectedTab == .logger ? Color.white : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 
                         Button(action: {
                             selectedTab = .demo
@@ -101,12 +113,11 @@ struct WorkoutLoggerView: View {
                                 .foregroundColor(selectedTab == .demo ? .trainTextPrimary : .trainTextSecondary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Spacing.md)
-                                .background(selectedTab == .demo ? Color.white : Color.clear)
-                                .cornerRadius(20, corners: [.topRight, .bottomRight])
                         }
+                        .background(selectedTab == .demo ? Color.white : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     }
-                    .background(Color.trainTextSecondary.opacity(0.1))
-                    .cornerRadius(20)
+                    .glassCompactCard()
                     .padding(.horizontal, Spacing.lg)
                     .padding(.vertical, Spacing.sm)
 
@@ -183,12 +194,7 @@ struct WorkoutLoggerView: View {
                                                 }
                                             }
                                             .padding(Spacing.md)
-                                            .background(Color.white)
-                                            .cornerRadius(15)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 15)
-                                                    .stroke(Color.trainBorder, lineWidth: 1)
-                                            )
+                                            .whiteCard()
                                             .padding(.horizontal, Spacing.lg)
                                         } else {
                                             Text("Instructions coming soon")
@@ -196,12 +202,7 @@ struct WorkoutLoggerView: View {
                                                 .foregroundColor(.trainTextSecondary)
                                                 .padding(Spacing.lg)
                                                 .frame(maxWidth: .infinity)
-                                                .background(Color.white)
-                                                .cornerRadius(15)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 15)
-                                                        .stroke(Color.trainBorder, lineWidth: 1)
-                                                )
+                                                .whiteCard()
                                                 .padding(.horizontal, Spacing.lg)
                                         }
 
@@ -225,7 +226,8 @@ struct WorkoutLoggerView: View {
                                         .frame(maxWidth: .infinity)
                                         .frame(height: ButtonHeight.standard)
                                         .background(Color.trainPrimary)
-                                        .cornerRadius(CornerRadius.md)
+                                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                                        .accentGlow()
                                 }
                             } else {
                                 Button(action: { showCompletionModal = true }) {
@@ -235,7 +237,8 @@ struct WorkoutLoggerView: View {
                                         .frame(maxWidth: .infinity)
                                         .frame(height: ButtonHeight.standard)
                                         .background(Color.trainPrimary)
-                                        .cornerRadius(CornerRadius.md)
+                                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                                        .accentGlow()
                                 }
                             }
                         }
@@ -511,8 +514,7 @@ struct ExerciseInfoCard: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(CornerRadius.md)
+        .whiteCard()
     }
 }
 
@@ -530,8 +532,7 @@ struct InfoBadge: View {
         .foregroundColor(.trainTextSecondary)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xs)
-        .background(Color.trainBackground)
-        .cornerRadius(CornerRadius.sm)
+        .glassCompactCard(cornerRadius: CornerRadius.sm)
     }
 }
 
@@ -563,8 +564,7 @@ struct SetLoggingView: View {
                 }
             }
         }
-        .background(Color.trainBackground)
-        .cornerRadius(CornerRadius.sm)
+        .glassCompactCard(cornerRadius: CornerRadius.sm)
     }
 
     var body: some View {
@@ -620,8 +620,7 @@ struct SetLoggingView: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(CornerRadius.md)
+        .whiteCard()
         .onChange(of: loggedExercise.sets) { _, _ in
             evaluateAndShowPrompt()
         }

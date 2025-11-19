@@ -49,12 +49,8 @@ struct GenderStepView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.xl)
-                        .background(selectedGender == "Male" ? Color.trainPrimary : Color.white)
-                        .cornerRadius(CornerRadius.md)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.md)
-                                .stroke(selectedGender == "Male" ? Color.clear : Color.trainBorder, lineWidth: 1)
-                        )
+                        .background(selectedGender == "Male" ? Color.trainPrimary : .clear)
+                        .glassCard()
                     }
                     .buttonStyle(ScaleButtonStyle())
 
@@ -77,12 +73,8 @@ struct GenderStepView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.xl)
-                        .background(selectedGender == "Female" ? Color.trainPrimary : Color.white)
-                        .cornerRadius(CornerRadius.md)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.md)
-                                .stroke(selectedGender == "Female" ? Color.clear : Color.trainBorder, lineWidth: 1)
-                        )
+                        .background(selectedGender == "Female" ? Color.trainPrimary : .clear)
+                        .glassCard()
                     }
                     .buttonStyle(ScaleButtonStyle())
                 }
@@ -108,19 +100,14 @@ struct GenderStepView: View {
                     }
                     .padding(Spacing.md)
                     .frame(maxWidth: .infinity)
-                    .background(selectedGender == "Other / Prefer not to say" ? Color.trainPrimary : Color.white)
-                    .cornerRadius(CornerRadius.md)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.md)
-                            .stroke(selectedGender == "Other / Prefer not to say" ? Color.clear : Color.trainBorder, lineWidth: 1)
-                    )
+                    .background(selectedGender == "Other / Prefer not to say" ? Color.trainPrimary : .clear)
+                    .glassCard()
                 }
                 .buttonStyle(ScaleButtonStyle())
             }
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.lg)
     }
 }
 
@@ -492,7 +479,6 @@ struct GoalsStepView: View {
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.lg)
     }
 }
 
@@ -546,7 +532,6 @@ struct MuscleGroupsStepView: View {
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.lg)
     }
 
     private func toggleGroup(_ group: String) {
@@ -570,12 +555,9 @@ struct MuscleGroupButton: View {
                 .foregroundColor(isSelected ? .white : .trainTextPrimary)
                 .frame(maxWidth: .infinity)
                 .padding(Spacing.md)
-                .background(isSelected ? Color.trainPrimary : Color.white)
-                .cornerRadius(CornerRadius.md)
-                .overlay(
-                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                        .stroke(isSelected ? Color.clear : Color.trainBorder, lineWidth: 1)
-                )
+                .background(isSelected ? Color.trainPrimary : .clear)
+                .glassCard(cornerRadius: CornerRadius.md)
+                .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(ScaleButtonStyle())
     }
@@ -620,7 +602,6 @@ struct ExperienceStepView: View {
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.lg)
     }
 }
 
@@ -658,6 +639,7 @@ struct MotivationStepView: View {
                     MultiSelectCard(
                         title: title,
                         isSelected: selectedMotivations.contains(value),
+                        isCompact: true,  // Use compact version
                         action: { toggleMotivation(value) }
                     )
                 }
@@ -666,18 +648,12 @@ struct MotivationStepView: View {
                     TextField("Please specify", text: $otherText)
                         .font(.trainBody)
                         .padding(Spacing.md)
-                        .background(Color.white)
-                        .cornerRadius(CornerRadius.md)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.md)
-                                .stroke(Color.trainPrimary, lineWidth: 2)
-                        )
+                        .glassCard()
                 }
             }
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.lg)
     }
 
     private func toggleMotivation(_ motivation: String) {
@@ -783,12 +759,9 @@ struct EquipmentCard: View {
                 .buttonStyle(PlainButtonStyle())
             }
             .padding(Spacing.md)
-            .background(isSelected ? Color.trainPrimary : Color.white)
-            .cornerRadius(15)
-            .overlay(
-                RoundedRectangle(cornerRadius: 15)
-                    .stroke(isSelected ? Color.trainPrimary : Color.trainBorder, lineWidth: 2)
-            )
+            .background(isSelected ? Color.trainPrimary : .clear)
+            .glassCard(cornerRadius: CornerRadius.md)
+            .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -927,21 +900,17 @@ struct TrainingDaysStepView: View {
                     Button(action: { trainingDays = days }) {
                         VStack(spacing: Spacing.sm) {
                             Text("\(days)")
-                                .font(.system(size: 32, weight: .bold))
+                                .font(.trainMediumNumber)  // Using new rounded number font
                                 .foregroundColor(trainingDays == days ? .white : .trainPrimary)
 
                             Text("days")
-                                .font(.trainCaption)
+                                .font(.trainBody)
                                 .foregroundColor(trainingDays == days ? .white : .trainTextSecondary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.lg)
-                        .background(trainingDays == days ? Color.trainPrimary : Color.white)
-                        .cornerRadius(CornerRadius.md)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.md)
-                                .stroke(trainingDays == days ? Color.clear : Color.trainBorder, lineWidth: 1)
-                        )
+                        .background(trainingDays == days ? Color.trainPrimary : .clear)
+                        .glassCard()
                     }
                     .buttonStyle(ScaleButtonStyle())
                 }
@@ -949,7 +918,6 @@ struct TrainingDaysStepView: View {
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.lg)
     }
 }
 
@@ -991,7 +959,6 @@ struct SessionDurationStepView: View {
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.lg)
     }
 }
 
@@ -1026,41 +993,42 @@ struct InjuriesStepView: View {
             .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
-                ForEach(injuryOptions, id: \.self) { injury in
-                    MultiSelectCard(
-                        title: injury,
-                        isSelected: injuries.contains(injury),
-                        action: { toggleInjury(injury) }
-                    )
+                // Two column grid for injury options
+                let columns = [GridItem(.flexible()), GridItem(.flexible())]
+                LazyVGrid(columns: columns, spacing: Spacing.md) {
+                    ForEach(injuryOptions, id: \.self) { injury in
+                        MultiSelectCard(
+                            title: injury,
+                            isSelected: injuries.contains(injury),
+                            isCompact: true,
+                            action: { toggleInjury(injury) }
+                        )
+                    }
                 }
 
-                // None option
+                // None option - spans full width
                 Button(action: { injuries = [] }) {
                     HStack {
                         Image(systemName: injuries.isEmpty ? "checkmark.circle.fill" : "circle")
                             .font(.title3)
-                            .foregroundColor(injuries.isEmpty ? .trainPrimary : .trainBorder)
+                            .foregroundColor(injuries.isEmpty ? .white : .trainTextSecondary)
 
                         Text("No injuries or limitations")
-                            .font(.trainBody)
-                            .foregroundColor(.trainTextPrimary)
+                            .font(.trainBodyMedium)
+                            .foregroundColor(injuries.isEmpty ? .white : .trainTextPrimary)
 
                         Spacer()
                     }
                     .padding(Spacing.md)
-                    .background(Color.white)
-                    .cornerRadius(CornerRadius.md)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.md)
-                            .stroke(injuries.isEmpty ? Color.trainPrimary : Color.trainBorder, lineWidth: injuries.isEmpty ? 2 : 1)
-                    )
+                    .background(injuries.isEmpty ? Color.trainPrimary : .clear)
+                    .glassCard(cornerRadius: CornerRadius.md)
+                    .shadow(color: injuries.isEmpty ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
                 }
                 .buttonStyle(ScaleButtonStyle())
             }
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.lg)
     }
 
     private func toggleInjury(_ injury: String) {

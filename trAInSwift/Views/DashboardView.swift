@@ -232,11 +232,14 @@ struct ProgramProgressCard: View {
             }
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("Week \(userProgram.currentWeek) of \(userProgram.totalWeeks)")
-                    .font(.trainTitle2)
-                    .foregroundColor(.trainTextPrimary)
+                // Show program name instead of week counter
+                if let validProgram = programData {
+                    Text(validProgram.type.description)
+                        .font(.trainTitle2)
+                        .foregroundColor(.trainTextPrimary)
+                }
 
-                // Progress bar
+                // Progress bar (no week counter visible, just the bar)
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 10)
@@ -287,12 +290,7 @@ struct ProgramProgressCard: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(Spacing.md)
-                        .background(Color.white)
-                        .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.black, lineWidth: 2)
-                        )
+                        .glassCard(cornerRadius: CornerRadius.md)
 
                         VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Frequency")
@@ -304,12 +302,7 @@ struct ProgramProgressCard: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(Spacing.md)
-                        .background(Color.white)
-                        .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.black, lineWidth: 2)
-                        )
+                        .glassCard(cornerRadius: CornerRadius.md)
                     }
 
                     // Priority Muscle Groups
@@ -368,23 +361,13 @@ struct ProgramProgressCard: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(Spacing.md)
-                    .background(Color.white)
-                    .cornerRadius(20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.black, lineWidth: 2)
-                    )
+                    .glassCard(cornerRadius: CornerRadius.md)
                 }
                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(15)
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(Color.trainBorder, lineWidth: 1)
-        )
+        .glassCard()
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isExpanded)
     }
 }

@@ -12,13 +12,15 @@ struct MultiSelectCard: View {
     let subtitle: String?
     let isSelected: Bool
     let action: () -> Void
+    var isCompact: Bool = false  // For smaller cards
 
     @State private var isHovered = false
 
-    init(title: String, subtitle: String? = nil, isSelected: Bool, action: @escaping () -> Void) {
+    init(title: String, subtitle: String? = nil, isSelected: Bool, isCompact: Bool = false, action: @escaping () -> Void) {
         self.title = title
         self.subtitle = subtitle
         self.isSelected = isSelected
+        self.isCompact = isCompact
         self.action = action
     }
 
@@ -36,14 +38,11 @@ struct MultiSelectCard: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(Spacing.lg)  // 24px padding from Figma
-            .frame(height: ElementHeight.optionCard)  // 80px from Figma
-            .background(isSelected ? Color.trainPrimary : Color.white)
-            .cornerRadius(CornerRadius.md)  // 16px from Figma
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(isSelected ? Color.clear : Color.black, lineWidth: 1)  // Black border from Figma
-            )
+            .padding(isCompact ? Spacing.md : Spacing.lg)  // Smaller padding for compact
+            .frame(height: isCompact ? ElementHeight.optionCardCompact : ElementHeight.optionCard)
+            .background(isSelected ? Color.trainPrimary : .clear)
+            .glassCard()
+            .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(ScaleButtonStyle())
     }

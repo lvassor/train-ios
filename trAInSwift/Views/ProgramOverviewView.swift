@@ -125,8 +125,7 @@ struct WeekSection: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(CornerRadius.md)
+        .glassCard()
         .opacity(isFutureWeek ? 0.6 : 1.0)
     }
 }
@@ -203,10 +202,10 @@ struct SessionRow: View {
                 }
             }
             .padding(Spacing.md)
-            .background(isNextSession ? Color.trainPrimary.opacity(0.05) : Color.trainBackground)
-            .cornerRadius(CornerRadius.sm)
+            .background(isNextSession ? Color.trainPrimary.opacity(0.05) : .clear)
+            .glassCompactCard(cornerRadius: CornerRadius.sm)
             .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.sm)
+                RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
                     .stroke(isNextSession ? Color.trainPrimary : Color.clear, lineWidth: 2)
             )
         }

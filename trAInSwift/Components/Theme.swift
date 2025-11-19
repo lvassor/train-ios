@@ -40,21 +40,23 @@ extension Color {
 // The Color extensions are applied there automatically
 
 // MARK: - Typography
-// Based on Figma design system - uses Inter font family
+// Apple-inspired glassmorphic design system with SF Pro Rounded
 extension Font {
-    // Headers - using Figma specs
-    static let trainTitle = Font.system(size: 24, weight: .medium)        // 24px, Medium (500)
-    static let trainTitle2 = Font.system(size: 24, weight: .medium)       // 24px, Medium (500)
-    static let trainHeadline = Font.system(size: 20, weight: .medium)     // 20px, Medium (500)
+    // Headers - using SF Pro Rounded for softer, more approachable feel
+    static let trainTitle = Font.system(size: 28, weight: .semibold, design: .rounded)        // Bumped for rounded design
+    static let trainTitle2 = Font.system(size: 24, weight: .semibold, design: .rounded)       // Bumped weight for presence
+    static let trainHeadline = Font.system(size: 20, weight: .semibold, design: .rounded)     // Semibold for headers
 
-    // Body - using Figma specs
-    static let trainSubtitle = Font.system(size: 16, weight: .light)      // 16px, Light (300)
-    static let trainBody = Font.system(size: 16, weight: .light)          // 16px, Light (300)
-    static let trainBodyMedium = Font.system(size: 18, weight: .medium)   // 18px, Medium (500) for buttons
-    static let trainCaption = Font.system(size: 16, weight: .light)       // 16px, Light (300)
+    // Body - default design for better readability
+    static let trainSubtitle = Font.system(size: 16, weight: .regular)      // Regular for body text
+    static let trainBody = Font.system(size: 16, weight: .regular)          // Regular for body text
+    static let trainBodyMedium = Font.system(size: 18, weight: .medium, design: .rounded)   // Rounded for interactive elements
+    static let trainCaption = Font.system(size: 14, weight: .regular)       // Slightly smaller caption
 
-    // Special
-    static let trainLargeNumber = Font.system(size: 72, weight: .bold)
+    // Special - rounded design for numbers
+    static let trainLargeNumber = Font.system(size: 72, weight: .bold, design: .rounded)
+    static let trainMediumNumber = Font.system(size: 48, weight: .semibold, design: .rounded)  // For stats
+    static let trainSmallNumber = Font.system(size: 24, weight: .semibold, design: .rounded)   // For compact displays
 }
 
 // MARK: - Line Height
@@ -78,12 +80,15 @@ struct Spacing {
 }
 
 // MARK: - Corner Radius
-// Based on Figma design system
+// Apple glassmorphic design system - continuous curves
 struct CornerRadius {
-    static let sm: CGFloat = 8        // Small elements
-    static let md: CGFloat = 16       // Standard cards and buttons (from Figma)
-    static let lg: CGFloat = 16       // Same as md for consistency
+    static let sm: CGFloat = 12       // Small elements
+    static let md: CGFloat = 20       // Standard cards and buttons
+    static let lg: CGFloat = 32       // Large cards
     static let xl: CGFloat = 40       // Main container/screen (from Figma)
+
+    // Continuous corner style for Apple aesthetic
+    static let continuousStyle: RoundedCornerStyle = .continuous
 }
 
 // MARK: - Element Heights
@@ -91,6 +96,7 @@ struct CornerRadius {
 struct ElementHeight {
     static let button: CGFloat = 50           // Standard button height (from Figma)
     static let optionCard: CGFloat = 80       // Option card height (from Figma)
+    static let optionCardCompact: CGFloat = 56  // Compact option card for dense lists
     static let progressBar: CGFloat = 4       // Progress bar height (from Figma)
 }
 
@@ -106,4 +112,64 @@ struct Layout {
     static let screenWidth: CGFloat = 393           // Figma viewport width
     static let contentWidth: CGFloat = 340          // Standard content width from Figma
     static let horizontalPadding: CGFloat = 20      // Side padding: (393-340)/2 ≈ 26.5, but Figma uses 20
+}
+
+// MARK: - Glassmorphic Design System
+// Apple-inspired material design with continuous corners and subtle shadows
+
+extension View {
+    /// Standard glassmorphic card with ultra-thin material background
+    func glassCard(cornerRadius: CGFloat = CornerRadius.lg) -> some View {
+        self
+            .background(.regularMaterial)  // More opaque for better contrast on grey backgrounds
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
+    }
+
+    /// Premium glassmorphic card with thin material (more opacity)
+    func glassPremiumCard(cornerRadius: CGFloat = CornerRadius.lg) -> some View {
+        self
+            .background(.thinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.1), radius: 24, x: 0, y: 12)
+    }
+
+    /// Compact glassmorphic card for smaller elements
+    func glassCompactCard(cornerRadius: CGFloat = CornerRadius.md) -> some View {
+        self
+            .background(.regularMaterial)  // More opaque for better contrast
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
+    }
+
+    /// Glassmorphic button style
+    func glassButton(cornerRadius: CGFloat = CornerRadius.md) -> some View {
+        self
+            .background(.thinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 8)
+    }
+
+    /// Standard card padding for glassmorphic designs
+    func glassCardPadding() -> some View {
+        self.padding(Spacing.lg)  // 24pt generous padding
+    }
+
+    /// Compact card padding
+    func glassCompactPadding() -> some View {
+        self.padding(Spacing.md)  // 16pt standard padding
+    }
+
+    /// Accent glow effect for active/selected states
+    func accentGlow(color: Color = .green, intensity: Double = 0.6) -> some View {
+        self.shadow(color: color.opacity(intensity), radius: 16, x: 0, y: 0)
+    }
+
+    /// White card with subtle shadow - for workout logger and other white-on-grey contexts
+    func whiteCard(cornerRadius: CGFloat = CornerRadius.lg) -> some View {
+        self
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
+    }
 }

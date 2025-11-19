@@ -11,6 +11,7 @@ struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var authService = AuthService.shared
     @State private var showLogoutConfirmation = false
+    @State private var shouldRestartQuestionnaire = false
 
     var body: some View {
         NavigationView {
@@ -80,8 +81,7 @@ struct ProfileView: View {
                                 action: {}
                             )
                         }
-                        .background(Color.white)
-                        .cornerRadius(CornerRadius.md)
+                        .glassCard()
                         .padding(.horizontal, Spacing.lg)
 
                         Spacer()
@@ -186,27 +186,18 @@ struct SubscriptionInfoCard: View {
                     .foregroundColor(.trainPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.trainPrimary, lineWidth: 2)
-                    )
+                    .glassCompactCard(cornerRadius: 10)
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(15)
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(Color.trainBorder, lineWidth: 1)
-        )
+        .glassCard()
     }
 }
 
 // MARK: - Program Card
 
 struct ProgramCard: View {
+    @Environment(\.dismiss) var dismiss
     @ObservedObject var authService = AuthService.shared
     @State private var showRetakeConfirmation = false
 
@@ -240,29 +231,21 @@ struct ProgramCard: View {
                     .foregroundColor(.trainPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.trainPrimary, lineWidth: 2)
-                    )
+                    .glassCompactCard(cornerRadius: 10)
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(15)
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(Color.trainBorder, lineWidth: 1)
-        )
+        .glassCard()
         .confirmationDialog("Retake Quiz", isPresented: $showRetakeConfirmation, titleVisibility: .visible) {
             Button("Retake Quiz", role: .destructive) {
-                // Clear current program and restart questionnaire
-                // TODO: Implement questionnaire restart logic
+                // Log out to restart questionnaire flow
+                // This will clear the user session and allow them to take the quiz again
+                authService.logout()
+                dismiss()
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will reset your programme. Continue?")
+            Text("This will log you out and let you retake the quiz to create a new programme. Continue?")
         }
     }
 }
