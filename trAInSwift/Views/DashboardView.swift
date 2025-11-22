@@ -44,10 +44,10 @@ struct DashboardView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Hey, \(getUserFirstName())")
-                                        .font(.trainTitle)
+                                        .font(.trainHeadline)
                                         .foregroundColor(.trainTextPrimary)
 
-                                    Text("You're killing it this week")
+                                    Text("You're killing it this week! 💪")
                                         .font(.trainBody)
                                         .foregroundColor(.trainTextSecondary)
                                 }
@@ -89,11 +89,11 @@ struct DashboardView: View {
                                         .font(.system(size: 48))
                                         .foregroundColor(.orange)
 
-                                    Text("No Training Program Found")
+                                    Text("No Training Programme Found")
                                         .font(.trainTitle)
                                         .foregroundColor(.trainTextPrimary)
 
-                                    Text("There was an issue loading your program. Please contact support or restart the questionnaire.")
+                                    Text("There was an issue loading your programme. Please contact support or restart the questionnaire.")
                                         .font(.trainBody)
                                         .foregroundColor(.trainTextSecondary)
                                         .multilineTextAlignment(.center)
@@ -218,7 +218,7 @@ struct ProgramProgressCard: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Button(action: onTap) {
                 HStack {
-                    Text("Program Progress")
+                    Text("Your Programme")
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
 
@@ -347,13 +347,15 @@ struct ProgramProgressCard: View {
     }
 }
 
-// MARK: - Weekly Sessions Section
+// MARK: - Weekly Sessions Section (Redesigned)
 
 struct WeeklySessionsSection: View {
     let userProgram: WorkoutProgram
+    @State private var selectedSessionIndex: Int = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
+            // Header
             VStack(alignment: .leading, spacing: 4) {
                 Text("Your Weekly Sessions")
                     .font(.trainBodyMedium)
@@ -364,31 +366,44 @@ struct WeeklySessionsSection: View {
                     .foregroundColor(.trainTextSecondary)
             }
 
-            VStack(spacing: Spacing.sm) {
-                // Only show sessions up to daysPerWeek (e.g., 3 for PPL, 4 for ULUL)
-                if let programData = userProgram.getProgram() {
-                    let sessionsToShow = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
-                    ForEach(Array(sessionsToShow.enumerated()), id: \.offset) { index, session in
-                    let isNextSession = index == nextSessionIndex
+            if let programData = userProgram.getProgram() {
+                let sessionsToShow = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
+                let sessionNames = getSessionDisplayNames(sessions: sessionsToShow)
 
-                    if isNextSession {
-                        // Expanded session with log button
-                        ExpandedSessionBubble(
-                            sessionName: session.dayName,
-                            exerciseCount: session.exercises.count,
-                            userProgram: userProgram,
-                            sessionIndex: index
-                        )
-                    } else {
-                        // Regular session bubble
-                        SessionBubble(
-                            sessionName: session.dayName,
-                            isCompleted: isSessionCompleted(sessionIndex: index)
-                        )
-                    }
-                    }
+                // Horizontal Day Buttons
+                HorizontalDayButtonsRow(
+                    sessions: sessionsToShow,
+                    sessionNames: sessionNames,
+                    selectedIndex: $selectedSessionIndex,
+                    userProgram: userProgram
+                )
+
+                // Action Button
+                SessionActionButton(
+                    userProgram: userProgram,
+                    sessionIndex: selectedSessionIndex,
+                    isCompleted: isSessionCompleted(sessionIndex: selectedSessionIndex)
+                )
+
+                // Dynamic Content: Exercise List or Completion Summary
+                if isSessionCompleted(sessionIndex: selectedSessionIndex) {
+                    CompletedSessionSummaryCard(
+                        userProgram: userProgram,
+                        sessionIndex: selectedSessionIndex
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                } else {
+                    ExerciseListView(
+                        session: sessionsToShow[selectedSessionIndex]
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
             }
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: selectedSessionIndex)
+        .onAppear {
+            // Default to first incomplete session or first session
+            selectedSessionIndex = nextSessionIndex ?? 0
         }
     }
 
@@ -400,7 +415,6 @@ struct WeeklySessionsSection: View {
     }
 
     private var nextSessionIndex: Int? {
-        // Find first incomplete session within daysPerWeek limit
         for index in 0..<Int(userProgram.daysPerWeek) {
             let sessionId = "week\(userProgram.currentWeek)-session\(index)"
             if !userProgram.completedSessionsSet.contains(sessionId) {
@@ -414,7 +428,318 @@ struct WeeklySessionsSection: View {
         let sessionId = "week\(userProgram.currentWeek)-session\(sessionIndex)"
         return userProgram.completedSessionsSet.contains(sessionId)
     }
+
+    /// Generate display names with numbering for repeated workout types
+    private func getSessionDisplayNames(sessions: [ProgramSession]) -> [(fullName: String, abbreviation: String)] {
+        var nameCounts: [String: Int] = [:]
+        var nameOccurrences: [String: Int] = [:]
+
+        // First pass: count occurrences of each day name
+        for session in sessions {
+            nameCounts[session.dayName, default: 0] += 1
+        }
+
+        // Second pass: generate display names
+        var result: [(fullName: String, abbreviation: String)] = []
+        for session in sessions {
+            nameOccurrences[session.dayName, default: 0] += 1
+            let occurrence = nameOccurrences[session.dayName]!
+            let totalCount = nameCounts[session.dayName]!
+
+            let fullName: String
+            let abbreviation: String
+
+            if totalCount > 1 {
+                // Multiple occurrences - add numbering to full name only
+                fullName = "\(session.dayName) \(occurrence)"
+            } else {
+                fullName = session.dayName
+            }
+
+            // Generate abbreviation (never numbered)
+            abbreviation = getAbbreviation(for: session.dayName)
+
+            result.append((fullName: fullName, abbreviation: abbreviation))
+        }
+
+        return result
+    }
+
+    private func getAbbreviation(for dayName: String) -> String {
+        switch dayName.lowercased() {
+        case "push": return "P"
+        case "pull": return "Pu"
+        case "legs": return "L"
+        case "upper", "upper body": return "U"
+        case "lower", "lower body": return "Lo"
+        case "full body": return "FB"
+        default: return String(dayName.prefix(1)).uppercased()
+        }
+    }
 }
+
+// MARK: - Horizontal Day Buttons Row
+
+struct HorizontalDayButtonsRow: View {
+    let sessions: [ProgramSession]
+    let sessionNames: [(fullName: String, abbreviation: String)]
+    @Binding var selectedIndex: Int
+    let userProgram: WorkoutProgram
+
+    var body: some View {
+        GeometryReader { geometry in
+            let totalWidth = geometry.size.width
+            let buttonCount = sessions.count
+            let collapsedButtonWidth: CGFloat = 44
+            let spacing: CGFloat = Spacing.sm
+            let totalSpacing = spacing * CGFloat(buttonCount - 1)
+            let totalCollapsedWidth = collapsedButtonWidth * CGFloat(buttonCount - 1)
+            let expandedButtonWidth = totalWidth - totalCollapsedWidth - totalSpacing
+
+            HStack(spacing: spacing) {
+                ForEach(Array(sessions.enumerated()), id: \.offset) { index, _ in
+                    let isSelected = index == selectedIndex
+                    let isCompleted = isSessionCompleted(sessionIndex: index)
+
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            selectedIndex = index
+                        }
+                    }) {
+                        Text(isSelected ? sessionNames[index].fullName : sessionNames[index].abbreviation)
+                            .font(.trainBodyMedium)
+                            .foregroundColor(isSelected ? .white : (isCompleted ? .trainPrimary : .trainTextPrimary))
+                            .lineLimit(1)
+                            .frame(width: isSelected ? expandedButtonWidth : collapsedButtonWidth)
+                            .frame(height: 44)
+                            .background(
+                                isSelected ? Color.trainPrimary :
+                                    (isCompleted ? Color.trainPrimary.opacity(0.15) : Color.white)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                    .stroke(isCompleted && !isSelected ? Color.trainPrimary.opacity(0.3) : .clear, lineWidth: 1)
+                            )
+                            .shadow(
+                                color: isSelected ? Color.trainPrimary.opacity(0.3) : .black.opacity(0.06),
+                                radius: isSelected ? 12 : 6,
+                                x: 0,
+                                y: isSelected ? 4 : 2
+                            )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                }
+            }
+        }
+        .frame(height: 44)
+    }
+
+    private func isSessionCompleted(sessionIndex: Int) -> Bool {
+        let sessionId = "week\(userProgram.currentWeek)-session\(sessionIndex)"
+        return userProgram.completedSessionsSet.contains(sessionId)
+    }
+}
+
+// MARK: - Session Action Button
+
+struct SessionActionButton: View {
+    let userProgram: WorkoutProgram
+    let sessionIndex: Int
+    let isCompleted: Bool
+
+    var body: some View {
+        if isCompleted {
+            // View Completed Workout button
+            NavigationLink(destination: SessionLogView(
+                userProgram: userProgram,
+                sessionIndex: sessionIndex
+            )) {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 18))
+                    Text("View Completed Workout")
+                        .font(.trainBodyMedium)
+                }
+                .foregroundColor(.trainPrimary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.md)
+                .background(Color.trainPrimary.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+            }
+        } else {
+            // Start Workout button
+            NavigationLink(destination: WorkoutLoggerView(
+                weekNumber: Int(userProgram.currentWeek),
+                sessionIndex: sessionIndex
+            )) {
+                Text("Start Workout")
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Spacing.md)
+                    .background(Color.trainPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                    .shadow(color: Color.trainPrimary.opacity(0.4), radius: 16, x: 0, y: 0)
+            }
+        }
+    }
+}
+
+// MARK: - Exercise List View (for uncompleted sessions)
+
+struct ExerciseListView: View {
+    let session: ProgramSession
+
+    var body: some View {
+        VStack(spacing: Spacing.sm) {
+            ForEach(session.exercises) { exercise in
+                HStack(spacing: Spacing.md) {
+                    // Radio button circle
+                    Circle()
+                        .stroke(Color.trainTextSecondary.opacity(0.4), lineWidth: 2)
+                        .frame(width: 24, height: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(exercise.exerciseName)
+                            .font(.trainBodyMedium)
+                            .foregroundColor(.trainTextPrimary)
+
+                        Text("\(exercise.sets) sets × \(exercise.repRange) reps")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+                    }
+
+                    Spacer()
+                }
+                .padding(Spacing.md)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+            }
+        }
+    }
+}
+
+// MARK: - Completed Session Summary Card
+
+struct CompletedSessionSummaryCard: View {
+    let userProgram: WorkoutProgram
+    let sessionIndex: Int
+
+    // TODO: These would come from Core Data in a real implementation
+    private var completionDate: Date {
+        // Placeholder - would retrieve from stored workout session
+        Date()
+    }
+
+    private var duration: String {
+        // Placeholder - would calculate from stored data
+        "47:20"
+    }
+
+    private var increasedReps: Int {
+        // Placeholder - would calculate comparing to previous session
+        12
+    }
+
+    private var increasedLoad: Double {
+        // Placeholder - would calculate comparing to previous session
+        25.0
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            // Completion badge
+            HStack {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.trainPrimary)
+
+                Text("Workout Complete")
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+
+                Spacer()
+            }
+
+            Divider()
+
+            // Stats grid
+            VStack(spacing: Spacing.md) {
+                HStack(spacing: Spacing.lg) {
+                    SummaryStatItem(
+                        icon: "calendar",
+                        label: "Completed",
+                        value: formatDate(completionDate)
+                    )
+
+                    SummaryStatItem(
+                        icon: "timer",
+                        label: "Duration",
+                        value: duration
+                    )
+                }
+
+                HStack(spacing: Spacing.lg) {
+                    SummaryStatItem(
+                        icon: "arrow.up.circle.fill",
+                        label: "Extra Reps",
+                        value: "+\(increasedReps)",
+                        valueColor: .trainPrimary
+                    )
+
+                    SummaryStatItem(
+                        icon: "scalemass.fill",
+                        label: "Extra Load",
+                        value: "+\(String(format: "%.1f", increasedLoad))kg",
+                        valueColor: .trainPrimary
+                    )
+                }
+            }
+        }
+        .padding(Spacing.lg)
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))
+        .shadow(color: .black.opacity(0.08), radius: 16, x: 0, y: 8)
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yy"
+        return formatter.string(from: date)
+    }
+}
+
+struct SummaryStatItem: View {
+    let icon: String
+    let label: String
+    let value: String
+    var valueColor: Color = .trainTextPrimary
+
+    var body: some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundColor(.trainTextSecondary)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(.trainCaption)
+                    .foregroundColor(.trainTextSecondary)
+
+                Text(value)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(valueColor)
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
 
 struct SessionBubble: View {
     let sessionName: String
@@ -435,9 +760,9 @@ struct SessionBubble: View {
             }
         }
         .padding(Spacing.md)
-        .background(isCompleted ? Color.trainPrimary : .clear)
-        .glassCompactCard(cornerRadius: 25)
-        .shadow(color: isCompleted ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
+        .background(isCompleted ? Color.trainPrimary : Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+        .shadow(color: isCompleted ? Color.trainPrimary.opacity(0.4) : .black.opacity(0.08), radius: isCompleted ? 16 : 12, x: 0, y: isCompleted ? 0 : 6)
     }
 }
 
@@ -481,7 +806,9 @@ struct ExpandedSessionBubble: View {
             }
         }
         .padding(Spacing.md)
-        .glassCompactCard(cornerRadius: 25)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
 }
 

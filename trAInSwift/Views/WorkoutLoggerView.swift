@@ -148,71 +148,15 @@ struct WorkoutLoggerView: View {
                                 }
                             }
                         } else {
-                            // Demo view
+                            // Demo view - uses the comprehensive ExerciseDemoTab
                             if let dbExercise = selectedDBExercise {
-                                ScrollView {
-                                    VStack(spacing: Spacing.lg) {
-                                        // Video placeholder
-                                        ZStack {
-                                            RoundedRectangle(cornerRadius: 15)
-                                                .fill(Color.trainTextSecondary.opacity(0.1))
-                                                .frame(height: 220)
-
-                                            VStack(spacing: Spacing.md) {
-                                                Image(systemName: "play.circle.fill")
-                                                    .font(.system(size: 60))
-                                                    .foregroundColor(.trainPrimary)
-
-                                                Text("Video coming soon")
-                                                    .font(.trainCaption)
-                                                    .foregroundColor(.trainTextSecondary)
-                                            }
-                                        }
-                                        .padding(.horizontal, Spacing.lg)
-                                        .padding(.top, Spacing.md)
-
-                                        // Exercise name
-                                        Text(dbExercise.displayName)
-                                            .font(.trainTitle2)
-                                            .foregroundColor(.trainTextPrimary)
-                                            .padding(.horizontal, Spacing.lg)
-
-                                        // Instructions
-                                        if let instructions = dbExercise.instructions, !instructions.isEmpty {
-                                            VStack(alignment: .leading, spacing: Spacing.sm) {
-                                                let steps = instructions.split(separator: "\n")
-                                                ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-                                                    HStack(alignment: .top, spacing: Spacing.sm) {
-                                                        Text("\(index + 1).")
-                                                            .font(.trainBodyMedium)
-                                                            .foregroundColor(.trainPrimary)
-
-                                                        Text(String(step))
-                                                            .font(.trainBody)
-                                                            .foregroundColor(.trainTextPrimary)
-                                                    }
-                                                }
-                                            }
-                                            .padding(Spacing.md)
-                                            .whiteCard()
-                                            .padding(.horizontal, Spacing.lg)
-                                        } else {
-                                            Text("Instructions coming soon")
-                                                .font(.trainBody)
-                                                .foregroundColor(.trainTextSecondary)
-                                                .padding(Spacing.lg)
-                                                .frame(maxWidth: .infinity)
-                                                .whiteCard()
-                                                .padding(.horizontal, Spacing.lg)
-                                        }
-
-                                        Spacer()
-                                            .frame(height: 100)
-                                    }
-                                }
+                                ExerciseDemoTab(exercise: dbExercise)
                             } else {
-                                ProgressView("Loading exercise...")
-                                    .foregroundColor(.trainTextPrimary)
+                                VStack {
+                                    ProgressView("Loading exercise...")
+                                        .foregroundColor(.trainTextPrimary)
+                                }
+                                .frame(maxHeight: .infinity)
                             }
                         }
 

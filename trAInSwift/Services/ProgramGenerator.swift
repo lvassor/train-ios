@@ -18,7 +18,7 @@ class ProgramGenerator {
     // MARK: - Main Generation Function
 
     func generateProgram(from questionnaireData: QuestionnaireData) -> Program {
-        AppLogger.logProgram("Generating personalized program: \(questionnaireData.trainingDaysPerWeek) days/week, \(questionnaireData.sessionDuration)")
+        AppLogger.logProgram("Generating personalised program: \(questionnaireData.trainingDaysPerWeek) days/week, \(questionnaireData.sessionDuration)")
 
         do {
             // Use dynamic database-driven program generation

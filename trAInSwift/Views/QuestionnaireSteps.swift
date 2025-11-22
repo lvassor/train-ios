@@ -111,14 +111,30 @@ struct GenderStepView: View {
     }
 }
 
-// MARK: - Q2: Age
+// MARK: - Q2: Date of Birth
 struct AgeStepView: View {
-    @Binding var age: Int
+    @Binding var dateOfBirth: Date
+
+    // Calculate age from date of birth
+    private var age: Int {
+        let calendar = Calendar.current
+        let ageComponents = calendar.dateComponents([.year], from: dateOfBirth, to: Date())
+        return ageComponents.year ?? 0
+    }
+
+    // Date range: 18 years ago to 100 years ago
+    private var dateRange: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let now = Date()
+        let minDate = calendar.date(byAdding: .year, value: -100, to: now) ?? now
+        let maxDate = calendar.date(byAdding: .year, value: -18, to: now) ?? now
+        return minDate...maxDate
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             VStack(alignment: .center, spacing: Spacing.sm) {
-                Text("Age")
+                Text("Date of Birth")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
 
@@ -130,13 +146,35 @@ struct AgeStepView: View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, Spacing.lg)
 
-            // Age Scroller Picker
-            AgeScrollerPicker(age: $age)
+            // Age display
+            HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
+                Text("\(age)")
+                    .font(.system(size: 56, weight: .bold, design: .rounded))
+                    .foregroundColor(.trainPrimary)
+                Text("years old")
+                    .font(.trainTitle)
+                    .foregroundColor(.trainTextSecondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, Spacing.md)
 
-            if age > 0 && age < 18 {
+            // Native Date Picker with wheel style
+            DatePicker(
+                "",
+                selection: $dateOfBirth,
+                in: dateRange,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.wheel)
+            .labelsHidden()
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, Spacing.lg)
+
+            if age < 18 {
                 Text("You must be at least 18 years old")
                     .font(.trainCaption)
                     .foregroundColor(.red)
+                    .frame(maxWidth: .infinity)
                     .padding(.horizontal, Spacing.lg)
             }
 
@@ -232,7 +270,7 @@ struct HeightStepView: View {
                         value: $heightCm,
                         in: 120...220,
                         step: 10,  // Step of 10 means each major tick is 10cm
-                        snap: .unit,
+                        snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 10 units
                     )
                     .frame(height: 60)
@@ -284,7 +322,7 @@ struct HeightStepView: View {
                         value: heightInFeet,
                         in: 3...8,
                         step: 1,  // Step of 1 means each major tick is 1 foot
-                        snap: .unit,
+                        snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 1 foot
                     )
                     .frame(height: 60)
@@ -388,7 +426,7 @@ struct WeightStepView: View {
                         value: $weightKg,
                         in: 30...200,
                         step: 10,  // Step of 10 means each major tick is 10kg
-                        snap: .unit,
+                        snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 10 units
                     )
                     .frame(height: 60)
@@ -420,7 +458,7 @@ struct WeightStepView: View {
                         value: $weightLbs,
                         in: 60...440,
                         step: 20,  // Step of 20 means each major tick is 20lbs
-                        snap: .unit,
+                        snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 20 units
                     )
                     .frame(height: 60)
@@ -459,7 +497,7 @@ struct GoalsStepView: View {
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Let's customise your training program")
+                Text("Let's customise your training programme")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -775,24 +813,26 @@ struct EquipmentInfoModal: View {
 
     var body: some View {
         ZStack {
-            // Semi-transparent background
-            Color.black.opacity(0.4)
+            // Semi-transparent background with blur
+            Color.black.opacity(0.3)
                 .ignoresSafeArea()
                 .onTapGesture {
                     onDismiss()
                 }
 
-            // Modal card
+            // Modal card with glassmorphic styling
             VStack(spacing: 0) {
                 // Image placeholder (top 40%)
                 ZStack {
-                    Color.trainTextSecondary.opacity(0.1)
+                    Color.trainPrimary.opacity(0.1)
 
                     Image(systemName: equipmentIcon)
                         .font(.system(size: 80))
                         .foregroundColor(.trainPrimary)
                 }
                 .frame(height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))
+                .padding(Spacing.md)
 
                 // Content (bottom 60%)
                 VStack(alignment: .leading, spacing: Spacing.md) {
@@ -807,20 +847,21 @@ struct EquipmentInfoModal: View {
 
                     Spacer()
                 }
-                .padding(Spacing.lg)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.lg)
             }
             .frame(width: 320, height: 480)
-            .background(Color.white)
-            .cornerRadius(20)
-            .shadow(radius: 20)
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))
+            .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 15)
             .overlay(
-                // Close button
+                // Close button with glassmorphic style
                 Button(action: onDismiss) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.trainTextPrimary)
-                        .frame(width: 32, height: 32)
-                        .background(Color.trainBackground)
+                        .frame(width: 28, height: 28)
+                        .background(.ultraThinMaterial)
                         .clipShape(Circle())
                 }
                 .padding(Spacing.md),
@@ -939,7 +980,7 @@ struct SessionDurationStepView: View {
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("This affects the number of exercises in your program")
+                Text("This affects the number of exercises in your programme")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -966,15 +1007,13 @@ struct SessionDurationStepView: View {
 struct InjuriesStepView: View {
     @Binding var injuries: [String]
 
+    // Using same muscle groups as priority muscle groups question
     let injuryOptions = [
-        "Lower Back",
-        "Shoulder",
-        "Knee",
-        "Wrist",
-        "Elbow",
-        "Hip",
-        "Neck",
-        "Ankle"
+        ["Chest", "Shoulders"],
+        ["Back", "Triceps"],
+        ["Biceps", "Abs"],
+        ["Quads", "Hamstrings"],
+        ["Glutes", "Calves"]
     ]
 
     var body: some View {
@@ -993,36 +1032,35 @@ struct InjuriesStepView: View {
             .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
-                // Two column grid for injury options
-                let columns = [GridItem(.flexible()), GridItem(.flexible())]
-                LazyVGrid(columns: columns, spacing: Spacing.md) {
-                    ForEach(injuryOptions, id: \.self) { injury in
-                        MultiSelectCard(
-                            title: injury,
-                            isSelected: injuries.contains(injury),
-                            isCompact: true,
-                            action: { toggleInjury(injury) }
-                        )
+                // Two column grid matching priority muscle groups format
+                ForEach(injuryOptions, id: \.self) { row in
+                    HStack(spacing: Spacing.md) {
+                        ForEach(row, id: \.self) { injury in
+                            Button(action: { toggleInjury(injury) }) {
+                                Text(injury)
+                                    .font(.trainBodyMedium)
+                                    .foregroundColor(injuries.contains(injury) ? .white : .trainTextPrimary)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(Spacing.md)
+                                    .background(injuries.contains(injury) ? Color.trainPrimary : .clear)
+                                    .glassCard(cornerRadius: CornerRadius.md)
+                                    .shadow(color: injuries.contains(injury) ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
+                            }
+                            .buttonStyle(ScaleButtonStyle())
+                        }
                     }
                 }
 
                 // None option - spans full width
                 Button(action: { injuries = [] }) {
-                    HStack {
-                        Image(systemName: injuries.isEmpty ? "checkmark.circle.fill" : "circle")
-                            .font(.title3)
-                            .foregroundColor(injuries.isEmpty ? .white : .trainTextSecondary)
-
-                        Text("No injuries or limitations")
-                            .font(.trainBodyMedium)
-                            .foregroundColor(injuries.isEmpty ? .white : .trainTextPrimary)
-
-                        Spacer()
-                    }
-                    .padding(Spacing.md)
-                    .background(injuries.isEmpty ? Color.trainPrimary : .clear)
-                    .glassCard(cornerRadius: CornerRadius.md)
-                    .shadow(color: injuries.isEmpty ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
+                    Text("No injuries or limitations")
+                        .font(.trainBodyMedium)
+                        .foregroundColor(injuries.isEmpty ? .white : .trainTextPrimary)
+                        .frame(maxWidth: .infinity)
+                        .padding(Spacing.md)
+                        .background(injuries.isEmpty ? Color.trainPrimary : .clear)
+                        .glassCard(cornerRadius: CornerRadius.md)
+                        .shadow(color: injuries.isEmpty ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
                 }
                 .buttonStyle(ScaleButtonStyle())
             }

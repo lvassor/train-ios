@@ -75,7 +75,7 @@ struct ProgramReadyView: View {
 
                 // Title
                 VStack(spacing: 8) {
-                    Text("Program Ready!")
+                    Text("Programme Ready!")
                         .font(.trainTitle)
                         .foregroundColor(.trainTextPrimary)
 

@@ -29,11 +29,17 @@ struct ContentView: View {
                 } else if showQuestionnaire {
                     // Show questionnaire (internally handles: questionnaire → programme ready → signup → loading → REAL paywall)
                     // NOTE: Program is saved immediately after signup in PostQuestionnaireSignupView
-                    QuestionnaireView(onComplete: {
-                        // Paywall completed - user and program already saved
-                        // Just refresh the auth state
-                        print("✅ Onboarding flow complete - user authenticated with program")
-                    })
+                    QuestionnaireView(
+                        onComplete: {
+                            // Paywall completed - user and program already saved
+                            // Just refresh the auth state
+                            print("✅ Onboarding flow complete - user authenticated with program")
+                        },
+                        onBack: {
+                            // Go back to welcome screen
+                            showQuestionnaire = false
+                        }
+                    )
                     .environmentObject(workoutViewModel)
                 } else {
                     // Show welcome screen first

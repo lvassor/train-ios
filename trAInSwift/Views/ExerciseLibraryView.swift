@@ -57,13 +57,14 @@ struct ExerciseLibraryView: View {
 
                 // Filter buttons
                 HStack(spacing: Spacing.sm) {
-                    Text("Filter by:")
+                    Text("Filter:")
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
+                        .fixedSize()
 
                     Button(action: { showMuscleFilter = true }) {
                         HStack(spacing: 4) {
-                            Text("Muscle Group")
+                            Text("Muscle")
                                 .font(.trainBody)
                             if !selectedMuscles.isEmpty {
                                 Text("(\(selectedMuscles.count))")
@@ -82,6 +83,7 @@ struct ExerciseLibraryView: View {
                                 .stroke(selectedMuscles.isEmpty ? Color.trainBorder : Color.trainPrimary, lineWidth: 1)
                         )
                     }
+                    .fixedSize()
 
                     Button(action: { showEquipmentFilter = true }) {
                         HStack(spacing: 4) {
@@ -104,6 +106,7 @@ struct ExerciseLibraryView: View {
                                 .stroke(selectedEquipment.isEmpty ? Color.trainBorder : Color.trainPrimary, lineWidth: 1)
                         )
                     }
+                    .fixedSize()
 
                     Spacer()
                 }
@@ -273,6 +276,8 @@ struct ExerciseLibraryCard: View {
                     .font(.trainBodyMedium)
                     .foregroundColor(.trainTextPrimary)
                     .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 6) {
                     // Muscle tag

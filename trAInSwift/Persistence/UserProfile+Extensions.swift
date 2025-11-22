@@ -69,23 +69,23 @@ extension UserProfile {
     // MARK: - Array Helpers
 
     var equipmentArray: [String] {
-        get { equipment ?? [] }
-        set { equipment = newValue }
+        get { (equipment as? [String]) ?? [] }
+        set { equipment = newValue as NSArray }
     }
 
     var injuriesArray: [String] {
-        get { injuries ?? [] }
-        set { injuries = newValue }
+        get { (injuries as? [String]) ?? [] }
+        set { injuries = newValue as NSArray }
     }
 
     var healedInjuriesArray: [String] {
-        get { healedInjuries ?? [] }
-        set { healedInjuries = newValue }
+        get { (healedInjuries as? [String]) ?? [] }
+        set { healedInjuries = newValue as NSArray }
     }
 
     var priorityMusclesArray: [String] {
-        get { priorityMuscles ?? [] }
-        set { priorityMuscles = newValue }
+        get { (priorityMuscles as? [String]) ?? [] }
+        set { priorityMuscles = newValue as NSArray }
     }
 
     // MARK: - Questionnaire Data Helpers

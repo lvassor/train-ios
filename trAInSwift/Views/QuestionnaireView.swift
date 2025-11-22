@@ -15,6 +15,7 @@ struct QuestionnaireView: View {
     @State private var showingProgramReady = false
 
     let onComplete: () -> Void
+    var onBack: (() -> Void)?
 
     // Section 1: Availability (8 questions)
     let section1TotalSteps = 8
@@ -43,31 +44,35 @@ struct QuestionnaireView: View {
                 })
             } else {
                 VStack(spacing: 0) {
-                    // Back button and progress bar (only show for question pages, not cover pages)
-                    if currentSection == 1 || currentSection == 3 {
-                        VStack(spacing: 0) {
-                            HStack {
-                                if currentStepInSection > 0 || (currentSection == 3 && currentStepInSection == 0) {
-                                    Button(action: previousStep) {
-                                        Image(systemName: "arrow.left")
-                                            .font(.title3)
-                                            .foregroundColor(.trainTextPrimary)
-                                    }
+                    // Back button and progress bar
+                    // Show back arrow on cover pages (section 0 and 2) and question pages (section 1 and 3)
+                    VStack(spacing: 0) {
+                        HStack {
+                            // Show back button on:
+                            // - Availability cover (section 0) - to go back to previous screen
+                            // - Section 1 questions when not first question, or always for section 3
+                            // - About You cover (section 2) - to go back to section 1
+                            if currentSection == 0 || currentSection == 2 ||
+                               currentStepInSection > 0 || (currentSection == 3 && currentStepInSection == 0) {
+                                Button(action: previousStep) {
+                                    Image(systemName: "arrow.left")
+                                        .font(.title3)
+                                        .foregroundColor(.trainTextPrimary)
                                 }
-                                Spacer()
                             }
-                            .padding(16)
+                            Spacer()
+                        }
+                        .padding(16)
 
-                            // Show progress bar based on current section
-                            if currentSection == 1 {
-                                QuestionnaireProgressBar(currentStep: currentStepInSection + 1, totalSteps: section1TotalSteps)
-                                    .padding(.horizontal, 16)
-                                    .padding(.bottom, 16)
-                            } else if currentSection == 3 {
-                                QuestionnaireProgressBar(currentStep: currentStepInSection + 1, totalSteps: section2TotalSteps)
-                                    .padding(.horizontal, 16)
-                                    .padding(.bottom, 16)
-                            }
+                        // Show progress bar based on current section (only for question pages)
+                        if currentSection == 1 {
+                            QuestionnaireProgressBar(currentStep: currentStepInSection + 1, totalSteps: section1TotalSteps)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 16)
+                        } else if currentSection == 3 {
+                            QuestionnaireProgressBar(currentStep: currentStepInSection + 1, totalSteps: section2TotalSteps)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 16)
                         }
                     }
 
@@ -149,14 +154,14 @@ struct QuestionnaireView: View {
             // Section 2 Cover Page
             SectionCoverView(
                 title: "About You",
-                subtitle: "Help us personalize your training with some basic information",
+                subtitle: "Help us personalise your training with some basic information",
                 iconName: "person.fill"
             )
         case 3:
             // Section 2 Questions (9-12)
             switch currentStepInSection {
             case 0:
-                AgeStepView(age: $viewModel.questionnaireData.age)
+                AgeStepView(dateOfBirth: $viewModel.questionnaireData.dateOfBirth)
             case 1:
                 GenderStepView(selectedGender: $viewModel.questionnaireData.gender)
             case 2:
@@ -272,7 +277,10 @@ struct QuestionnaireView: View {
 
     private func previousStep() {
         withAnimation {
-            if currentSection == 1 {
+            if currentSection == 0 {
+                // On Section 1 cover (Availability), go back to previous screen
+                onBack?()
+            } else if currentSection == 1 {
                 // In Section 1 questions
                 if currentStepInSection > 0 {
                     currentStepInSection -= 1

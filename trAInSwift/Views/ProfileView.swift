@@ -183,14 +183,15 @@ struct SubscriptionInfoCard: View {
             }) {
                 Text("Manage Subscription")
                     .font(.trainBodyMedium)
-                    .foregroundColor(.trainPrimary)
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
-                    .glassCompactCard(cornerRadius: 10)
+                    .background(Color.trainPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
         .padding(Spacing.md)
-        .glassCard()
+        .whiteCard()
     }
 }
 
@@ -203,13 +204,13 @@ struct ProgramCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Your Program")
+            Text("Your Programme")
                 .font(.trainHeadline)
                 .foregroundColor(.trainTextPrimary)
 
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(authService.getCurrentProgram()?.getProgram()?.type.description ?? "No Program")
+                    Text(authService.getCurrentProgram()?.getProgram()?.type.description ?? "No Programme")
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
 
@@ -228,14 +229,15 @@ struct ProgramCard: View {
             }) {
                 Text("Retake Quiz")
                     .font(.trainBodyMedium)
-                    .foregroundColor(.trainPrimary)
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
-                    .glassCompactCard(cornerRadius: 10)
+                    .background(Color.trainPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
         .padding(Spacing.md)
-        .glassCard()
+        .whiteCard()
         .confirmationDialog("Retake Quiz", isPresented: $showRetakeConfirmation, titleVisibility: .visible) {
             Button("Retake Quiz", role: .destructive) {
                 // Log out to restart questionnaire flow

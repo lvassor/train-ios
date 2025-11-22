@@ -127,9 +127,11 @@ extension WorkoutProgram {
             return set
         }
         set {
+            willChangeValue(forKey: "completedSessionsData")
             if let encoded = try? JSONEncoder().encode(newValue) {
                 completedSessionsData = encoded
             }
+            didChangeValue(forKey: "completedSessionsData")
         }
     }
 

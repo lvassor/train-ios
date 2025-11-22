@@ -16,8 +16,13 @@ struct QuestionnaireData: Codable {
     // Q1: Gender
     var gender: String = "" // "male", "female", "other"
 
-    // Q2: Age
-    var age: Int = 45
+    // Q2: Date of Birth (age calculated from this)
+    var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
+    var age: Int {
+        let calendar = Calendar.current
+        let ageComponents = calendar.dateComponents([.year], from: dateOfBirth, to: Date())
+        return ageComponents.year ?? 25
+    }
 
     // Q3: Height
     var heightCm: Double = 180.0
