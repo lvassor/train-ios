@@ -524,59 +524,26 @@ struct GoalsStepView: View {
 struct MuscleGroupsStepView: View {
     @Binding var selectedGroups: [String]
 
-    let muscleGroups = [
-        ["Chest", "Shoulders"],
-        ["Back", "Triceps"],
-        ["Biceps", "Abs"],
-        ["Quads", "Hamstrings"],
-        ["Glutes", "Calves"]
-    ]
-
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.lg) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Which muscle groups do you want to prioritise?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Select up to 3 muscle groups")
+                Text("Tap on the body to select up to 3 muscle groups")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
 
-            VStack(spacing: Spacing.md) {
-                ForEach(muscleGroups, id: \.self) { row in
-                    HStack(spacing: Spacing.md) {
-                        ForEach(row, id: \.self) { group in
-                            MuscleGroupButton(
-                                title: group,
-                                isSelected: selectedGroups.contains(group),
-                                action: { toggleGroup(group) }
-                            )
-                        }
-                    }
-                }
-
-                if selectedGroups.count > 0 {
-                    Text("\(selectedGroups.count) of 3 selected")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                }
-            }
+            // Interactive body diagram
+            CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3)
+                .frame(maxHeight: 450)
 
             Spacer()
-        }
-    }
-
-    private func toggleGroup(_ group: String) {
-        if selectedGroups.contains(group) {
-            selectedGroups.removeAll { $0 == group }
-        } else if selectedGroups.count < 3 {
-            selectedGroups.append(group)
         }
     }
 }
