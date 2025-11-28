@@ -48,12 +48,37 @@ struct AppLogger {
         log(message, to: ui, level: level)
     }
 
+    // MARK: - Debug-Only Logging
+
+    /// Debug print that only runs in DEBUG builds - use for verbose development logging
+    static func debugPrint(_ message: String) {
+        #if DEBUG
+        print(message)
+        #endif
+    }
+
+    /// Debug log to program category - only runs in DEBUG builds
+    static func debugProgram(_ message: String) {
+        #if DEBUG
+        program.debug("\(message)")
+        #endif
+    }
+
+    /// Debug log to database category - only runs in DEBUG builds
+    static func debugDatabase(_ message: String) {
+        #if DEBUG
+        database.debug("\(message)")
+        #endif
+    }
+
     // MARK: - Private Helpers
 
     private static func log(_ message: String, to logger: Logger, level: LogLevel) {
         switch level {
         case .debug:
+            #if DEBUG
             logger.debug("\(message)")
+            #endif
         case .info:
             logger.info("\(message)")
         case .notice:

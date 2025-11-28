@@ -307,43 +307,6 @@ struct WorkoutLoggerView: View {
         return excessReps
     }
 
-    // MARK: - Progression Prompt Logic
-
-    /// Evaluate prompt type based on completed sets vs target range
-    private func evaluatePrompt(
-        for exercise: LoggedExercise,
-        targetMin: Int,
-        targetMax: Int
-    ) -> PromptType? {
-        // Only show prompt when all sets completed (reps > 0)
-        let completedSets = exercise.sets.filter { $0.reps > 0 }
-        guard completedSets.count >= 3 else {
-            return nil
-        }
-
-        let set1Reps = completedSets[0].reps
-        let set2Reps = completedSets[1].reps
-        let set3Reps = completedSets[2].reps
-
-        // 🔴 REGRESSION: First 2 sets below minimum
-        if set1Reps < targetMin || set2Reps < targetMin {
-            return .regression
-        }
-
-        // 🟢 PROGRESSION: First 2 at/above max, 3rd in range
-        if set1Reps >= targetMax && set2Reps >= targetMax && set3Reps >= targetMin {
-            return .progression
-        }
-
-        // 🟡 CONSISTENCY: Strong start, weak finish
-        if set1Reps >= targetMax && set2Reps >= targetMax && set3Reps < targetMin {
-            return .consistency
-        }
-
-        // 🟡 CONSISTENCY: Default
-        return .consistency
-    }
-
     private func saveWorkout() {
         guard authService.currentUser != nil else {
             AppLogger.logWorkout("Cannot save workout: no current user", level: .error)
@@ -487,7 +450,7 @@ struct SetLoggingView: View {
     @Binding var loggedExercise: LoggedExercise
     @State private var weightUnit: WeightUnit = .kg
     @State private var currentPrompt: PromptType? = nil
-    @State private var debounceTimer: Timer? = nil
+    @State private var debounceTask: Task<Void, Never>? = nil
 
     enum WeightUnit: String, CaseIterable {
         case kg = "kg"
@@ -568,6 +531,10 @@ struct SetLoggingView: View {
         .onChange(of: loggedExercise.sets) { _, _ in
             evaluateAndShowPrompt()
         }
+        .onDisappear {
+            // Clean up debounce task when view disappears
+            debounceTask?.cancel()
+        }
     }
 
     private func binding(for index: Int) -> Binding<LoggedSet> {
@@ -579,63 +546,35 @@ struct SetLoggingView: View {
 
     /// Evaluate and show progression prompt with 500ms debounce
     private func evaluateAndShowPrompt() {
-        // Cancel existing timer
-        debounceTimer?.invalidate()
+        // Cancel existing task
+        debounceTask?.cancel()
 
-        // Create new timer with 500ms delay
-        debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
-            // Parse rep range (e.g., "8-12" -> min: 8, max: 12)
-            let repComponents = programExercise.repRange.split(separator: "-").compactMap { Int($0) }
-            guard repComponents.count == 2 else {
-                currentPrompt = nil
-                return
+        // Create new debounced task
+        debounceTask = Task {
+            do {
+                try await Task.sleep(nanoseconds: 500_000_000) // 500ms
+
+                // Parse rep range (e.g., "8-12" -> min: 8, max: 12)
+                let repComponents = programExercise.repRange.split(separator: "-").compactMap { Int($0) }
+                guard repComponents.count == 2 else {
+                    await MainActor.run { currentPrompt = nil }
+                    return
+                }
+
+                let targetMin = repComponents[0]
+                let targetMax = repComponents[1]
+
+                // Evaluate prompt using shared logic from LoggedExercise extension
+                await MainActor.run {
+                    currentPrompt = loggedExercise.evaluatePrompt(
+                        targetMin: targetMin,
+                        targetMax: targetMax
+                    )
+                }
+            } catch {
+                // Task was cancelled, do nothing
             }
-
-            let targetMin = repComponents[0]
-            let targetMax = repComponents[1]
-
-            // Evaluate prompt based on completed sets
-            currentPrompt = evaluatePromptForExercise(
-                exercise: loggedExercise,
-                targetMin: targetMin,
-                targetMax: targetMax
-            )
         }
-    }
-
-    /// Helper to evaluate prompt (calls parent's evaluatePrompt logic)
-    private func evaluatePromptForExercise(
-        exercise: LoggedExercise,
-        targetMin: Int,
-        targetMax: Int
-    ) -> PromptType? {
-        // Only show prompt when all sets completed (reps > 0)
-        let completedSets = exercise.sets.filter { $0.reps > 0 }
-        guard completedSets.count >= 3 else {
-            return nil
-        }
-
-        let set1Reps = completedSets[0].reps
-        let set2Reps = completedSets[1].reps
-        let set3Reps = completedSets[2].reps
-
-        // 🔴 REGRESSION: First 2 sets below minimum
-        if set1Reps < targetMin || set2Reps < targetMin {
-            return .regression
-        }
-
-        // 🟢 PROGRESSION: First 2 at/above max, 3rd in range
-        if set1Reps >= targetMax && set2Reps >= targetMax && set3Reps >= targetMin {
-            return .progression
-        }
-
-        // 🟡 CONSISTENCY: Strong start, weak finish
-        if set1Reps >= targetMax && set2Reps >= targetMax && set3Reps < targetMin {
-            return .consistency
-        }
-
-        // 🟡 CONSISTENCY: Default
-        return .consistency
     }
 }
 
@@ -842,45 +781,8 @@ struct RepCounterBadge: View {
     }
 }
 
-// MARK: - Progression Prompt Components
-
-enum PromptType {
-    case regression
-    case consistency
-    case progression
-
-    var color: Color {
-        switch self {
-        case .regression: return .red
-        case .consistency: return .orange
-        case .progression: return .green
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .regression: return "💪"
-        case .consistency: return "🎯"
-        case .progression: return "🎉"
-        }
-    }
-
-    var title: String {
-        switch self {
-        case .regression: return "Great effort today!"
-        case .consistency: return "You're doing great!"
-        case .progression: return "Excellent work!"
-        }
-    }
-
-    var subtitle: String {
-        switch self {
-        case .regression: return "Try choosing a weight that allows you to hit the target range for all sets"
-        case .consistency: return "Try to hit the top end of the range or exceed it for all sets"
-        case .progression: return "You hit or exceeded the top end for your first two sets! Time to increase weight next session"
-        }
-    }
-}
+// MARK: - Progression Prompt Card
+// Note: PromptType enum is defined in WorkoutSession.swift
 
 struct ProgressionPromptCard: View {
     let promptType: PromptType

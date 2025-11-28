@@ -21,6 +21,7 @@ struct SessionLogView: View {
     @State private var sessions: [CDWorkoutSession] = []
     @State private var currentSession: CDWorkoutSession?
     @State private var personalBests: [String: Double] = [:] // exerciseName -> max weight
+    @State private var sessionStats: SessionStats?
 
     init(userProgram: WorkoutProgram, sessionIndex: Int) {
         self.userProgram = userProgram
@@ -41,10 +42,10 @@ struct SessionLogView: View {
             ScrollView {
                 VStack(spacing: Spacing.lg) {
                     // Session Summary Header
-                    if let session = currentSession {
+                    if let session = currentSession, let stats = sessionStats {
                         SessionSummaryHeader(
                             session: session,
-                            previousSession: getPreviousSession()
+                            stats: stats
                         )
                         .padding(.horizontal, Spacing.lg)
                         .padding(.top, Spacing.md)
@@ -103,6 +104,12 @@ struct SessionLogView: View {
             sessions = try viewContext.fetch(request)
             currentSession = sessions.first
             calculatePersonalBests()
+
+            // Pre-calculate session stats once
+            if let current = currentSession {
+                let previous = sessions.count > 1 ? sessions[1] : nil
+                sessionStats = SessionStats(current: current, previous: previous)
+            }
         } catch {
             print("Failed to fetch sessions: \(error)")
         }
@@ -134,17 +141,66 @@ struct SessionLogView: View {
     }
 }
 
+// MARK: - Session Stats (calculated once, reused)
+
+/// Holds pre-calculated session statistics to avoid repeated JSON decoding
+struct SessionStats {
+    let increasedReps: Int
+    let increasedLoad: Double
+
+    init(current: CDWorkoutSession, previous: CDWorkoutSession?) {
+        guard let prev = previous else {
+            self.increasedReps = 0
+            self.increasedLoad = 0
+            return
+        }
+
+        // Decode exercises ONCE for each session
+        let currentExercises = current.getLoggedExercises()
+        let previousExercises = prev.getLoggedExercises()
+
+        var reps = 0
+        var load: Double = 0
+
+        // Single pass through all exercises to calculate both stats
+        for currentExercise in currentExercises {
+            guard let prevExercise = previousExercises.first(where: { $0.exerciseName == currentExercise.exerciseName }) else {
+                continue
+            }
+
+            for (index, currentSet) in currentExercise.sets.enumerated() where index < prevExercise.sets.count {
+                let repDiff = currentSet.reps - prevExercise.sets[index].reps
+                let loadDiff = currentSet.weight - prevExercise.sets[index].weight
+
+                if repDiff > 0 { reps += repDiff }
+                if loadDiff > 0 { load += loadDiff }
+            }
+        }
+
+        self.increasedReps = reps
+        self.increasedLoad = load
+    }
+}
+
+// MARK: - Static Date Formatters
+
+private extension DateFormatter {
+    static let shortDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yy"
+        return formatter
+    }()
+}
+
 // MARK: - Session Summary Header
 
 struct SessionSummaryHeader: View {
     let session: CDWorkoutSession
-    let previousSession: CDWorkoutSession?
+    let stats: SessionStats
 
     private var formattedDate: String {
         guard let date = session.completedAt else { return "--/--/--" }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd/MM/yy"
-        return formatter.string(from: date)
+        return DateFormatter.shortDate.string(from: date)
     }
 
     private var formattedDuration: String {
@@ -152,54 +208,6 @@ struct SessionSummaryHeader: View {
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         return String(format: "%d:%02d", minutes, seconds)
-    }
-
-    private var totalIncreasedReps: Int {
-        guard let previous = previousSession else { return 0 }
-
-        let currentExercises = session.getLoggedExercises()
-        let previousExercises = previous.getLoggedExercises()
-
-        var totalIncrease = 0
-
-        for currentExercise in currentExercises {
-            if let previousExercise = previousExercises.first(where: { $0.exerciseName == currentExercise.exerciseName }) {
-                for (index, currentSet) in currentExercise.sets.enumerated() {
-                    if index < previousExercise.sets.count {
-                        let repDiff = currentSet.reps - previousExercise.sets[index].reps
-                        if repDiff > 0 {
-                            totalIncrease += repDiff
-                        }
-                    }
-                }
-            }
-        }
-
-        return totalIncrease
-    }
-
-    private var totalIncreasedLoad: Double {
-        guard let previous = previousSession else { return 0 }
-
-        let currentExercises = session.getLoggedExercises()
-        let previousExercises = previous.getLoggedExercises()
-
-        var totalIncrease: Double = 0
-
-        for currentExercise in currentExercises {
-            if let previousExercise = previousExercises.first(where: { $0.exerciseName == currentExercise.exerciseName }) {
-                for (index, currentSet) in currentExercise.sets.enumerated() {
-                    if index < previousExercise.sets.count {
-                        let loadDiff = currentSet.weight - previousExercise.sets[index].weight
-                        if loadDiff > 0 {
-                            totalIncrease += loadDiff
-                        }
-                    }
-                }
-            }
-        }
-
-        return totalIncrease
     }
 
     var body: some View {
@@ -229,7 +237,7 @@ struct SessionSummaryHeader: View {
                 Image(systemName: "arrow.up.circle.fill")
                     .font(.system(size: 16))
                     .foregroundColor(.trainPrimary)
-                Text("Total increased reps: \(totalIncreasedReps)")
+                Text("Total increased reps: \(stats.increasedReps)")
                     .font(.trainBody)
                     .foregroundColor(.trainTextPrimary)
             }
@@ -239,7 +247,7 @@ struct SessionSummaryHeader: View {
                 Image(systemName: "scalemass.fill")
                     .font(.system(size: 16))
                     .foregroundColor(.trainPrimary)
-                Text("Total increased load: \(String(format: "%.1f", totalIncreasedLoad))kg")
+                Text("Total increased load: \(String(format: "%.1f", stats.increasedLoad))kg")
                     .font(.trainBody)
                     .foregroundColor(.trainTextPrimary)
             }

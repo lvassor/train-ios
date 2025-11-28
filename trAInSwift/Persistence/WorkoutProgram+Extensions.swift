@@ -8,7 +8,27 @@
 import CoreData
 import Foundation
 
+// MARK: - Program Cache
+
+/// Cache for decoded Program objects to avoid repeated JSON parsing
+/// Key: WorkoutProgram objectID hash, Value: decoded Program
+private var programCache = NSCache<NSNumber, ProgramWrapper>()
+
+/// Wrapper class for Program since NSCache requires reference types
+private class ProgramWrapper {
+    let program: Program
+    init(_ program: Program) {
+        self.program = program
+    }
+}
+
 extension WorkoutProgram {
+
+    // MARK: - Cache Key
+
+    private var cacheKey: NSNumber {
+        NSNumber(value: objectID.hash)
+    }
 
     // MARK: - Fetch Methods
 
@@ -65,25 +85,25 @@ extension WorkoutProgram {
 
     // MARK: - Helper Methods
 
+    /// Returns the decoded Program, using cache to avoid repeated JSON parsing
     func getProgram() -> Program? {
-        guard let data = exercisesData else {
-            print("❌ getProgram() failed: exercisesData is nil")
-            return nil
+        // Check cache first
+        if let cached = programCache.object(forKey: cacheKey) {
+            return cached.program
         }
 
-        print("✅ exercisesData exists: \(data.count) bytes")
+        guard let data = exercisesData else {
+            #if DEBUG
+            print("❌ getProgram() failed: exercisesData is nil")
+            #endif
+            return nil
+        }
 
         guard let sessions = try? JSONDecoder().decode([ProgramSession].self, from: data) else {
+            #if DEBUG
             print("❌ getProgram() failed: Could not decode sessions from JSON")
-            if let jsonString = String(data: data, encoding: .utf8) {
-                print("   JSON data: \(jsonString.prefix(200))...")
-            }
+            #endif
             return nil
-        }
-
-        print("✅ Successfully decoded \(sessions.count) sessions")
-        for (index, session) in sessions.enumerated() {
-            print("   Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
         }
 
         let programType: ProgramType
@@ -92,7 +112,6 @@ extension WorkoutProgram {
         case "Upper/Lower": programType = .upperLower
         case "Push/Pull/Legs": programType = .pushPullLegs
         default:
-            print("⚠️ Unknown split type: \(split ?? "nil"), defaulting to Full Body")
             programType = .fullBody
         }
 
@@ -102,7 +121,6 @@ extension WorkoutProgram {
         case "45-60 min": duration = .medium
         case "60-90 min": duration = .long
         default:
-            print("⚠️ Unknown session duration: \(sessionDuration ?? "nil"), defaulting to medium")
             duration = .medium
         }
 
@@ -114,8 +132,19 @@ extension WorkoutProgram {
             totalWeeks: Int(totalWeeks)
         )
 
-        print("✅ getProgram() successful: \(programType.description), \(sessions.count) sessions")
+        // Cache the result
+        programCache.setObject(ProgramWrapper(program), forKey: cacheKey)
+
+        #if DEBUG
+        print("✅ getProgram() decoded and cached: \(programType.description), \(sessions.count) sessions")
+        #endif
+
         return program
+    }
+
+    /// Invalidates the cached program (call when exercisesData changes)
+    func invalidateProgramCache() {
+        programCache.removeObject(forKey: cacheKey)
     }
 
     var completedSessionsSet: Set<String> {
