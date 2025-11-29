@@ -31,13 +31,13 @@ struct AgeScrollerPicker: View {
                 ForEach(minAge...maxAge, id: \.self) { ageValue in
                     Text("\(ageValue)")
                         .font(.trainBody)
+                        .foregroundColor(.trainTextPrimary)
                         .tag(ageValue)
                 }
             }
             .pickerStyle(.wheel)
             .frame(height: 150)
-            .background(Color.white)
-            .cornerRadius(CornerRadius.md)
+            .warmGlassCard(cornerRadius: CornerRadius.md)
         }
         .padding(.horizontal, Spacing.lg)
     }

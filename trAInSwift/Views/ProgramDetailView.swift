@@ -12,8 +12,6 @@ struct ProgramDetailView: View {
 
     var body: some View {
         ZStack {
-            Color.trainBackground.ignoresSafeArea()
-
             if let program = authService.getCurrentProgram()?.getProgram() {
                 ScrollView {
                     VStack(spacing: Spacing.lg) {
@@ -33,7 +31,7 @@ struct ProgramDetailView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(Spacing.md)
-                        .background(Color.white)
+                        .warmGlassCard()
                         .cornerRadius(CornerRadius.md)
                         .padding(.horizontal, Spacing.lg)
                         .padding(.top, Spacing.md)
@@ -97,7 +95,7 @@ struct ProgramSessionCard: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
+        .warmGlassCard()
         .cornerRadius(CornerRadius.md)
     }
 }

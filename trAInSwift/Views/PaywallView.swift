@@ -18,9 +18,6 @@ struct PaywallView: View {
 
     var body: some View {
         ZStack {
-            Color.trainBackground
-                .ignoresSafeArea()
-
             if isLoading {
                 ProgressView("Loading subscriptions...")
                     .foregroundColor(.trainTextPrimary)
@@ -288,11 +285,11 @@ struct ProductCard: View {
                 }
             }
             .padding(Spacing.md)
-            .background(Color.white)
+            .warmGlassCard()
             .cornerRadius(CornerRadius.md)
             .overlay(
                 RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(isMostPopular ? Color.trainPrimary : Color.trainBorder, lineWidth: isMostPopular ? 2 : 1)
+                    .stroke(isMostPopular ? Color.trainPrimary : Color.clear, lineWidth: isMostPopular ? 2 : 1)
             )
         }
         .buttonStyle(.plain)
@@ -342,11 +339,11 @@ struct SubscriptionCard: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
+        .warmGlassCard()
         .cornerRadius(CornerRadius.md)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md)
-                .stroke(isMostPopular ? Color.trainPrimary : Color.trainBorder, lineWidth: isMostPopular ? 2 : 1)
+                .stroke(isMostPopular ? Color.trainPrimary : Color.clear, lineWidth: isMostPopular ? 2 : 1)
         )
     }
 }

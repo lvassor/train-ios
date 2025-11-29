@@ -20,10 +20,7 @@ struct PostQuestionnaireSignupView: View {
     let onSignupSuccess: () -> Void
 
     var body: some View {
-        ZStack {
-            Color.trainBackground.ignoresSafeArea()
-
-            ScrollView {
+        ScrollView {
                 VStack(spacing: Spacing.xl) {
                     Spacer()
                         .frame(height: 60)
@@ -51,12 +48,8 @@ struct PostQuestionnaireSignupView: View {
                                 .textInputAutocapitalization(.words)
                                 .autocorrectionDisabled()
                                 .padding(Spacing.md)
-                                .background(Color.white)
+                                .warmGlassCard()
                                 .cornerRadius(CornerRadius.md)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                                        .stroke(Color.trainBorder, lineWidth: 1)
-                                )
                         }
 
                         // Email
@@ -70,12 +63,8 @@ struct PostQuestionnaireSignupView: View {
                                 .keyboardType(.emailAddress)
                                 .autocorrectionDisabled()
                                 .padding(Spacing.md)
-                                .background(Color.white)
+                                .warmGlassCard()
                                 .cornerRadius(CornerRadius.md)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                                        .stroke(Color.trainBorder, lineWidth: 1)
-                                )
                         }
 
                         // Password
@@ -86,12 +75,8 @@ struct PostQuestionnaireSignupView: View {
 
                             SecureField("Create a password", text: $password)
                                 .padding(Spacing.md)
-                                .background(Color.white)
+                                .warmGlassCard()
                                 .cornerRadius(CornerRadius.md)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                                        .stroke(Color.trainBorder, lineWidth: 1)
-                                )
 
                             Text("Must be at least 6 characters")
                                 .font(.trainCaption)
@@ -140,7 +125,6 @@ struct PostQuestionnaireSignupView: View {
                     .padding(.horizontal, Spacing.lg)
 
                     Spacer()
-                }
             }
         }
     }

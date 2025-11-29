@@ -28,7 +28,7 @@ struct CustomButton: View {
                 .frame(height: ElementHeight.button)  // 50px from Figma
                 .background(backgroundColor)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-                .shadow(color: style == .primary && isEnabled ? Color.trainPrimary.opacity(0.3) : .clear, radius: 12, x: 0, y: 6)
+                .shadow(color: style == .primary && isEnabled ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 8)
         }
         .disabled(!isEnabled)
         .scaleEffect(isEnabled ? 1.0 : 1.0)

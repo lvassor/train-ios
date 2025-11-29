@@ -29,10 +29,12 @@ struct CustomTextField: View {
                 if isSecure && !isSecureVisible {
                     SecureField(placeholder, text: $text)
                         .textFieldStyle(PlainTextFieldStyle())
+                        .foregroundColor(.trainTextPrimary)
                         .focused($isFocused)
                 } else {
                     TextField(placeholder, text: $text)
                         .textFieldStyle(PlainTextFieldStyle())
+                        .foregroundColor(.trainTextPrimary)
                         .keyboardType(keyboardType)
                         .textContentType(textContentType)
                         .autocapitalization(.none)
@@ -47,11 +49,10 @@ struct CustomTextField: View {
                 }
             }
             .padding(Spacing.md)
-            .background(Color.white)
-            .cornerRadius(CornerRadius.md)
+            .warmGlassCard(cornerRadius: CornerRadius.md)
             .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(isFocused ? Color.trainPrimary : Color.trainBorder, lineWidth: isFocused ? 2 : 1)
+                RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                    .stroke(isFocused ? Color.trainPrimary : Color.white.opacity(0.12), lineWidth: isFocused ? 2 : 1)
             )
         }
     }

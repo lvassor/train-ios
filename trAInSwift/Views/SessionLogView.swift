@@ -36,10 +36,7 @@ struct SessionLogView: View {
     }
 
     var body: some View {
-        ZStack {
-            Color.trainBackground.ignoresSafeArea()
-
-            ScrollView {
+        ScrollView {
                 VStack(spacing: Spacing.lg) {
                     // Session Summary Header
                     if let session = currentSession, let stats = sessionStats {
@@ -66,7 +63,6 @@ struct SessionLogView: View {
 
                     Spacer()
                         .frame(height: Spacing.xxl)
-                }
             }
         }
         .navigationTitle(sessionName)
@@ -342,12 +338,8 @@ struct ExerciseLogCard: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
+        .warmGlassCard()
         .cornerRadius(CornerRadius.md)
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .stroke(Color.trainBorder, lineWidth: 1)
-        )
     }
 
     private func getRepIncrease(setIndex: Int) -> Int? {
@@ -392,10 +384,7 @@ struct EditSessionView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.trainBackground.ignoresSafeArea()
-
-                VStack(spacing: Spacing.lg) {
+            VStack(spacing: Spacing.lg) {
                     Text("Edit Workout Log")
                         .font(.trainTitle)
                         .foregroundColor(.trainTextPrimary)
@@ -405,9 +394,8 @@ struct EditSessionView: View {
                         .foregroundColor(.trainTextSecondary)
 
                     Spacer()
-                }
-                .padding(Spacing.lg)
             }
+            .padding(Spacing.lg)
             .navigationTitle("Edit Session")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

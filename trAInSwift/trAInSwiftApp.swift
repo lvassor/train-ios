@@ -17,7 +17,7 @@ struct trAInSwiftApp: App {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .preferredColorScheme(.light) // Force light mode for MVP
+                .preferredColorScheme(.dark) // Dark mode for warm gradient theme
         }
     }
 }

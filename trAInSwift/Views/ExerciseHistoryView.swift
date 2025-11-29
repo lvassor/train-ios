@@ -31,11 +31,7 @@ struct ExerciseHistoryView: View {
     }
 
     var body: some View {
-        ZStack {
-            Color.trainBackground
-                .ignoresSafeArea()
-
-            ScrollView {
+        ScrollView {
                 VStack(spacing: Spacing.lg) {
                     // Summary cards
                     HStack(spacing: Spacing.md) {
@@ -82,12 +78,8 @@ struct ExerciseHistoryView: View {
                         }
                         .padding(Spacing.md)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.white)
+                        .warmGlassCard()
                         .cornerRadius(15)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.trainBorder, lineWidth: 1)
-                        )
                     }
                     .padding(.horizontal, Spacing.lg)
                     .padding(.top, Spacing.md)
@@ -119,12 +111,8 @@ struct ExerciseHistoryView: View {
                             .padding(.horizontal, Spacing.lg)
                         }
                         .padding(.vertical, Spacing.md)
-                        .background(Color.white)
+                        .warmGlassCard()
                         .cornerRadius(15)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.trainBorder, lineWidth: 1)
-                        )
                         .padding(.horizontal, Spacing.lg)
                     }
 
@@ -163,7 +151,6 @@ struct ExerciseHistoryView: View {
 
                     Spacer()
                         .frame(height: Spacing.lg)
-                }
             }
         }
         .navigationTitle(exercise.displayName)
@@ -285,11 +272,11 @@ struct HistoryEntryCard: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
+        .warmGlassCard()
         .cornerRadius(15)
         .overlay(
             RoundedRectangle(cornerRadius: 15)
-                .stroke(Color.trainBorder, lineWidth: entry.hadProgression ? 2 : 1)
+                .stroke(entry.hadProgression ? Color.trainPrimary : Color.clear, lineWidth: entry.hadProgression ? 2 : 1)
         )
     }
 }

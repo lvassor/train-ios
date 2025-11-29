@@ -24,11 +24,7 @@ struct ExerciseDetailView: View {
     }
 
     var body: some View {
-        ZStack {
-            Color.trainBackground
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
                 // Tab toggle - only show if Logger tab is enabled
                 if showLoggerTab {
                     HStack(spacing: 0) {
@@ -64,7 +60,6 @@ struct ExerciseDetailView: View {
                 } else {
                     ExerciseLoggerTab(exercise: exercise)
                 }
-            }
         }
         .navigationTitle(exercise.displayName)
         .navigationBarTitleDisplayMode(.inline)
@@ -109,12 +104,9 @@ struct ExerciseDemoTab: View {
                             VStack(spacing: Spacing.sm) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.white)
+                                        .fill(Color.clear)
+                                        .warmGlassCard()
                                         .frame(width: 80, height: 80)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.trainBorder, lineWidth: 1)
-                                        )
 
                                     Image(systemName: equipmentIcon(for: equipment))
                                         .font(.system(size: 32))
@@ -183,12 +175,8 @@ struct ExerciseDemoTab: View {
                             }
                         }
                         .padding(Spacing.md)
-                        .background(Color.white)
+                        .warmGlassCard()
                         .cornerRadius(15)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.trainBorder, lineWidth: 1)
-                        )
                     }
                     .padding(.horizontal, Spacing.lg)
                 } else {
@@ -203,12 +191,8 @@ struct ExerciseDemoTab: View {
                             .foregroundColor(.trainTextSecondary)
                             .padding(Spacing.lg)
                             .frame(maxWidth: .infinity)
-                            .background(Color.white)
+                            .warmGlassCard()
                             .cornerRadius(15)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 15)
-                                    .stroke(Color.trainBorder, lineWidth: 1)
-                            )
                     }
                     .padding(.horizontal, Spacing.lg)
                 }
@@ -220,7 +204,7 @@ struct ExerciseDemoTab: View {
                         .foregroundColor(.trainPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.md)
-                        .background(Color.white)
+                        .warmGlassCard()
                         .cornerRadius(15)
                         .overlay(
                             RoundedRectangle(cornerRadius: 15)
@@ -352,12 +336,8 @@ struct ExerciseLoggerTab: View {
                             .multilineTextAlignment(.center)
                             .padding(Spacing.sm)
                             .frame(width: 80)
-                            .background(Color.white)
+                            .warmGlassCard()
                             .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.trainBorder, lineWidth: 1)
-                            )
 
                             TextField("reps", text: Binding(
                                 get: { sets[index].reps },
@@ -367,12 +347,8 @@ struct ExerciseLoggerTab: View {
                             .multilineTextAlignment(.center)
                             .padding(Spacing.sm)
                             .frame(width: 80)
-                            .background(Color.white)
+                            .warmGlassCard()
                             .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.trainBorder, lineWidth: 1)
-                            )
 
                             Button(action: {
                                 sets[index].isCompleted.toggle()
@@ -393,7 +369,7 @@ struct ExerciseLoggerTab: View {
                         .foregroundColor(.trainPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.md)
-                        .background(Color.white)
+                        .warmGlassCard()
                         .cornerRadius(15)
                         .overlay(
                             RoundedRectangle(cornerRadius: 15)

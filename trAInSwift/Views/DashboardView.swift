@@ -33,10 +33,7 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.trainBackground.ignoresSafeArea()
-
-                VStack(spacing: 0) {
+            VStack(spacing: 0) {
                     // Main content
                     ScrollView {
                         VStack(spacing: Spacing.lg) {
@@ -130,7 +127,6 @@ struct DashboardView: View {
                         onVideoLibrary: { showVideoLibrary = true },
                         onAccount: { showProfile = true }
                     )
-                }
             }
             .navigationDestination(isPresented: $showProgramOverview) {
                 if let program = userProgram {
@@ -518,8 +514,9 @@ struct HorizontalDayButtonsRow: View {
                             .frame(height: 44)
                             .background(
                                 isSelected ? Color.trainPrimary :
-                                    (isCompleted ? Color.trainPrimary.opacity(0.15) : Color.white)
+                                    (isCompleted ? Color.trainPrimary.opacity(0.15) : Color.clear)
                             )
+                            .warmGlassCard()
                             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -833,7 +830,7 @@ struct ExpandedSessionBubble: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
+        .warmGlassCard()
         .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
@@ -999,7 +996,7 @@ struct BottomNavigationBar: View {
             )
         }
         .frame(height: 70)
-        .background(Color.white)
+        .warmGlassCard()
         .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
     }
 }

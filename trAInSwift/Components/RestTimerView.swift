@@ -60,8 +60,7 @@ struct RestTimerView: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.trainPrimary.opacity(0.05))
-        .cornerRadius(10)
+        .warmGlassCard(cornerRadius: CornerRadius.md)
         .onAppear {
             startTimer()
         }

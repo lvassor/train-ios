@@ -60,11 +60,11 @@ struct PasswordResetCodeView: View {
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.center)
                             .frame(width: 48, height: 56)
-                            .background(Color.white)
+                            .warmGlassCard()
                             .cornerRadius(8)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(showError ? Color.red : Color.trainBorder, lineWidth: 2)
+                                    .stroke(showError ? Color.red : Color.clear, lineWidth: 2)
                             )
                             .font(.system(size: 24, weight: .bold))
                             .focused($focusedField, equals: index)
@@ -83,7 +83,7 @@ struct PasswordResetCodeView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .background(Color.trainBackground)
+            .warmGlassCard()
             .cornerRadius(20, corners: [.topLeft, .topRight])
             .shadow(radius: 20)
 

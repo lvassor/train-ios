@@ -114,6 +114,23 @@ struct Layout {
     static let horizontalPadding: CGFloat = 20      // Side padding: (393-340)/2 ≈ 26.5, but Figma uses 20
 }
 
+// MARK: - Background Gradients
+
+extension View {
+    /// Warm dark gradient background - main app background
+    /// Orange/brown gradient from #3D2A1A (top) to #1A1410 (bottom)
+    func warmDarkGradientBackground() -> some View {
+        self.background(
+            LinearGradient(
+                colors: [Color.trainGradientTop, Color.trainGradientBottom],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
+    }
+}
+
 // MARK: - Glassmorphic Design System
 // Apple-inspired material design with continuous corners and subtle shadows
 
@@ -190,5 +207,22 @@ extension View {
             .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
+    }
+}
+
+// MARK: - Helper Modifiers
+
+/// Conditionally applies warm glass card effect based on selection state
+struct ConditionalGlassModifier: ViewModifier {
+    let isSelected: Bool
+
+    func body(content: Content) -> some View {
+        if isSelected {
+            content
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))
+        } else {
+            content
+                .warmGlassCard(cornerRadius: CornerRadius.lg)
+        }
     }
 }

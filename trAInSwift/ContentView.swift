@@ -54,6 +54,7 @@ struct ContentView: View {
                 }
             }
         }
+        .warmDarkGradientBackground()
     }
 
     // DEPRECATED: This function is no longer used

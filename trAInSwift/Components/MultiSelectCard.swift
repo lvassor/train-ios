@@ -40,8 +40,16 @@ struct MultiSelectCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(isCompact ? Spacing.md : Spacing.lg)  // Smaller padding for compact
             .frame(height: isCompact ? ElementHeight.optionCardCompact : ElementHeight.optionCard)
-            .background(isSelected ? Color.trainPrimary : .clear)
-            .glassCard()
+            .background(
+                Group {
+                    if isSelected {
+                        Color.trainPrimary
+                    } else {
+                        Color.clear
+                    }
+                }
+            )
+            .modifier(ConditionalGlassModifier(isSelected: isSelected))
             .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(ScaleButtonStyle())

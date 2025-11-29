@@ -19,10 +19,7 @@ struct LoginView: View {
     var onLoginSuccess: (() -> Void)? = nil
 
     var body: some View {
-        ZStack {
-            Color.trainBackground.ignoresSafeArea()
-
-            ScrollView {
+        ScrollView {
                 VStack(spacing: Spacing.xl) {
                     Spacer()
                         .frame(height: 60)
@@ -53,12 +50,8 @@ struct LoginView: View {
                                 .keyboardType(.emailAddress)
                                 .autocorrectionDisabled()
                                 .padding(Spacing.md)
-                                .background(Color.white)
+                                .warmGlassCard()
                                 .cornerRadius(CornerRadius.md)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                                        .stroke(Color.trainBorder, lineWidth: 1)
-                                )
                         }
 
                         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -80,12 +73,8 @@ struct LoginView: View {
 
                             SecureField("Enter your password", text: $password)
                                 .padding(Spacing.md)
-                                .background(Color.white)
+                                .warmGlassCard()
                                 .cornerRadius(CornerRadius.md)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                                        .stroke(Color.trainBorder, lineWidth: 1)
-                                )
                         }
 
                         if showError {
@@ -138,7 +127,6 @@ struct LoginView: View {
                     .padding(.top, Spacing.md)
 
                     Spacer()
-                }
             }
         }
         .sheet(isPresented: $showSignup) {

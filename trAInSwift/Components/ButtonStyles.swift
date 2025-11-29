@@ -21,19 +21,27 @@ struct SelectionButtonStyle: ButtonStyle {
     }
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .padding(.vertical, Spacing.md)
-            .padding(.horizontal, Spacing.md)
-            .frame(maxWidth: .infinity)
-            .background(isSelected ? Color.trainPrimary : Color.white)
-            .foregroundColor(isSelected ? .white : .trainTextPrimary)
-            .cornerRadius(cornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(isSelected ? Color.clear : Color.trainBorder, lineWidth: isSelected ? 0 : 1)
-            )
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+        Group {
+            if isSelected {
+                configuration.label
+                    .padding(.vertical, Spacing.md)
+                    .padding(.horizontal, Spacing.md)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.trainPrimary)
+                    .foregroundColor(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                    .shadow(color: Color.trainPrimary.opacity(0.4), radius: 16, x: 0, y: 0)
+            } else {
+                configuration.label
+                    .padding(.vertical, Spacing.md)
+                    .padding(.horizontal, Spacing.md)
+                    .frame(maxWidth: .infinity)
+                    .foregroundColor(.trainTextPrimary)
+                    .warmGlassCard(cornerRadius: cornerRadius)
+            }
+        }
+        .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+        .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
@@ -65,7 +73,7 @@ struct PrimaryButtonStyle: ButtonStyle {
 
 // MARK: - Secondary Button Style
 
-/// Secondary action button style (outlined)
+/// Secondary action button style (outlined with glass effect)
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -73,11 +81,10 @@ struct SecondaryButtonStyle: ButtonStyle {
             .foregroundColor(.trainPrimary)
             .frame(maxWidth: .infinity)
             .frame(height: ButtonHeight.standard)
-            .background(Color.white)
-            .cornerRadius(CornerRadius.md)
+            .warmGlassCard(cornerRadius: CornerRadius.md)
             .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(Color.trainPrimary, lineWidth: 2)
+                RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                    .stroke(Color.trainPrimary.opacity(0.6), lineWidth: 1.5)
             )
             .opacity(configuration.isPressed ? 0.8 : 1.0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)

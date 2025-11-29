@@ -22,11 +22,7 @@ struct ExerciseLibraryView: View {
     let equipmentTypes = ["Barbell", "Dumbbell", "Cable", "Machine", "Kettlebell", "Bodyweight"]
 
     var body: some View {
-        ZStack {
-            Color.trainBackground
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
                 // Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
@@ -46,12 +42,8 @@ struct ExerciseLibraryView: View {
                     }
                 }
                 .padding(Spacing.md)
-                .background(Color.white)
+                .warmGlassCard()
                 .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.trainBorder, lineWidth: 1)
-                )
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.md)
 
@@ -76,12 +68,9 @@ struct ExerciseLibraryView: View {
                         .foregroundColor(selectedMuscles.isEmpty ? .trainTextPrimary : .trainPrimary)
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, Spacing.sm)
-                        .background(selectedMuscles.isEmpty ? Color.white : Color.trainPrimary.opacity(0.1))
+                        .background(selectedMuscles.isEmpty ? Color.clear : Color.trainPrimary.opacity(0.1))
+                        .warmGlassCard()
                         .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(selectedMuscles.isEmpty ? Color.trainBorder : Color.trainPrimary, lineWidth: 1)
-                        )
                     }
                     .fixedSize()
 
@@ -99,12 +88,9 @@ struct ExerciseLibraryView: View {
                         .foregroundColor(selectedEquipment.isEmpty ? .trainTextPrimary : .trainPrimary)
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, Spacing.sm)
-                        .background(selectedEquipment.isEmpty ? Color.white : Color.trainPrimary.opacity(0.1))
+                        .background(selectedEquipment.isEmpty ? Color.clear : Color.trainPrimary.opacity(0.1))
+                        .warmGlassCard()
                         .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(selectedEquipment.isEmpty ? Color.trainBorder : Color.trainPrimary, lineWidth: 1)
-                        )
                     }
                     .fixedSize()
 
@@ -167,7 +153,6 @@ struct ExerciseLibraryView: View {
                         .padding(.vertical, Spacing.sm)
                     }
                 }
-            }
         }
         .navigationTitle("Exercise Library")
         .navigationBarTitleDisplayMode(.inline)
@@ -307,12 +292,8 @@ struct ExerciseLibraryCard: View {
                 .foregroundColor(.trainTextSecondary)
         }
         .padding(Spacing.md)
-        .background(Color.white)
+        .warmGlassCard()
         .cornerRadius(15)
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(Color.trainBorder, lineWidth: 1)
-        )
     }
 }
 
@@ -327,11 +308,7 @@ struct FilterSheet: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.trainBackground
-                    .ignoresSafeArea()
-
-                ScrollView {
+            ScrollView {
                     VStack(spacing: Spacing.sm) {
                         ForEach(options, id: \.self) { option in
                             Button(action: {
@@ -354,17 +331,16 @@ struct FilterSheet: View {
                                     }
                                 }
                                 .padding(Spacing.md)
-                                .background(Color.white)
+                                .warmGlassCard()
                                 .cornerRadius(10)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .stroke(selected.contains(option) ? Color.trainPrimary : Color.trainBorder, lineWidth: selected.contains(option) ? 2 : 1)
+                                        .stroke(selected.contains(option) ? Color.trainPrimary : Color.clear, lineWidth: selected.contains(option) ? 2 : 1)
                                 )
                             }
                         }
                     }
                     .padding(Spacing.lg)
-                }
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)

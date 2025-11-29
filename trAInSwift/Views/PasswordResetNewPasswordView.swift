@@ -21,11 +21,9 @@ struct PasswordResetNewPasswordView: View {
 
     var body: some View {
         ZStack {
-            Color.trainBackground.ignoresSafeArea()
-
             VStack(spacing: Spacing.xl) {
-                Spacer()
-                    .frame(height: 60)
+                    Spacer()
+                        .frame(height: 60)
 
                 // Logo
                 Text("train.")
@@ -62,12 +60,8 @@ struct PasswordResetNewPasswordView: View {
                             }
                         }
                         .padding(Spacing.md)
-                        .background(Color.white)
+                        .warmGlassCard()
                         .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.trainBorder, lineWidth: 1)
-                        )
                     }
 
                     VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -90,12 +84,8 @@ struct PasswordResetNewPasswordView: View {
                             }
                         }
                         .padding(Spacing.md)
-                        .background(Color.white)
+                        .warmGlassCard()
                         .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.trainBorder, lineWidth: 1)
-                        )
                     }
 
                     if showError {
@@ -138,7 +128,7 @@ struct PasswordResetNewPasswordView: View {
                         .multilineTextAlignment(.center)
                 }
                 .padding(Spacing.xl)
-                .background(Color.trainBackground)
+                .warmGlassCard()
                 .cornerRadius(20)
                 .shadow(radius: 20)
                 .padding(.horizontal, Spacing.xl)

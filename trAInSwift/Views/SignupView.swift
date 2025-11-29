@@ -21,10 +21,7 @@ struct SignupView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.trainBackground.ignoresSafeArea()
-
-                ScrollView {
+            ScrollView {
                     VStack(spacing: Spacing.xl) {
                         Spacer()
                             .frame(height: 40)
@@ -52,12 +49,8 @@ struct SignupView: View {
                                     .keyboardType(.emailAddress)
                                     .autocorrectionDisabled()
                                     .padding(Spacing.md)
-                                    .background(Color.white)
+                                    .warmGlassCard()
                                     .cornerRadius(CornerRadius.md)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: CornerRadius.md)
-                                            .stroke(Color.trainBorder, lineWidth: 1)
-                                    )
                             }
 
                             VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -67,12 +60,8 @@ struct SignupView: View {
 
                                 SecureField("Enter your password", text: $password)
                                     .padding(Spacing.md)
-                                    .background(Color.white)
+                                    .warmGlassCard()
                                     .cornerRadius(CornerRadius.md)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: CornerRadius.md)
-                                            .stroke(Color.trainBorder, lineWidth: 1)
-                                    )
 
                                 Text("Must be at least 6 characters")
                                     .font(.trainCaption)
@@ -86,12 +75,8 @@ struct SignupView: View {
 
                                 SecureField("Confirm your password", text: $confirmPassword)
                                     .padding(Spacing.md)
-                                    .background(Color.white)
+                                    .warmGlassCard()
                                     .cornerRadius(CornerRadius.md)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: CornerRadius.md)
-                                            .stroke(Color.trainBorder, lineWidth: 1)
-                                    )
                             }
 
                             if showError {
@@ -116,7 +101,6 @@ struct SignupView: View {
                         .padding(.horizontal, Spacing.lg)
 
                         Spacer()
-                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

@@ -102,9 +102,7 @@ struct QuestionnaireView: View {
                         )
                         .padding(16)
                     }
-                    .background(Color.white)
                 }
-                .background(Color.trainBackground)
             }
         }
     }

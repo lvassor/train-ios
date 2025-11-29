@@ -17,10 +17,7 @@ struct PasswordResetRequestView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.trainBackground.ignoresSafeArea()
-
-                VStack(spacing: Spacing.xl) {
+            VStack(spacing: Spacing.xl) {
                     Spacer()
                         .frame(height: 60)
 
@@ -44,12 +41,8 @@ struct PasswordResetRequestView: View {
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
                             .padding(Spacing.md)
-                            .background(Color.white)
+                            .warmGlassCard()
                             .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.trainBorder, lineWidth: 1)
-                            )
 
                         Text("Enter your email and we'll send you a reset code")
                             .font(.trainBody)
@@ -112,10 +105,10 @@ struct PasswordResetRequestView: View {
                         onDismiss: { navigateToCode = false }
                     )
                     .transition(.move(edge: .bottom))
-                }
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: { dismiss() }) {
                         Image(systemName: "arrow.left")
@@ -123,7 +116,6 @@ struct PasswordResetRequestView: View {
                     }
                 }
             }
-        }
     }
 
     private func handleContinue() {

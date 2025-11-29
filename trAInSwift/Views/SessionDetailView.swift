@@ -131,7 +131,6 @@ struct SessionDetailView: View {
                 }
             }
         }
-        .background(Color.trainBackground.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(isPresented: $startWorkout) {
             WorkoutLoggerView(
@@ -242,7 +241,7 @@ struct ExerciseCard: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
+        .warmGlassCard()
         .cornerRadius(CornerRadius.md)
     }
 }

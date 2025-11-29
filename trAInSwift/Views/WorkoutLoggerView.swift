@@ -56,8 +56,6 @@ struct WorkoutLoggerView: View {
 
     var body: some View {
         ZStack {
-            Color.trainBackground.ignoresSafeArea()
-
             if session == nil {
                 // Error state - no valid session
                 VStack(spacing: Spacing.lg) {
@@ -374,7 +372,7 @@ struct WorkoutHeader: View {
                     .foregroundColor(.trainTextPrimary)
             }
             .padding(Spacing.lg)
-            .background(Color.white)
+            .warmGlassCard()
 
             ProgressView(value: Double(exerciseNumber), total: Double(totalExercises))
                 .tint(Color.trainPrimary)
@@ -421,7 +419,7 @@ struct ExerciseInfoCard: View {
             }
         }
         .padding(Spacing.md)
-        .whiteCard()
+        .warmGlassCard()
     }
 }
 
@@ -527,7 +525,7 @@ struct SetLoggingView: View {
             }
         }
         .padding(Spacing.md)
-        .whiteCard()
+        .warmGlassCard()
         .onChange(of: loggedExercise.sets) { _, _ in
             evaluateAndShowPrompt()
         }
@@ -606,12 +604,8 @@ struct SetRowView: View {
                     .foregroundColor(.trainTextPrimary)
                     .padding(Spacing.sm)
                     .frame(width: 60)
-                    .background(Color.white)
+                    .warmGlassCard()
                     .cornerRadius(CornerRadius.sm)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.sm)
-                            .stroke(Color.trainBorder, lineWidth: 1)
-                    )
                     .onChange(of: repsText) { _, newValue in
                         if let reps = Int(newValue) {
                             set.reps = reps
@@ -626,12 +620,8 @@ struct SetRowView: View {
                     .foregroundColor(.trainTextPrimary)
                     .padding(Spacing.sm)
                     .frame(width: 80)
-                    .background(Color.white)
+                    .warmGlassCard()
                     .cornerRadius(CornerRadius.sm)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.sm)
-                            .stroke(Color.trainBorder, lineWidth: 1)
-                    )
                     .onChange(of: weightText) { _, newValue in
                         if let weight = Double(newValue) {
                             set.weight = weightUnit == .kg ? weight : weight / 2.20462
@@ -694,10 +684,7 @@ struct WorkoutCompletionView: View {
     let onDone: () -> Void
 
     var body: some View {
-        ZStack {
-            Color.trainBackground.ignoresSafeArea()
-
-            VStack(spacing: Spacing.xl) {
+        VStack(spacing: Spacing.xl) {
                 Spacer()
 
                 // Success icon
@@ -737,7 +724,6 @@ struct WorkoutCompletionView: View {
                 }
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.xl)
-            }
         }
     }
 }
