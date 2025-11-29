@@ -82,7 +82,7 @@ struct QuestionnaireView: View {
                         currentStepView
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
-                        // Question pages - use ScrollView
+                        // Question pages - use ScrollView with conditional scrolling
                         ScrollView {
                             VStack(spacing: 32) {
                                 currentStepView
@@ -90,6 +90,7 @@ struct QuestionnaireView: View {
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
                         }
+                        .scrollDisabled(shouldDisableScrollForCurrentStep())
                     }
 
                     // Continue button
@@ -139,7 +140,7 @@ struct QuestionnaireView: View {
             case 4:
                 InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
             case 5:
-                TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek)
+                TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
             case 6:
                 SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
             case 7:
@@ -244,8 +245,34 @@ struct QuestionnaireView: View {
         return true
     }
 
+    // Disable scrolling for pages that don't overflow (sliders, pickers, simple layouts)
+    private func shouldDisableScrollForCurrentStep() -> Bool {
+        if currentSection == 1 {
+            // Section 1 questions
+            switch currentStepInSection {
+            case 5:  // Training Days (slider)
+                return true
+            default:
+                return false
+            }
+        } else if currentSection == 3 {
+            // Section 2 questions (About You)
+            switch currentStepInSection {
+            case 0:  // Age (date picker)
+                return true
+            case 2:  // Height (slider)
+                return true
+            case 3:  // Weight (slider)
+                return true
+            default:
+                return false
+            }
+        }
+        return false
+    }
+
     private func nextStep() {
-        withAnimation {
+        withAnimation(.easeInOut(duration: 0.15)) {  // Doubled speed (was ~0.35s default, now 0.15s)
             if currentSection == 0 {
                 // Move from Section 1 cover to first question
                 currentSection = 1
@@ -276,7 +303,7 @@ struct QuestionnaireView: View {
     }
 
     private func previousStep() {
-        withAnimation {
+        withAnimation(.easeInOut(duration: 0.15)) {  // Doubled speed (was ~0.35s default, now 0.15s)
             if currentSection == 0 {
                 // On Section 1 cover (Availability), go back to previous screen
                 onBack?()

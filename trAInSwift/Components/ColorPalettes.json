@@ -1,0 +1,49 @@
+{
+    "White and Green": {
+        "Primary Color": {
+            "Primary": "#0F7A6B",
+            "Primary Light": "#72A99C",
+            "Primary Hover": "#F0F9F7"
+        },
+        "Secondary Colors": {
+            "Text Primary": "#1A1A1A",
+            "Text Secondary": "#6B6B6B",
+            "Background": "#F5F5F5",
+            "Border": "#E0E0E0",
+            "Dark": "#1A1A1A"
+        }
+    },
+    "Train Colours": {
+        "White": "#ffffff",
+        "Dark": "#072c30",
+        "Orange": "#f1bc50",
+        "Peach": "#eac3a1"
+    },
+    "Warm Dark Mode": {
+        "Description": "Warm, premium dark mode with amber-to-black gradient and frosted glass",
+        "Background": {
+            "Gradient Top": "#3D2A1A",
+            "Gradient Bottom": "#1A1410",
+            "Description": "Deep warm brown/amber transitioning to near-black"
+        },
+        "Accent": {
+            "Primary": "#FF7A00",
+            "Description": "Vibrant orange for interactive elements"
+        },
+        "Text": {
+            "Primary": "#FFFFFF",
+            "Secondary": "#8A8078",
+            "Description": "Pure white for primary, muted gray/taupe for secondary"
+        },
+        "Glass": {
+            "Card": "rgba(255, 255, 255, 0.15)",
+            "Border": "rgba(255, 255, 255, 0.1)",
+            "Description": "Semi-transparent frosted glass with subtle warm tint, 15-20% opacity white with blur backdrop"
+        },
+        "Effects": {
+            "Corner Radius": "20pt",
+            "Shadow": "rgba(0, 0, 0, 0.15) 0px 15px 30px",
+            "Blur": "backdrop-filter: blur(20px)"
+        }
+    }
+}

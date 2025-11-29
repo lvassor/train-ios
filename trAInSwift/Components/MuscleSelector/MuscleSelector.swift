@@ -29,10 +29,12 @@ struct MuscleSelector: View {
     // Viewbox dimensions from the original SVG (matching react-native-body-highlighter)
     // Male: viewBox="0 0 724 1448" for front, viewBox="724 0 724 1448" for back
     // Female: viewBox="0 0 640 1448" for front, viewBox="640 0 640 1448" for back
-    private var svgWidth: CGFloat {
+    // Normalize to use male width for both so they occupy the same space
+    private let svgWidth: CGFloat = 724
+    private let svgHeight: CGFloat = 1448
+    private var actualSvgWidth: CGFloat {
         gender == .male ? 724 : 640
     }
-    private let svgHeight: CGFloat = 1448
     private var backViewXOffset: CGFloat {
         gender == .male ? 724 : 1000  // Female back paths start around x=1000
     }
@@ -91,20 +93,26 @@ struct MuscleSelector: View {
 
             // Body diagram
             GeometryReader { geometry in
-                let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight) * 0.95
+                // Use consistent scale for both male and female, but enlarge by using 1.0 instead of 0.95
+                let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight) * 1.0
                 let centerOffsetX = (geometry.size.width - svgWidth * scale) / 2
                 // For back view, translate the SVG coordinate system to bring back paths into view
                 let viewBoxOffsetX = side == .back ? -backViewXOffset * scale : 0
+                // Additional offset for female to center within normalized width
+                let genderCenterOffset = gender == .female ? (svgWidth - actualSvgWidth) * scale / 2 : 0
 
                 ZStack {
                     // Body parts
                     bodyDiagram
                         .scaleEffect(scale, anchor: .topLeading)
-                        .offset(x: centerOffsetX + viewBoxOffsetX, y: 0)
+                        .offset(x: centerOffsetX + viewBoxOffsetX + genderCenterOffset, y: 0)
+                        .animation(.none, value: selectedMuscles) // Prevent size change on muscle selection
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
             }
             .aspectRatio(svgWidth / svgHeight, contentMode: .fit)
+            .animation(.easeInOut(duration: 0.2), value: gender)
+            .animation(.easeInOut(duration: 0.2), value: side)
 
             // Selected muscles display
             if !selectedMuscles.isEmpty {
@@ -213,10 +221,12 @@ struct CompactMuscleSelector: View {
     // Viewbox dimensions from the original SVG (matching react-native-body-highlighter)
     // Male: viewBox="0 0 724 1448" for front, viewBox="724 0 724 1448" for back
     // Female: viewBox="0 0 640 1448" for front, viewBox="640 0 640 1448" for back
-    private var svgWidth: CGFloat {
+    // Normalize to use male width for both so they occupy the same space
+    private let svgWidth: CGFloat = 724
+    private let svgHeight: CGFloat = 1448
+    private var actualSvgWidth: CGFloat {
         gender == .male ? 724 : 640
     }
-    private let svgHeight: CGFloat = 1448
     private var backViewXOffset: CGFloat {
         gender == .male ? 724 : 1000  // Female back paths start around x=1000
     }
@@ -274,19 +284,25 @@ struct CompactMuscleSelector: View {
 
             // Body diagram
             GeometryReader { geometry in
-                let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight) * 0.95
+                // Use consistent scale for both male and female, but enlarge by using 1.0 instead of 0.95
+                let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight) * 1.0
                 let centerOffsetX = (geometry.size.width - svgWidth * scale) / 2
                 // For back view, translate the SVG coordinate system to bring back paths into view
                 let viewBoxOffsetX = side == .back ? -backViewXOffset * scale : 0
+                // Additional offset for female to center within normalized width
+                let genderCenterOffset = gender == .female ? (svgWidth - actualSvgWidth) * scale / 2 : 0
 
                 ZStack {
                     bodyDiagram
                         .scaleEffect(scale, anchor: .topLeading)
-                        .offset(x: centerOffsetX + viewBoxOffsetX, y: 0)
+                        .offset(x: centerOffsetX + viewBoxOffsetX + genderCenterOffset, y: 0)
+                        .animation(.none, value: selectedMuscles) // Prevent size change on muscle selection
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
             }
             .aspectRatio(svgWidth / svgHeight, contentMode: .fit)
+            .animation(.easeInOut(duration: 0.2), value: gender)
+            .animation(.easeInOut(duration: 0.2), value: side)
 
             // Selected muscles chips
             if !selectedMuscles.isEmpty {

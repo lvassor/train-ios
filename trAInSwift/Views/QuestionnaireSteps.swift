@@ -885,8 +885,19 @@ struct EquipmentInfoModal: View {
 // MARK: - Q10: Training Days
 struct TrainingDaysStepView: View {
     @Binding var trainingDays: Int
+    @Binding var experienceLevel: String
 
-    let dayOptions = [2, 3, 4, 5]
+    // Determine recommended range based on experience level
+    private var recommendedRange: ClosedRange<Int> {
+        switch experienceLevel {
+        case "0_months", "0_6_months":
+            return 2...4  // Beginners: 2-4 days
+        case "6_months_2_years", "2_plus_years":
+            return 3...5  // Intermediate/Advanced: 3-5 days
+        default:
+            return 3...5  // Default to higher range
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
@@ -903,25 +914,118 @@ struct TrainingDaysStepView: View {
             }
             .frame(maxWidth: .infinity)
 
-            HStack(spacing: Spacing.md) {
-                ForEach(dayOptions, id: \.self) { days in
-                    Button(action: { trainingDays = days }) {
-                        VStack(spacing: Spacing.sm) {
-                            Text("\(days)")
-                                .font(.trainMediumNumber)  // Using new rounded number font
-                                .foregroundColor(trainingDays == days ? .white : .trainPrimary)
-
-                            Text("days")
-                                .font(.trainBody)
-                                .foregroundColor(trainingDays == days ? .white : .trainTextSecondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.lg)
-                        .background(trainingDays == days ? Color.trainPrimary : .clear)
-                        .glassCard()
-                    }
-                    .buttonStyle(ScaleButtonStyle())
+            // Large number display
+            VStack(spacing: Spacing.xs) {
+                HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
+                    Text("\(trainingDays)")
+                        .font(.trainLargeNumber)
+                        .foregroundColor(.trainPrimary)
+                    Text(trainingDays == 1 ? "day" : "days")
+                        .font(.trainTitle)
+                        .foregroundColor(.trainTextSecondary)
                 }
+                .frame(maxWidth: .infinity)
+
+                Text("per week")
+                    .font(.trainBody)
+                    .foregroundColor(.trainTextSecondary)
+            }
+            .padding(.vertical, Spacing.md)
+
+            // Horizontal slider with range indicator
+            VStack(spacing: Spacing.sm) {
+                // Days numbers above the line
+                HStack {
+                    ForEach(1...5, id: \.self) { day in
+                        Text("\(day)")
+                            .font(.trainBodyMedium)
+                            .foregroundColor(trainingDays == day ? .trainPrimary : .trainTextSecondary)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+
+                // Slider track with recommendation indicator
+                GeometryReader { geometry in
+                    let segmentWidth = geometry.size.width / 4  // 5 positions over 4 segments
+                    let circlePosition = CGFloat(trainingDays - 1) * segmentWidth
+
+                    ZStack(alignment: .leading) {
+                        // Background line (full width)
+                        Rectangle()
+                            .fill(Color.trainBorder)
+                            .frame(height: 4)
+                            .cornerRadius(2)
+
+                        // Green filled portion up to selected value
+                        Rectangle()
+                            .fill(Color.trainPrimary)
+                            .frame(width: circlePosition, height: 4)
+                            .cornerRadius(2)
+
+                        // Recommended range indicator (rounded bracket shape)
+                        let rangeStart = CGFloat(recommendedRange.lowerBound - 1) * segmentWidth
+                        let rangeWidth = CGFloat(recommendedRange.upperBound - recommendedRange.lowerBound) * segmentWidth
+
+                        // Bracket underneath with "Recommended" label
+                        VStack(spacing: 4) {
+                            Spacer()
+
+                            // Three-sided bracket shape
+                            Path { path in
+                                let height: CGFloat = 24
+                                let cornerRadius: CGFloat = 4
+                                // Start at bottom left
+                                path.move(to: CGPoint(x: rangeStart, y: height))
+                                // Left vertical line
+                                path.addLine(to: CGPoint(x: rangeStart, y: cornerRadius))
+                                // Top left corner
+                                path.addArc(center: CGPoint(x: rangeStart + cornerRadius, y: cornerRadius),
+                                           radius: cornerRadius,
+                                           startAngle: .degrees(180),
+                                           endAngle: .degrees(270),
+                                           clockwise: false)
+                                // Top horizontal line
+                                path.addLine(to: CGPoint(x: rangeStart + rangeWidth - cornerRadius, y: 0))
+                                // Top right corner
+                                path.addArc(center: CGPoint(x: rangeStart + rangeWidth - cornerRadius, y: cornerRadius),
+                                           radius: cornerRadius,
+                                           startAngle: .degrees(270),
+                                           endAngle: .degrees(0),
+                                           clockwise: false)
+                                // Right vertical line
+                                path.addLine(to: CGPoint(x: rangeStart + rangeWidth, y: height))
+                            }
+                            .stroke(Color.trainPrimary, lineWidth: 2)
+                            .offset(y: 12)
+
+                            // "Recommended" label
+                            Text("Recommended")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainPrimary)
+                                .offset(x: rangeStart + rangeWidth / 2 - 45, y: 40)
+                        }
+                        .frame(height: 60)
+
+                        // Draggable circle
+                        Circle()
+                            .fill(Color.trainPrimary)
+                            .frame(width: 24, height: 24)
+                            .offset(x: circlePosition - 12)
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { value in
+                                        // Calculate which day position the drag is closest to
+                                        let newPosition = max(0, min(value.location.x, geometry.size.width))
+                                        let dayIndex = Int(round(newPosition / segmentWidth))
+                                        let newDays = min(5, max(1, dayIndex + 1))
+                                        if newDays != trainingDays {
+                                            trainingDays = newDays
+                                        }
+                                    }
+                            )
+                    }
+                }
+                .frame(height: 80)
             }
 
             Spacer()

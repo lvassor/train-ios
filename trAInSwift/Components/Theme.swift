@@ -126,6 +126,25 @@ extension View {
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
     }
 
+    /// Warm-tinted frosted glass card for dark mode designs
+    /// Semi-transparent with warm amber/brown tint at 15-20% opacity
+    func warmGlassCard(cornerRadius: CGFloat = 20) -> some View {
+        self
+            .background(
+                ZStack {
+                    Color.white.opacity(0.15)
+                    Color(hex: "#D2691E").opacity(0.05)  // Warm chocolate/amber overlay
+                }
+                .background(.ultraThinMaterial)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 15)
+    }
+
     /// Premium glassmorphic card with thin material (more opacity)
     func glassPremiumCard(cornerRadius: CGFloat = CornerRadius.lg) -> some View {
         self

@@ -79,6 +79,10 @@ struct DashboardView: View {
                                 )
                                 .padding(.horizontal, Spacing.lg)
 
+                                // Weekly Calendar
+                                WeeklyCalendarView(userProgram: program)
+                                    .padding(.horizontal, Spacing.lg)
+
                                 // Your Weekly Sessions
                                 WeeklySessionsSection(userProgram: program)
                                     .padding(.horizontal, Spacing.lg)
@@ -119,8 +123,8 @@ struct DashboardView: View {
                         }
                     }
 
-                    // Bottom Navigation Bar
-                    BottomNavigationBar(
+                    // Floating Bottom Navigation
+                    FloatingToolbar(
                         onExerciseLibrary: { showExerciseLibrary = true },
                         onMilestones: { showMilestones = true },
                         onVideoLibrary: { showVideoLibrary = true },
@@ -586,38 +590,61 @@ struct SessionActionButton: View {
     }
 }
 
-// MARK: - Exercise List View (for uncompleted sessions)
+// MARK: - Exercise List View (Vertical Timeline Format)
 
 struct ExerciseListView: View {
     let session: ProgramSession
+    private let timelineColor = Color(hex: "#3A3530")
+    private let orangeAccent = Color(hex: "#FF7A00")
+    private let warmSecondary = Color(hex: "#8A8078")
 
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            ForEach(session.exercises) { exercise in
-                HStack(spacing: Spacing.md) {
-                    // Radio button circle
-                    Circle()
-                        .stroke(Color.trainTextSecondary.opacity(0.4), lineWidth: 2)
-                        .frame(width: 24, height: 24)
+        HStack(alignment: .top, spacing: 0) {
+            // Vertical timeline line
+            VStack(spacing: 0) {
+                ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, _ in
+                    VStack(spacing: 0) {
+                        // Timeline node (hollow orange circle)
+                        Circle()
+                            .stroke(orangeAccent, lineWidth: 2.5)
+                            .frame(width: 26, height: 26)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(exercise.exerciseName)
-                            .font(.trainBodyMedium)
-                            .foregroundColor(.trainTextPrimary)
-
-                        Text("\(exercise.sets) sets × \(exercise.repRange) reps")
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
+                        // Connecting line (don't show after last item)
+                        if index < session.exercises.count - 1 {
+                            Rectangle()
+                                .fill(timelineColor)
+                                .frame(width: 2, height: 44)
+                        }
                     }
-
-                    Spacer()
                 }
-                .padding(Spacing.md)
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-                .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+            }
+            .padding(.trailing, 16)
+
+            // Exercise information
+            VStack(alignment: .leading, spacing: 24) {
+                ForEach(session.exercises) { exercise in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(alignment: .center) {
+                            Text(exercise.exerciseName)
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(.white)
+
+                            Spacer()
+
+                            Text("\(exercise.sets) sets")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(warmSecondary)
+                        }
+
+                        Text("\(exercise.sets) × \(exercise.repRange) reps")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(warmSecondary)
+                    }
+                    .frame(height: 50)
+                }
             }
         }
+        .padding(.vertical, 8)
     }
 }
 
