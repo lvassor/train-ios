@@ -41,7 +41,7 @@ struct PasswordResetRequestView: View {
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
                             .padding(Spacing.md)
-                            .warmGlassCard()
+                            .appCard()
                             .cornerRadius(10)
 
                         Text("Enter your email and we'll send you a reset code")

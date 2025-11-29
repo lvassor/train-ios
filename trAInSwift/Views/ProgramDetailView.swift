@@ -31,7 +31,7 @@ struct ProgramDetailView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(Spacing.md)
-                        .warmGlassCard()
+                        .appCard()
                         .cornerRadius(CornerRadius.md)
                         .padding(.horizontal, Spacing.lg)
                         .padding(.top, Spacing.md)
@@ -95,7 +95,7 @@ struct ProgramSessionCard: View {
             }
         }
         .padding(Spacing.md)
-        .warmGlassCard()
+        .appCard()
         .cornerRadius(CornerRadius.md)
     }
 }

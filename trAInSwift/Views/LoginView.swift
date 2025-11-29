@@ -50,7 +50,7 @@ struct LoginView: View {
                                 .keyboardType(.emailAddress)
                                 .autocorrectionDisabled()
                                 .padding(Spacing.md)
-                                .warmGlassCard()
+                                .appCard()
                                 .cornerRadius(CornerRadius.md)
                         }
 
@@ -73,7 +73,7 @@ struct LoginView: View {
 
                             SecureField("Enter your password", text: $password)
                                 .padding(Spacing.md)
-                                .warmGlassCard()
+                                .appCard()
                                 .cornerRadius(CornerRadius.md)
                         }
 

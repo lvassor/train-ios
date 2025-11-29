@@ -41,8 +41,8 @@ struct ColorPalette {
     /// Primary text color - white for dark backgrounds
     static let textPrimary = "#FFFFFF"
 
-    /// Secondary text color - muted warm gray
-    static let textSecondary = "#8A8078"
+    /// Secondary text color - near-white with slight warmth
+    static let textSecondary = "#E8E6E3"
 
     // MARK: - UI Element Colors
 

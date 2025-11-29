@@ -95,11 +95,11 @@ struct WorkoutLoggerView: View {
                         Button(action: { selectedTab = .logger }) {
                             Text("Logger")
                                 .font(.trainBodyMedium)
-                                .foregroundColor(selectedTab == .logger ? .trainTextPrimary : .trainTextSecondary)
+                                .foregroundColor(selectedTab == .logger ? .white : .trainTextSecondary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Spacing.md)
                         }
-                        .background(selectedTab == .logger ? Color.white : Color.clear)
+                        .background(selectedTab == .logger ? Color.trainPrimary : Color.clear)
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 
                         Button(action: {
@@ -108,11 +108,11 @@ struct WorkoutLoggerView: View {
                         }) {
                             Text("Demo")
                                 .font(.trainBodyMedium)
-                                .foregroundColor(selectedTab == .demo ? .trainTextPrimary : .trainTextSecondary)
+                                .foregroundColor(selectedTab == .demo ? .white : .trainTextSecondary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Spacing.md)
                         }
-                        .background(selectedTab == .demo ? Color.white : Color.clear)
+                        .background(selectedTab == .demo ? Color.trainPrimary : Color.clear)
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     }
                     .glassCompactCard()
@@ -169,7 +169,6 @@ struct WorkoutLoggerView: View {
                                         .frame(height: ButtonHeight.standard)
                                         .background(Color.trainPrimary)
                                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-                                        .accentGlow()
                                 }
                             } else {
                                 Button(action: { showCompletionModal = true }) {
@@ -180,16 +179,15 @@ struct WorkoutLoggerView: View {
                                         .frame(height: ButtonHeight.standard)
                                         .background(Color.trainPrimary)
                                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-                                        .accentGlow()
                                 }
                             }
                         }
                         .padding(Spacing.lg)
-                        .background(Color.white)
                     }
                 }
             }
         }
+        .warmDarkGradientBackground()
         .navigationBarBackButtonHidden(true)
         .onAppear {
             initializeLoggedExercises()
@@ -372,7 +370,7 @@ struct WorkoutHeader: View {
                     .foregroundColor(.trainTextPrimary)
             }
             .padding(Spacing.lg)
-            .warmGlassCard()
+            .appCard()
 
             ProgressView(value: Double(exerciseNumber), total: Double(totalExercises))
                 .tint(Color.trainPrimary)
@@ -419,7 +417,7 @@ struct ExerciseInfoCard: View {
             }
         }
         .padding(Spacing.md)
-        .warmGlassCard()
+        .appCard()
     }
 }
 
@@ -449,6 +447,8 @@ struct SetLoggingView: View {
     @State private var weightUnit: WeightUnit = .kg
     @State private var currentPrompt: PromptType? = nil
     @State private var debounceTask: Task<Void, Never>? = nil
+    @State private var showRestTimer: Bool = false
+    @State private var activeSetIndex: Int? = nil
 
     enum WeightUnit: String, CaseIterable {
         case kg = "kg"
@@ -485,6 +485,14 @@ struct SetLoggingView: View {
                 unitToggle
             }
 
+            // Rest timer (shared for all sets)
+            if showRestTimer {
+                RestTimerView(totalSeconds: programExercise.restSeconds) {
+                    showRestTimer = false
+                    activeSetIndex = nil
+                }
+            }
+
             // Grid header
             HStack(spacing: Spacing.md) {
                 Text("Set")
@@ -513,7 +521,14 @@ struct SetLoggingView: View {
                         setNumber: setIndex + 1,
                         set: binding(for: setIndex),
                         restSeconds: programExercise.restSeconds,
-                        weightUnit: weightUnit
+                        weightUnit: weightUnit,
+                        onSetCompleted: {
+                            // Start timer when a set is completed
+                            if programExercise.restSeconds > 0 {
+                                activeSetIndex = setIndex
+                                showRestTimer = true
+                            }
+                        }
                     )
                 }
             }
@@ -525,7 +540,7 @@ struct SetLoggingView: View {
             }
         }
         .padding(Spacing.md)
-        .warmGlassCard()
+        .appCard()
         .onChange(of: loggedExercise.sets) { _, _ in
             evaluateAndShowPrompt()
         }
@@ -581,73 +596,64 @@ struct SetRowView: View {
     @Binding var set: LoggedSet
     let restSeconds: Int
     let weightUnit: SetLoggingView.WeightUnit
+    let onSetCompleted: () -> Void
 
-    @State private var showRestTimer: Bool = false
     @State private var repsText: String = ""
     @State private var weightText: String = ""
 
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            HStack(spacing: Spacing.md) {
-                // Set number
-                Text("\(setNumber)")
-                    .font(.trainBodyMedium)
-                    .fontWeight(.bold)
-                    .foregroundColor(.trainTextPrimary)
-                    .frame(width: 32)
+        HStack(spacing: Spacing.md) {
+            // Set number
+            Text("\(setNumber)")
+                .font(.trainBodyMedium)
+                .fontWeight(.bold)
+                .foregroundColor(.trainTextPrimary)
+                .frame(width: 32)
 
-                // Reps text input
-                TextField("0", text: $repsText)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.center)
-                    .font(.trainBody)
-                    .foregroundColor(.trainTextPrimary)
-                    .padding(Spacing.sm)
-                    .frame(width: 60)
-                    .warmGlassCard()
-                    .cornerRadius(CornerRadius.sm)
-                    .onChange(of: repsText) { _, newValue in
-                        if let reps = Int(newValue) {
-                            set.reps = reps
-                        }
+            // Reps text input
+            TextField("0", text: $repsText)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .font(.trainBody)
+                .foregroundColor(.trainTextPrimary)
+                .padding(Spacing.sm)
+                .frame(width: 60)
+                .appCard()
+                .cornerRadius(CornerRadius.sm)
+                .onChange(of: repsText) { _, newValue in
+                    if let reps = Int(newValue) {
+                        set.reps = reps
                     }
+                }
 
-                // Weight text input
-                TextField("0", text: $weightText)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.center)
-                    .font(.trainBody)
-                    .foregroundColor(.trainTextPrimary)
-                    .padding(Spacing.sm)
-                    .frame(width: 80)
-                    .warmGlassCard()
-                    .cornerRadius(CornerRadius.sm)
-                    .onChange(of: weightText) { _, newValue in
-                        if let weight = Double(newValue) {
-                            set.weight = weightUnit == .kg ? weight : weight / 2.20462
-                        }
+            // Weight text input
+            TextField("0", text: $weightText)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.center)
+                .font(.trainBody)
+                .foregroundColor(.trainTextPrimary)
+                .padding(Spacing.sm)
+                .frame(width: 80)
+                .appCard()
+                .cornerRadius(CornerRadius.sm)
+                .onChange(of: weightText) { _, newValue in
+                    if let weight = Double(newValue) {
+                        set.weight = weightUnit == .kg ? weight : weight / 2.20462
                     }
-
-                Spacer()
-
-                // Completion toggle
-                Button(action: toggleCompletion) {
-                    Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
-                        .font(.title2)
-                        .foregroundColor(set.completed ? .trainPrimary : .trainTextSecondary)
                 }
-            }
-            .padding(Spacing.sm)
-            .background(set.completed ? Color.trainPrimary.opacity(0.05) : Color.trainBackground)
-            .cornerRadius(CornerRadius.sm)
 
-            // Rest timer (appears after completing a set)
-            if showRestTimer {
-                RestTimerView(totalSeconds: restSeconds) {
-                    showRestTimer = false
-                }
+            Spacer()
+
+            // Completion toggle
+            Button(action: toggleCompletion) {
+                Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
+                    .font(.title2)
+                    .foregroundColor(set.completed ? .trainPrimary : .trainTextSecondary)
             }
         }
+        .padding(Spacing.sm)
+        .background(set.completed ? Color.trainPrimary.opacity(0.05) : Color.trainBackground)
+        .cornerRadius(CornerRadius.sm)
         .onAppear {
             // Initialize text fields with existing values
             if set.reps > 0 {
@@ -671,9 +677,9 @@ struct SetRowView: View {
         let wasCompleted = set.completed
         set.completed.toggle()
 
-        // Show rest timer when completing a set (not when un-completing)
-        if !wasCompleted && set.completed && restSeconds > 0 {
-            showRestTimer = true
+        // Trigger timer callback when completing a set (not when un-completing)
+        if !wasCompleted && set.completed {
+            onSetCompleted()
         }
     }
 }

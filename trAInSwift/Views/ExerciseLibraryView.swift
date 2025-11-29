@@ -22,7 +22,22 @@ struct ExerciseLibraryView: View {
     let equipmentTypes = ["Barbell", "Dumbbell", "Cable", "Machine", "Kettlebell", "Bodyweight"]
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack {
+            // Gradient base layer
+            LinearGradient(
+                stops: [
+                    .init(color: Color(hex: "#a05608"), location: 0.0),
+                    .init(color: Color(hex: "#692a00"), location: 0.15),
+                    .init(color: Color(hex: "#1A1410"), location: 0.5),
+                    .init(color: Color(hex: "#692a00"), location: 0.85),
+                    .init(color: Color(hex: "#a05608"), location: 1.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
                 // Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
@@ -42,7 +57,7 @@ struct ExerciseLibraryView: View {
                     }
                 }
                 .padding(Spacing.md)
-                .warmGlassCard()
+                .appCard()
                 .cornerRadius(10)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.md)
@@ -69,7 +84,7 @@ struct ExerciseLibraryView: View {
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, Spacing.sm)
                         .background(selectedMuscles.isEmpty ? Color.clear : Color.trainPrimary.opacity(0.1))
-                        .warmGlassCard()
+                        .appCard()
                         .cornerRadius(10)
                     }
                     .fixedSize()
@@ -89,7 +104,7 @@ struct ExerciseLibraryView: View {
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, Spacing.sm)
                         .background(selectedEquipment.isEmpty ? Color.clear : Color.trainPrimary.opacity(0.1))
-                        .warmGlassCard()
+                        .appCard()
                         .cornerRadius(10)
                     }
                     .fixedSize()
@@ -153,7 +168,9 @@ struct ExerciseLibraryView: View {
                         .padding(.vertical, Spacing.sm)
                     }
                 }
+            }
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Exercise Library")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showMuscleFilter) {
@@ -292,7 +309,7 @@ struct ExerciseLibraryCard: View {
                 .foregroundColor(.trainTextSecondary)
         }
         .padding(Spacing.md)
-        .warmGlassCard()
+        .appCard()
         .cornerRadius(15)
     }
 }
@@ -331,7 +348,7 @@ struct FilterSheet: View {
                                     }
                                 }
                                 .padding(Spacing.md)
-                                .warmGlassCard()
+                                .appCard()
                                 .cornerRadius(10)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)

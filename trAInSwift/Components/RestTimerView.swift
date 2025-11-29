@@ -60,7 +60,7 @@ struct RestTimerView: View {
             }
         }
         .padding(Spacing.md)
-        .warmGlassCard(cornerRadius: CornerRadius.md)
+        .appCard(cornerRadius: CornerRadius.md)
         .onAppear {
             startTimer()
         }

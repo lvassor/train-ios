@@ -99,7 +99,8 @@ struct MuscleSelector: View {
                 // For back view, translate the SVG coordinate system to bring back paths into view
                 let viewBoxOffsetX = side == .back ? -backViewXOffset * scale : 0
                 // Additional offset for female to center within normalized width
-                let genderCenterOffset = gender == .female ? (svgWidth - actualSvgWidth) * scale / 2 : 0
+                // For front view, shift right to center. For back view, no additional shift needed
+                let genderCenterOffset = gender == .female && side == .front ? (svgWidth - actualSvgWidth) * scale / 2 : 0
 
                 ZStack {
                     // Body parts
@@ -290,15 +291,20 @@ struct CompactMuscleSelector: View {
                 // For back view, translate the SVG coordinate system to bring back paths into view
                 let viewBoxOffsetX = side == .back ? -backViewXOffset * scale : 0
                 // Additional offset for female to center within normalized width
-                let genderCenterOffset = gender == .female ? (svgWidth - actualSvgWidth) * scale / 2 : 0
+                // For front view, shift right to center. For back view, no additional shift needed
+                let genderCenterOffset = gender == .female && side == .front ? (svgWidth - actualSvgWidth) * scale / 2 : 0
 
                 ZStack {
+                    // Fixed frame wrapper to prevent shrinking
+                    Color.clear
+                        .frame(width: svgWidth * scale, height: svgHeight * scale)
+
                     bodyDiagram
                         .scaleEffect(scale, anchor: .topLeading)
                         .offset(x: centerOffsetX + viewBoxOffsetX + genderCenterOffset, y: 0)
-                        .animation(.none, value: selectedMuscles) // Prevent size change on muscle selection
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
+                .animation(.none, value: selectedMuscles) // Prevent size change on muscle selection
             }
             .aspectRatio(svgWidth / svgHeight, contentMode: .fit)
             .animation(.easeInOut(duration: 0.2), value: gender)

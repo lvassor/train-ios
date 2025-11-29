@@ -49,7 +49,7 @@ struct SignupView: View {
                                     .keyboardType(.emailAddress)
                                     .autocorrectionDisabled()
                                     .padding(Spacing.md)
-                                    .warmGlassCard()
+                                    .appCard()
                                     .cornerRadius(CornerRadius.md)
                             }
 
@@ -60,7 +60,7 @@ struct SignupView: View {
 
                                 SecureField("Enter your password", text: $password)
                                     .padding(Spacing.md)
-                                    .warmGlassCard()
+                                    .appCard()
                                     .cornerRadius(CornerRadius.md)
 
                                 Text("Must be at least 6 characters")
@@ -75,7 +75,7 @@ struct SignupView: View {
 
                                 SecureField("Confirm your password", text: $confirmPassword)
                                     .padding(Spacing.md)
-                                    .warmGlassCard()
+                                    .appCard()
                                     .cornerRadius(CornerRadius.md)
                             }
 

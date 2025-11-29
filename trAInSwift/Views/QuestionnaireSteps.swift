@@ -50,7 +50,7 @@ struct GenderStepView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.xl)
                         .background(selectedGender == "Male" ? Color.trainPrimary : .clear)
-                        .glassCard()
+                        .appCard()
                     }
                     .buttonStyle(ScaleButtonStyle())
 
@@ -74,7 +74,7 @@ struct GenderStepView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.xl)
                         .background(selectedGender == "Female" ? Color.trainPrimary : .clear)
-                        .glassCard()
+                        .appCard()
                     }
                     .buttonStyle(ScaleButtonStyle())
                 }
@@ -101,7 +101,7 @@ struct GenderStepView: View {
                     .padding(Spacing.md)
                     .frame(maxWidth: .infinity)
                     .background(selectedGender == "Other / Prefer not to say" ? Color.trainPrimary : .clear)
-                    .glassCard()
+                    .appCard()
                 }
                 .buttonStyle(ScaleButtonStyle())
             }
@@ -219,11 +219,11 @@ struct HeightStepView: View {
                         .foregroundColor(unit == .cm ? .white : .trainTextPrimary)
                         .padding(.vertical, Spacing.sm)
                         .padding(.horizontal, Spacing.lg)
-                        .background(unit == .cm ? Color.trainPrimary : Color.white)
-                        .cornerRadius(CornerRadius.sm)
+                        .background(unit == .cm ? Color.trainPrimary : Color.clear)
+                        .warmGlassCard(cornerRadius: CornerRadius.sm)
                         .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.sm)
-                                .stroke(Color.trainBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
                         )
                 }
 
@@ -241,11 +241,11 @@ struct HeightStepView: View {
                         .foregroundColor(unit == .ftIn ? .white : .trainTextPrimary)
                         .padding(.vertical, Spacing.sm)
                         .padding(.horizontal, Spacing.lg)
-                        .background(unit == .ftIn ? Color.trainPrimary : Color.white)
-                        .cornerRadius(CornerRadius.sm)
+                        .background(unit == .ftIn ? Color.trainPrimary : Color.clear)
+                        .warmGlassCard(cornerRadius: CornerRadius.sm)
                         .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.sm)
-                                .stroke(Color.trainBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
                         )
                 }
             }
@@ -273,6 +273,7 @@ struct HeightStepView: View {
                         snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 10 units
                     )
+                    .tint(Color(hex: "#FF7A00"))  // Orange indicator bar
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -325,6 +326,7 @@ struct HeightStepView: View {
                         snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 1 foot
                     )
+                    .tint(Color(hex: "#FF7A00"))  // Orange indicator bar
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -377,11 +379,11 @@ struct WeightStepView: View {
                         .foregroundColor(unit == .kg ? .white : .trainTextPrimary)
                         .padding(.vertical, Spacing.sm)
                         .padding(.horizontal, Spacing.lg)
-                        .background(unit == .kg ? Color.trainPrimary : Color.white)
-                        .cornerRadius(CornerRadius.sm)
+                        .background(unit == .kg ? Color.trainPrimary : Color.clear)
+                        .warmGlassCard(cornerRadius: CornerRadius.sm)
                         .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.sm)
-                                .stroke(Color.trainBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
                         )
                 }
 
@@ -397,11 +399,11 @@ struct WeightStepView: View {
                         .foregroundColor(unit == .lbs ? .white : .trainTextPrimary)
                         .padding(.vertical, Spacing.sm)
                         .padding(.horizontal, Spacing.lg)
-                        .background(unit == .lbs ? Color.trainPrimary : Color.white)
-                        .cornerRadius(CornerRadius.sm)
+                        .background(unit == .lbs ? Color.trainPrimary : Color.clear)
+                        .warmGlassCard(cornerRadius: CornerRadius.sm)
                         .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.sm)
-                                .stroke(Color.trainBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
                         )
                 }
             }
@@ -429,6 +431,7 @@ struct WeightStepView: View {
                         snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 10 units
                     )
+                    .tint(Color(hex: "#FF7A00"))  // Orange indicator bar
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -461,6 +464,7 @@ struct WeightStepView: View {
                         snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 20 units
                     )
+                    .tint(Color(hex: "#FF7A00"))  // Orange indicator bar
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -525,7 +529,7 @@ struct MuscleGroupsStepView: View {
     @Binding var selectedGroups: [String]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Which muscle groups do you want to prioritise?")
                     .font(.trainTitle2)
@@ -539,11 +543,10 @@ struct MuscleGroupsStepView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Interactive body diagram
+            // Interactive body diagram - 75% size to show selection info below
             CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3)
-                .frame(maxHeight: 450)
-
-            Spacer()
+                .frame(maxHeight: 450)  // Fixed height at 75% of previous size
+                .padding(.horizontal, Spacing.lg)
         }
     }
 }
@@ -561,7 +564,7 @@ struct MuscleGroupButton: View {
                 .frame(maxWidth: .infinity)
                 .padding(Spacing.md)
                 .background(isSelected ? Color.trainPrimary : .clear)
-                .glassCard(cornerRadius: CornerRadius.md)
+                .appCard(cornerRadius: CornerRadius.md)
                 .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(ScaleButtonStyle())
@@ -653,7 +656,7 @@ struct MotivationStepView: View {
                     TextField("Please specify", text: $otherText)
                         .font(.trainBody)
                         .padding(Spacing.md)
-                        .glassCard()
+                        .appCard()
                 }
             }
 
@@ -716,7 +719,7 @@ struct EquipmentStepView: View {
 
                 Spacer()
             }
-            .padding(.horizontal, Spacing.lg)
+            // No horizontal padding here - parent ScrollView already has it to match progress bar
 
             // Equipment Info Modal
             if let equipmentType = showingEquipmentInfo {
@@ -765,7 +768,7 @@ struct EquipmentCard: View {
             }
             .padding(Spacing.md)
             .background(isSelected ? Color.trainPrimary : .clear)
-            .glassCard(cornerRadius: CornerRadius.md)
+            .appCard(cornerRadius: CornerRadius.md)
             .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(PlainButtonStyle())
@@ -934,7 +937,55 @@ struct TrainingDaysStepView: View {
 
             // Horizontal slider with range indicator
             VStack(spacing: Spacing.sm) {
-                // Days numbers above the line
+                // Recommended label and bracket above everything
+                GeometryReader { geometry in
+                    let segmentWidth = geometry.size.width / 5  // 5 equal segments for 5 positions
+                    let rangeStart = (CGFloat(recommendedRange.lowerBound - 1) * segmentWidth)
+                    let rangeWidth = (CGFloat(recommendedRange.upperBound - recommendedRange.lowerBound + 1) * segmentWidth)
+
+                    VStack(spacing: 8) {
+                        // "Recommended" label at top - centered above bracket
+                        HStack {
+                            Spacer()
+                                .frame(width: rangeStart)
+                            Text("Recommended")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainPrimary)
+                                .frame(width: rangeWidth)
+                            Spacer()
+                        }
+
+                        // Three-sided bracket shape immediately below label
+                        Path { path in
+                            let height: CGFloat = 20
+                            let cornerRadius: CGFloat = 4
+                            // Start at bottom left
+                            path.move(to: CGPoint(x: rangeStart, y: height))
+                            // Left vertical line
+                            path.addLine(to: CGPoint(x: rangeStart, y: cornerRadius))
+                            // Top left corner
+                            path.addArc(center: CGPoint(x: rangeStart + cornerRadius, y: cornerRadius),
+                                       radius: cornerRadius,
+                                       startAngle: .degrees(180),
+                                       endAngle: .degrees(270),
+                                       clockwise: false)
+                            // Top horizontal line
+                            path.addLine(to: CGPoint(x: rangeStart + rangeWidth - cornerRadius, y: 0))
+                            // Top right corner
+                            path.addArc(center: CGPoint(x: rangeStart + rangeWidth - cornerRadius, y: cornerRadius),
+                                       radius: cornerRadius,
+                                       startAngle: .degrees(270),
+                                       endAngle: .degrees(0),
+                                       clockwise: false)
+                            // Right vertical line
+                            path.addLine(to: CGPoint(x: rangeStart + rangeWidth, y: height))
+                        }
+                        .stroke(Color.trainPrimary, lineWidth: 2)
+                    }
+                }
+                .frame(height: 40)
+
+                // Days numbers
                 HStack {
                     ForEach(1...5, id: \.self) { day in
                         Text("\(day)")
@@ -943,11 +994,12 @@ struct TrainingDaysStepView: View {
                             .frame(maxWidth: .infinity)
                     }
                 }
+                .padding(.top, Spacing.xs)
 
-                // Slider track with recommendation indicator
+                // Slider track
                 GeometryReader { geometry in
-                    let segmentWidth = geometry.size.width / 4  // 5 positions over 4 segments
-                    let circlePosition = CGFloat(trainingDays - 1) * segmentWidth
+                    let segmentWidth = geometry.size.width / 5  // 5 equal segments for 5 positions
+                    let circlePosition = (CGFloat(trainingDays - 1) * segmentWidth) + (segmentWidth / 2)
 
                     ZStack(alignment: .leading) {
                         // Background line (full width)
@@ -956,55 +1008,11 @@ struct TrainingDaysStepView: View {
                             .frame(height: 4)
                             .cornerRadius(2)
 
-                        // Green filled portion up to selected value
+                        // Orange filled portion up to selected value
                         Rectangle()
                             .fill(Color.trainPrimary)
                             .frame(width: circlePosition, height: 4)
                             .cornerRadius(2)
-
-                        // Recommended range indicator (rounded bracket shape)
-                        let rangeStart = CGFloat(recommendedRange.lowerBound - 1) * segmentWidth
-                        let rangeWidth = CGFloat(recommendedRange.upperBound - recommendedRange.lowerBound) * segmentWidth
-
-                        // Bracket underneath with "Recommended" label
-                        VStack(spacing: 4) {
-                            Spacer()
-
-                            // Three-sided bracket shape
-                            Path { path in
-                                let height: CGFloat = 24
-                                let cornerRadius: CGFloat = 4
-                                // Start at bottom left
-                                path.move(to: CGPoint(x: rangeStart, y: height))
-                                // Left vertical line
-                                path.addLine(to: CGPoint(x: rangeStart, y: cornerRadius))
-                                // Top left corner
-                                path.addArc(center: CGPoint(x: rangeStart + cornerRadius, y: cornerRadius),
-                                           radius: cornerRadius,
-                                           startAngle: .degrees(180),
-                                           endAngle: .degrees(270),
-                                           clockwise: false)
-                                // Top horizontal line
-                                path.addLine(to: CGPoint(x: rangeStart + rangeWidth - cornerRadius, y: 0))
-                                // Top right corner
-                                path.addArc(center: CGPoint(x: rangeStart + rangeWidth - cornerRadius, y: cornerRadius),
-                                           radius: cornerRadius,
-                                           startAngle: .degrees(270),
-                                           endAngle: .degrees(0),
-                                           clockwise: false)
-                                // Right vertical line
-                                path.addLine(to: CGPoint(x: rangeStart + rangeWidth, y: height))
-                            }
-                            .stroke(Color.trainPrimary, lineWidth: 2)
-                            .offset(y: 12)
-
-                            // "Recommended" label
-                            Text("Recommended")
-                                .font(.trainCaption)
-                                .foregroundColor(.trainPrimary)
-                                .offset(x: rangeStart + rangeWidth / 2 - 45, y: 40)
-                        }
-                        .frame(height: 60)
 
                         // Draggable circle
                         Circle()
@@ -1016,7 +1024,7 @@ struct TrainingDaysStepView: View {
                                     .onChanged { value in
                                         // Calculate which day position the drag is closest to
                                         let newPosition = max(0, min(value.location.x, geometry.size.width))
-                                        let dayIndex = Int(round(newPosition / segmentWidth))
+                                        let dayIndex = Int(round((newPosition - segmentWidth / 2) / segmentWidth))
                                         let newDays = min(5, max(1, dayIndex + 1))
                                         if newDays != trainingDays {
                                             trainingDays = newDays
@@ -1025,7 +1033,7 @@ struct TrainingDaysStepView: View {
                             )
                     }
                 }
-                .frame(height: 80)
+                .frame(height: 30)
             }
 
             Spacer()
@@ -1114,7 +1122,7 @@ struct InjuriesStepView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding(Spacing.md)
                                     .background(injuries.contains(injury) ? Color.trainPrimary : .clear)
-                                    .glassCard(cornerRadius: CornerRadius.md)
+                                    .appCard(cornerRadius: CornerRadius.md)
                                     .shadow(color: injuries.contains(injury) ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
                             }
                             .buttonStyle(ScaleButtonStyle())
@@ -1130,7 +1138,7 @@ struct InjuriesStepView: View {
                         .frame(maxWidth: .infinity)
                         .padding(Spacing.md)
                         .background(injuries.isEmpty ? Color.trainPrimary : .clear)
-                        .glassCard(cornerRadius: CornerRadius.md)
+                        .appCard(cornerRadius: CornerRadius.md)
                         .shadow(color: injuries.isEmpty ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
                 }
                 .buttonStyle(ScaleButtonStyle())

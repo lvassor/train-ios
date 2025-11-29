@@ -131,6 +131,8 @@ struct SessionDetailView: View {
                 }
             }
         }
+        .warmDarkGradientBackground()
+        .scrollContentBackground(.hidden)
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(isPresented: $startWorkout) {
             WorkoutLoggerView(
@@ -197,8 +199,8 @@ struct ExerciseCard: View {
     let index: Int
 
     var body: some View {
-        HStack(spacing: Spacing.md) {
-            // Exercise number
+        HStack(alignment: .top, spacing: Spacing.md) {
+            // Exercise number - aligned to top
             Text("\(index)")
                 .font(.trainBodyMedium)
                 .fontWeight(.bold)
@@ -207,7 +209,7 @@ struct ExerciseCard: View {
                 .background(Color.trainPrimary.opacity(0.1))
                 .clipShape(Circle())
 
-            // Exercise info
+            // Exercise info - exercise name aligns with top of orange node
             VStack(alignment: .leading, spacing: 4) {
                 Text(exercise.exerciseName)
                     .font(.trainBodyMedium)
@@ -241,7 +243,7 @@ struct ExerciseCard: View {
             }
         }
         .padding(Spacing.md)
-        .warmGlassCard()
+        .appCard()
         .cornerRadius(CornerRadius.md)
     }
 }

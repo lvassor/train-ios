@@ -16,55 +16,48 @@ struct WeeklyCalendarView: View {
     private let calendar = Calendar.current
     private let warmSecondaryText = Color(hex: "#8A8078")
     private let vibrantOrange = Color(hex: "#FF7A00")
-    private let mutedCircleFill = Color(hex: "#4A4540").opacity(0.45)
+    private let mutedCircleFill = Color(hex: "#3D2A1A").opacity(0.8)
 
     var body: some View {
         VStack(spacing: 0) {
             // Header row
             HStack {
-                Text("THIS WEEK")
+                Text(isExpanded ? monthYearString.uppercased() : "THIS WEEK")
                     .font(.system(size: 11, weight: .semibold, design: .default))
                     .tracking(1.5)
                     .foregroundColor(warmSecondaryText)
 
                 Spacer()
 
-                Text("Let's start your journey")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(.white)
+                // Expand/collapse button
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        isExpanded.toggle()
+                    }
+                }) {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(warmSecondaryText)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
             .padding(.bottom, 14)
 
-            // Week row (always visible)
-            weekRow
-                .padding(.horizontal, 16)
-                .padding(.bottom, 14)
-
-            // Expanded month view
             if isExpanded {
-                monthView
+                // Expanded month view - dynamically builds around current week
+                expandedMonthView
                     .padding(.horizontal, 16)
                     .padding(.bottom, 14)
-                    .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            } else {
+                // Collapsed week row
+                weekRow
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 14)
             }
-
-            // Expand/collapse button
-            Button(action: {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    isExpanded.toggle()
-                }
-            }) {
-                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(warmSecondaryText)
-                    .frame(height: 24)
-                    .frame(maxWidth: .infinity)
-            }
-            .padding(.bottom, 8)
         }
-        .warmGlassCard(cornerRadius: 20)
+        .appCard(cornerRadius: 20)
     }
 
     // MARK: - Week Row
@@ -80,38 +73,29 @@ struct WeeklyCalendarView: View {
         }
     }
 
-    // MARK: - Month View
+    // MARK: - Expanded Month View
 
-    private var monthView: some View {
-        let monthData = getMonthData()
+    private var expandedMonthView: some View {
+        let monthData = getMonthDataAroundCurrentWeek()
 
-        return VStack(spacing: 16) {
-            // Month/Year header
-            Text(monthYearString)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            // Calendar grid
-            VStack(spacing: 8) {
-                // Day headers (S M T W T F S)
-                HStack(spacing: 0) {
-                    ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { letter in
-                        Text(letter)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(warmSecondaryText)
-                            .frame(maxWidth: .infinity)
-                    }
+        return VStack(spacing: 8) {
+            // Day headers (S M T W T F S)
+            HStack(spacing: 0) {
+                ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { letter in
+                    Text(letter)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(warmSecondaryText)
+                        .frame(maxWidth: .infinity)
                 }
+            }
 
-                // Week rows
-                ForEach(0..<monthData.count, id: \.self) { weekIndex in
-                    HStack(spacing: 0) {
-                        ForEach(monthData[weekIndex], id: \.date) { dayInfo in
-                            dayCircle(for: dayInfo, isCompact: true)
-                                .frame(maxWidth: .infinity)
-                                .opacity(dayInfo.isCurrentMonth ? 1.0 : 0.2)
-                        }
+            // Week rows - dynamically built around current week
+            ForEach(0..<monthData.count, id: \.self) { weekIndex in
+                HStack(spacing: 0) {
+                    ForEach(monthData[weekIndex], id: \.date) { dayInfo in
+                        dayCircle(for: dayInfo, isCompact: true)
+                            .frame(maxWidth: .infinity)
+                            .opacity(dayInfo.isCurrentMonth ? 1.0 : 0.2)
                     }
                 }
             }
@@ -216,6 +200,58 @@ struct WeeklyCalendarView: View {
 
             // Stop if we've passed the current month
             if calendar.component(.month, from: currentDay) != calendar.component(.month, from: firstOfMonth) {
+                break
+            }
+        }
+
+        return weeks
+    }
+
+    private func getMonthDataAroundCurrentWeek() -> [[DayInfo]] {
+        let today = calendar.startOfDay(for: Date())
+
+        // Find the start of the current week (Sunday)
+        let weekday = calendar.component(.weekday, from: today)
+        let daysFromSunday = weekday - 1 // Sunday = 1
+        guard let currentWeekStart = calendar.date(byAdding: .day, value: -daysFromSunday, to: today) else {
+            return []
+        }
+
+        // Find the start of the month
+        let components = calendar.dateComponents([.year, .month], from: today)
+        guard let firstOfMonth = calendar.date(from: components) else { return [] }
+
+        // Find the Sunday that starts the calendar for this month
+        let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
+        let daysToSubtract = (firstWeekday - 1)
+        guard let monthStart = calendar.date(byAdding: .day, value: -daysToSubtract, to: firstOfMonth) else {
+            return []
+        }
+
+        // Calculate how many weeks from month start to current week
+        let daysBetween = calendar.dateComponents([.day], from: monthStart, to: currentWeekStart).day ?? 0
+        let weeksBefore = daysBetween / 7
+
+        // Generate all weeks in the month
+        var weeks: [[DayInfo]] = []
+        var weekStart = monthStart
+
+        for _ in 0..<6 {
+            var week: [DayInfo] = []
+            var dayInWeek = weekStart
+
+            for _ in 0..<7 {
+                week.append(getDayInfo(for: dayInWeek))
+                dayInWeek = calendar.date(byAdding: .day, value: 1, to: dayInWeek)!
+            }
+
+            weeks.append(week)
+            weekStart = calendar.date(byAdding: .day, value: 7, to: weekStart)!
+
+            // Stop if we've passed the current month
+            let nextMonth = calendar.component(.month, from: weekStart)
+            let currentMonth = calendar.component(.month, from: firstOfMonth)
+            if nextMonth != currentMonth && weeks.count > weeksBefore {
                 break
             }
         }

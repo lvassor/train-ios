@@ -28,10 +28,7 @@ struct CalendarView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.trainBackground.ignoresSafeArea()
-
-                VStack(spacing: 0) {
+            VStack(spacing: 0) {
                     // Month Navigation
                     MonthNavigationView(currentMonth: $currentMonth)
                         .glassCardPadding()
@@ -62,7 +59,8 @@ struct CalendarView: View {
                         }
                     }
                 }
-            }
+            .warmDarkGradientBackground()
+            .scrollContentBackground(.hidden)
             .navigationTitle("Workout History")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -200,7 +198,7 @@ struct CalendarGridView: View {
             }
         }
         .glassCompactPadding()
-        .glassCard()
+        .appCard()
     }
 
     private func getDaysInMonth() -> [Date?] {
@@ -313,7 +311,7 @@ struct WorkoutsForDateView: View {
             }
         }
         .glassCompactPadding()
-        .glassCard()
+        .appCard()
     }
 
     private func formatDate(_ date: Date) -> String {

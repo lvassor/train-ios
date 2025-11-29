@@ -37,7 +37,7 @@ struct AgeScrollerPicker: View {
             }
             .pickerStyle(.wheel)
             .frame(height: 150)
-            .warmGlassCard(cornerRadius: CornerRadius.md)
+            .appCard(cornerRadius: CornerRadius.md)
         }
         .padding(.horizontal, Spacing.lg)
     }

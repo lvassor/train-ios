@@ -243,30 +243,9 @@ struct QuestionnaireView: View {
         return true
     }
 
-    // Disable scrolling for pages that don't overflow (sliders, pickers, simple layouts)
+    // Disable scrolling for all questionnaire pages
     private func shouldDisableScrollForCurrentStep() -> Bool {
-        if currentSection == 1 {
-            // Section 1 questions
-            switch currentStepInSection {
-            case 5:  // Training Days (slider)
-                return true
-            default:
-                return false
-            }
-        } else if currentSection == 3 {
-            // Section 2 questions (About You)
-            switch currentStepInSection {
-            case 0:  // Age (date picker)
-                return true
-            case 2:  // Height (slider)
-                return true
-            case 3:  // Weight (slider)
-                return true
-            default:
-                return false
-            }
-        }
-        return false
+        return true  // All pages are non-scrollable
     }
 
     private func nextStep() {

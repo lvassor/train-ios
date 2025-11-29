@@ -19,49 +19,84 @@ struct ProgramOverviewView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.lg) {
-                // Header
-                if let program = programData {
-                    VStack(alignment: .leading, spacing: Spacing.sm) {
-                        Text("Your Program")
-                            .font(.trainTitle)
-                            .foregroundColor(.trainTextPrimary)
+        ZStack {
+            // Gradient base layer
+            LinearGradient(
+                stops: [
+                    .init(color: Color(hex: "#a05608"), location: 0.0),
+                    .init(color: Color(hex: "#692a00"), location: 0.15),
+                    .init(color: Color(hex: "#1A1410"), location: 0.5),
+                    .init(color: Color(hex: "#692a00"), location: 0.85),
+                    .init(color: Color(hex: "#a05608"), location: 1.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-                        Text(program.type.description)
-                            .font(.trainHeadline)
-                            .foregroundColor(.trainTextSecondary)
+            ScrollView {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
+                        Color.clear.frame(height: 0)
+                        // Header
+                        if let program = programData {
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                Text("Your Program")
+                                    .font(.trainTitle)
+                                    .foregroundColor(.trainTextPrimary)
 
-                        Text("\(program.totalWeeks) weeks • \(program.daysPerWeek) days/week")
-                            .font(.trainBody)
-                            .foregroundColor(.trainTextSecondary)
-                    }
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.top, Spacing.md)
+                                Text(program.type.description)
+                                    .font(.trainHeadline)
+                                    .foregroundColor(.trainTextSecondary)
 
-                    // Weeks
-                    ForEach(1...program.totalWeeks, id: \.self) { week in
-                        WeekSection(
-                            weekNumber: week,
-                            userProgram: userProgram,
-                            onSessionTap: { sessionIndex in
-                                selectedSession = SelectedSessionInfo(
-                                    weekNumber: week,
-                                    sessionIndex: sessionIndex
-                                )
+                                Text("\(program.totalWeeks) weeks • \(program.daysPerWeek) days/week")
+                                    .font(.trainBody)
+                                    .foregroundColor(.trainTextSecondary)
                             }
-                        )
-                        .padding(.horizontal, Spacing.lg)
-                    }
-                }
+                            .padding(.horizontal, Spacing.lg)
+                            .padding(.top, Spacing.md)
 
-                Spacer()
-                    .frame(height: 40)
+                            // Weeks
+                            ForEach(1...program.totalWeeks, id: \.self) { week in
+                                WeekSection(
+                                    weekNumber: week,
+                                    userProgram: userProgram,
+                                    onSessionTap: { sessionIndex in
+                                        selectedSession = SelectedSessionInfo(
+                                            weekNumber: week,
+                                            sessionIndex: sessionIndex
+                                        )
+                                    }
+                                )
+                                .padding(.horizontal, Spacing.lg)
+                            }
+                        }
+
+                        Spacer()
+                            .frame(height: 40)
+                    }
             }
+            .scrollContentBackground(.hidden)
         }
-        .background(Color.trainBackground.ignoresSafeArea())
+        .scrollContentBackground(.hidden)
         .navigationTitle("Program")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Program")
+                    .font(.trainHeadline)
+                    .foregroundColor(.trainTextPrimary)
+            }
+        }
+        .onAppear {
+            // Force navigation bar to be transparent
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithTransparentBackground()
+            appearance.backgroundColor = .clear
+            UINavigationBar.appearance().standardAppearance = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        }
         .navigationDestination(item: $selectedSession) { info in
             SessionDetailView(
                 userProgram: userProgram,
@@ -125,7 +160,7 @@ struct WeekSection: View {
             }
         }
         .padding(Spacing.md)
-        .glassCard()
+        .appCard()
         .opacity(isFutureWeek ? 0.6 : 1.0)
     }
 }
@@ -244,4 +279,17 @@ struct SelectedSessionInfo: Identifiable, Hashable {
             userProgram: workoutProgram
         )
     }
+    .containerBackground(
+        LinearGradient(
+            stops: [
+                .init(color: Color(hex: "#a05608"), location: 0.0),
+                .init(color: Color(hex: "#692a00"), location: 0.15),
+                .init(color: Color(hex: "#1A1410"), location: 0.5),
+                .init(color: Color(hex: "#692a00"), location: 0.85),
+                .init(color: Color(hex: "#a05608"), location: 1.0)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        ), for: .navigation
+    )
 }

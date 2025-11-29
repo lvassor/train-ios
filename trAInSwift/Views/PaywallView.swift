@@ -285,7 +285,7 @@ struct ProductCard: View {
                 }
             }
             .padding(Spacing.md)
-            .warmGlassCard()
+            .appCard()
             .cornerRadius(CornerRadius.md)
             .overlay(
                 RoundedRectangle(cornerRadius: CornerRadius.md)
@@ -339,7 +339,7 @@ struct SubscriptionCard: View {
             }
         }
         .padding(Spacing.md)
-        .warmGlassCard()
+        .appCard()
         .cornerRadius(CornerRadius.md)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md)

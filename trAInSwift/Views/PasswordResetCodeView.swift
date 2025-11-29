@@ -60,7 +60,7 @@ struct PasswordResetCodeView: View {
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.center)
                             .frame(width: 48, height: 56)
-                            .warmGlassCard()
+                            .appCard()
                             .cornerRadius(8)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
@@ -83,7 +83,7 @@ struct PasswordResetCodeView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .warmGlassCard()
+            .appCard()
             .cornerRadius(20, corners: [.topLeft, .topRight])
             .shadow(radius: 20)
 

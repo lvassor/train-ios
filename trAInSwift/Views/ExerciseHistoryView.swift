@@ -78,7 +78,7 @@ struct ExerciseHistoryView: View {
                         }
                         .padding(Spacing.md)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .warmGlassCard()
+                        .appCard()
                         .cornerRadius(15)
                     }
                     .padding(.horizontal, Spacing.lg)
@@ -111,7 +111,7 @@ struct ExerciseHistoryView: View {
                             .padding(.horizontal, Spacing.lg)
                         }
                         .padding(.vertical, Spacing.md)
-                        .warmGlassCard()
+                        .appCard()
                         .cornerRadius(15)
                         .padding(.horizontal, Spacing.lg)
                     }
@@ -272,7 +272,7 @@ struct HistoryEntryCard: View {
             }
         }
         .padding(Spacing.md)
-        .warmGlassCard()
+        .appCard()
         .cornerRadius(15)
         .overlay(
             RoundedRectangle(cornerRadius: 15)

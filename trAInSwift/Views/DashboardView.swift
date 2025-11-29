@@ -33,9 +33,25 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
+            ZStack {
+                // Gradient base layer
+                LinearGradient(
+                    stops: [
+                        .init(color: Color(hex: "#a05608"), location: 0.0),
+                        .init(color: Color(hex: "#692a00"), location: 0.15),
+                        .init(color: Color(hex: "#1A1410"), location: 0.5),
+                        .init(color: Color(hex: "#692a00"), location: 0.85),
+                        .init(color: Color(hex: "#a05608"), location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                VStack(spacing: 0) {
                     // Main content
                     ScrollView {
+                        Color.clear.frame(height: 0)
                         VStack(spacing: Spacing.lg) {
                             // Header
                             HStack {
@@ -119,6 +135,7 @@ struct DashboardView: View {
                                 .frame(height: 100) // Space for bottom nav
                         }
                     }
+                    .scrollContentBackground(.hidden)
 
                     // Floating Bottom Navigation
                     FloatingToolbar(
@@ -127,7 +144,9 @@ struct DashboardView: View {
                         onVideoLibrary: { showVideoLibrary = true },
                         onAccount: { showProfile = true }
                     )
+                }
             }
+            .background(Color.clear)
             .navigationDestination(isPresented: $showProgramOverview) {
                 if let program = userProgram {
                     ProgramOverviewView(userProgram: program)
@@ -149,6 +168,19 @@ struct DashboardView: View {
                 ProfileView()
             }
         }
+        .containerBackground(
+            LinearGradient(
+                stops: [
+                    .init(color: Color(hex: "#a05608"), location: 0.0),
+                    .init(color: Color(hex: "#692a00"), location: 0.15),
+                    .init(color: Color(hex: "#1A1410"), location: 0.5),
+                    .init(color: Color(hex: "#692a00"), location: 0.85),
+                    .init(color: Color(hex: "#a05608"), location: 1.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            ), for: .navigation
+        )
     }
 
     private func getUserFirstName() -> String {
@@ -251,7 +283,7 @@ struct ProgramProgressCard: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(Spacing.md)
-                    .glassCard(cornerRadius: CornerRadius.md)
+                    .appCard(cornerRadius: CornerRadius.md)
 
                     // Duration and Frequency Cards
                     HStack(spacing: Spacing.md) {
@@ -265,7 +297,7 @@ struct ProgramProgressCard: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(Spacing.md)
-                        .glassCard(cornerRadius: CornerRadius.md)
+                        .appCard(cornerRadius: CornerRadius.md)
 
                         VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Frequency")
@@ -277,7 +309,7 @@ struct ProgramProgressCard: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(Spacing.md)
-                        .glassCard(cornerRadius: CornerRadius.md)
+                        .appCard(cornerRadius: CornerRadius.md)
                     }
 
                     // Priority Muscle Groups
@@ -291,11 +323,11 @@ struct ProgramProgressCard: View {
                             VStack(spacing: Spacing.sm) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color(hex: "FFD700").opacity(0.3))
+                                        .fill(Color.trainPrimary.opacity(0.3))
                                         .frame(width: 60, height: 60)
                                     Image(systemName: "heart.fill")
                                         .font(.system(size: 28))
-                                        .foregroundColor(Color(hex: "FFD700"))
+                                        .foregroundColor(Color.trainPrimary)
                                 }
                                 Text("Chest")
                                     .font(.trainCaption)
@@ -306,11 +338,11 @@ struct ProgramProgressCard: View {
                             VStack(spacing: Spacing.sm) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color(hex: "FFD700").opacity(0.3))
+                                        .fill(Color.trainPrimary.opacity(0.3))
                                         .frame(width: 60, height: 60)
                                     Image(systemName: "figure.walk")
                                         .font(.system(size: 28))
-                                        .foregroundColor(Color(hex: "FFD700"))
+                                        .foregroundColor(Color.trainPrimary)
                                 }
                                 Text("Quads")
                                     .font(.trainCaption)
@@ -321,11 +353,11 @@ struct ProgramProgressCard: View {
                             VStack(spacing: Spacing.sm) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color(hex: "FFD700").opacity(0.3))
+                                        .fill(Color.trainPrimary.opacity(0.3))
                                         .frame(width: 60, height: 60)
                                     Image(systemName: "arrow.up")
                                         .font(.system(size: 28))
-                                        .foregroundColor(Color(hex: "FFD700"))
+                                        .foregroundColor(Color.trainPrimary)
                                 }
                                 Text("Shoulders")
                                     .font(.trainCaption)
@@ -336,13 +368,13 @@ struct ProgramProgressCard: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(Spacing.md)
-                    .glassCard(cornerRadius: CornerRadius.md)
+                    .appCard(cornerRadius: CornerRadius.md)
                 }
                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
         }
         .padding(Spacing.md)
-        .glassCard()
+        .appCard()
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isExpanded)
     }
 }
@@ -516,7 +548,7 @@ struct HorizontalDayButtonsRow: View {
                                 isSelected ? Color.trainPrimary :
                                     (isCompleted ? Color.trainPrimary.opacity(0.15) : Color.clear)
                             )
-                            .warmGlassCard()
+                            .appCard()
                             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -617,8 +649,8 @@ struct ExerciseListView: View {
             }
             .padding(.trailing, 16)
 
-            // Exercise information
-            VStack(alignment: .leading, spacing: 24) {
+            // Exercise information - aligned to match circle tops
+            VStack(alignment: .leading, spacing: 0) {
                 ForEach(session.exercises) { exercise in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .center) {
@@ -637,7 +669,7 @@ struct ExerciseListView: View {
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(warmSecondary)
                     }
-                    .frame(height: 50)
+                    .frame(height: 70, alignment: .top)
                 }
             }
         }
@@ -830,7 +862,7 @@ struct ExpandedSessionBubble: View {
             }
         }
         .padding(Spacing.md)
-        .warmGlassCard()
+        .appCard()
         .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
@@ -996,7 +1028,7 @@ struct BottomNavigationBar: View {
             )
         }
         .frame(height: 70)
-        .warmGlassCard()
+        .appCard()
         .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
     }
 }

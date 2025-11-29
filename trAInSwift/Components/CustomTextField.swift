@@ -49,7 +49,7 @@ struct CustomTextField: View {
                 }
             }
             .padding(Spacing.md)
-            .warmGlassCard(cornerRadius: CornerRadius.md)
+            .appCard(cornerRadius: CornerRadius.md)
             .overlay(
                 RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                     .stroke(isFocused ? Color.trainPrimary : Color.white.opacity(0.12), lineWidth: isFocused ? 2 : 1)

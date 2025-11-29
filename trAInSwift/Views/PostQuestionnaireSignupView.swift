@@ -48,7 +48,7 @@ struct PostQuestionnaireSignupView: View {
                                 .textInputAutocapitalization(.words)
                                 .autocorrectionDisabled()
                                 .padding(Spacing.md)
-                                .warmGlassCard()
+                                .appCard()
                                 .cornerRadius(CornerRadius.md)
                         }
 
@@ -63,7 +63,7 @@ struct PostQuestionnaireSignupView: View {
                                 .keyboardType(.emailAddress)
                                 .autocorrectionDisabled()
                                 .padding(Spacing.md)
-                                .warmGlassCard()
+                                .appCard()
                                 .cornerRadius(CornerRadius.md)
                         }
 
@@ -75,7 +75,7 @@ struct PostQuestionnaireSignupView: View {
 
                             SecureField("Create a password", text: $password)
                                 .padding(Spacing.md)
-                                .warmGlassCard()
+                                .appCard()
                                 .cornerRadius(CornerRadius.md)
 
                             Text("Must be at least 6 characters")
@@ -127,6 +127,7 @@ struct PostQuestionnaireSignupView: View {
                     Spacer()
             }
         }
+        .background(Color.trainBackground.ignoresSafeArea())
     }
 
     private var isFormValid: Bool {

@@ -60,7 +60,7 @@ struct PasswordResetNewPasswordView: View {
                             }
                         }
                         .padding(Spacing.md)
-                        .warmGlassCard()
+                        .appCard()
                         .cornerRadius(10)
                     }
 
@@ -84,7 +84,7 @@ struct PasswordResetNewPasswordView: View {
                             }
                         }
                         .padding(Spacing.md)
-                        .warmGlassCard()
+                        .appCard()
                         .cornerRadius(10)
                     }
 
@@ -128,7 +128,7 @@ struct PasswordResetNewPasswordView: View {
                         .multilineTextAlignment(.center)
                 }
                 .padding(Spacing.xl)
-                .warmGlassCard()
+                .appCard()
                 .cornerRadius(20)
                 .shadow(radius: 20)
                 .padding(.horizontal, Spacing.xl)

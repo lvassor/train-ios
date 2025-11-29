@@ -37,7 +37,7 @@ struct SelectionButtonStyle: ButtonStyle {
                     .padding(.horizontal, Spacing.md)
                     .frame(maxWidth: .infinity)
                     .foregroundColor(.trainTextPrimary)
-                    .warmGlassCard(cornerRadius: cornerRadius)
+                    .appCard(cornerRadius: cornerRadius)
             }
         }
         .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
@@ -81,7 +81,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .foregroundColor(.trainPrimary)
             .frame(maxWidth: .infinity)
             .frame(height: ButtonHeight.standard)
-            .warmGlassCard(cornerRadius: CornerRadius.md)
+            .appCard(cornerRadius: CornerRadius.md)
             .overlay(
                 RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                     .stroke(Color.trainPrimary.opacity(0.6), lineWidth: 1.5)

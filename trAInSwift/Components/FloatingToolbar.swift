@@ -18,7 +18,11 @@ struct FloatingToolbar: View {
     var body: some View {
         HStack(spacing: 12) {
             // Main toolbar pill
-            HStack(spacing: 0) {
+            HStack(spacing: 8) {
+                // Left edge spacing
+                Spacer()
+                    .frame(width: 12)
+
                 ForEach(ToolbarTab.allCases.filter { $0 != .account }, id: \.self) { tab in
                     Button(action: {
                         selectedTab = tab
@@ -29,55 +33,28 @@ struct FloatingToolbar: View {
                         case .account: break
                         }
                     }) {
-                        VStack(spacing: 4) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 20, weight: .medium))
-
-                            Text(tab.title)
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .foregroundColor(selectedTab == tab ? Color(hex: "#FF7A00") : .white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                        // Icon only - no labels
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(selectedTab == tab ? Color(hex: "#FF7A00") : .white)
+                            .frame(width: 44, height: 44)
                     }
                 }
+
+                // Right edge spacing
+                Spacer()
+                    .frame(width: 12)
             }
-            .frame(height: 56)
-            .background(
-                ZStack {
-                    Color.white.opacity(0.15)
-                    Color(hex: "#D2691E").opacity(0.05)
-                }
-                .background(.ultraThinMaterial)
-            )
-            .clipShape(Capsule())
-            .overlay(
-                Capsule()
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.15), radius: 18, x: 0, y: 4)
+            .frame(height: 50)
+            .warmGlassCard(cornerRadius: 25)
 
             // Account button (separate floating circle)
             Button(action: onAccount) {
-                ZStack {
-                    Image(systemName: "person.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundColor(.white)
-                }
-                .frame(width: 50, height: 50)
-                .background(
-                    ZStack {
-                        Color.white.opacity(0.15)
-                        Color(hex: "#D2691E").opacity(0.05)
-                    }
-                    .background(.ultraThinMaterial)
-                )
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.15), radius: 18, x: 0, y: 4)
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(.white)
+                    .frame(width: 50, height: 50)
+                    .warmGlassCard(cornerRadius: 25)
             }
         }
         .padding(.horizontal, 20)

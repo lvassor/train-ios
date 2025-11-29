@@ -65,6 +65,8 @@ struct SessionLogView: View {
                         .frame(height: Spacing.xxl)
             }
         }
+        .warmDarkGradientBackground()
+        .scrollContentBackground(.hidden)
         .navigationTitle(sessionName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -338,7 +340,7 @@ struct ExerciseLogCard: View {
             }
         }
         .padding(Spacing.md)
-        .warmGlassCard()
+        .appCard()
         .cornerRadius(CornerRadius.md)
     }
 

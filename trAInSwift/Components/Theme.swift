@@ -84,7 +84,7 @@ struct Spacing {
 struct CornerRadius {
     static let sm: CGFloat = 12       // Small elements
     static let md: CGFloat = 20       // Standard cards and buttons
-    static let lg: CGFloat = 32       // Large cards
+    static let lg: CGFloat = 20       // Large cards - unified to 20pt
     static let xl: CGFloat = 40       // Main container/screen (from Figma)
 
     // Continuous corner style for Apple aesthetic
@@ -118,16 +118,48 @@ struct Layout {
 
 extension View {
     /// Warm dark gradient background - main app background
-    /// Orange/brown gradient from #3D2A1A (top) to #1A1410 (bottom)
+    /// Symmetrical gradient: orange/amber at top and bottom, darkest near-black in center
+    /// Creates warm, premium dark mode aesthetic with spotlight effect
     func warmDarkGradientBackground() -> some View {
-        self.background(
+        ZStack {
+            // Gradient MUST be the first layer to ensure it's always visible
             LinearGradient(
-                colors: [Color.trainGradientTop, Color.trainGradientBottom],
+                stops: [
+                    .init(color: Color(hex: "#a05608"), location: 0.0),    // Orange/amber at top
+                    .init(color: Color(hex: "#692a00"), location: 0.15),   // Dark orange/brown
+                    .init(color: Color(hex: "#1A1410"), location: 0.5),    // Near-black in center
+                    .init(color: Color(hex: "#692a00"), location: 0.85),   // Dark orange/brown
+                    .init(color: Color(hex: "#a05608"), location: 1.0)     // Orange/amber at bottom
+                ],
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
-        )
+
+            // Content on top of gradient
+            self
+        }
+    }
+}
+
+// MARK: - Design System Configuration
+
+/// Card style types for the design system
+enum CardStyleType {
+    case ultraThin  // Maximum transparency, no tint - pure frosted glass
+    case warm       // Warm brown tint, atmospheric feel
+}
+
+// MARK: - Card Style Environment Key
+
+struct CardStyleKey: EnvironmentKey {
+    static let defaultValue: CardStyleType = .warm
+}
+
+extension EnvironmentValues {
+    var cardStyle: CardStyleType {
+        get { self[CardStyleKey.self] }
+        set { self[CardStyleKey.self] = newValue }
     }
 }
 
@@ -144,20 +176,20 @@ extension View {
     }
 
     /// Warm-tinted frosted glass card for dark mode designs
-    /// Semi-transparent with warm amber/brown tint at 15-20% opacity
+    /// Semi-transparent with warm amber/brown tint - darker, less frosty appearance
     func warmGlassCard(cornerRadius: CGFloat = 20) -> some View {
         self
             .background(
                 ZStack {
-                    Color.white.opacity(0.15)
-                    Color(hex: "#D2691E").opacity(0.05)  // Warm chocolate/amber overlay
+                    Color.white.opacity(0.05)  // Reduced white overlay for darker appearance
+                    Color(hex: "#D2691E").opacity(0.08)  // Warm amber/brown tint
                 }
                 .background(.ultraThinMaterial)
             )
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 1)  // More prominent border
             )
             .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 15)
     }
@@ -208,6 +240,13 @@ extension View {
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
     }
+
+    /// Semantic app card - uses environment-based card style
+    /// Change style app-wide via .environment(\.cardStyle, .warm) in trAInSwiftApp.swift
+    /// Change style per-section by applying .environment(\.cardStyle, .ultraThin) to specific views
+    func appCard(cornerRadius: CGFloat = CornerRadius.lg) -> some View {
+        AppCardView(content: self, cornerRadius: cornerRadius)
+    }
 }
 
 // MARK: - Helper Modifiers
@@ -223,6 +262,22 @@ struct ConditionalGlassModifier: ViewModifier {
         } else {
             content
                 .warmGlassCard(cornerRadius: CornerRadius.lg)
+        }
+    }
+}
+
+/// Environment-aware card view that switches style based on cardStyle environment value
+struct AppCardView<Content: View>: View {
+    @Environment(\.cardStyle) var style
+    let content: Content
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        switch style {
+        case .warm:
+            content.warmGlassCard(cornerRadius: cornerRadius)
+        case .ultraThin:
+            content.glassCard(cornerRadius: cornerRadius)
         }
     }
 }

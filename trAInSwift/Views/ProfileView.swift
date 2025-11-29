@@ -15,10 +15,7 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.trainBackground.ignoresSafeArea()
-
-                ScrollView {
+            ScrollView {
                     VStack(spacing: Spacing.lg) {
                         // User Info
                         VStack(spacing: Spacing.md) {
@@ -81,14 +78,15 @@ struct ProfileView: View {
                                 action: {}
                             )
                         }
-                        .glassCard()
+                        .appCard()
                         .padding(.horizontal, Spacing.lg)
 
                         Spacer()
                     }
                 }
-            }
-            .navigationTitle("Account Settings")
+                .warmDarkGradientBackground()
+                .scrollContentBackground(.hidden)
+                .navigationTitle("Account Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -191,7 +189,7 @@ struct SubscriptionInfoCard: View {
             }
         }
         .padding(Spacing.md)
-        .whiteCard()
+        .appCard()
     }
 }
 
@@ -237,7 +235,7 @@ struct ProgramCard: View {
             }
         }
         .padding(Spacing.md)
-        .whiteCard()
+        .appCard()
         .confirmationDialog("Retake Quiz", isPresented: $showRetakeConfirmation, titleVisibility: .visible) {
             Button("Retake Quiz", role: .destructive) {
                 // Log out to restart questionnaire flow
