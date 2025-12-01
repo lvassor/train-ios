@@ -106,10 +106,7 @@
             "Shadow": "rgba(0, 0, 0, 0.15) 0px 15px 30px",
             "Blur": "backdrop-filter: blur(20px) (via system materials)"
         }
-    }
-}
-
-{
+    },
     "Train Light Mode": {
         "Description": "Fresh, energetic teal mode with inverted symmetrical gradient and frosted glass. Creates glow-from-center effect with lightest teal in center, darker teal at top and bottom edges.",
         "Background": {
@@ -196,6 +193,84 @@
             "Corner Style": "Continuous",
             "Shadow": "rgba(0, 0, 0, 0.15) 0px 15px 30px",
             "Blur": "backdrop-filter: blur(20px) (via system materials)"
+        }
+    },
+    "Train Dark Mode": {
+        "Description": "Clean, minimal dark mode with solid black background and neutral frosted glass. Food-app inspired simplicity with warm gold and peach accents against pure black.",
+        "Background": {
+            "Gradient": {
+                "Type": "None - Solid",
+                "Stops": [
+                    {
+                        "Color": "#0a0a0a",
+                        "Position": "0%",
+                        "Description": "Solid black throughout"
+                    }
+                ],
+                "Legacy Colors": {
+                    "Gradient Top": "#0a0a0a",
+                    "Gradient Bottom": "#0a0a0a",
+                    "Note": "No gradient - solid black background"
+                }
+            },
+            "Solid Backgrounds": {
+                "Dark": "#0a0a0a",
+                "Surface": "#141414",
+                "Description": "Pure black for main background, slightly lighter for elevated surfaces"
+            }
+        },
+        "Accent": {
+            "Primary": "#f1bc50",
+            "Primary Light": "#F5CD73",
+            "Primary Hover": "#F7D78F",
+            "Secondary": "#f5c4a1",
+            "Description": "Vibrant gold for CTAs and key metrics, soft peach for labels and metadata"
+        },
+        "Text": {
+            "Primary": "#FFFFFF",
+            "Secondary": "#f5c4a1",
+            "Muted": "rgba(255, 255, 255, 0.5)",
+            "Disabled": "#A8A8A8",
+            "Description": "Pure white for primary text, peach for labels and dates, 50% white for tertiary info, gray for disabled states"
+        },
+        "Glass": {
+            "Card": {
+                "White Overlay": "rgba(255, 255, 255, 0.05)",
+                "Tint": "none",
+                "Border": "rgba(255, 255, 255, 0.1)",
+                "Shadow": "rgba(0, 0, 0, 0.08) 0px 10px 20px",
+                "Description": "Neutral ultra-thin glass with no warm tint. Pure frosted appearance using .ultraThinMaterial."
+            },
+            "Button": {
+                "White Overlay": "rgba(255, 255, 255, 0.08)",
+                "Border": "rgba(255, 255, 255, 0.1)",
+                "Shadow": "none",
+                "Description": "Slightly more visible glass for interactive elements"
+            }
+        },
+        "UI Elements": {
+            "Border": "rgba(255, 255, 255, 0.1)",
+            "Phone Frame Border": "#333333",
+            "Muted Fill": "#A8A8A8",
+            "Divider": "rgba(255, 255, 255, 0.08)",
+            "Description": "Subtle white borders for glass cards, dark gray for device frames"
+        },
+        "Effects": {
+            "Corner Radius": {
+                "Small": "12pt",
+                "Medium": "16pt",
+                "Large": "20pt",
+                "Extra Large": "24pt"
+            },
+            "Corner Style": "Continuous",
+            "Shadow": "rgba(0, 0, 0, 0.08) 0px 10px 20px",
+            "Blur": "backdrop-filter: blur(20px) (via system materials)"
+        },
+        "Color Roles": {
+            "Gold": "CTAs, stat values, active states",
+            "Peach": "Labels, dates, section headers, metadata",
+            "White": "Titles, exercise names, weights, primary content",
+            "Muted": "Sets/reps, inactive nav, tertiary info"
         }
     }
 }

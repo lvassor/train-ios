@@ -9,54 +9,61 @@
 import SwiftUI
 
 /// Main color palette configuration
-/// Warm dark theme with orange accents inspired by "Wisdom Takes Work" UI
+/// Train Dark Mode - clean, minimal dark mode with solid black background
+/// Food-app inspired simplicity with warm gold and peach accents against pure black
 struct ColorPalette {
-    // MARK: - Primary Colors
+    // MARK: - Primary Colors (Gold Accent)
 
-    /// Main brand color - vibrant orange for buttons, highlights, selected states
-    static let primary = "#FF7A00"
+    /// Main brand color - vibrant gold for CTAs, stat values, active states
+    static let primary = "#f1bc50"
 
     /// Lighter version of primary - used for hover states
-    static let primaryLight = "#FF9433"
+    static let primaryLight = "#F5CD73"
 
     /// Very light primary tint - used for subtle backgrounds
-    static let primaryHover = "#FFA94D"
+    static let primaryHover = "#F7D78F"
 
-    // MARK: - Background Colors (Warm Dark Gradient)
+    // MARK: - Background Colors (Solid Black)
 
-    /// Gradient top - warm dark brown
-    static let backgroundGradientTop = "#3D2A1A"
+    /// Solid black background - no gradient
+    static let gradientEdge = "#0a0a0a"
 
-    /// Gradient bottom - near-black with warm undertone
-    static let backgroundGradientBottom = "#1A1410"
+    /// Same as edge - solid color throughout
+    static let gradientMid = "#0a0a0a"
 
-    /// Legacy background (deprecated - use gradient instead)
-    static let background = "#1A1410"
+    /// Same as edge - solid color throughout
+    static let gradientCenter = "#0a0a0a"
 
-    /// Dark background - warm near-black
-    static let dark = "#1A1410"
+    /// Main background - pure black
+    static let background = "#0a0a0a"
 
-    // MARK: - Text Colors (for dark mode)
+    /// Dark background - pure black
+    static let dark = "#0a0a0a"
 
-    /// Primary text color - white for dark backgrounds
+    /// Elevated surface color - slightly lighter for cards if needed
+    static let surface = "#141414"
+
+    // MARK: - Text Colors
+
+    /// Primary text color - pure white for titles, exercise names, weights
     static let textPrimary = "#FFFFFF"
 
-    /// Secondary text color - near-white with slight warmth
-    static let textSecondary = "#E8E6E3"
+    /// Secondary text color - soft peach for labels, dates, section headers
+    static let textSecondary = "#f5c4a1"
 
     // MARK: - UI Element Colors
 
-    /// Border color for glass cards - subtle white
+    /// Border color for glass cards - subtle white at 10% opacity
     static let border = "#FFFFFF"
 
-    /// Muted circle fill - warm gray with opacity
-    static let mutedFill = "#4A4540"
+    /// Muted circle fill - neutral gray
+    static let mutedFill = "#A8A8A8"
 
-    /// Timeline line color - muted warm gray
-    static let timelineLine = "#3A3530"
+    /// Timeline/divider line color - subtle white
+    static let timelineLine = "#333333"
 
-    /// Disabled state color
-    static let disabled = "#8A8078"
+    /// Disabled state color - neutral gray
+    static let disabled = "#A8A8A8"
 }
 
 // MARK: - Apply Palette to Theme
@@ -70,8 +77,11 @@ extension Color {
     // Backgrounds
     static let trainBackground = Color(hex: ColorPalette.background)
     static let trainDark = Color(hex: ColorPalette.dark)
-    static let trainGradientTop = Color(hex: ColorPalette.backgroundGradientTop)
-    static let trainGradientBottom = Color(hex: ColorPalette.backgroundGradientBottom)
+
+    // Gradient Colors
+    static let trainGradientEdge = Color(hex: ColorPalette.gradientEdge)
+    static let trainGradientMid = Color(hex: ColorPalette.gradientMid)
+    static let trainGradientCenter = Color(hex: ColorPalette.gradientCenter)
 
     // Text
     static let trainTextPrimary = Color(hex: ColorPalette.textPrimary)

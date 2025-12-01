@@ -114,27 +114,52 @@ struct Layout {
     static let horizontalPadding: CGFloat = 20      // Side padding: (393-340)/2 ≈ 26.5, but Figma uses 20
 }
 
+// MARK: - Centralized App Gradient
+
+/// Centralized gradient/background configuration - all colors flow from ColorPalette
+/// Change colors in ColorPalette.swift to update backgrounds app-wide
+struct AppGradient {
+    /// The main app background stops - uses ColorPalette tokens
+    /// For Train Dark Mode: solid black (all stops same color)
+    static var stops: [Gradient.Stop] {
+        [
+            .init(color: .trainGradientEdge, location: 0.0),
+            .init(color: .trainGradientMid, location: 0.15),
+            .init(color: .trainGradientCenter, location: 0.5),
+            .init(color: .trainGradientMid, location: 0.85),
+            .init(color: .trainGradientEdge, location: 1.0)
+        ]
+    }
+
+    /// The main app background gradient
+    static var background: LinearGradient {
+        LinearGradient(
+            stops: stops,
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
+    /// Simple two-color gradient (edge to edge) for toolbars, etc.
+    static var simple: LinearGradient {
+        LinearGradient(
+            colors: [.trainGradientEdge, .trainGradientEdge],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+}
+
 // MARK: - Background Gradients
 
 extension View {
-    /// Warm dark gradient background - main app background
-    /// Symmetrical gradient: orange/amber at top and bottom, darkest near-black in center
-    /// Creates warm, premium dark mode aesthetic with spotlight effect
+    /// Main app background - applies background from ColorPalette
+    /// Train Dark Mode: solid black background for clean, minimal aesthetic
     func warmDarkGradientBackground() -> some View {
         ZStack {
             // Gradient MUST be the first layer to ensure it's always visible
-            LinearGradient(
-                stops: [
-                    .init(color: Color(hex: "#a05608"), location: 0.0),    // Orange/amber at top
-                    .init(color: Color(hex: "#692a00"), location: 0.15),   // Dark orange/brown
-                    .init(color: Color(hex: "#1A1410"), location: 0.5),    // Near-black in center
-                    .init(color: Color(hex: "#692a00"), location: 0.85),   // Dark orange/brown
-                    .init(color: Color(hex: "#a05608"), location: 1.0)     // Orange/amber at bottom
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            AppGradient.background
+                .ignoresSafeArea()
 
             // Content on top of gradient
             self
@@ -175,23 +200,20 @@ extension View {
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
     }
 
-    /// Warm-tinted frosted glass card for dark mode designs
-    /// Semi-transparent with warm amber/brown tint - darker, less frosty appearance
+    /// Neutral frosted glass card for Train Dark Mode
+    /// Pure frosted appearance with no color tint - clean minimal aesthetic
     func warmGlassCard(cornerRadius: CGFloat = 20) -> some View {
         self
             .background(
-                ZStack {
-                    Color.white.opacity(0.05)  // Reduced white overlay for darker appearance
-                    Color(hex: "#D2691E").opacity(0.08)  // Warm amber/brown tint
-                }
-                .background(.ultraThinMaterial)
+                Color.white.opacity(0.05)  // Subtle white overlay only, no tint
+                    .background(.ultraThinMaterial)
             )
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(Color.white.opacity(0.15), lineWidth: 1)  // More prominent border
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)  // Subtle border
             )
-            .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 15)
+            .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
     }
 
     /// Premium glassmorphic card with thin material (more opacity)

@@ -283,7 +283,7 @@ struct ProgramCard: View {
                             .glassCard(cornerRadius: CornerRadius.md)
                         }
 
-                        // Priority Muscle Groups with icons
+                        // Priority Muscle Groups with mini body diagrams
                         VStack(alignment: .leading, spacing: Spacing.md) {
                             Text("Priority Muscle Groups")
                                 .font(.trainBodyMedium)
@@ -291,17 +291,15 @@ struct ProgramCard: View {
 
                             HStack(spacing: Spacing.lg) {
                                 // Get muscle groups from questionnaire data
-                                ForEach(getMuscleGroupsWithIcons(), id: \.name) { muscleGroup in
+                                ForEach(getPriorityMuscleGroups(), id: \.self) { muscleGroup in
                                     VStack(spacing: Spacing.sm) {
-                                        ZStack {
-                                            Circle()
-                                                .fill(Color(hex: "FFD700").opacity(0.3))
-                                                .frame(width: 60, height: 60)
-                                            Image(systemName: muscleGroup.icon)
-                                                .font(.system(size: 28))
-                                                .foregroundColor(Color(hex: "FFD700"))
-                                        }
-                                        Text(muscleGroup.name)
+                                        StaticMuscleView(
+                                            muscleGroup: muscleGroup,
+                                            gender: getUserGender(),
+                                            size: 60
+                                        )
+                                        .frame(width: 60, height: 60)
+                                        Text(muscleGroup)
                                             .font(.trainCaption)
                                             .foregroundColor(.trainTextSecondary)
                                     }
@@ -342,37 +340,32 @@ struct ProgramCard: View {
         }
     }
 
-    private func getMuscleGroupsWithIcons() -> [(name: String, icon: String)] {
+    private func getPriorityMuscleGroups() -> [String] {
         // Get muscle groups from priorityMuscles NSArray
         guard let user = authService.currentUser,
               let priorityArray = user.priorityMuscles as? [String],
               !priorityArray.isEmpty else {
-            return [
-                (name: "Chest", icon: "heart.fill"),
-                (name: "Quads", icon: "figure.walk"),
-                (name: "Shoulders", icon: "figure.arms.open")
-            ]
+            // Default fallback
+            return ["Chest", "Quads", "Shoulders"]
         }
 
         return priorityArray.prefix(3).map { muscle in
-            let trimmed = muscle.trimmingCharacters(in: CharacterSet.whitespaces)
-            return (name: trimmed, icon: getIconForMuscleGroup(trimmed))
+            muscle.trimmingCharacters(in: CharacterSet.whitespaces)
         }
     }
 
-    private func getIconForMuscleGroup(_ muscleGroup: String) -> String {
-        switch muscleGroup.lowercased() {
-        case "chest": return "heart.fill"
-        case "shoulders": return "figure.arms.open"
-        case "back": return "figure.strengthtraining.traditional"
-        case "quads": return "figure.walk"
-        case "hamstrings": return "figure.run"
-        case "glutes": return "figure.stairs"
-        case "biceps": return "figure.flexibility"
-        case "triceps": return "figure.flexibility"
-        case "abs": return "figure.core.training"
-        case "calves": return "figure.walk"
-        default: return "figure.strengthtraining.traditional"
+    private func getUserGender() -> MuscleSelector.BodyGender {
+        // Get gender from questionnaire data
+        guard let user = authService.currentUser,
+              let questionnaireData = user.getQuestionnaireData() else {
+            return .male // Default
+        }
+
+        switch questionnaireData.gender.lowercased() {
+        case "female":
+            return .female
+        default:
+            return .male // "male" or "other" defaults to male
         }
     }
 }

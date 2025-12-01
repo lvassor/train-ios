@@ -34,19 +34,9 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Gradient base layer
-                LinearGradient(
-                    stops: [
-                        .init(color: Color(hex: "#a05608"), location: 0.0),
-                        .init(color: Color(hex: "#692a00"), location: 0.15),
-                        .init(color: Color(hex: "#1A1410"), location: 0.5),
-                        .init(color: Color(hex: "#692a00"), location: 0.85),
-                        .init(color: Color(hex: "#a05608"), location: 1.0)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // Gradient base layer - uses centralized AppGradient
+                AppGradient.background
+                    .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // Main content
@@ -160,19 +150,7 @@ struct DashboardView: View {
                 ProfileView()
             }
         }
-        .containerBackground(
-            LinearGradient(
-                stops: [
-                    .init(color: Color(hex: "#a05608"), location: 0.0),
-                    .init(color: Color(hex: "#692a00"), location: 0.15),
-                    .init(color: Color(hex: "#1A1410"), location: 0.5),
-                    .init(color: Color(hex: "#692a00"), location: 0.85),
-                    .init(color: Color(hex: "#a05608"), location: 1.0)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            ), for: .navigation
-        )
+        .containerBackground(AppGradient.background, for: .navigation)
     }
 
     private func getUserFirstName() -> String {
@@ -615,9 +593,9 @@ struct SessionActionButton: View {
 
 struct ExerciseListView: View {
     let session: ProgramSession
-    private let timelineColor = Color(hex: "#3A3530").opacity(0.3)  // Much lighter grey for vertical line
-    private let orangeAccent = Color(hex: "#FF7A00")
-    private let warmSecondary = Color(hex: "#8A8078")
+    private let timelineColor = Color.trainTimelineLine.opacity(0.3)  // Timeline color from ColorPalette
+    private let orangeAccent = Color.trainPrimary
+    private let warmSecondary = Color.trainTextSecondary
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {

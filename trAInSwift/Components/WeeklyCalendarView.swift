@@ -14,9 +14,9 @@ struct WeeklyCalendarView: View {
     @State private var currentDate = Date()
 
     private let calendar = Calendar.current
-    private let warmSecondaryText = Color(hex: "#8A8078")
-    private let vibrantOrange = Color(hex: "#FF7A00")
-    private let mutedCircleFill = Color(hex: "#3D2A1A").opacity(0.8)
+    private let warmSecondaryText = Color.trainTextSecondary
+    private let vibrantOrange = Color.trainPrimary
+    private let mutedCircleFill = Color.trainGradientEdge.opacity(0.8)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -363,12 +363,8 @@ struct DayInfo {
     let workoutProgram = WorkoutProgram.create(userId: UUID(), program: program, context: context)
 
     return ZStack {
-        LinearGradient(
-            colors: [Color(hex: "#3D2A1A"), Color(hex: "#1A1410")],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
+        AppGradient.background
+            .ignoresSafeArea()
 
         WeeklyCalendarView(userProgram: workoutProgram)
             .padding()

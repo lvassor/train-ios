@@ -23,19 +23,9 @@ struct ExerciseLibraryView: View {
 
     var body: some View {
         ZStack {
-            // Gradient base layer
-            LinearGradient(
-                stops: [
-                    .init(color: Color(hex: "#a05608"), location: 0.0),
-                    .init(color: Color(hex: "#692a00"), location: 0.15),
-                    .init(color: Color(hex: "#1A1410"), location: 0.5),
-                    .init(color: Color(hex: "#692a00"), location: 0.85),
-                    .init(color: Color(hex: "#a05608"), location: 1.0)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // Gradient base layer - uses centralized AppGradient
+            AppGradient.background
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Search bar

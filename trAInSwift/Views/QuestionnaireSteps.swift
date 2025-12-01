@@ -273,7 +273,7 @@ struct HeightStepView: View {
                         snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 10 units
                     )
-                    .tint(Color(hex: "#FF7A00"))  // Orange indicator bar
+                    .tint(.trainPrimary)  // Primary color indicator bar
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -326,7 +326,7 @@ struct HeightStepView: View {
                         snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 1 foot
                     )
-                    .tint(Color(hex: "#FF7A00"))  // Orange indicator bar
+                    .tint(.trainPrimary)  // Primary color indicator bar
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -431,7 +431,7 @@ struct WeightStepView: View {
                         snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 10 units
                     )
-                    .tint(Color(hex: "#FF7A00"))  // Orange indicator bar
+                    .tint(.trainPrimary)  // Primary color indicator bar
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -464,7 +464,7 @@ struct WeightStepView: View {
                         snap: .none,  // No snapping - allows precise values
                         tick: .unit  // Major ticks every 20 units
                     )
-                    .tint(Color(hex: "#FF7A00"))  // Orange indicator bar
+                    .tint(.trainPrimary)  // Primary color indicator bar
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {

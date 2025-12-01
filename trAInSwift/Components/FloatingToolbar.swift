@@ -36,7 +36,7 @@ struct FloatingToolbar: View {
                         // Icon only - no labels
                         Image(systemName: tab.icon)
                             .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(selectedTab == tab ? Color(hex: "#FF7A00") : .white)
+                            .foregroundColor(selectedTab == tab ? .trainPrimary : .white)
                             .frame(width: 44, height: 44)
                     }
                 }
@@ -91,12 +91,8 @@ enum ToolbarTab: CaseIterable {
 
 #Preview {
     ZStack {
-        LinearGradient(
-            colors: [Color(hex: "#3D2A1A"), Color(hex: "#1A1410")],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
+        AppGradient.background
+            .ignoresSafeArea()
 
         VStack {
             Spacer()
