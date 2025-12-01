@@ -20,30 +20,182 @@
         "Peach": "#eac3a1"
     },
     "Warm Dark Mode": {
-        "Description": "Warm, premium dark mode with amber-to-black gradient and frosted glass",
+        "Description": "Warm, premium dark mode with symmetrical orange/amber gradient and frosted glass. Creates spotlight effect with darkest near-black in center, warm orange/amber at top and bottom edges.",
         "Background": {
-            "Gradient Top": "#3D2A1A",
-            "Gradient Bottom": "#1A1410",
-            "Description": "Deep warm brown/amber transitioning to near-black"
+            "Gradient": {
+                "Type": "Linear Vertical (top to bottom)",
+                "Stops": [
+                    {
+                        "Color": "#a05608",
+                        "Position": "0%",
+                        "Description": "Orange/amber at top"
+                    },
+                    {
+                        "Color": "#692a00",
+                        "Position": "15%",
+                        "Description": "Dark orange/brown"
+                    },
+                    {
+                        "Color": "#1A1410",
+                        "Position": "50%",
+                        "Description": "Near-black in center (darkest point)"
+                    },
+                    {
+                        "Color": "#692a00",
+                        "Position": "85%",
+                        "Description": "Dark orange/brown"
+                    },
+                    {
+                        "Color": "#a05608",
+                        "Position": "100%",
+                        "Description": "Orange/amber at bottom"
+                    }
+                ],
+                "Legacy Colors": {
+                    "Gradient Top": "#3D2A1A",
+                    "Gradient Bottom": "#1A1410",
+                    "Note": "Legacy simple gradient - replaced by symmetrical multi-stop gradient"
+                }
+            },
+            "Solid Backgrounds": {
+                "Dark": "#1A1410",
+                "Description": "Near-black with warm undertone for solid backgrounds"
+            }
         },
         "Accent": {
             "Primary": "#FF7A00",
-            "Description": "Vibrant orange for interactive elements"
+            "Primary Light": "#FF9433",
+            "Primary Hover": "#FFA94D",
+            "Description": "Vibrant orange for buttons, highlights, and selected states with lighter variants for hover/interactive states"
         },
         "Text": {
             "Primary": "#FFFFFF",
-            "Secondary": "#8A8078",
-            "Description": "Pure white for primary, muted gray/taupe for secondary"
+            "Secondary": "#E8E6E3",
+            "Disabled": "#8A8078",
+            "Description": "Pure white for primary text, near-white with warmth for secondary, muted warm gray for disabled states"
         },
         "Glass": {
-            "Card": "rgba(255, 255, 255, 0.15)",
-            "Border": "rgba(255, 255, 255, 0.1)",
-            "Description": "Semi-transparent frosted glass with subtle warm tint, 15-20% opacity white with blur backdrop"
+            "Warm Card": {
+                "White Overlay": "rgba(255, 255, 255, 0.05)",
+                "Amber Tint": "rgba(210, 105, 30, 0.08)",
+                "Border": "rgba(255, 255, 255, 0.15)",
+                "Shadow": "rgba(0, 0, 0, 0.15) 0px 15px 30px",
+                "Description": "Warm amber/brown tinted glass with reduced white overlay for darker appearance. Uses .ultraThinMaterial with warm tint overlay."
+            },
+            "Standard Glass Card": {
+                "Material": "regularMaterial",
+                "Border": "rgba(255, 255, 255, 0.1)",
+                "Shadow": "rgba(0, 0, 0, 0.08) 0px 10px 20px",
+                "Description": "Standard frosted glass using system material with subtle shadow"
+            }
+        },
+        "UI Elements": {
+            "Border": "#FFFFFF",
+            "Muted Fill": "#4A4540",
+            "Timeline Line": "#3A3530",
+            "Description": "White borders for glass cards, warm gray fills for muted elements"
         },
         "Effects": {
-            "Corner Radius": "20pt",
+            "Corner Radius": {
+                "Small": "12pt",
+                "Medium": "20pt",
+                "Large": "20pt",
+                "Extra Large": "40pt"
+            },
+            "Corner Style": "Continuous",
             "Shadow": "rgba(0, 0, 0, 0.15) 0px 15px 30px",
-            "Blur": "backdrop-filter: blur(20px)"
+            "Blur": "backdrop-filter: blur(20px) (via system materials)"
+        }
+    }
+}
+
+{
+    "Train Light Mode": {
+        "Description": "Fresh, energetic teal mode with inverted symmetrical gradient and frosted glass. Creates glow-from-center effect with lightest teal in center, darker teal at top and bottom edges.",
+        "Background": {
+            "Gradient": {
+                "Type": "Linear Vertical (top to bottom)",
+                "Stops": [
+                    {
+                        "Color": "#062F34",
+                        "Position": "0%",
+                        "Description": "Dark teal at top"
+                    },
+                    {
+                        "Color": "#0A4D54",
+                        "Position": "15%",
+                        "Description": "Mid teal"
+                    },
+                    {
+                        "Color": "#0E6B75",
+                        "Position": "50%",
+                        "Description": "Light teal in center (brightest point)"
+                    },
+                    {
+                        "Color": "#0A4D54",
+                        "Position": "85%",
+                        "Description": "Mid teal"
+                    },
+                    {
+                        "Color": "#062F34",
+                        "Position": "100%",
+                        "Description": "Dark teal at bottom"
+                    }
+                ],
+                "Legacy Colors": {
+                    "Gradient Top": "#062F34",
+                    "Gradient Bottom": "#062F34",
+                    "Note": "Legacy simple gradient - replaced by symmetrical multi-stop gradient"
+                }
+            },
+            "Solid Backgrounds": {
+                "Dark": "#062F34",
+                "Description": "Dark teal for solid backgrounds"
+            }
+        },
+        "Accent": {
+            "Primary": "#f1bc50",
+            "Primary Light": "#F5CD73",
+            "Primary Hover": "#F7D78F",
+            "Description": "Vibrant gold for buttons, highlights, and selected states with lighter variants for hover/interactive states"
+        },
+        "Text": {
+            "Primary": "#FFFFFF",
+            "Secondary": "#F7C59F",
+            "Disabled": "#A8A8A8",
+            "Description": "Pure white for primary text, peachy warmth for secondary, neutral gray for disabled states"
+        },
+        "Glass": {
+            "Teal Card": {
+                "White Overlay": "rgba(255, 255, 255, 0.06)",
+                "Gold Tint": "rgba(241, 188, 80, 0.08)",
+                "Border": "rgba(255, 255, 255, 0.15)",
+                "Shadow": "rgba(0, 0, 0, 0.15) 0px 15px 30px",
+                "Description": "Gold-tinted glass with subtle white overlay for depth. Uses .ultraThinMaterial with warm gold tint overlay."
+            },
+            "Standard Glass Card": {
+                "Material": "regularMaterial",
+                "Border": "rgba(255, 255, 255, 0.1)",
+                "Shadow": "rgba(0, 0, 0, 0.08) 0px 10px 20px",
+                "Description": "Standard frosted glass using system material with subtle shadow"
+            }
+        },
+        "UI Elements": {
+            "Border": "#FFFFFF",
+            "Muted Fill": "#A8A8A8",
+            "Timeline Line": "#0A4D54",
+            "Description": "White borders for glass cards, neutral gray fills for muted elements"
+        },
+        "Effects": {
+            "Corner Radius": {
+                "Small": "12pt",
+                "Medium": "20pt",
+                "Large": "20pt",
+                "Extra Large": "40pt"
+            },
+            "Corner Style": "Continuous",
+            "Shadow": "rgba(0, 0, 0, 0.15) 0px 15px 30px",
+            "Blur": "backdrop-filter: blur(20px) (via system materials)"
         }
     }
 }

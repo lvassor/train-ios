@@ -84,19 +84,11 @@ struct DashboardView: View {
                             // }
 
                             if let program = userProgram {
-                                // Program Progress Card
-                                ProgramProgressCard(
-                                    userProgram: program,
-                                    isExpanded: $isProgramProgressExpanded,
-                                    onTap: { isProgramProgressExpanded.toggle() }
-                                )
-                                .padding(.horizontal, Spacing.lg)
-
-                                // Weekly Calendar
+                                // Weekly Calendar (now at top with session counter)
                                 WeeklyCalendarView(userProgram: program)
                                     .padding(.horizontal, Spacing.lg)
 
-                                // Your Weekly Sessions
+                                // Your Weekly Sessions (now directly below calendar)
                                 WeeklySessionsSection(userProgram: program)
                                     .padding(.horizontal, Spacing.lg)
                             } else {
@@ -623,7 +615,7 @@ struct SessionActionButton: View {
 
 struct ExerciseListView: View {
     let session: ProgramSession
-    private let timelineColor = Color(hex: "#3A3530")
+    private let timelineColor = Color(hex: "#3A3530").opacity(0.3)  // Much lighter grey for vertical line
     private let orangeAccent = Color(hex: "#FF7A00")
     private let warmSecondary = Color(hex: "#8A8078")
 

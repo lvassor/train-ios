@@ -28,7 +28,7 @@ struct MultiSelectCard: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
-                    .font(.trainHeadline)  // 20px Medium from Figma
+                    .font(isCompact ? .trainBodyMedium : .trainHeadline)  // Smaller font for compact mode
                     .foregroundColor(isSelected ? .white : .trainTextPrimary)
 
                 if let subtitle = subtitle {

@@ -20,12 +20,20 @@ struct WeeklyCalendarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header row
+            // Header row with session counter
             HStack {
-                Text(isExpanded ? monthYearString.uppercased() : "THIS WEEK")
-                    .font(.system(size: 11, weight: .semibold, design: .default))
-                    .tracking(1.5)
-                    .foregroundColor(warmSecondaryText)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(isExpanded ? monthYearString.uppercased() : "THIS WEEK")
+                        .font(.system(size: 11, weight: .semibold, design: .default))
+                        .tracking(1.5)
+                        .foregroundColor(warmSecondaryText)
+
+                    if !isExpanded {
+                        Text("\(completedThisWeek)/\(Int(userProgram.daysPerWeek)) sessions complete")
+                            .font(.system(size: 10, weight: .regular))
+                            .foregroundColor(.white)
+                    }
+                }
 
                 Spacer()
 
@@ -79,9 +87,9 @@ struct WeeklyCalendarView: View {
         let monthData = getMonthDataAroundCurrentWeek()
 
         return VStack(spacing: 8) {
-            // Day headers (S M T W T F S)
+            // Day headers (M T W T F S S - Monday to Sunday)
             HStack(spacing: 0) {
-                ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { letter in
+                ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) { letter in
                     Text(letter)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(warmSecondaryText)
@@ -151,6 +159,13 @@ struct WeeklyCalendarView: View {
 
     // MARK: - Helper Methods
 
+    private var completedThisWeek: Int {
+        let currentWeekSessions = userProgram.completedSessionsSet.filter { sessionId in
+            sessionId.hasPrefix("week\(userProgram.currentWeek)-")
+        }
+        return currentWeekSessions.count
+    }
+
     private var monthYearString: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
@@ -161,14 +176,14 @@ struct WeeklyCalendarView: View {
         var days: [DayInfo] = []
         let today = calendar.startOfDay(for: Date())
 
-        // Find Wednesday of current week
+        // Find Monday of current week (Monday = 2 in calendar.weekday, Sunday = 1)
         let weekday = calendar.component(.weekday, from: today)
-        let daysFromWednesday = (weekday + 4) % 7 // Adjust to get Wednesday
-        let wednesday = calendar.date(byAdding: .day, value: -daysFromWednesday, to: today)!
+        let daysFromMonday = (weekday == 1) ? 6 : weekday - 2 // If Sunday, go back 6 days; otherwise weekday - 2
+        let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today)!
 
-        // Generate 7 days starting from Wednesday
+        // Generate 7 days starting from Monday
         for i in 0..<7 {
-            if let date = calendar.date(byAdding: .day, value: i, to: wednesday) {
+            if let date = calendar.date(byAdding: .day, value: i, to: monday) {
                 days.append(getDayInfo(for: date))
             }
         }
@@ -210,10 +225,10 @@ struct WeeklyCalendarView: View {
     private func getMonthDataAroundCurrentWeek() -> [[DayInfo]] {
         let today = calendar.startOfDay(for: Date())
 
-        // Find the start of the current week (Sunday)
+        // Find the start of the current week (Monday)
         let weekday = calendar.component(.weekday, from: today)
-        let daysFromSunday = weekday - 1 // Sunday = 1
-        guard let currentWeekStart = calendar.date(byAdding: .day, value: -daysFromSunday, to: today) else {
+        let daysFromMonday = (weekday == 1) ? 6 : weekday - 2 // If Sunday, go back 6 days; otherwise weekday - 2
+        guard let currentWeekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: today) else {
             return []
         }
 
@@ -221,9 +236,9 @@ struct WeeklyCalendarView: View {
         let components = calendar.dateComponents([.year, .month], from: today)
         guard let firstOfMonth = calendar.date(from: components) else { return [] }
 
-        // Find the Sunday that starts the calendar for this month
+        // Find the Monday that starts the calendar for this month
         let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
-        let daysToSubtract = (firstWeekday - 1)
+        let daysToSubtract = (firstWeekday == 1) ? 6 : firstWeekday - 2 // If Sunday, go back 6 days; otherwise weekday - 2
         guard let monthStart = calendar.date(byAdding: .day, value: -daysToSubtract, to: firstOfMonth) else {
             return []
         }
@@ -264,8 +279,9 @@ struct WeeklyCalendarView: View {
         let isToday = calendar.isDateInToday(date)
         let isCurrentMonth = calendar.component(.month, from: date) == calendar.component(.month, from: currentDate)
 
-        let weekdaySymbols = ["S", "M", "T", "W", "T", "F", "S"]
-        let weekday = calendar.component(.weekday, from: date)
+        // M T W T F S S (Monday to Sunday)
+        let weekdaySymbols = ["S", "M", "T", "W", "T", "F", "S"]  // Sunday=0, Monday=1, etc.
+        let weekday = calendar.component(.weekday, from: date)  // 1=Sunday, 2=Monday, ..., 7=Saturday
         let weekdayLetter = weekdaySymbols[weekday - 1]
 
         // Check if there's a completed workout for this day

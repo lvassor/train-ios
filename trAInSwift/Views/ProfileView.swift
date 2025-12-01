@@ -40,12 +40,12 @@ struct ProfileView: View {
                         }
                         .padding(.top, Spacing.xl)
 
-                        // Subscription Card
-                        SubscriptionInfoCard()
+                        // Program Card - First
+                        ProgramCard()
                             .padding(.horizontal, Spacing.lg)
 
-                        // Program Card
-                        ProgramCard()
+                        // Subscription Card - Second
+                        SubscriptionInfoCard()
                             .padding(.horizontal, Spacing.lg)
 
                         // Menu Items
@@ -92,7 +92,11 @@ struct ProfileView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { dismiss() }) {
                         Text("Done")
-                            .foregroundColor(.trainPrimary)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     }
                 }
             }
@@ -199,14 +203,31 @@ struct ProgramCard: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var authService = AuthService.shared
     @State private var showRetakeConfirmation = false
+    @State private var isExpanded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Your Programme")
-                .font(.trainHeadline)
-                .foregroundColor(.trainTextPrimary)
-
+            // Header with expand/collapse chevron
             HStack {
+                Text("Your Programme")
+                    .font(.trainHeadline)
+                    .foregroundColor(.trainTextPrimary)
+
+                Spacer()
+
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        isExpanded.toggle()
+                    }
+                }) {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.trainTextSecondary)
+                }
+            }
+
+            if !isExpanded {
+                // Collapsed: Show summary
                 VStack(alignment: .leading, spacing: 4) {
                     Text(authService.getCurrentProgram()?.getProgram()?.type.description ?? "No Programme")
                         .font(.trainBodyMedium)
@@ -218,8 +239,80 @@ struct ProgramCard: View {
                             .foregroundColor(.trainTextSecondary)
                     }
                 }
+            } else {
+                // Expanded: Show detailed elements with original Dashboard layout
+                if let program = authService.getCurrentProgram()?.getProgram() {
+                    VStack(spacing: Spacing.md) {
+                        // Split Type Card
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            Text("Split Type")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                            Text(program.type.description)
+                                .font(.trainBodyMedium)
+                                .foregroundColor(.trainTextPrimary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(Spacing.md)
+                        .glassCard(cornerRadius: CornerRadius.md)
 
-                Spacer()
+                        // Duration and Frequency Cards (side by side)
+                        HStack(spacing: Spacing.md) {
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                Text("Duration")
+                                    .font(.trainCaption)
+                                    .foregroundColor(.trainTextSecondary)
+                                Text("\(program.totalWeeks) weeks")
+                                    .font(.trainBodyMedium)
+                                    .foregroundColor(.trainTextPrimary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(Spacing.md)
+                            .glassCard(cornerRadius: CornerRadius.md)
+
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                Text("Frequency")
+                                    .font(.trainCaption)
+                                    .foregroundColor(.trainTextSecondary)
+                                Text("\(program.daysPerWeek) days/week")
+                                    .font(.trainBodyMedium)
+                                    .foregroundColor(.trainTextPrimary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(Spacing.md)
+                            .glassCard(cornerRadius: CornerRadius.md)
+                        }
+
+                        // Priority Muscle Groups with icons
+                        VStack(alignment: .leading, spacing: Spacing.md) {
+                            Text("Priority Muscle Groups")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(.trainTextPrimary)
+
+                            HStack(spacing: Spacing.lg) {
+                                // Get muscle groups from questionnaire data
+                                ForEach(getMuscleGroupsWithIcons(), id: \.name) { muscleGroup in
+                                    VStack(spacing: Spacing.sm) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color(hex: "FFD700").opacity(0.3))
+                                                .frame(width: 60, height: 60)
+                                            Image(systemName: muscleGroup.icon)
+                                                .font(.system(size: 28))
+                                                .foregroundColor(Color(hex: "FFD700"))
+                                        }
+                                        Text(muscleGroup.name)
+                                            .font(.trainCaption)
+                                            .foregroundColor(.trainTextSecondary)
+                                    }
+                                }
+                                Spacer()
+                            }
+                        }
+                        .padding(Spacing.md)
+                        .glassCard(cornerRadius: CornerRadius.md)
+                    }
+                }
             }
 
             Button(action: {
@@ -246,6 +339,40 @@ struct ProgramCard: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This will log you out and let you retake the quiz to create a new programme. Continue?")
+        }
+    }
+
+    private func getMuscleGroupsWithIcons() -> [(name: String, icon: String)] {
+        // Get muscle groups from priorityMuscles NSArray
+        guard let user = authService.currentUser,
+              let priorityArray = user.priorityMuscles as? [String],
+              !priorityArray.isEmpty else {
+            return [
+                (name: "Chest", icon: "heart.fill"),
+                (name: "Quads", icon: "figure.walk"),
+                (name: "Shoulders", icon: "figure.arms.open")
+            ]
+        }
+
+        return priorityArray.prefix(3).map { muscle in
+            let trimmed = muscle.trimmingCharacters(in: CharacterSet.whitespaces)
+            return (name: trimmed, icon: getIconForMuscleGroup(trimmed))
+        }
+    }
+
+    private func getIconForMuscleGroup(_ muscleGroup: String) -> String {
+        switch muscleGroup.lowercased() {
+        case "chest": return "heart.fill"
+        case "shoulders": return "figure.arms.open"
+        case "back": return "figure.strengthtraining.traditional"
+        case "quads": return "figure.walk"
+        case "hamstrings": return "figure.run"
+        case "glutes": return "figure.stairs"
+        case "biceps": return "figure.flexibility"
+        case "triceps": return "figure.flexibility"
+        case "abs": return "figure.core.training"
+        case "calves": return "figure.walk"
+        default: return "figure.strengthtraining.traditional"
         }
     }
 }
