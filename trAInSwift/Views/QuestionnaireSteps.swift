@@ -529,7 +529,7 @@ struct MuscleGroupsStepView: View {
     @Binding var selectedGroups: [String]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Which muscle groups do you want to prioritise?")
                     .font(.trainTitle2)
@@ -543,10 +543,56 @@ struct MuscleGroupsStepView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Interactive body diagram - 75% size to show selection info below
-            CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3)
-                .frame(maxHeight: 450)  // Fixed height at 75% of previous size
-                .padding(.horizontal, Spacing.lg)
+            // Interactive body diagram with fixed height and labels overlay
+            ZStack {
+                // Body diagram
+                CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3)
+                    .frame(height: 550)
+
+                // Labels overlay - positioned using SVG coordinates
+                GeometryReader { geometry in
+                    let svgWidth: CGFloat = 650
+                    let svgHeight: CGFloat = 1450
+                    let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight)
+
+                    // Male back RIGHT hand min Y: 822.74, RIGHT forearm min X: 474.60
+                    let labelX = 675 * scale
+                    let labelY = 900 * scale
+
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text("Selected:")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+
+                        Text("\(selectedGroups.count) of 3")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+
+                        ForEach(selectedGroups, id: \.self) { muscle in
+                            HStack(spacing: 6) {
+                                Text(muscle)
+                                    .font(.trainCaption)
+                                    .foregroundColor(.white)
+
+                                Button(action: {
+                                    selectedGroups.removeAll { $0 == muscle }
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.white.opacity(0.9))
+                                }
+                            }
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, 6)
+                            .background(Color.trainPrimary)
+                            .cornerRadius(CornerRadius.lg)
+                        }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(width: 140, alignment: .topLeading)
+                    .offset(x: labelX, y: labelY)
+                }
+            }
         }
     }
 }
@@ -939,7 +985,7 @@ struct TrainingDaysStepView: View {
             VStack(spacing: Spacing.sm) {
                 // Recommended label and bracket above everything
                 GeometryReader { geometry in
-                    let segmentWidth = geometry.size.width / 5  // 5 equal segments for 5 positions
+                    let segmentWidth = geometry.size.width / 6  // 6 equal segments for 6 positions (1-6 days)
                     let rangeStart = (CGFloat(recommendedRange.lowerBound - 1) * segmentWidth)
                     let rangeWidth = (CGFloat(recommendedRange.upperBound - recommendedRange.lowerBound + 1) * segmentWidth)
 
@@ -987,7 +1033,7 @@ struct TrainingDaysStepView: View {
 
                 // Days numbers
                 HStack {
-                    ForEach(1...5, id: \.self) { day in
+                    ForEach(1...6, id: \.self) { day in
                         Text("\(day)")
                             .font(.trainBodyMedium)
                             .foregroundColor(trainingDays == day ? .trainPrimary : .trainTextSecondary)
@@ -998,7 +1044,7 @@ struct TrainingDaysStepView: View {
 
                 // Slider track
                 GeometryReader { geometry in
-                    let segmentWidth = geometry.size.width / 5  // 5 equal segments for 5 positions
+                    let segmentWidth = geometry.size.width / 6  // 6 equal segments for 6 positions (1-6 days)
                     let circlePosition = (CGFloat(trainingDays - 1) * segmentWidth) + (segmentWidth / 2)
 
                     ZStack(alignment: .leading) {
@@ -1025,7 +1071,7 @@ struct TrainingDaysStepView: View {
                                         // Calculate which day position the drag is closest to
                                         let newPosition = max(0, min(value.location.x, geometry.size.width))
                                         let dayIndex = Int(round((newPosition - segmentWidth / 2) / segmentWidth))
-                                        let newDays = min(5, max(1, dayIndex + 1))
+                                        let newDays = min(6, max(1, dayIndex + 1))
                                         if newDays != trainingDays {
                                             trainingDays = newDays
                                         }
@@ -1098,12 +1144,12 @@ struct InjuriesStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
-                Text("Do you have any current injuries or limitations?")
+                Text("Do you have any current injuries that might impact your training?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Select any that may impact your training")
+                Text("These can be updated at a later date")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)

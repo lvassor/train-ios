@@ -27,6 +27,7 @@ enum SVGPathParser {
         var startPoint = CGPoint.zero
         var lastControlPoint: CGPoint?
         var lastCommand: Character?
+        var isFirstCommand = true
 
         var i = 0
         while i < commands.count {
@@ -58,10 +59,12 @@ enum SVGPathParser {
                 while j + 1 < numbers.count {
                     var x = numbers[j]
                     var y = numbers[j + 1]
+                    // SVG spec: first coordinate pair of 'm' is absolute from origin
+                    // Subsequent pairs are relative to the first point
                     if isRelative && j > 0 {
                         x += currentPoint.x
                         y += currentPoint.y
-                    } else if isRelative {
+                    } else if isRelative && !isFirstCommand {
                         x += currentPoint.x
                         y += currentPoint.y
                     }
@@ -72,6 +75,7 @@ enum SVGPathParser {
                         path.addLine(to: CGPoint(x: x, y: y))
                     }
                     currentPoint = CGPoint(x: x, y: y)
+                    isFirstCommand = false
                     j += 2
                 }
 

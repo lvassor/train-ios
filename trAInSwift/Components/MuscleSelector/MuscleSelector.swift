@@ -26,18 +26,9 @@ struct MuscleSelector: View {
         case female = "Female"
     }
 
-    // Viewbox dimensions from the original SVG (matching react-native-body-highlighter)
-    // Male: viewBox="0 0 724 1448" for front, viewBox="724 0 724 1448" for back
-    // Female: viewBox="0 0 640 1448" for front, viewBox="640 0 640 1448" for back
-    // Normalize to use male width for both so they occupy the same space
-    private let svgWidth: CGFloat = 724
-    private let svgHeight: CGFloat = 1448
-    private var actualSvgWidth: CGFloat {
-        gender == .male ? 724 : 640
-    }
-    private var backViewXOffset: CGFloat {
-        gender == .male ? 724 : 1000  // Female back paths start around x=1000
-    }
+    // Standard canvas dimensions for aspect ratio (matching transformed data viewBox)
+    private let svgWidth: CGFloat = 650
+    private let svgHeight: CGFloat = 1450
 
     init(selectedMuscles: Binding<[String]>, maxSelections: Int = 3) {
         self._selectedMuscles = selectedMuscles
@@ -91,58 +82,55 @@ struct MuscleSelector: View {
             }
             .padding(.horizontal, Spacing.lg)
 
-            // Body diagram
-            GeometryReader { geometry in
-                // Use consistent scale for both male and female, but enlarge by using 1.0 instead of 0.95
-                let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight) * 1.0
-                let centerOffsetX = (geometry.size.width - svgWidth * scale) / 2
-                // For back view, translate the SVG coordinate system to bring back paths into view
-                let viewBoxOffsetX = side == .back ? -backViewXOffset * scale : 0
-                // Additional offset for female to center within normalized width
-                // For front view, shift right to center. For back view, no additional shift needed
-                let genderCenterOffset = gender == .female && side == .front ? (svgWidth - actualSvgWidth) * scale / 2 : 0
+            // Body diagram with fixed space for labels below
+            ZStack(alignment: .bottom) {
+                // Body diagram - takes all available space
+                GeometryReader { geometry in
+                    let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight)
 
-                ZStack {
-                    // Body parts
-                    bodyDiagram
-                        .scaleEffect(scale, anchor: .topLeading)
-                        .offset(x: centerOffsetX + viewBoxOffsetX + genderCenterOffset, y: 0)
-                        .animation(.none, value: selectedMuscles) // Prevent size change on muscle selection
+                    ZStack {
+                        bodyDiagram
+                            .frame(width: svgWidth, height: svgHeight)
+                            .scaleEffect(scale, anchor: .center)
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                    }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
                 }
-                .frame(width: geometry.size.width, height: geometry.size.height)
-            }
-            .aspectRatio(svgWidth / svgHeight, contentMode: .fit)
-            .animation(.easeInOut(duration: 0.2), value: gender)
-            .animation(.easeInOut(duration: 0.2), value: side)
+                .aspectRatio(svgWidth / svgHeight, contentMode: .fit)
 
-            // Selected muscles display
-            if !selectedMuscles.isEmpty {
-                HStack(spacing: Spacing.sm) {
-                    ForEach(selectedMuscles, id: \.self) { muscle in
-                        HStack(spacing: 4) {
-                            Text(muscle)
-                                .font(.trainCaption)
-                                .foregroundColor(.white)
+                // Labels overlay - positioned absolutely at bottom, doesn't affect diagram size
+                VStack(spacing: Spacing.xs) {
+                    // Selected muscles display
+                    if !selectedMuscles.isEmpty {
+                        HStack(spacing: Spacing.sm) {
+                            ForEach(selectedMuscles, id: \.self) { muscle in
+                                HStack(spacing: 4) {
+                                    Text(muscle)
+                                        .font(.trainCaption)
+                                        .foregroundColor(.white)
 
-                            Button(action: { removeMuscle(muscle) }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white.opacity(0.8))
+                                    Button(action: { removeMuscle(muscle) }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+                                }
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, 4)
+                                .background(Color.trainPrimary)
+                                .cornerRadius(CornerRadius.sm)
                             }
                         }
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, 4)
-                        .background(Color.trainPrimary)
-                        .cornerRadius(CornerRadius.sm)
                     }
+
+                    // Selection count
+                    Text("\(selectedMuscles.count) of \(maxSelections) selected")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
                 }
                 .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.sm)
             }
-
-            // Selection count
-            Text("\(selectedMuscles.count) of \(maxSelections) selected")
-                .font(.trainCaption)
-                .foregroundColor(.trainTextSecondary)
         }
     }
 
@@ -219,18 +207,9 @@ struct CompactMuscleSelector: View {
     @State private var side: MuscleSelector.BodySide = .front
     @State private var gender: MuscleSelector.BodyGender = .male
 
-    // Viewbox dimensions from the original SVG (matching react-native-body-highlighter)
-    // Male: viewBox="0 0 724 1448" for front, viewBox="724 0 724 1448" for back
-    // Female: viewBox="0 0 640 1448" for front, viewBox="640 0 640 1448" for back
-    // Normalize to use male width for both so they occupy the same space
-    private let svgWidth: CGFloat = 724
-    private let svgHeight: CGFloat = 1448
-    private var actualSvgWidth: CGFloat {
-        gender == .male ? 724 : 640
-    }
-    private var backViewXOffset: CGFloat {
-        gender == .male ? 724 : 1000  // Female back paths start around x=1000
-    }
+    // Standard canvas dimensions for aspect ratio (matching transformed data viewBox)
+    private let svgWidth: CGFloat = 650
+    private let svgHeight: CGFloat = 1450
 
     init(selectedMuscles: Binding<[String]>, maxSelections: Int = 3) {
         self._selectedMuscles = selectedMuscles
@@ -238,7 +217,7 @@ struct CompactMuscleSelector: View {
     }
 
     var body: some View {
-        VStack(spacing: Spacing.md) {
+        VStack(spacing: 0) {
             // Toggle row with Gender and Side toggles
             HStack(spacing: Spacing.md) {
                 // Gender toggle
@@ -282,61 +261,21 @@ struct CompactMuscleSelector: View {
                 .background(Color.trainTextSecondary.opacity(0.1))
                 .cornerRadius(CornerRadius.sm)
             }
+            .padding(.top, -8)
 
-            // Body diagram
+            // Body diagram - scales to fit available width while maintaining aspect ratio
             GeometryReader { geometry in
-                // Use consistent scale for both male and female, but enlarge by using 1.0 instead of 0.95
-                let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight) * 1.0
-                let centerOffsetX = (geometry.size.width - svgWidth * scale) / 2
-                // For back view, translate the SVG coordinate system to bring back paths into view
-                let viewBoxOffsetX = side == .back ? -backViewXOffset * scale : 0
-                // Additional offset for female to center within normalized width
-                // For front view, shift right to center. For back view, no additional shift needed
-                let genderCenterOffset = gender == .female && side == .front ? (svgWidth - actualSvgWidth) * scale / 2 : 0
+                let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight)
 
                 ZStack {
-                    // Fixed frame wrapper to prevent shrinking
-                    Color.clear
-                        .frame(width: svgWidth * scale, height: svgHeight * scale)
-
                     bodyDiagram
-                        .scaleEffect(scale, anchor: .topLeading)
-                        .offset(x: centerOffsetX + viewBoxOffsetX + genderCenterOffset, y: 0)
+                        .frame(width: svgWidth, height: svgHeight)
+                        .scaleEffect(scale, anchor: .center)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                .animation(.none, value: selectedMuscles) // Prevent size change on muscle selection
             }
             .aspectRatio(svgWidth / svgHeight, contentMode: .fit)
-            .animation(.easeInOut(duration: 0.2), value: gender)
-            .animation(.easeInOut(duration: 0.2), value: side)
-
-            // Selected muscles chips
-            if !selectedMuscles.isEmpty {
-                FlowLayout(spacing: Spacing.xs) {
-                    ForEach(selectedMuscles, id: \.self) { muscle in
-                        HStack(spacing: 2) {
-                            Text(muscle)
-                                .font(.trainCaption)
-                                .foregroundColor(.white)
-
-                            Button(action: { removeMuscle(muscle) }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.white.opacity(0.8))
-                            }
-                        }
-                        .padding(.horizontal, Spacing.xs)
-                        .padding(.vertical, 2)
-                        .background(Color.trainPrimary)
-                        .cornerRadius(CornerRadius.sm)
-                    }
-                }
-            }
-
-            // Selection count
-            Text("\(selectedMuscles.count) of \(maxSelections) selected")
-                .font(.trainCaption)
-                .foregroundColor(.trainTextSecondary)
         }
     }
 
@@ -394,10 +333,6 @@ struct CompactMuscleSelector: View {
         } else if selectedMuscles.count < maxSelections {
             selectedMuscles.append(muscle)
         }
-    }
-
-    private func removeMuscle(_ muscle: String) {
-        selectedMuscles.removeAll { $0 == muscle }
     }
 }
 
