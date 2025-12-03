@@ -135,8 +135,7 @@ struct SessionDetailView: View {
         .scrollContentBackground(.hidden)
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(isPresented: $startWorkout) {
-            WorkoutLoggerView(
-                
+            WorkoutOverviewView(
                 weekNumber: weekNumber,
                 sessionIndex: sessionIndex
             )

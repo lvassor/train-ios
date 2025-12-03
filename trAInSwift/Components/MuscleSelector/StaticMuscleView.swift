@@ -16,15 +16,17 @@ struct StaticMuscleView: View {
     let muscleGroup: String
     let gender: MuscleSelector.BodyGender
     let size: CGFloat
+    let useUniformBaseColor: Bool
 
     // Standard canvas dimensions for aspect ratio (matching transformed data viewBox)
     private let svgWidth: CGFloat = 650
     private let svgHeight: CGFloat = 1450
 
-    init(muscleGroup: String, gender: MuscleSelector.BodyGender = .male, size: CGFloat = 60) {
+    init(muscleGroup: String, gender: MuscleSelector.BodyGender = .male, size: CGFloat = 60, useUniformBaseColor: Bool = false) {
         self.muscleGroup = muscleGroup
         self.gender = gender
         self.size = size
+        self.useUniformBaseColor = useUniformBaseColor
     }
 
     /// Determines whether a muscle group should show front or back view
@@ -94,6 +96,11 @@ struct StaticMuscleView: View {
     private func getFillColor(for part: MusclePart, isHighlighted: Bool) -> Color {
         if isHighlighted {
             return Color.trainPrimary
+        }
+
+        // When useUniformBaseColor is true, all non-highlighted parts use the same light gray
+        if useUniformBaseColor {
+            return Color(hex: "#8a8a8a") ?? .gray
         }
 
         if !part.slug.isSelectable {

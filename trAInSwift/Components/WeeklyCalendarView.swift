@@ -116,40 +116,37 @@ struct WeeklyCalendarView: View {
         let circleSize: CGFloat = isCompact ? 36 : 44
 
         return VStack(spacing: isCompact ? 2 : 4) {
-            if !isCompact {
-                Text(dayInfo.weekdayLetter)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(warmSecondaryText)
-            }
+            // Show day letter above circle (for both collapsed and expanded views)
+            Text(dayInfo.weekdayLetter)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(warmSecondaryText)
+                .opacity(isCompact ? 0 : 1) // Hide in expanded view (headers already shown)
 
             ZStack {
                 if let workoutLetter = dayInfo.workoutLetter {
-                    // Completed workout - solid orange with letter
+                    // Completed workout - solid orange filled circle with dark text
                     Circle()
                         .fill(vibrantOrange)
                         .frame(width: circleSize, height: circleSize)
 
                     Text(workoutLetter)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(.system(size: isCompact ? 14 : 16, weight: .bold))
+                        .foregroundColor(Color(hex: "#1a1a2e")) // Dark background color for contrast
                 } else if dayInfo.isToday {
-                    // Today - hollow orange ring
+                    // Today without workout - hollow orange ring (empty inside)
                     Circle()
                         .stroke(vibrantOrange, lineWidth: 3)
                         .frame(width: circleSize, height: circleSize)
                 } else {
-                    // Default - muted gray fill
+                    // Default - muted gray empty circle
                     Circle()
                         .fill(mutedCircleFill)
                         .frame(width: circleSize, height: circleSize)
                 }
             }
 
-            if !isCompact {
-                Text("\(dayInfo.day)")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white)
-            } else {
+            // Show date number below circle in expanded (compact) view only
+            if isCompact {
                 Text("\(dayInfo.day)")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.white)

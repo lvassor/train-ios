@@ -153,7 +153,7 @@ struct AgeStepView: View {
                     .foregroundColor(.trainPrimary)
                 Text("years old")
                     .font(.trainTitle)
-                    .foregroundColor(.trainTextSecondary)
+                    .foregroundColor(.white)  // Changed to white per requirements
             }
             .frame(maxWidth: .infinity)
             .padding(.top, Spacing.md)
@@ -274,6 +274,7 @@ struct HeightStepView: View {
                         tick: .unit  // Major ticks every 10 units
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
+                    .colorScheme(.dark)  // Force dark mode for white labels
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -327,6 +328,7 @@ struct HeightStepView: View {
                         tick: .unit  // Major ticks every 1 foot
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
+                    .colorScheme(.dark)  // Force dark mode for white labels
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -432,6 +434,7 @@ struct WeightStepView: View {
                         tick: .unit  // Major ticks every 10 units
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
+                    .colorScheme(.dark)  // Force dark mode for white labels
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -465,6 +468,7 @@ struct WeightStepView: View {
                         tick: .unit  // Major ticks every 20 units
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
+                    .colorScheme(.dark)  // Force dark mode for white labels
                     .frame(height: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
@@ -529,7 +533,7 @@ struct MuscleGroupsStepView: View {
     @Binding var selectedGroups: [String]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.lg) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Which muscle groups do you want to prioritise?")
                     .font(.trainTitle2)
@@ -543,31 +547,19 @@ struct MuscleGroupsStepView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Interactive body diagram with fixed height and labels overlay
-            ZStack {
-                // Body diagram
-                CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3)
-                    .frame(height: 550)
+            // Interactive body diagram - fixed size for consistent layout
+            CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3)
+                .frame(maxWidth: .infinity)
+                .frame(height: 400)
 
-                // Labels overlay - positioned using SVG coordinates
-                GeometryReader { geometry in
-                    let svgWidth: CGFloat = 650
-                    let svgHeight: CGFloat = 1450
-                    let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight)
+            // Selected muscles display below body
+            if !selectedGroups.isEmpty {
+                VStack(alignment: .center, spacing: Spacing.sm) {
+                    Text("Selected: \(selectedGroups.count) of 3")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
 
-                    // Male back RIGHT hand min Y: 822.74, RIGHT forearm min X: 474.60
-                    let labelX = 675 * scale
-                    let labelY = 900 * scale
-
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text("Selected:")
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
-
-                        Text("\(selectedGroups.count) of 3")
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
-
+                    HStack(spacing: Spacing.sm) {
                         ForEach(selectedGroups, id: \.self) { muscle in
                             HStack(spacing: 6) {
                                 Text(muscle)
@@ -588,11 +580,11 @@ struct MuscleGroupsStepView: View {
                             .cornerRadius(CornerRadius.lg)
                         }
                     }
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(width: 140, alignment: .topLeading)
-                    .offset(x: labelX, y: labelY)
                 }
+                .frame(maxWidth: .infinity)
             }
+
+            Spacer()
         }
     }
 }
@@ -611,7 +603,6 @@ struct MuscleGroupButton: View {
                 .padding(Spacing.md)
                 .background(isSelected ? Color.trainPrimary : .clear)
                 .appCard(cornerRadius: CornerRadius.md)
-                .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(ScaleButtonStyle())
     }
@@ -815,7 +806,6 @@ struct EquipmentCard: View {
             .padding(Spacing.md)
             .background(isSelected ? Color.trainPrimary : .clear)
             .appCard(cornerRadius: CornerRadius.md)
-            .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -971,13 +961,13 @@ struct TrainingDaysStepView: View {
                         .foregroundColor(.trainPrimary)
                     Text(trainingDays == 1 ? "day" : "days")
                         .font(.trainTitle)
-                        .foregroundColor(.trainTextSecondary)
+                        .foregroundColor(.white)  // Changed to white per requirements
                 }
                 .frame(maxWidth: .infinity)
 
                 Text("per week")
                     .font(.trainBody)
-                    .foregroundColor(.trainTextSecondary)
+                    .foregroundColor(.white)  // Changed to white per requirements
             }
             .padding(.vertical, Spacing.md)
 
@@ -1169,7 +1159,6 @@ struct InjuriesStepView: View {
                                     .padding(Spacing.md)
                                     .background(injuries.contains(injury) ? Color.trainPrimary : .clear)
                                     .appCard(cornerRadius: CornerRadius.md)
-                                    .shadow(color: injuries.contains(injury) ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
                             }
                             .buttonStyle(ScaleButtonStyle())
                         }
@@ -1185,7 +1174,6 @@ struct InjuriesStepView: View {
                         .padding(Spacing.md)
                         .background(injuries.isEmpty ? Color.trainPrimary : .clear)
                         .appCard(cornerRadius: CornerRadius.md)
-                        .shadow(color: injuries.isEmpty ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
                 }
                 .buttonStyle(ScaleButtonStyle())
             }

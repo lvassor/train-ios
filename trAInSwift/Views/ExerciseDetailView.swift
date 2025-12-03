@@ -25,31 +25,50 @@ struct ExerciseDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-                // Tab toggle - only show if Logger tab is enabled
+                // Tab toggle - matches CombinedLibraryView toolbar style
                 if showLoggerTab {
-                    HStack(spacing: 0) {
-                        Button(action: { selectedTab = .logger }) {
-                            Text("Logger")
-                                .font(.trainBodyMedium)
-                                .foregroundColor(selectedTab == .logger ? .trainTextPrimary : .trainTextSecondary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, Spacing.md)
-                                .background(selectedTab == .logger ? Color.white : Color.clear)
-                                .cornerRadius(20, corners: [.topLeft, .bottomLeft])
+                    HStack(spacing: 4) {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedTab = .logger
+                            }
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "list.bullet.clipboard")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(selectedTab == .logger ? .trainPrimary : .trainTextSecondary)
+                                Text("Logger")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(selectedTab == .logger ? .trainTextPrimary : .trainTextSecondary)
+                            }
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.vertical, 10)
+                            .background(selectedTab == .logger ? Color.trainPrimary.opacity(0.15) : Color.clear)
+                            .clipShape(Capsule())
                         }
 
-                        Button(action: { selectedTab = .demo }) {
-                            Text("Demo")
-                                .font(.trainBodyMedium)
-                                .foregroundColor(selectedTab == .demo ? .trainTextPrimary : .trainTextSecondary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, Spacing.md)
-                                .background(selectedTab == .demo ? Color.white : Color.clear)
-                                .cornerRadius(20, corners: [.topRight, .bottomRight])
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedTab = .demo
+                            }
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(selectedTab == .demo ? .trainPrimary : .trainTextSecondary)
+                                Text("Demo")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(selectedTab == .demo ? .trainTextPrimary : .trainTextSecondary)
+                            }
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.vertical, 10)
+                            .background(selectedTab == .demo ? Color.trainPrimary.opacity(0.15) : Color.clear)
+                            .clipShape(Capsule())
                         }
                     }
-                    .background(Color.trainTextSecondary.opacity(0.1))
-                    .cornerRadius(20)
+                    .padding(4)
+                    .background(Color.white.opacity(0.08))
+                    .clipShape(Capsule())
                     .padding(.horizontal, Spacing.lg)
                     .padding(.top, Spacing.md)
                 }

@@ -2,59 +2,65 @@
 //  FloatingToolbar.swift
 //  trAInSwift
 //
-//  Floating pill-shaped bottom navigation with separate account button
+//  Floating pill-shaped bottom navigation with liquid glass effect
+//  Updated: Swapped dumbbell to dashboard (house), videos to exercise library (dumbbell)
 //
 
 import SwiftUI
 
 struct FloatingToolbar: View {
-    let onExerciseLibrary: () -> Void
+    let onDashboard: () -> Void
     let onMilestones: () -> Void
-    let onVideoLibrary: () -> Void
+    let onExerciseLibrary: () -> Void
     let onAccount: () -> Void
 
-    @State private var selectedTab: ToolbarTab = .exercises
+    @Binding var selectedTab: ToolbarTab
 
     var body: some View {
         HStack(spacing: 12) {
-            // Main toolbar pill
-            HStack(spacing: 8) {
-                // Left edge spacing
-                Spacer()
-                    .frame(width: 12)
-
+            // Main toolbar pill with liquid glass effect
+            HStack(spacing: 4) {
                 ForEach(ToolbarTab.allCases.filter { $0 != .account }, id: \.self) { tab in
                     Button(action: {
                         selectedTab = tab
                         switch tab {
-                        case .exercises: onExerciseLibrary()
+                        case .dashboard: onDashboard()
                         case .milestones: onMilestones()
-                        case .videos: onVideoLibrary()
+                        case .library: onExerciseLibrary()
                         case .account: break
                         }
                     }) {
-                        // Icon only - no labels
+                        // Icon with transparent tint background when selected
                         Image(systemName: tab.icon)
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(selectedTab == tab ? .trainPrimary : .white)
-                            .frame(width: 44, height: 44)
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(selectedTab == tab ? .trainPrimary : .white.opacity(0.7))
+                            .frame(width: 48, height: 42)
+                            .background(selectedTab == tab ? Color.trainPrimary.opacity(0.15) : Color.clear)
+                            .clipShape(Capsule())
                     }
                 }
-
-                // Right edge spacing
-                Spacer()
-                    .frame(width: 12)
             }
-            .frame(height: 50)
-            .warmGlassCard(cornerRadius: 25)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(.ultraThinMaterial)  // Liquid glass effect - more translucent
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
 
             // Account button (separate floating circle)
             Button(action: onAccount) {
                 Image(systemName: "person.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(.white)
+                    .font(.system(size: 26))
+                    .foregroundColor(.white.opacity(0.7))
                     .frame(width: 50, height: 50)
-                    .warmGlassCard(cornerRadius: 25)
+                    .background(.ultraThinMaterial)  // Liquid glass effect
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
             }
         }
         .padding(.horizontal, 20)
@@ -63,25 +69,25 @@ struct FloatingToolbar: View {
 }
 
 enum ToolbarTab: CaseIterable {
-    case exercises
+    case dashboard   // Was exercises (dumbbell), now home
     case milestones
-    case videos
+    case library     // Was videos (play), now dumbbell for exercise library
     case account
 
     var icon: String {
         switch self {
-        case .exercises: return "dumbbell.fill"
+        case .dashboard: return "house.fill"        // Changed from dumbbell
         case .milestones: return "rosette"
-        case .videos: return "play.circle.fill"
+        case .library: return "dumbbell.fill"       // Changed from play.circle (video)
         case .account: return "person.circle.fill"
         }
     }
 
     var title: String {
         switch self {
-        case .exercises: return "Exercises"
+        case .dashboard: return "Dashboard"
         case .milestones: return "Milestones"
-        case .videos: return "Videos"
+        case .library: return "Library"
         case .account: return "Account"
         }
     }
@@ -98,10 +104,11 @@ enum ToolbarTab: CaseIterable {
             Spacer()
 
             FloatingToolbar(
-                onExerciseLibrary: {},
+                onDashboard: {},
                 onMilestones: {},
-                onVideoLibrary: {},
-                onAccount: {}
+                onExerciseLibrary: {},
+                onAccount: {},
+                selectedTab: .constant(.dashboard)
             )
         }
     }

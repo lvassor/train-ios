@@ -14,6 +14,7 @@ struct ProgramReadyView: View {
     @State private var showSignup = false
     @State private var showLoading = false
     @State private var showPaywall = false
+    @State private var showConfetti = false
 
     // MARK: - Feature Flags
     // Set to true to skip paywall for MVP/TestFlight
@@ -48,8 +49,20 @@ struct ProgramReadyView: View {
                     }
                 })
             } else {
-                // Original Program Ready View
+                // Original Program Ready View with confetti overlay
                 programReadyContent
+                    .overlay {
+                        if showConfetti {
+                            ConfettiView()
+                                .allowsHitTesting(false)
+                        }
+                    }
+                    .onAppear {
+                        // Trigger confetti animation when view appears
+                        withAnimation {
+                            showConfetti = true
+                        }
+                    }
             }
         }
     }
@@ -144,5 +157,134 @@ struct ProgramInfoCard: View {
         .frame(maxWidth: .infinity)
         .padding(Spacing.lg)
         .appCard()
+    }
+}
+
+// MARK: - Confetti View
+
+struct ConfettiView: View {
+    @State private var confettiPieces: [ConfettiPiece] = []
+    private let confettiColors: [Color] = [
+        .red, .orange, .yellow, .green, .blue, .purple, .pink,
+        Color(hex: "#FF6B6B") ?? .red,
+        Color(hex: "#4ECDC4") ?? .teal,
+        Color(hex: "#FFE66D") ?? .yellow,
+        Color(hex: "#95E1D3") ?? .mint,
+        Color(hex: "#F38181") ?? .pink
+    ]
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                ForEach(confettiPieces) { piece in
+                    ConfettiPieceView(piece: piece, screenHeight: geometry.size.height)
+                }
+            }
+            .onAppear {
+                generateConfetti(in: geometry.size)
+            }
+        }
+        .ignoresSafeArea()
+    }
+
+    private func generateConfetti(in size: CGSize) {
+        // Generate multiple waves of confetti
+        for wave in 0..<3 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(wave) * 0.3) {
+                let newPieces = (0..<40).map { _ in
+                    ConfettiPiece(
+                        id: UUID(),
+                        x: CGFloat.random(in: 0...size.width),
+                        color: confettiColors.randomElement() ?? .orange,
+                        size: CGFloat.random(in: 8...14),
+                        rotation: Double.random(in: 0...360),
+                        delay: Double.random(in: 0...0.5),
+                        duration: Double.random(in: 2.5...4.0),
+                        horizontalMovement: CGFloat.random(in: -80...80),
+                        shape: ConfettiShape.allCases.randomElement() ?? .rectangle
+                    )
+                }
+                confettiPieces.append(contentsOf: newPieces)
+            }
+        }
+    }
+}
+
+struct ConfettiPiece: Identifiable {
+    let id: UUID
+    let x: CGFloat
+    let color: Color
+    let size: CGFloat
+    let rotation: Double
+    let delay: Double
+    let duration: Double
+    let horizontalMovement: CGFloat
+    let shape: ConfettiShape
+}
+
+enum ConfettiShape: CaseIterable {
+    case rectangle
+    case circle
+    case triangle
+}
+
+struct ConfettiPieceView: View {
+    let piece: ConfettiPiece
+    let screenHeight: CGFloat
+    @State private var yOffset: CGFloat = -50
+    @State private var xOffset: CGFloat = 0
+    @State private var rotationAngle: Double = 0
+    @State private var opacity: Double = 1.0
+
+    var body: some View {
+        Group {
+            switch piece.shape {
+            case .rectangle:
+                Rectangle()
+                    .fill(piece.color)
+                    .frame(width: piece.size, height: piece.size * 0.6)
+            case .circle:
+                Circle()
+                    .fill(piece.color)
+                    .frame(width: piece.size * 0.8, height: piece.size * 0.8)
+            case .triangle:
+                Triangle()
+                    .fill(piece.color)
+                    .frame(width: piece.size, height: piece.size)
+            }
+        }
+        .rotationEffect(.degrees(rotationAngle))
+        .rotation3DEffect(.degrees(rotationAngle * 0.5), axis: (x: 1, y: 0, z: 0))
+        .position(x: piece.x + xOffset, y: yOffset)
+        .opacity(opacity)
+        .onAppear {
+            withAnimation(
+                Animation.easeOut(duration: piece.duration)
+                    .delay(piece.delay)
+            ) {
+                yOffset = screenHeight + 100
+                xOffset = piece.horizontalMovement
+                rotationAngle = piece.rotation + Double.random(in: 720...1440)
+            }
+
+            // Fade out near the end
+            withAnimation(
+                Animation.easeIn(duration: 0.5)
+                    .delay(piece.delay + piece.duration - 0.5)
+            ) {
+                opacity = 0
+            }
+        }
+    }
+}
+
+struct Triangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
     }
 }

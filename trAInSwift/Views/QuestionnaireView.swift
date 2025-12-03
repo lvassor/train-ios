@@ -48,17 +48,11 @@ struct QuestionnaireView: View {
                     // Show back arrow on cover pages (section 0 and 2) and question pages (section 1 and 3)
                     VStack(spacing: 0) {
                         HStack {
-                            // Show back button on:
-                            // - Availability cover (section 0) - to go back to previous screen
-                            // - Section 1 questions when not first question, or always for section 3
-                            // - About You cover (section 2) - to go back to section 1
-                            if currentSection == 0 || currentSection == 2 ||
-                               currentStepInSection > 0 || (currentSection == 3 && currentStepInSection == 0) {
-                                Button(action: previousStep) {
-                                    Image(systemName: "arrow.left")
-                                        .font(.title3)
-                                        .foregroundColor(.trainTextPrimary)
-                                }
+                            // Always show back button on all steps
+                            Button(action: previousStep) {
+                                Image(systemName: "arrow.left")
+                                    .font(.title3)
+                                    .foregroundColor(.trainTextPrimary)
                             }
                             Spacer()
                         }

@@ -11,12 +11,7 @@ struct MilestonesView: View {
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        ZStack {
-            // Gradient base layer - uses centralized AppGradient
-            AppGradient.background
-                .ignoresSafeArea()
-
-            VStack(spacing: Spacing.xl) {
+        VStack(spacing: Spacing.xl) {
                 Spacer()
 
                 // Trophy icon
@@ -43,10 +38,10 @@ struct MilestonesView: View {
                         .padding(.horizontal, Spacing.xl)
                 }
 
-                Spacer()
-            }
+            Spacer()
         }
-        .scrollContentBackground(.hidden)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.ultraThinMaterial)
         .navigationTitle("Milestones")
         .navigationBarTitleDisplayMode(.inline)
     }

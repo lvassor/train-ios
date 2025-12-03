@@ -18,6 +18,9 @@ struct DashboardView: View {
     @State private var showVideoLibrary = false
     @State private var isProgramProgressExpanded = false
     @State private var currentStreak: Int = 0
+    @State private var milestonesDetent: PresentationDetent = .fraction(0.66)
+    @State private var libraryDetent: PresentationDetent = .fraction(0.66)
+    @State private var selectedToolbarTab: ToolbarTab = .dashboard
 
     var user: UserProfile? {
         authService.currentUser
@@ -38,93 +41,93 @@ struct DashboardView: View {
                 AppGradient.background
                     .ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // Main content
-                    ScrollView {
-                        Color.clear.frame(height: 0)
-                        VStack(spacing: Spacing.lg) {
-                            // Header
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Hey, \(getUserFirstName())")
-                                        .font(.trainHeadline)
-                                        .foregroundColor(.trainTextPrimary)
+                // Main content - scrolls behind toolbar
+                ScrollView {
+                    Color.clear.frame(height: 0)
+                    VStack(spacing: Spacing.lg) {
+                        // Header
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Hey, \(getUserFirstName())")
+                                    .font(.trainHeadline)
+                                    .foregroundColor(.trainTextPrimary)
 
-                                    Text("You're killing it this week! 💪")
-                                        .font(.trainBody)
-                                        .foregroundColor(.trainTextSecondary)
-                                }
-
-                                Spacer()
-
-                                // Streak counter - commented out for MVP
-                                // HStack(spacing: 4) {
-                                //     Text("🔥")
-                                //         .font(.system(size: 20))
-                                //
-                                //     Text("\(currentStreak)")
-                                //         .font(.trainBodyMedium)
-                                //         .foregroundColor(.trainTextPrimary)
-                                // }
-                            }
-                            .padding(.horizontal, Spacing.lg)
-                            .padding(.top, Spacing.md)
-                            // .onAppear {
-                            //     currentStreak = calculateStreak()
-                            // }
-
-                            if let program = userProgram {
-                                // Weekly Calendar (now at top with session counter)
-                                WeeklyCalendarView(userProgram: program)
-                                    .padding(.horizontal, Spacing.lg)
-
-                                // Your Weekly Sessions (now directly below calendar)
-                                WeeklySessionsSection(userProgram: program)
-                                    .padding(.horizontal, Spacing.lg)
-                            } else {
-                                // No program found - show error message
-                                VStack(spacing: Spacing.lg) {
-                                    Image(systemName: "exclamationmark.triangle")
-                                        .font(.system(size: 48))
-                                        .foregroundColor(.orange)
-
-                                    Text("No Training Programme Found")
-                                        .font(.trainTitle)
-                                        .foregroundColor(.trainTextPrimary)
-
-                                    Text("There was an issue loading your programme. Please contact support or restart the questionnaire.")
-                                        .font(.trainBody)
-                                        .foregroundColor(.trainTextSecondary)
-                                        .multilineTextAlignment(.center)
-
-                                    Button(action: {
-                                        authService.logout()
-                                    }) {
-                                        Text("Log Out and Retry")
-                                            .font(.trainBodyMedium)
-                                            .foregroundColor(.white)
-                                            .frame(maxWidth: .infinity)
-                                            .frame(height: ElementHeight.button)
-                                            .background(Color.trainPrimary)
-                                            .cornerRadius(CornerRadius.md)
-                                    }
-                                }
-                                .padding(.horizontal, Spacing.lg)
-                                .padding(.top, Spacing.xxl)
+                                Text("You're killing it this week! 💪")
+                                    .font(.trainBody)
+                                    .foregroundColor(.trainTextSecondary)
                             }
 
                             Spacer()
-                                .frame(height: 100) // Space for bottom nav
+
+                            // Streak counter - commented out for MVP
+                            // HStack(spacing: 4) {
+                            //     Text("🔥")
+                            //         .font(.system(size: 20))
+                            //
+                            //     Text("\(currentStreak)")
+                            //         .font(.trainBodyMedium)
+                            //         .foregroundColor(.trainTextPrimary)
+                            // }
+                        }
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.top, Spacing.md)
+                        // .onAppear {
+                        //     currentStreak = calculateStreak()
+                        // }
+
+                        if let program = userProgram {
+                            // Weekly Calendar (now at top with session counter)
+                            WeeklyCalendarView(userProgram: program)
+                                .padding(.horizontal, Spacing.lg)
+
+                            // Your Weekly Sessions (now directly below calendar)
+                            WeeklySessionsSection(userProgram: program)
+                                .padding(.horizontal, Spacing.lg)
+                        } else {
+                            // No program found - show error message
+                            VStack(spacing: Spacing.lg) {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .font(.system(size: 48))
+                                    .foregroundColor(.orange)
+
+                                Text("No Training Programme Found")
+                                    .font(.trainTitle)
+                                    .foregroundColor(.trainTextPrimary)
+
+                                Text("There was an issue loading your programme. Please contact support or restart the questionnaire.")
+                                    .font(.trainBody)
+                                    .foregroundColor(.trainTextSecondary)
+                                    .multilineTextAlignment(.center)
+
+                                Button(action: {
+                                    authService.logout()
+                                }) {
+                                    Text("Log Out and Retry")
+                                        .font(.trainBodyMedium)
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: ElementHeight.button)
+                                        .background(Color.trainPrimary)
+                                        .cornerRadius(CornerRadius.md)
+                                }
+                            }
+                            .padding(.horizontal, Spacing.lg)
+                            .padding(.top, Spacing.xxl)
                         }
                     }
-                    .scrollContentBackground(.hidden)
+                    .padding(.bottom, 90) // Space for floating toolbar
+                }
+                .scrollContentBackground(.hidden)
 
-                    // Floating Bottom Navigation
+                // Floating toolbar overlay - content scrolls behind
+                VStack {
+                    Spacer()
                     FloatingToolbar(
-                        onExerciseLibrary: { showExerciseLibrary = true },
+                        onDashboard: { /* Already on dashboard */ },
                         onMilestones: { showMilestones = true },
-                        onVideoLibrary: { showVideoLibrary = true },
-                        onAccount: { showProfile = true }
+                        onExerciseLibrary: { showExerciseLibrary = true },
+                        onAccount: { showProfile = true },
+                        selectedTab: $selectedToolbarTab
                     )
                 }
             }
@@ -134,20 +137,39 @@ struct DashboardView: View {
                     ProgramOverviewView(userProgram: program)
                 }
             }
-            .navigationDestination(isPresented: $showExerciseLibrary) {
-                ExerciseLibraryView()
+            .sheet(isPresented: $showExerciseLibrary, onDismiss: {
+                selectedToolbarTab = .dashboard
+            }) {
+                NavigationStack {
+                    CombinedLibraryView()
+                }
+                .presentationDetents([.fraction(0.66), .large], selection: $libraryDetent)
+                .presentationDragIndicator(.visible)
+                .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.66)))
             }
-            .navigationDestination(isPresented: $showMilestones) {
-                MilestonesView()
+            .sheet(isPresented: $showMilestones, onDismiss: {
+                selectedToolbarTab = .dashboard
+            }) {
+                NavigationStack {
+                    MilestonesView()
+                }
+                .presentationDetents([.fraction(0.66), .large], selection: $milestonesDetent)
+                .presentationDragIndicator(.visible)
+                .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.66)))
             }
-            .navigationDestination(isPresented: $showVideoLibrary) {
-                VideoLibraryView()
-            }
-            .sheet(isPresented: $showCalendar) {
+            .sheet(isPresented: $showCalendar, onDismiss: {
+                selectedToolbarTab = .dashboard
+            }) {
                 CalendarView()
+                    .presentationDetents([.fraction(0.66), .large])
+                    .presentationDragIndicator(.visible)
             }
-            .sheet(isPresented: $showProfile) {
+            .sheet(isPresented: $showProfile, onDismiss: {
+                selectedToolbarTab = .dashboard
+            }) {
                 ProfileView()
+                    .presentationDetents([.fraction(0.66), .large])
+                    .presentationDragIndicator(.visible)
             }
         }
         .containerBackground(AppGradient.background, for: .navigation)
@@ -571,8 +593,8 @@ struct SessionActionButton: View {
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
             }
         } else {
-            // Start Workout button
-            NavigationLink(destination: WorkoutLoggerView(
+            // Start Workout button - now navigates to WorkoutOverviewView
+            NavigationLink(destination: WorkoutOverviewView(
                 weekNumber: Int(userProgram.currentWeek),
                 sessionIndex: sessionIndex
             )) {
@@ -583,7 +605,6 @@ struct SessionActionButton: View {
                     .padding(.vertical, Spacing.md)
                     .background(Color.trainPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-                    .shadow(color: Color.trainPrimary.opacity(0.4), radius: 16, x: 0, y: 0)
             }
         }
     }
@@ -593,7 +614,7 @@ struct SessionActionButton: View {
 
 struct ExerciseListView: View {
     let session: ProgramSession
-    private let timelineColor = Color.trainTimelineLine.opacity(0.3)  // Timeline color from ColorPalette
+    private let timelineColor = Color.gray.opacity(0.3)  // Light grey connector line per requirements
     private let orangeAccent = Color.trainPrimary
     private let warmSecondary = Color.trainTextSecondary
 
@@ -788,7 +809,7 @@ struct SessionBubble: View {
         .padding(Spacing.md)
         .background(isCompleted ? Color.trainPrimary : Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
-        .shadow(color: isCompleted ? Color.trainPrimary.opacity(0.4) : .black.opacity(0.08), radius: isCompleted ? 16 : 12, x: 0, y: isCompleted ? 0 : 6)
+        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
 }
 
@@ -817,7 +838,7 @@ struct ExpandedSessionBubble: View {
                 .font(.trainBody)
                 .foregroundColor(.trainTextSecondary)
 
-            NavigationLink(destination: WorkoutLoggerView(
+            NavigationLink(destination: WorkoutOverviewView(
                 weekNumber: Int(userProgram.currentWeek),
                 sessionIndex: sessionIndex
             )) {
@@ -828,7 +849,6 @@ struct ExpandedSessionBubble: View {
                     .padding(.vertical, Spacing.md)
                     .background(Color.trainPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-                    .shadow(color: Color.trainPrimary.opacity(0.4), radius: 16, x: 0, y: 0)
             }
         }
         .padding(Spacing.md)

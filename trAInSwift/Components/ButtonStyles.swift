@@ -30,7 +30,6 @@ struct SelectionButtonStyle: ButtonStyle {
                     .background(Color.trainPrimary)
                     .foregroundColor(.white)
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-                    .shadow(color: Color.trainPrimary.opacity(0.4), radius: 16, x: 0, y: 0)
             } else {
                 configuration.label
                     .padding(.vertical, Spacing.md)

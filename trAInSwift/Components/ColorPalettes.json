@@ -272,5 +272,83 @@
             "White": "Titles, exercise names, weights, primary content",
             "Muted": "Sets/reps, inactive nav, tertiary info"
         }
+    },
+    "Train Dark Mode Orange": {
+        "Description": "Alternative dark mode with orange accent (shifted from gold toward orange on the color wheel). Same solid black background with more vibrant orange accents.",
+        "Background": {
+            "Gradient": {
+                "Type": "None - Solid",
+                "Stops": [
+                    {
+                        "Color": "#0a0a0a",
+                        "Position": "0%",
+                        "Description": "Solid black throughout"
+                    }
+                ],
+                "Legacy Colors": {
+                    "Gradient Top": "#0a0a0a",
+                    "Gradient Bottom": "#0a0a0a",
+                    "Note": "No gradient - solid black background"
+                }
+            },
+            "Solid Backgrounds": {
+                "Dark": "#0a0a0a",
+                "Surface": "#141414",
+                "Description": "Pure black for main background, slightly lighter for elevated surfaces"
+            }
+        },
+        "Accent": {
+            "Primary": "#f0aa3e",
+            "Primary Light": "#f5c06a",
+            "Primary Hover": "#f8d08c",
+            "Secondary": "#fce4be",
+            "Description": "Vibrant orange (shifted from gold) for CTAs and key metrics, light peach/cream for labels and metadata"
+        },
+        "Text": {
+            "Primary": "#FFFFFF",
+            "Secondary": "#fce4be",
+            "Muted": "rgba(255, 255, 255, 0.5)",
+            "Disabled": "#A8A8A8",
+            "Description": "Pure white for primary text, light cream for labels and dates, 50% white for tertiary info, gray for disabled states"
+        },
+        "Glass": {
+            "Card": {
+                "White Overlay": "rgba(255, 255, 255, 0.05)",
+                "Tint": "none",
+                "Border": "rgba(255, 255, 255, 0.1)",
+                "Shadow": "rgba(0, 0, 0, 0.08) 0px 10px 20px",
+                "Description": "Neutral ultra-thin glass with no warm tint. Pure frosted appearance using .ultraThinMaterial."
+            },
+            "Button": {
+                "White Overlay": "rgba(255, 255, 255, 0.08)",
+                "Border": "rgba(255, 255, 255, 0.1)",
+                "Shadow": "none",
+                "Description": "Slightly more visible glass for interactive elements"
+            }
+        },
+        "UI Elements": {
+            "Border": "rgba(255, 255, 255, 0.1)",
+            "Phone Frame Border": "#333333",
+            "Muted Fill": "#A8A8A8",
+            "Divider": "rgba(255, 255, 255, 0.08)",
+            "Description": "Subtle white borders for glass cards, dark gray for device frames"
+        },
+        "Effects": {
+            "Corner Radius": {
+                "Small": "12pt",
+                "Medium": "16pt",
+                "Large": "20pt",
+                "Extra Large": "24pt"
+            },
+            "Corner Style": "Continuous",
+            "Shadow": "rgba(0, 0, 0, 0.08) 0px 10px 20px",
+            "Blur": "backdrop-filter: blur(20px) (via system materials)"
+        },
+        "Color Roles": {
+            "Orange": "CTAs, stat values, active states",
+            "Cream": "Labels, dates, section headers, metadata",
+            "White": "Titles, exercise names, weights, primary content",
+            "Muted": "Sets/reps, inactive nav, tertiary info"
+        }
     }
 }

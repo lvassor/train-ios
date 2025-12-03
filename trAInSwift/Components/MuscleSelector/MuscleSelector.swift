@@ -43,9 +43,8 @@ struct MuscleSelector: View {
                 HStack(spacing: 0) {
                     ForEach(BodyGender.allCases, id: \.self) { bodyGender in
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                gender = bodyGender
-                            }
+                            // Instant switch - no animation to avoid shape mixing
+                            gender = bodyGender
                         }) {
                             Image(systemName: bodyGender == .male ? "figure.stand" : "figure.stand.dress")
                                 .font(.system(size: 16))
@@ -64,9 +63,8 @@ struct MuscleSelector: View {
                 HStack(spacing: 0) {
                     ForEach(BodySide.allCases, id: \.self) { bodySide in
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                side = bodySide
-                            }
+                            // Instant switch - no animation to avoid shape mixing
+                            side = bodySide
                         }) {
                             Text(bodySide.rawValue)
                                 .font(.trainBody)
@@ -224,9 +222,8 @@ struct CompactMuscleSelector: View {
                 HStack(spacing: 0) {
                     ForEach(MuscleSelector.BodyGender.allCases, id: \.self) { bodyGender in
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                gender = bodyGender
-                            }
+                            // Instant switch - no animation to avoid shape mixing
+                            gender = bodyGender
                         }) {
                             Image(systemName: bodyGender == .male ? "figure.stand" : "figure.stand.dress")
                                 .font(.system(size: 14))
@@ -245,9 +242,8 @@ struct CompactMuscleSelector: View {
                 HStack(spacing: 0) {
                     ForEach(MuscleSelector.BodySide.allCases, id: \.self) { bodySide in
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                side = bodySide
-                            }
+                            // Instant switch - no animation to avoid shape mixing
+                            side = bodySide
                         }) {
                             Text(bodySide.rawValue)
                                 .font(.trainCaption)

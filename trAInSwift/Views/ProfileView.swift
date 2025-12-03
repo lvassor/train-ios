@@ -84,22 +84,10 @@ struct ProfileView: View {
                         Spacer()
                     }
                 }
-                .warmDarkGradientBackground()
                 .scrollContentBackground(.hidden)
+                .background(.ultraThinMaterial)
                 .navigationTitle("Account Settings")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { dismiss() }) {
-                        Text("Done")
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    }
-                }
-            }
         }
         .confirmationDialog("Log Out", isPresented: $showLogoutConfirmation, titleVisibility: .visible) {
             Button("Log Out", role: .destructive) {
@@ -284,19 +272,22 @@ struct ProgramCard: View {
                         }
 
                         // Priority Muscle Groups with mini body diagrams
-                        VStack(alignment: .leading, spacing: Spacing.md) {
-                            Text("Priority Muscle Groups")
-                                .font(.trainBodyMedium)
-                                .foregroundColor(.trainTextPrimary)
+                        VStack(spacing: Spacing.md) {
+                            Text("Priority Muscles")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
 
                             HStack(spacing: Spacing.lg) {
+                                Spacer()
                                 // Get muscle groups from questionnaire data
                                 ForEach(getPriorityMuscleGroups(), id: \.self) { muscleGroup in
                                     VStack(spacing: Spacing.sm) {
                                         StaticMuscleView(
                                             muscleGroup: muscleGroup,
                                             gender: getUserGender(),
-                                            size: 60
+                                            size: 60,
+                                            useUniformBaseColor: true
                                         )
                                         .frame(width: 60, height: 60)
                                         Text(muscleGroup)

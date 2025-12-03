@@ -59,7 +59,6 @@ struct OptionCard: View {
                 }
             )
             .modifier(ConditionalGlassModifier(isSelected: isSelected))
-            .shadow(color: isSelected ? Color.trainPrimary.opacity(0.4) : .clear, radius: 16, x: 0, y: 0)
         }
         .buttonStyle(ScaleButtonStyle())
     }

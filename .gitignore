@@ -97,6 +97,15 @@ Config.swift
 # macOS
 .DS_Store
 
+# Images
+*.png
+*.jpg
+*.jpeg
+
+# Xcode project files (use xcshareddata for shared schemes)
+*.xcscheme
+*.pbxproj
+
 # Database management
 *.csv
 *.xls*

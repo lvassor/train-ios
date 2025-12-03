@@ -33,16 +33,11 @@ struct WelcomeView: View {
                 Spacer()
 
                 VStack(spacing: 16) {
-                    Button(action: onContinue) {
-                        Text("Get Started")
-                            .font(.trainBodyMedium)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(Color.trainPrimary)
-                            .cornerRadius(30)
-                    }
-                    .padding(.horizontal, 20)
+                    CustomButton(
+                        title: "Get Started",
+                        action: onContinue
+                    )
+                    .padding(.horizontal, 16)
 
                     HStack(spacing: 4) {
                         Text("If you already have an account,")

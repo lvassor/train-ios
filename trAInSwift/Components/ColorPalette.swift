@@ -5,23 +5,52 @@
 //  Centralized color palette configuration
 //  Change colors here to update the entire app theme
 //
+//  THEME SWITCHING: To switch between gold and orange palettes,
+//  change the `activeTheme` variable below. Options:
+//  - .gold (original Train Dark Mode)
+//  - .orange (new Train Dark Mode Orange)
+//
 
 import SwiftUI
 
+/// Theme selection - change this to switch between palettes
+enum ThemeVariant {
+    case gold    // Original: #f1bc50 primary, #f5c4a1 secondary
+    case orange  // New: #f0aa3e primary, #fce4be secondary
+}
+
+/// Active theme - CHANGE THIS TO SWITCH PALETTES
+let activeTheme: ThemeVariant = .orange
+
 /// Main color palette configuration
 /// Train Dark Mode - clean, minimal dark mode with solid black background
-/// Food-app inspired simplicity with warm gold and peach accents against pure black
+/// Food-app inspired simplicity with warm gold/orange and peach accents against pure black
 struct ColorPalette {
-    // MARK: - Primary Colors (Gold Accent)
+    // MARK: - Primary Colors (Accent)
 
-    /// Main brand color - vibrant gold for CTAs, stat values, active states
-    static let primary = "#f1bc50"
+    /// Main brand color - vibrant gold/orange for CTAs, stat values, active states
+    static var primary: String {
+        switch activeTheme {
+        case .gold: return "#f1bc50"
+        case .orange: return "#f0aa3e"
+        }
+    }
 
     /// Lighter version of primary - used for hover states
-    static let primaryLight = "#F5CD73"
+    static var primaryLight: String {
+        switch activeTheme {
+        case .gold: return "#F5CD73"
+        case .orange: return "#f5c06a"
+        }
+    }
 
     /// Very light primary tint - used for subtle backgrounds
-    static let primaryHover = "#F7D78F"
+    static var primaryHover: String {
+        switch activeTheme {
+        case .gold: return "#F7D78F"
+        case .orange: return "#f8d08c"
+        }
+    }
 
     // MARK: - Background Colors (Solid Black)
 
@@ -48,8 +77,13 @@ struct ColorPalette {
     /// Primary text color - pure white for titles, exercise names, weights
     static let textPrimary = "#FFFFFF"
 
-    /// Secondary text color - soft peach for labels, dates, section headers
-    static let textSecondary = "#f5c4a1"
+    /// Secondary text color - soft peach/cream for labels, dates, section headers
+    static var textSecondary: String {
+        switch activeTheme {
+        case .gold: return "#f5c4a1"
+        case .orange: return "#fce4be"
+        }
+    }
 
     // MARK: - UI Element Colors
 
