@@ -52,22 +52,28 @@ struct ColorPalette {
         }
     }
 
-    // MARK: - Background Colors (Solid Black)
+    // MARK: - Background Colors (Charcoal Gradient)
 
-    /// Solid black background - no gradient
-    static let gradientEdge = "#0a0a0a"
+    /// Lightest point - medium gray (top-left region)
+    static let gradientLight = "#5E5E5E"
 
-    /// Same as edge - solid color throughout
-    static let gradientMid = "#0a0a0a"
+    /// Midpoint - very dark gray
+    static let gradientMid = "#101010"
 
-    /// Same as edge - solid color throughout
-    static let gradientCenter = "#0a0a0a"
+    /// Darkest point - near black (bottom-right region)
+    static let gradientDark = "#0B0B0B"
 
-    /// Main background - pure black
-    static let background = "#0a0a0a"
+    /// Legacy alias for edge (uses dark corner)
+    static let gradientEdge = "#0B0B0B"
 
-    /// Dark background - pure black
-    static let dark = "#0a0a0a"
+    /// Legacy alias for center (uses midpoint)
+    static let gradientCenter = "#101010"
+
+    /// Main background - dark charcoal
+    static let background = "#101010"
+
+    /// Dark background - near black
+    static let dark = "#0B0B0B"
 
     /// Elevated surface color - slightly lighter for cards if needed
     static let surface = "#141414"
@@ -113,8 +119,10 @@ extension Color {
     static let trainDark = Color(hex: ColorPalette.dark)
 
     // Gradient Colors
-    static let trainGradientEdge = Color(hex: ColorPalette.gradientEdge)
+    static let trainGradientLight = Color(hex: ColorPalette.gradientLight)
     static let trainGradientMid = Color(hex: ColorPalette.gradientMid)
+    static let trainGradientDark = Color(hex: ColorPalette.gradientDark)
+    static let trainGradientEdge = Color(hex: ColorPalette.gradientEdge)
     static let trainGradientCenter = Color(hex: ColorPalette.gradientCenter)
 
     // Text

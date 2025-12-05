@@ -3,6 +3,7 @@
 //  trAInSwift
 //
 //  Manages the SQLite exercise database using GRDB
+//  Updated for new schema with equipment_category/equipment_specific hierarchy
 //
 
 import Foundation
@@ -31,10 +32,28 @@ class ExerciseDatabaseManager {
             )
             let databaseURL = documentsPath.appendingPathComponent(databaseFileName)
 
-            // Check if database exists in Documents directory
-            if !fileManager.fileExists(atPath: databaseURL.path) {
-                print("📦 Database not found in Documents. Copying from bundle...")
-                try copyDatabaseFromBundle(to: databaseURL)
+            // Always copy database from bundle to ensure we have latest version
+            // This ensures updates to the database are propagated
+            if let bundleURL = Bundle.main.url(forResource: "exercises", withExtension: "db") {
+                let bundleModified = try fileManager.attributesOfItem(atPath: bundleURL.path)[.modificationDate] as? Date ?? Date.distantPast
+
+                var shouldCopy = !fileManager.fileExists(atPath: databaseURL.path)
+
+                if fileManager.fileExists(atPath: databaseURL.path) {
+                    let docModified = try fileManager.attributesOfItem(atPath: databaseURL.path)[.modificationDate] as? Date ?? Date.distantPast
+                    shouldCopy = bundleModified > docModified
+                }
+
+                if shouldCopy {
+                    print("📦 Copying updated database from bundle...")
+                    if fileManager.fileExists(atPath: databaseURL.path) {
+                        try fileManager.removeItem(at: databaseURL)
+                    }
+                    try fileManager.copyItem(at: bundleURL, to: databaseURL)
+                    print("✅ Database updated from bundle")
+                }
+            } else if !fileManager.fileExists(atPath: databaseURL.path) {
+                throw DatabaseError.bundleDatabaseNotFound
             }
 
             // Open database connection
@@ -47,15 +66,6 @@ class ExerciseDatabaseManager {
         } catch {
             print("❌ Failed to setup database: \(error.localizedDescription)")
         }
-    }
-
-    private func copyDatabaseFromBundle(to destinationURL: URL) throws {
-        guard let bundleURL = Bundle.main.url(forResource: "exercises", withExtension: "db") else {
-            throw DatabaseError.bundleDatabaseNotFound
-        }
-
-        try FileManager.default.copyItem(at: bundleURL, to: destinationURL)
-        print("✅ Database copied from bundle to Documents directory")
     }
 
     private func verifyDatabase() throws {
@@ -90,14 +100,14 @@ class ExerciseDatabaseManager {
         return try dbQueue.read { db in
             var query = DBExercise.all()
 
-            // Filter by active status
-            if filter.requireActive {
-                query = query.filter(Column("is_active") == 1)
+            // Filter by programme inclusion
+            if filter.onlyProgrammeExercises {
+                query = query.filter(Column("is_in_programme") == 1)
             }
 
-            // Filter by movement pattern
-            if let pattern = filter.movementPattern {
-                query = query.filter(Column("movement_pattern") == pattern)
+            // Filter by canonical name (movement pattern for exercise swaps)
+            if let canonical = filter.canonicalName {
+                query = query.filter(Column("canonical_name") == canonical)
             }
 
             // Filter by primary muscle
@@ -105,13 +115,22 @@ class ExerciseDatabaseManager {
                 query = query.filter(Column("primary_muscle") == muscle)
             }
 
-            // Filter by complexity level
-            query = query.filter(Column("complexity_level") <= filter.maxComplexity)
-
-            // Filter by equipment types
-            if !filter.equipmentTypes.isEmpty {
-                query = query.filter(filter.equipmentTypes.contains(Column("equipment_type")))
+            // Filter by equipment categories (Barbells, Dumbbells, Cables, etc.)
+            if !filter.equipmentCategories.isEmpty {
+                query = query.filter(filter.equipmentCategories.contains(Column("equipment_category")))
             }
+
+            // Filter by specific equipment (Squat Rack, Flat Bench, etc.)
+            if !filter.equipmentSpecific.isEmpty {
+                // Include exercises where equipment_specific is in the list OR equipment_specific is NULL
+                query = query.filter(
+                    filter.equipmentSpecific.contains(Column("equipment_specific")) ||
+                    Column("equipment_specific") == nil
+                )
+            }
+
+            // Filter by max complexity
+            query = query.filter(Column("complexity_level") <= filter.maxComplexity)
 
             // Fetch matching exercises
             var exercises = try query.fetchAll(db)
@@ -131,7 +150,7 @@ class ExerciseDatabaseManager {
             }
 
             // Order by complexity (descending) for better exercise selection
-            exercises.sort { $0.complexityLevel > $1.complexityLevel }
+            exercises.sort { $0.numericComplexity > $1.numericComplexity }
 
             return exercises
         }
@@ -143,22 +162,22 @@ class ExerciseDatabaseManager {
         excludingInjuries injuries: [String],
         in db: Database
     ) throws -> [DBExercise] {
-        // Get all contraindicated exercise IDs for the given injuries
-        let contraindicatedIds = try Int.fetchAll(
+        // Get all contraindicated canonical names for the given injuries
+        let contraindicatedCanonicals = try String.fetchAll(
             db,
             sql: """
-                SELECT DISTINCT exercise_id
+                SELECT DISTINCT canonical_name
                 FROM exercise_contraindications
                 WHERE injury_type IN (\(injuries.map { "'\($0)'" }.joined(separator: ",")))
                 """
         )
 
-        let contraindicatedSet = Set(contraindicatedIds)
-        return exercises.filter { !contraindicatedSet.contains($0.exerciseId) }
+        let contraindicatedSet = Set(contraindicatedCanonicals)
+        return exercises.filter { !contraindicatedSet.contains($0.canonicalName) }
     }
 
     /// Fetch a single exercise by ID
-    func fetchExercise(byId id: Int) throws -> DBExercise? {
+    func fetchExercise(byId id: String) throws -> DBExercise? {
         guard let dbQueue = dbQueue else {
             throw DatabaseError.databaseNotInitialized
         }
@@ -183,8 +202,8 @@ class ExerciseDatabaseManager {
         }
     }
 
-    /// Get all contraindications for a specific exercise
-    func fetchContraindications(forExerciseId exerciseId: Int) throws -> [String] {
+    /// Get all contraindications for a specific exercise (by canonical name)
+    func fetchContraindications(forCanonicalName canonicalName: String) throws -> [String] {
         guard let dbQueue = dbQueue else {
             throw DatabaseError.databaseNotInitialized
         }
@@ -195,16 +214,29 @@ class ExerciseDatabaseManager {
                 sql: """
                     SELECT injury_type
                     FROM exercise_contraindications
-                    WHERE exercise_id = ?
+                    WHERE canonical_name = ?
                     ORDER BY injury_type
                     """,
-                arguments: [exerciseId]
+                arguments: [canonicalName]
             )
         }
     }
 
-    /// Get all available movement patterns
-    func fetchAvailableMovementPatterns() throws -> [String] {
+    /// Get all contraindications for a specific exercise (by exercise)
+    func fetchContraindications(for exercise: DBExercise) throws -> [String] {
+        return try fetchContraindications(forCanonicalName: exercise.canonicalName)
+    }
+
+    /// Check if an exercise is contraindicated for a given set of injuries
+    func isContraindicated(exercise: DBExercise, forInjuries injuries: [String]) throws -> Bool {
+        guard !injuries.isEmpty else { return false }
+
+        let contraindications = try fetchContraindications(for: exercise)
+        return !Set(contraindications).isDisjoint(with: Set(injuries))
+    }
+
+    /// Get all available canonical names (movement patterns)
+    func fetchAvailableCanonicalNames() throws -> [String] {
         guard let dbQueue = dbQueue else {
             throw DatabaseError.databaseNotInitialized
         }
@@ -213,11 +245,52 @@ class ExerciseDatabaseManager {
             try String.fetchAll(
                 db,
                 sql: """
-                    SELECT DISTINCT movement_pattern
+                    SELECT DISTINCT canonical_name
                     FROM exercises
-                    WHERE is_active = 1
-                    ORDER BY movement_pattern
+                    WHERE is_in_programme = 1
+                    ORDER BY canonical_name
                     """
+            )
+        }
+    }
+
+    /// Get all available equipment categories
+    func fetchAvailableEquipmentCategories() throws -> [String] {
+        guard let dbQueue = dbQueue else {
+            throw DatabaseError.databaseNotInitialized
+        }
+
+        return try dbQueue.read { db in
+            try String.fetchAll(
+                db,
+                sql: """
+                    SELECT DISTINCT equipment_category
+                    FROM exercises
+                    WHERE is_in_programme = 1
+                    ORDER BY equipment_category
+                    """
+            )
+        }
+    }
+
+    /// Get all available specific equipment for a given category
+    func fetchAvailableEquipmentSpecific(forCategory category: String) throws -> [String] {
+        guard let dbQueue = dbQueue else {
+            throw DatabaseError.databaseNotInitialized
+        }
+
+        return try dbQueue.read { db in
+            try String.fetchAll(
+                db,
+                sql: """
+                    SELECT DISTINCT equipment_specific
+                    FROM exercises
+                    WHERE is_in_programme = 1
+                      AND equipment_category = ?
+                      AND equipment_specific IS NOT NULL
+                    ORDER BY equipment_specific
+                    """,
+                arguments: [category]
             )
         }
     }
@@ -234,20 +307,58 @@ class ExerciseDatabaseManager {
                 sql: """
                     SELECT DISTINCT primary_muscle
                     FROM exercises
-                    WHERE is_active = 1
+                    WHERE is_in_programme = 1
                     ORDER BY primary_muscle
                     """
             )
         }
     }
 
-    /// Get alternative exercises (same movement pattern, different ID)
+    /// Get all available injury types
+    func fetchAvailableInjuryTypes() throws -> [String] {
+        guard let dbQueue = dbQueue else {
+            throw DatabaseError.databaseNotInitialized
+        }
+
+        return try dbQueue.read { db in
+            try String.fetchAll(
+                db,
+                sql: """
+                    SELECT DISTINCT injury_type
+                    FROM exercise_contraindications
+                    ORDER BY injury_type
+                    """
+            )
+        }
+    }
+
+    /// Get alternative exercises (same canonical name, different ID)
     func fetchAlternatives(for exercise: DBExercise, filter: ExerciseDatabaseFilter) throws -> [DBExercise] {
         var alternativeFilter = filter
-        alternativeFilter.movementPattern = exercise.movementPattern
+        alternativeFilter.canonicalName = exercise.canonicalName
         alternativeFilter.excludeExerciseIds.insert(exercise.exerciseId)
 
         return try fetchExercises(filter: alternativeFilter)
+    }
+
+    // MARK: - Legacy compatibility methods
+
+    /// Legacy method - now returns equipment categories
+    func fetchAvailableEquipmentNames() throws -> [String] {
+        return try fetchAvailableEquipmentCategories()
+    }
+
+    /// Legacy method - no longer applicable, returns empty
+    func fetchAvailableEquipmentTypes() throws -> [String] {
+        return []
+    }
+
+    /// Legacy method - use fetchContraindications(for:) instead
+    func fetchContraindications(forExerciseId exerciseId: String) throws -> [String] {
+        guard let exercise = try fetchExercise(byId: exerciseId) else {
+            return []
+        }
+        return try fetchContraindications(for: exercise)
     }
 }
 

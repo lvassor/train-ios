@@ -80,7 +80,14 @@ struct ExerciseDetailView: View {
                     ExerciseLoggerTab(exercise: exercise)
                 }
         }
-        .warmDarkGradientBackground()
+        .background {
+            // Use gradient background only when showing logger (workout context)
+            // Library context uses ultrathin material parent, so no gradient needed
+            if showLoggerTab {
+                AppGradient.background
+                    .ignoresSafeArea()
+            }
+        }
         .scrollContentBackground(.hidden)
         .navigationTitle(exercise.displayName)
         .navigationBarTitleDisplayMode(.inline)
@@ -88,180 +95,7 @@ struct ExerciseDetailView: View {
 }
 
 // MARK: - Demo Tab
-
-struct ExerciseDemoTab: View {
-    let exercise: DBExercise
-
-    var body: some View {
-        ScrollView {
-            VStack(spacing: Spacing.lg) {
-                // Video placeholder
-                ZStack {
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(Color.trainTextSecondary.opacity(0.1))
-                        .frame(height: 220)
-
-                    VStack(spacing: Spacing.md) {
-                        Image(systemName: "play.circle.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.trainPrimary)
-
-                        Text("Video coming soon")
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
-                    }
-                }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.md)
-
-                // Equipment section
-                VStack(spacing: Spacing.md) {
-                    Text("Equipment")
-                        .font(.trainTitle)
-                        .foregroundColor(.trainTextPrimary)
-
-                    HStack(spacing: Spacing.md) {
-                        ForEach([exercise.equipmentType], id: \.self) { equipment in
-                            VStack(spacing: Spacing.sm) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.clear)
-                                        .appCard()
-                                        .frame(width: 80, height: 80)
-
-                                    Image(systemName: equipmentIcon(for: equipment))
-                                        .font(.system(size: 32))
-                                        .foregroundColor(.trainPrimary)
-                                }
-
-                                Text(equipment)
-                                    .font(.trainCaption)
-                                    .foregroundColor(.trainTextSecondary)
-                            }
-                        }
-                    }
-                }
-
-                // Active Muscle Groups
-                VStack(spacing: Spacing.md) {
-                    Text("Active Muscle Groups")
-                        .font(.trainTitle)
-                        .foregroundColor(.trainTextPrimary)
-
-                    HStack(spacing: Spacing.md) {
-                        ForEach([exercise.primaryMuscle] + (exercise.secondaryMuscle.map { [$0] } ?? []), id: \.self) { muscle in
-                            VStack(spacing: Spacing.sm) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.trainPrimary.opacity(0.1))
-                                        .frame(width: 80, height: 80)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.trainPrimary.opacity(0.3), lineWidth: 1)
-                                        )
-
-                                    Image(systemName: muscleIcon(for: muscle))
-                                        .font(.system(size: 32))
-                                        .foregroundColor(.trainPrimary)
-                                }
-
-                                Text(muscle)
-                                    .font(.trainCaption)
-                                    .foregroundColor(.trainTextSecondary)
-                            }
-                        }
-                    }
-                }
-
-                // Instructions
-                if let instructions = exercise.instructions, !instructions.isEmpty {
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        Text("Instructions")
-                            .font(.trainTitle)
-                            .foregroundColor(.trainTextPrimary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
-                            let steps = instructions.split(separator: "\n")
-                            ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-                                HStack(alignment: .top, spacing: Spacing.sm) {
-                                    Text("\(index + 1).")
-                                        .font(.trainBodyMedium)
-                                        .foregroundColor(.trainPrimary)
-
-                                    Text(String(step))
-                                        .font(.trainBody)
-                                        .foregroundColor(.trainTextPrimary)
-                                }
-                            }
-                        }
-                        .padding(Spacing.md)
-                        .appCard()
-                        .cornerRadius(15)
-                    }
-                    .padding(.horizontal, Spacing.lg)
-                } else {
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        Text("Instructions")
-                            .font(.trainTitle)
-                            .foregroundColor(.trainTextPrimary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        Text("Instructions coming soon")
-                            .font(.trainBody)
-                            .foregroundColor(.trainTextSecondary)
-                            .padding(Spacing.lg)
-                            .frame(maxWidth: .infinity)
-                            .appCard()
-                            .cornerRadius(15)
-                    }
-                    .padding(.horizontal, Spacing.lg)
-                }
-
-                // View Exercise History button
-                NavigationLink(destination: ExerciseHistoryView(exercise: exercise)) {
-                    Text("View Exercise History")
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.trainPrimary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.md)
-                        .appCard()
-                        .cornerRadius(15)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.trainPrimary, lineWidth: 2)
-                        )
-                }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.bottom, Spacing.lg)
-            }
-        }
-    }
-
-    private func equipmentIcon(for equipment: String) -> String {
-        switch equipment.lowercased() {
-        case "barbell": return "figure.strengthtraining.traditional"
-        case "dumbbell": return "dumbbell.fill"
-        case "cable": return "cable.connector"
-        case "machine": return "gearshape.2.fill"
-        case "kettlebell": return "figure.strengthtraining.functional"
-        case "bodyweight": return "figure.walk"
-        default: return "figure.strengthtraining.traditional"
-        }
-    }
-
-    private func muscleIcon(for muscle: String) -> String {
-        switch muscle.lowercased() {
-        case "chest": return "heart.fill"
-        case "back": return "arrow.left.arrow.right"
-        case "shoulders": return "arrow.up"
-        case "arms", "biceps", "triceps": return "bolt.fill"
-        case "legs", "quads", "hamstrings": return "figure.walk"
-        case "core", "abs": return "circle.grid.cross.fill"
-        default: return "figure.strengthtraining.traditional"
-        }
-    }
-}
+// ExerciseDemoTab is defined in ExerciseLoggerView.swift
 
 // MARK: - Logger Tab
 

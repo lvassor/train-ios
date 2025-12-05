@@ -3,6 +3,7 @@
 //  trAInSwift
 //
 //  High-level service for exercise selection with business rules
+//  Updated for new database schema with equipment_category/equipment_specific
 //
 
 import Foundation
@@ -25,7 +26,7 @@ class ExerciseRepository {
         experienceLevel: ExperienceLevel,
         availableEquipment: [String],
         userInjuries: [String],
-        excludedExerciseIds: Set<Int>,
+        excludedExerciseIds: Set<String>,
         allowComplexity4: Bool = false,
         requireComplexity4First: Bool = false
     ) throws -> [DBExercise] {
@@ -41,8 +42,8 @@ class ExerciseRepository {
         // BUSINESS RULE: If complexity-4 allowed and must be first, select one first
         if allowComplexity4 && requireComplexity4First && complexityRules.maxComplexity4PerSession > 0 {
             let complexity4Filter = ExerciseDatabaseFilter(
-                movementPattern: movementPattern,
-                equipmentTypes: availableEquipment,
+                canonicalName: movementPattern,
+                equipmentCategories: availableEquipment,
                 maxComplexity: 4,
                 primaryMuscle: primaryMuscle,
                 excludeInjuries: userInjuries,
@@ -51,7 +52,7 @@ class ExerciseRepository {
 
             // Find complexity-4 exercises only
             var complexity4Exercises = try dbManager.fetchExercises(filter: complexity4Filter)
-                .filter { $0.complexityLevel == 4 }
+                .filter { $0.complexityLevel == 4 && !$0.isIsolation }
 
             // FALLBACK: If no complexity-4 exercises found with injuries, try without injury filter
             if complexity4Exercises.isEmpty && !userInjuries.isEmpty {
@@ -59,8 +60,8 @@ class ExerciseRepository {
                 print("   Retrying without injury contraindications as fallback...")
 
                 let fallbackFilter = ExerciseDatabaseFilter(
-                    movementPattern: movementPattern,
-                    equipmentTypes: availableEquipment,
+                    canonicalName: movementPattern,
+                    equipmentCategories: availableEquipment,
                     maxComplexity: 4,
                     primaryMuscle: primaryMuscle,
                     excludeInjuries: [], // Remove injury filter
@@ -68,7 +69,7 @@ class ExerciseRepository {
                 )
 
                 complexity4Exercises = try dbManager.fetchExercises(filter: fallbackFilter)
-                    .filter { $0.complexityLevel == 4 }
+                    .filter { $0.complexityLevel == 4 && !$0.isIsolation }
                 print("   ✅ Fallback found \(complexity4Exercises.count) complexity-4 exercises")
             }
 
@@ -81,13 +82,13 @@ class ExerciseRepository {
         // Select remaining exercises
         let remainingCount = count - selectedExercises.count
         if remainingCount > 0 {
-            // BUSINESS RULE: Don't allow more complexity-4 exercises
+            // BUSINESS RULE: Don't allow more complexity-4 exercises (unless isolation)
             let maxComplexityForRemaining = selectedExercises.contains(where: { $0.complexityLevel == 4 }) ?
                 3 : complexityRules.maxComplexity
 
             let filter = ExerciseDatabaseFilter(
-                movementPattern: movementPattern,
-                equipmentTypes: availableEquipment,
+                canonicalName: movementPattern,
+                equipmentCategories: availableEquipment,
                 maxComplexity: maxComplexityForRemaining,
                 primaryMuscle: primaryMuscle,
                 excludeInjuries: userInjuries,
@@ -102,8 +103,8 @@ class ExerciseRepository {
                 print("   Retrying without injury contraindications as fallback...")
 
                 let fallbackFilter = ExerciseDatabaseFilter(
-                    movementPattern: movementPattern,
-                    equipmentTypes: availableEquipment,
+                    canonicalName: movementPattern,
+                    equipmentCategories: availableEquipment,
                     maxComplexity: maxComplexityForRemaining,
                     primaryMuscle: primaryMuscle,
                     excludeInjuries: [], // Remove injury filter
@@ -130,7 +131,7 @@ class ExerciseRepository {
     private func selectDiverseExercises(
         from candidates: [DBExercise],
         count: Int,
-        avoidingIds: Set<Int>
+        avoidingIds: Set<String>
     ) -> [DBExercise] {
         var selected: [DBExercise] = []
         var usedCanonicalNames = Set<String>()
@@ -162,13 +163,13 @@ class ExerciseRepository {
 
     // MARK: - Alternative Exercise Lookup
 
-    /// Find alternative exercises for a given exercise (same movement pattern)
+    /// Find alternative exercises for a given exercise (same canonical name)
     func findAlternatives(
         for exercise: DBExercise,
         experienceLevel: ExperienceLevel,
         availableEquipment: [String],
         userInjuries: [String],
-        excludedExerciseIds: Set<Int>
+        excludedExerciseIds: Set<String>
     ) throws -> [DBExercise] {
 
         guard let complexityRules = try dbManager.fetchExperienceComplexity(for: experienceLevel) else {
@@ -179,8 +180,8 @@ class ExerciseRepository {
         excludedIds.insert(exercise.exerciseId)
 
         let filter = ExerciseDatabaseFilter(
-            movementPattern: exercise.movementPattern,
-            equipmentTypes: availableEquipment,
+            canonicalName: exercise.canonicalName,
+            equipmentCategories: availableEquipment,
             maxComplexity: complexityRules.maxComplexity,
             primaryMuscle: exercise.primaryMuscle,
             excludeInjuries: userInjuries,
@@ -201,14 +202,13 @@ class ExerciseRepository {
     }
 
     /// Check if an exercise is contraindicated for given injuries
-    func isExerciseContraindicated(exerciseId: Int, for injuries: [String]) throws -> Bool {
-        let contraindications = try dbManager.fetchContraindications(forExerciseId: exerciseId)
-        return contraindications.contains(where: { injuries.contains($0) })
+    func isExerciseContraindicated(exercise: DBExercise, for injuries: [String]) throws -> Bool {
+        return try dbManager.isContraindicated(exercise: exercise, forInjuries: injuries)
     }
 
-    /// Get all available movement patterns
-    func getAvailableMovementPatterns() throws -> [String] {
-        return try dbManager.fetchAvailableMovementPatterns()
+    /// Get all available canonical names (movement patterns)
+    func getAvailableCanonicalNames() throws -> [String] {
+        return try dbManager.fetchAvailableCanonicalNames()
     }
 
     /// Get all available muscles
@@ -217,7 +217,7 @@ class ExerciseRepository {
     }
 
     /// Fetch exercise by ID
-    func getExercise(byId id: Int) throws -> DBExercise? {
+    func getExercise(byId id: String) throws -> DBExercise? {
         return try dbManager.fetchExercise(byId: id)
     }
 }

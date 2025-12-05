@@ -65,7 +65,7 @@ struct SessionLogView: View {
                         .frame(height: Spacing.xxl)
             }
         }
-        .warmDarkGradientBackground()
+        .charcoalGradientBackground()
         .scrollContentBackground(.hidden)
         .navigationTitle(sessionName)
         .navigationBarTitleDisplayMode(.inline)

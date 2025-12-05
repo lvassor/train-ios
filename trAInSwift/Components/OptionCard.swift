@@ -12,13 +12,17 @@ struct OptionCard: View {
     let subtitle: String?
     let icon: String?
     let isSelected: Bool
+    var useAutoHeight: Bool = false  // When true, auto-fills height based on content
+    var subtitleFont: Font = .trainBody  // Customizable subtitle font
     let action: () -> Void
 
-    init(title: String, subtitle: String? = nil, icon: String? = nil, isSelected: Bool, action: @escaping () -> Void) {
+    init(title: String, subtitle: String? = nil, icon: String? = nil, isSelected: Bool, useAutoHeight: Bool = false, subtitleFont: Font = .trainBody, action: @escaping () -> Void) {
         self.title = title
         self.subtitle = subtitle
         self.icon = icon
         self.isSelected = isSelected
+        self.useAutoHeight = useAutoHeight
+        self.subtitleFont = subtitleFont
         self.action = action
     }
 
@@ -32,23 +36,26 @@ struct OptionCard: View {
                         .frame(width: 32, height: 32)
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.trainHeadline)  // 20px Medium from Figma
                         .foregroundColor(isSelected ? .white : .trainTextPrimary)
+                        .lineLimit(1)
 
                     if let subtitle = subtitle {
                         Text(subtitle)
-                            .font(.trainBody)  // 16px Light from Figma
+                            .font(subtitleFont)
                             .foregroundColor(isSelected ? .white.opacity(0.9) : .trainTextSecondary)
+                            .lineLimit(useAutoHeight ? nil : 2)  // Allow full text when auto height
+                            .fixedSize(horizontal: false, vertical: useAutoHeight)
                     }
                 }
 
                 Spacer()
             }
-            .padding(Spacing.lg)  // 24px padding from Figma
+            .padding(Spacing.md)
             .frame(maxWidth: .infinity)
-            .frame(height: ElementHeight.optionCard)  // 80px from Figma
+            .frame(minHeight: useAutoHeight ? nil : ElementHeight.optionCard)  // Use minHeight for auto-height mode
             .background(
                 Group {
                     if isSelected {

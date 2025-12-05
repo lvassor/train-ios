@@ -2,8 +2,8 @@
 //  FloatingToolbar.swift
 //  trAInSwift
 //
-//  Floating pill-shaped bottom navigation with liquid glass effect
-//  Updated: Swapped dumbbell to dashboard (house), videos to exercise library (dumbbell)
+//  Floating pill-shaped bottom navigation with sliding lens glass effect
+//  Uses GlassTabBar for the sophisticated Apple Phone app-style interaction
 //
 
 import SwiftUI
@@ -18,31 +18,23 @@ struct FloatingToolbar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Main toolbar pill with liquid glass effect
-            HStack(spacing: 4) {
-                ForEach(ToolbarTab.allCases.filter { $0 != .account }, id: \.self) { tab in
-                    Button(action: {
-                        selectedTab = tab
-                        switch tab {
-                        case .dashboard: onDashboard()
-                        case .milestones: onMilestones()
-                        case .library: onExerciseLibrary()
-                        case .account: break
-                        }
-                    }) {
-                        // Icon with transparent tint background when selected
-                        Image(systemName: tab.icon)
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(selectedTab == tab ? .trainPrimary : .white.opacity(0.7))
-                            .frame(width: 48, height: 42)
-                            .background(selectedTab == tab ? Color.trainPrimary.opacity(0.15) : Color.clear)
-                            .clipShape(Capsule())
+            // Main toolbar pill with glass lens effect
+            GlassTabBar(
+                selectedTab: $selectedTab,
+                excludeAccount: true,
+                onTabSelected: { tab in
+                    switch tab {
+                    case .dashboard: onDashboard()
+                    case .milestones: onMilestones()
+                    case .library: onExerciseLibrary()
+                    case .account: break
                     }
                 }
-            }
+            )
+            .frame(width: 180)
             .padding(.horizontal, 6)
             .padding(.vertical, 4)
-            .background(.ultraThinMaterial)  // Liquid glass effect - more translucent
+            .background(.ultraThinMaterial)
             .clipShape(Capsule())
             .overlay(
                 Capsule()
@@ -55,7 +47,7 @@ struct FloatingToolbar: View {
                     .font(.system(size: 26))
                     .foregroundColor(.white.opacity(0.7))
                     .frame(width: 50, height: 50)
-                    .background(.ultraThinMaterial)  // Liquid glass effect
+                    .background(.ultraThinMaterial)
                     .clipShape(Circle())
                     .overlay(
                         Circle()
@@ -68,17 +60,17 @@ struct FloatingToolbar: View {
     }
 }
 
-enum ToolbarTab: CaseIterable {
-    case dashboard   // Was exercises (dumbbell), now home
+enum ToolbarTab: CaseIterable, Hashable {
+    case dashboard
     case milestones
-    case library     // Was videos (play), now dumbbell for exercise library
+    case library
     case account
 
     var icon: String {
         switch self {
-        case .dashboard: return "house.fill"        // Changed from dumbbell
+        case .dashboard: return "house.fill"
         case .milestones: return "rosette"
-        case .library: return "dumbbell.fill"       // Changed from play.circle (video)
+        case .library: return "dumbbell.fill"
         case .account: return "person.circle.fill"
         }
     }

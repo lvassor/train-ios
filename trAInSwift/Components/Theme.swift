@@ -119,31 +119,32 @@ struct Layout {
 /// Centralized gradient/background configuration - all colors flow from ColorPalette
 /// Change colors in ColorPalette.swift to update backgrounds app-wide
 struct AppGradient {
-    /// The main app background stops - uses ColorPalette tokens
-    /// For Train Dark Mode: solid black (all stops same color)
+    /// The main app background stops - diagonal gradient with charcoal tones
+    /// Light corner fades to midpoint (at 45%), then gradually darkens
     static var stops: [Gradient.Stop] {
         [
-            .init(color: .trainGradientEdge, location: 0.0),
-            .init(color: .trainGradientMid, location: 0.15),
-            .init(color: .trainGradientCenter, location: 0.5),
-            .init(color: .trainGradientMid, location: 0.85),
-            .init(color: .trainGradientEdge, location: 1.0)
+            .init(color: .trainGradientLight, location: 0.0),
+            .init(color: .trainGradientMid, location: 0.45),
+            .init(color: .trainGradientDark, location: 1.0)
         ]
     }
 
-    /// The main app background gradient
+    /// The main app background gradient - diagonal from top-left to bottom-right
     static var background: LinearGradient {
         LinearGradient(
             stops: stops,
-            startPoint: .top,
-            endPoint: .bottom
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
     }
+
+    /// Solid dark for sheets, toolbars, etc.
+    static var solid: Color { .trainGradientMid }
 
     /// Simple two-color gradient (edge to edge) for toolbars, etc.
     static var simple: LinearGradient {
         LinearGradient(
-            colors: [.trainGradientEdge, .trainGradientEdge],
+            colors: [.trainGradientMid, .trainGradientMid],
             startPoint: .top,
             endPoint: .bottom
         )
@@ -153,9 +154,9 @@ struct AppGradient {
 // MARK: - Background Gradients
 
 extension View {
-    /// Main app background - applies background from ColorPalette
-    /// Train Dark Mode: solid black background for clean, minimal aesthetic
-    func warmDarkGradientBackground() -> some View {
+    /// Main app background - applies charcoal gradient from ColorPalette
+    /// Use ONLY for full-screen view backgrounds, NOT for scroll content or cards
+    func charcoalGradientBackground() -> some View {
         ZStack {
             // Gradient MUST be the first layer to ensure it's always visible
             AppGradient.background
@@ -164,6 +165,12 @@ extension View {
             // Content on top of gradient
             self
         }
+    }
+
+    /// Legacy alias - will be removed
+    @available(*, deprecated, renamed: "charcoalGradientBackground")
+    func warmDarkGradientBackground() -> some View {
+        charcoalGradientBackground()
     }
 }
 

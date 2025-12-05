@@ -59,7 +59,7 @@ struct CalendarView: View {
                         }
                     }
                 }
-            .warmDarkGradientBackground()
+            .charcoalGradientBackground()
             .scrollContentBackground(.hidden)
             .navigationTitle("Workout History")
             .navigationBarTitleDisplayMode(.inline)

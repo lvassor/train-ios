@@ -14,10 +14,11 @@
 3. [Program Generation - Split Selection (iOS App)](#3-program-generation---split-selection-ios-app)
 4. [Program Generation - Sets & Reps (iOS App)](#4-program-generation---sets--reps-ios-app)
 5. [Program Generation - Rest Periods (iOS App)](#5-program-generation---rest-periods-ios-app)
+6. [Program Generation - Exercise Selection by Experience Level (iOS App)](#6-program-generation---exercise-selection-by-experience-level-ios-app)
 
 ---
 
-## 1. Workout Logger - Progression/Regression Prompts (Web App)
+## 1. Workout Logger - Progression/Regression Prompts
 
 ### What This Does
 After you complete all 3 sets of an exercise, the app shows you feedback on whether you should increase weight (progression), decrease weight (regression), or keep doing what you're doing (consistency).
@@ -92,7 +93,7 @@ WHEN all 3 sets are completed for an exercise:
 
 ---
 
-## 2. Workout Logger - Rep Counter (Web App)
+## 2. Workout Logger - Rep Counter
 
 ### What This Does
 Shows you how many extra reps you did compared to your last session for that same exercise. Displays as a green badge with "+X reps".
@@ -339,44 +340,28 @@ ASSIGN rep range:
 ### The Rules - Number of Sets
 
 ```
-GET user's experience level
-
 ASSIGN number of sets:
 
-  IF experience = "Beginner":
-    sets = 3
-    REASON: Build foundation without overtraining
-
-  IF experience = "Intermediate":
-    sets = 3
-    REASON: Balanced volume for continued progress
-
-  IF experience = "Advanced":
-    sets = 4
-    REASON: More volume needed to progress
+  sets = 3 (always)
+  REASON: Consistent volume across all experience levels and exercise types
 ```
 
 ### Examples
 
-**Example 1**: Beginner, wants to get stronger
+**Example 1**: Any experience level, wants to get stronger
 - **Sets**: 3
 - **Reps**: 5-8
 - **Workout**: 3 sets of 5-8 reps (heavy weight)
 
-**Example 2**: Intermediate, wants to build muscle
+**Example 2**: Any experience level, wants to build muscle
 - **Sets**: 3
 - **Reps**: 8-12
 - **Workout**: 3 sets of 8-12 reps (moderate weight)
 
-**Example 3**: Advanced, wants to tone up
-- **Sets**: 4
-- **Reps**: 10-15
-- **Workout**: 4 sets of 10-15 reps (lighter weight)
-
-**Example 4**: Beginner, wants to tone up
+**Example 3**: Any experience level, wants to tone up
 - **Sets**: 3
 - **Reps**: 10-15
-- **Workout**: 3 sets of 10-15 reps
+- **Workout**: 3 sets of 10-15 reps (lighter weight)
 
 ---
 
@@ -477,17 +462,13 @@ ASSIGN rest time:
 
 ### iOS App - Sets & Reps
 
-| Goal | Rep Range | Experience | Sets |
-|------|-----------|------------|------|
-| Get Stronger | 5-8 | Beginner | 3 |
-| Get Stronger | 5-8 | Intermediate | 3 |
-| Get Stronger | 5-8 | Advanced | 4 |
-| Build Muscle | 8-12 | Beginner | 3 |
-| Build Muscle | 8-12 | Intermediate | 3 |
-| Build Muscle | 8-12 | Advanced | 4 |
-| Tone Up | 10-15 | Beginner | 3 |
-| Tone Up | 10-15 | Intermediate | 3 |
-| Tone Up | 10-15 | Advanced | 4 |
+| Goal | Rep Range | Sets |
+|------|-----------|------|
+| Get Stronger | 5-8 | 3 |
+| Build Muscle | 8-12 | 3 |
+| Tone Up | 10-15 | 3 |
+
+*Note: All experience levels use 3 sets.*
 
 ### iOS App - Rest Periods
 
@@ -497,6 +478,140 @@ ASSIGN rest time:
 | High (3-4) | Normal (8-15) | 2 min | Moderate compound lifts |
 | Low (1-2) | Low (5-8) | 2.5 min | Heavy dumbbells |
 | Low (1-2) | Normal (8-15) | 1.5 min | Isolation exercises |
+
+---
+
+## 6. Program Generation - Exercise Selection by Experience Level (iOS App)
+
+### What This Does
+Based on user's experience level, the app determines which exercises are eligible for their program and in what priority order they should be selected.
+
+### Experience Levels
+- **No Experience**: Brand new to resistance training
+- **Beginner**: 0-6 months experience
+- **Intermediate**: 6 months - 2 years experience
+- **Advanced**: 2+ years experience
+
+### The Rules
+
+```
+FOR each exercise slot in a session:
+
+  GET user's experience level
+  GET complexity constraints from database
+
+  // Isolation exercises bypass complexity rules
+  IF exercise.is_isolation = 1:
+    ALWAYS eligible (any experience level)
+
+  // Compound exercises follow complexity rules
+  ELSE:
+    SELECT exercises WHERE complexity_level <= max_complexity
+    PRIORITIZE in descending order (highest allowed first, fall back to lower)
+
+  // Special rule for Advanced users
+  IF experience = ADVANCED AND exercise.complexity_level = 4:
+    ONLY allow as first exercise of session
+    LIMIT to 1 per session
+```
+
+### Priority Order by Experience Level
+
+| Experience | Allowed Complexity | Selection Priority | Notes |
+|------------|-------------------|-------------------|-------|
+| No Experience | 1 only | 1 | Isolations always allowed |
+| Beginner | 1-2 | 2 → 1 | Isolations always allowed |
+| Intermediate | 1-3 | 3 → 2 → 1 | Isolations always allowed |
+| Advanced | 1-4 | 4 → 3 → 2 → 1 | Max 1× complexity 4, must be first exercise |
+
+### Database Schema
+
+```sql
+CREATE TABLE user_experience_complexity (
+    experience_level TEXT PRIMARY KEY,  -- NO_EXPERIENCE, BEGINNER, INTERMEDIATE, ADVANCED
+    display_name TEXT NOT NULL,
+    max_complexity INTEGER NOT NULL,
+    allow_complexity_4 INTEGER NOT NULL DEFAULT 0,
+    complexity_4_limit INTEGER NOT NULL DEFAULT 0,
+    complexity_4_must_be_first INTEGER NOT NULL DEFAULT 0
+);
+
+INSERT INTO user_experience_complexity VALUES
+    ('NO_EXPERIENCE', 'No Experience', 1, 0, 0, 0),
+    ('BEGINNER', 'Beginner', 2, 0, 0, 0),
+    ('INTERMEDIATE', 'Intermediate', 3, 0, 0, 0),
+    ('ADVANCED', 'Advanced', 4, 1, 1, 1);
+```
+
+### Swift Implementation
+
+```swift
+func selectExercise(for slot: ProgramSlot, userLevel: ExperienceLevel) -> Exercise? {
+    let constraints = getConstraints(for: userLevel)
+
+    // Build priority list based on level (descending from max)
+    var priorityLevels = Array((1...constraints.maxComplexity).reversed())
+
+    // For complexity 4: check limit and position
+    if constraints.allowComplexity4 {
+        if slot.position != 1 || session.complexity4Count >= constraints.complexity4Limit {
+            priorityLevels.removeAll { $0 == 4 }
+        }
+    }
+
+    // Try each priority level
+    for complexity in priorityLevels {
+        if let exercise = findExercise(complexity: complexity, slot: slot) {
+            return exercise
+        }
+    }
+
+    return nil
+}
+
+func getEligibleExercises(userLevel: ExperienceLevel, slot: ProgramSlot) -> [Exercise] {
+    let constraints = getConstraints(for: userLevel)
+
+    return exercises.filter { exercise in
+        // Isolations always allowed for any level
+        if exercise.isIsolation { return true }
+
+        // Compounds must meet complexity constraint
+        return exercise.complexityLevel <= constraints.maxComplexity
+    }
+}
+```
+
+### Examples
+
+**Example 1**: No Experience user, Chest slot
+- Eligible: Complexity 1 compounds + all isolations
+- Selected: Push Up (complexity 1) or Cable Chest Fly (isolation)
+
+**Example 2**: Beginner user, Quad slot
+- Eligible: Complexity 1-2 compounds + all isolations
+- Priority: Try complexity 2 first → Goblet Squat
+- Fallback: If no complexity 2 available → complexity 1
+
+**Example 3**: Intermediate user, Back slot
+- Eligible: Complexity 1-3 compounds + all isolations
+- Priority: Try complexity 3 first → Barbell Bent Over Row
+- Fallback: complexity 2 → complexity 1
+
+**Example 4**: Advanced user, first exercise of Leg day
+- Eligible: Complexity 1-4 compounds + all isolations
+- Priority: Try complexity 4 first → Barbell Back Squat
+- Note: Only ONE complexity 4 exercise per session, MUST be first
+
+**Example 5**: Advanced user, second exercise of Leg day
+- Eligible: Complexity 1-3 only (complexity 4 already used or not first)
+- Priority: 3 → 2 → 1
+
+### Important Notes
+- `is_isolation` flag in database bypasses all complexity rules
+- Complexity constraints stored in database, priority logic in code
+- Advanced users get complexity 4 exercises but with strict limits
+- Selection always tries highest allowed complexity first, falls back to lower
 
 ---
 
@@ -528,7 +643,7 @@ ASSIGN rest time:
 
 ---
 
-**Document Version**: 1.0
-**Created**: November 14, 2024
+**Document Version**: 2.0
+**Created**: December 5, 2025
 **Authors**: Luke Vassor & Brody Bastiman
 **Applies to**: trAIn Web (JavaScript) & trAIn iOS (Swift)

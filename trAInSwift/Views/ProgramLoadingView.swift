@@ -21,7 +21,7 @@ struct ProgramLoadingView: View {
 
     var body: some View {
         ZStack {
-            Color.trainBackground
+            AppGradient.background
                 .ignoresSafeArea()
 
             VStack(spacing: 48) {

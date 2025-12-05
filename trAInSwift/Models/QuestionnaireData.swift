@@ -50,6 +50,7 @@ struct QuestionnaireData: Codable {
 
     // Q9: Equipment (multi-select)
     var equipmentAvailable: [String] = []
+    var detailedEquipment: [String: Set<String>] = [:]  // Category -> specific items (e.g., "barbells" -> ["Squat Rack", "Flat Bench"])
 
     // Q10: Training Frequency
     var trainingDaysPerWeek: Int = 3

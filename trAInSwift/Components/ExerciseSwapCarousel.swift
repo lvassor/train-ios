@@ -233,7 +233,7 @@ struct AlternativeExerciseCard: View {
                 .background(Color.trainTextSecondary.opacity(0.1))
                 .clipShape(Capsule())
 
-                // Muscle
+                // Primary muscle
                 Text(exercise.primaryMuscle)
                     .font(.trainCaption)
                     .foregroundColor(.trainPrimary)
@@ -241,14 +241,17 @@ struct AlternativeExerciseCard: View {
                     .padding(.vertical, 4)
                     .background(Color.trainPrimary.opacity(0.1))
                     .clipShape(Capsule())
-            }
 
-            // Secondary muscle if available
-            if let secondaryMuscle = exercise.secondaryMuscle, !secondaryMuscle.isEmpty {
-                Text("Also targets: \(secondaryMuscle)")
-                    .font(.trainCaption)
-                    .foregroundColor(.trainTextSecondary)
-                    .lineLimit(1)
+                // Secondary muscle as tag
+                if let secondaryMuscle = exercise.secondaryMuscle, !secondaryMuscle.isEmpty {
+                    Text(secondaryMuscle)
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.trainTextSecondary.opacity(0.1))
+                        .clipShape(Capsule())
+                }
             }
 
             Spacer()

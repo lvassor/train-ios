@@ -87,7 +87,7 @@ struct ProfileView: View {
                 .scrollContentBackground(.hidden)
                 .background(.ultraThinMaterial)
                 .navigationTitle("Account Settings")
-            .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitleDisplayMode(.inline)
         }
         .confirmationDialog("Log Out", isPresented: $showLogoutConfirmation, titleVisibility: .visible) {
             Button("Log Out", role: .destructive) {
@@ -279,7 +279,6 @@ struct ProgramCard: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                             HStack(spacing: Spacing.lg) {
-                                Spacer()
                                 // Get muscle groups from questionnaire data
                                 ForEach(getPriorityMuscleGroups(), id: \.self) { muscleGroup in
                                     VStack(spacing: Spacing.sm) {
@@ -293,10 +292,12 @@ struct ProgramCard: View {
                                         Text(muscleGroup)
                                             .font(.trainCaption)
                                             .foregroundColor(.trainTextSecondary)
+                                            .lineLimit(1)
+                                            .fixedSize(horizontal: true, vertical: false)
                                     }
                                 }
-                                Spacer()
                             }
+                            .frame(maxWidth: .infinity)  // Center the HStack
                         }
                         .padding(Spacing.md)
                         .glassCard(cornerRadius: CornerRadius.md)

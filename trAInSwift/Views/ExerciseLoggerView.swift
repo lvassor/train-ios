@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ExerciseLoggerView: View {
     @Environment(\.dismiss) var dismiss
@@ -20,19 +21,14 @@ struct ExerciseLoggerView: View {
     let onComplete: (LoggedExercise) -> Void
     let onCancel: () -> Void
 
-    @State private var selectedTab: LoggerTab = .logger
-    @State private var showRestTimer = false
-    @State private var activeSetIndex: Int? = nil
+    @State private var selectedTab: LoggerTabOption = .logger
     @State private var weightUnit: WeightUnit = .kg
     @State private var selectedDBExercise: DBExercise?
     @State private var showFeedbackNotification = false
     @State private var feedbackTitle: String = ""
     @State private var feedbackMessage: String = ""
     @State private var feedbackType: FeedbackType = .success
-
-    enum LoggerTab {
-        case logger, demo
-    }
+    @StateObject private var restTimerController = RestTimerController()
 
     enum WeightUnit: String, CaseIterable {
         case kg = "kg"
@@ -78,48 +74,22 @@ struct ExerciseLoggerView: View {
                     onBack: onCancel
                 )
 
-                // Tab toggle - matches CombinedLibraryView toolbar style
-                HStack(spacing: 4) {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedTab = .logger
-                        }
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "list.bullet.clipboard")
-                                .font(.system(size: 14))
-                                .foregroundColor(selectedTab == .logger ? .trainPrimary : .trainTextSecondary)
-                            Text("Logger")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(selectedTab == .logger ? .trainTextPrimary : .trainTextSecondary)
-                        }
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, 10)
-                        .background(selectedTab == .logger ? Color.trainPrimary.opacity(0.15) : Color.clear)
-                        .clipShape(Capsule())
-                    }
-
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedTab = .demo
+                // Tab toggle with glass lens effect
+                GlassTabBar(
+                    selectedTab: $selectedTab,
+                    tabs: LoggerTabOption.allCases.map { tab in
+                        GlassTabItem(id: tab, icon: tab.icon, label: tab.rawValue)
+                    },
+                    showLabels: true,
+                    lensInset: 0.12,
+                    onTabSelected: { tab in
+                        if tab == .demo {
                             loadExerciseDetails()
                         }
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "play.circle.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(selectedTab == .demo ? .trainPrimary : .trainTextSecondary)
-                            Text("Demo")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(selectedTab == .demo ? .trainTextPrimary : .trainTextSecondary)
-                        }
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, 10)
-                        .background(selectedTab == .demo ? Color.trainPrimary.opacity(0.15) : Color.clear)
-                        .clipShape(Capsule())
                     }
-                }
-                .padding(4)
+                )
+                .frame(width: 170)
+                .padding(5)
                 .background(Color.white.opacity(0.08))
                 .clipShape(Capsule())
                 .padding(.horizontal, Spacing.lg)
@@ -139,14 +109,14 @@ struct ExerciseLoggerView: View {
                                 exercise: exercise,
                                 loggedExercise: $loggedExercise,
                                 weightUnit: $weightUnit,
-                                showRestTimer: $showRestTimer,
-                                activeSetIndex: $activeSetIndex
+                                restTimerController: restTimerController
                             )
                             .padding(.horizontal, Spacing.lg)
 
                             Spacer().frame(height: 100)
                         }
                     }
+                    .scrollDismissesKeyboard(.interactively)
                 } else {
                     // Demo view
                     if let dbExercise = selectedDBExercise {
@@ -176,17 +146,6 @@ struct ExerciseLoggerView: View {
                 }
             }
 
-            // Rest timer overlay
-            if showRestTimer {
-                RestTimerOverlay(
-                    totalSeconds: exercise.restSeconds,
-                    onDismiss: {
-                        showRestTimer = false
-                        activeSetIndex = nil
-                    }
-                )
-            }
-
             // Feedback notification (central modal overlay)
             if showFeedbackNotification {
                 FeedbackModalOverlay(
@@ -210,16 +169,14 @@ struct ExerciseLoggerView: View {
                 .animation(.easeInOut(duration: 0.2), value: showFeedbackNotification)
             }
         }
-        .warmDarkGradientBackground()
+        .charcoalGradientBackground()
         .navigationBarBackButtonHidden(true)
     }
 
     private func loadExerciseDetails() {
-        guard let id = Int(exercise.exerciseId) else { return }
-
         Task {
             do {
-                let dbExercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: id)
+                let dbExercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: exercise.exerciseId)
                 if let dbExercise = dbExercise {
                     await MainActor.run {
                         selectedDBExercise = dbExercise
@@ -241,19 +198,28 @@ struct ExerciseLoggerView: View {
         let targetMin = repComponents.first ?? 8
         let targetMax = repComponents.last ?? 12
         let targetTotal = exercise.sets * targetMax
+        let averageRepsPerSet = completedSets.isEmpty ? 0 : totalReps / completedSets.count
 
-        // Generate feedback with title and message
+        // Generate feedback with progressive overload suggestions
         if totalReps >= targetTotal {
-            feedbackTitle = "Great Work!"
-            feedbackMessage = "You hit your target reps. Keep up the momentum!"
+            // Hit max reps - suggest weight increase
+            feedbackTitle = "Time to Progress!"
+            feedbackMessage = "You've hit \(targetMax) reps consistently. Consider increasing the weight by 2.5-5kg next session."
+            feedbackType = .success
+        } else if averageRepsPerSet >= targetMax {
+            // Averaging at top of range
+            feedbackTitle = "Strong Performance!"
+            feedbackMessage = "You're ready to increase the weight. Add 2.5kg and aim for \(targetMin) reps."
             feedbackType = .success
         } else if totalReps >= exercise.sets * targetMin {
-            feedbackTitle = "Good Session"
-            feedbackMessage = "You're within your target range. Solid effort!"
+            // Within target range - stay the course
+            feedbackTitle = "On Track"
+            feedbackMessage = "Keep this weight until you can hit \(targetMax) reps on all sets, then increase."
             feedbackType = .info
         } else {
-            feedbackTitle = "Keep Pushing"
-            feedbackMessage = "Try to increase reps next time. You've got this!"
+            // Below target - maintain or slightly reduce
+            feedbackTitle = "Building Strength"
+            feedbackMessage = "Focus on hitting \(targetMin)-\(targetMax) reps before increasing weight. You've got this!"
             feedbackType = .warning
         }
 
@@ -351,11 +317,16 @@ struct SetLoggingSection: View {
     let exercise: ProgramExercise
     @Binding var loggedExercise: LoggedExercise
     @Binding var weightUnit: ExerciseLoggerView.WeightUnit
-    @Binding var showRestTimer: Bool
-    @Binding var activeSetIndex: Int?
+    @ObservedObject var restTimerController: RestTimerController
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
+            // Inline rest timer (appears at top when active)
+            InlineRestTimer(
+                totalSeconds: restTimerController.restSeconds,
+                isActive: $restTimerController.isActive
+            )
+
             // Header with unit toggle
             HStack {
                 Text("Log Sets")
@@ -415,8 +386,7 @@ struct SetLoggingSection: View {
                         weightUnit: weightUnit,
                         onComplete: {
                             if exercise.restSeconds > 0 {
-                                activeSetIndex = setIndex
-                                showRestTimer = true
+                                restTimerController.triggerRest(seconds: exercise.restSeconds)
                             }
                         }
                     )
@@ -425,6 +395,7 @@ struct SetLoggingSection: View {
         }
         .padding(Spacing.md)
         .appCard()
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: restTimerController.isActive)
     }
 
     private func bindingForSet(_ index: Int) -> Binding<LoggedSet> {
@@ -442,9 +413,26 @@ struct SetInputRow: View {
     @Binding var set: LoggedSet
     let weightUnit: ExerciseLoggerView.WeightUnit
     let onComplete: () -> Void
+    var previousSessionReps: Int? = nil  // For progressive overload comparison
+    var previousSessionWeight: Double? = nil
 
     @State private var repsText: String = ""
     @State private var weightText: String = ""
+    @FocusState private var isRepsFieldFocused: Bool
+    @FocusState private var isWeightFieldFocused: Bool
+
+    // Calculate rep difference from previous session
+    private var repsDifference: Int? {
+        guard let prevReps = previousSessionReps, set.reps > 0 else { return nil }
+        let diff = set.reps - prevReps
+        return diff != 0 ? diff : nil
+    }
+
+    // Check if weight increased
+    private var weightIncreased: Bool {
+        guard let prevWeight = previousSessionWeight, set.weight > 0 else { return false }
+        return set.weight > prevWeight
+    }
 
     var body: some View {
         HStack(spacing: Spacing.md) {
@@ -455,37 +443,63 @@ struct SetInputRow: View {
                 .foregroundColor(.trainTextPrimary)
                 .frame(width: 32)
 
-            // Reps input
-            TextField("0", text: $repsText)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.center)
-                .font(.trainBody)
-                .foregroundColor(.trainTextPrimary)
-                .padding(Spacing.sm)
-                .frame(width: 60)
-                .appCard()
-                .cornerRadius(CornerRadius.sm)
-                .onChange(of: repsText) { _, newValue in
-                    if let reps = Int(newValue) {
-                        set.reps = reps
+            // Reps input with progressive overload indicator
+            ZStack(alignment: .trailing) {
+                TextField("0", text: $repsText)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.center)
+                    .font(.trainBody)
+                    .foregroundColor(.trainTextPrimary)
+                    .padding(Spacing.sm)
+                    .frame(width: 60)
+                    .appCard()
+                    .cornerRadius(CornerRadius.sm)
+                    .focused($isRepsFieldFocused)
+                    .onChange(of: repsText) { _, newValue in
+                        if let reps = Int(newValue) {
+                            set.reps = reps
+                        }
                     }
-                }
 
-            // Weight input
-            TextField("0", text: $weightText)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.center)
-                .font(.trainBody)
-                .foregroundColor(.trainTextPrimary)
-                .padding(Spacing.sm)
-                .frame(width: 80)
-                .appCard()
-                .cornerRadius(CornerRadius.sm)
-                .onChange(of: weightText) { _, newValue in
-                    if let weight = Double(newValue) {
-                        set.weight = weightUnit == .kg ? weight : weight / 2.20462
-                    }
+                // Progressive overload indicator (green +X)
+                if let diff = repsDifference, diff > 0 {
+                    Text("+\(diff)")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundColor(.green)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .background(Color.green.opacity(0.15))
+                        .clipShape(Capsule())
+                        .offset(x: 20, y: -12)
                 }
+            }
+
+            // Weight input with increase indicator
+            ZStack(alignment: .trailing) {
+                TextField("0", text: $weightText)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.center)
+                    .font(.trainBody)
+                    .foregroundColor(.trainTextPrimary)
+                    .padding(Spacing.sm)
+                    .frame(width: 80)
+                    .appCard()
+                    .cornerRadius(CornerRadius.sm)
+                    .focused($isWeightFieldFocused)
+                    .onChange(of: weightText) { _, newValue in
+                        if let weight = Double(newValue) {
+                            set.weight = weightUnit == .kg ? weight : weight / 2.20462
+                        }
+                    }
+
+                // Weight increase indicator
+                if weightIncreased {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.green)
+                        .offset(x: 20, y: -12)
+                }
+            }
 
             Spacer()
 
@@ -499,6 +513,16 @@ struct SetInputRow: View {
         .padding(Spacing.sm)
         .background(set.completed ? Color.trainPrimary.opacity(0.05) : Color.trainBackground)
         .cornerRadius(CornerRadius.sm)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    isRepsFieldFocused = false
+                    isWeightFieldFocused = false
+                }
+                .foregroundColor(.trainPrimary)
+            }
+        }
         .onAppear {
             if set.reps > 0 { repsText = "\(set.reps)" }
             if set.weight > 0 {
@@ -524,59 +548,77 @@ struct SetInputRow: View {
     }
 }
 
-// MARK: - Rest Timer Overlay
+// MARK: - Inline Rest Timer (Non-blocking)
 
-struct RestTimerOverlay: View {
+struct InlineRestTimer: View {
     let totalSeconds: Int
-    let onDismiss: () -> Void
+    @Binding var isActive: Bool
 
-    @State private var timeRemaining: Int
+    @State private var timeRemaining: Int = 0
     @State private var timer: Timer?
 
-    init(totalSeconds: Int, onDismiss: @escaping () -> Void) {
-        self.totalSeconds = totalSeconds
-        self.onDismiss = onDismiss
-        _timeRemaining = State(initialValue: totalSeconds)
-    }
-
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.7)
-                .ignoresSafeArea()
-
-            VStack(spacing: Spacing.xl) {
-                Text("Rest")
-                    .font(.trainHeadline)
-                    .foregroundColor(.trainTextSecondary)
-
-                Text(timeFormatted)
-                    .font(.system(size: 72, weight: .bold, design: .rounded))
-                    .foregroundColor(.trainPrimary)
-                    .monospacedDigit()
-
-                // Progress ring
+        if isActive {
+            HStack(spacing: Spacing.md) {
+                // Circular progress indicator
                 ZStack {
                     Circle()
-                        .stroke(Color.trainTextSecondary.opacity(0.2), lineWidth: 8)
-                        .frame(width: 120, height: 120)
+                        .stroke(Color.white.opacity(0.3), lineWidth: 3)
+                        .frame(width: 28, height: 28)
 
                     Circle()
-                        .trim(from: 0, to: CGFloat(timeRemaining) / CGFloat(totalSeconds))
-                        .stroke(Color.trainPrimary, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                        .frame(width: 120, height: 120)
+                        .trim(from: 0, to: progress)
+                        .stroke(Color.white, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .frame(width: 28, height: 28)
                         .rotationEffect(.degrees(-90))
-                        .animation(.linear(duration: 1), value: timeRemaining)
+                        .animation(.linear(duration: 0.5), value: timeRemaining)
                 }
 
-                Button(action: onDismiss) {
-                    Text("Skip Rest")
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.trainTextSecondary)
+                // Time remaining
+                Text(timeFormatted)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+                    .monospacedDigit()
+
+                Text("Rest")
+                    .font(.trainCaption)
+                    .foregroundColor(.white.opacity(0.7))
+
+                Spacer()
+
+                // Dismiss button
+                Button(action: dismissTimer) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.7))
+                        .frame(width: 24, height: 24)
+                        .background(Color.white.opacity(0.15))
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
+            .background(Color.trainPrimary.opacity(0.9))
+            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
+            .transition(.asymmetric(
+                insertion: .scale(scale: 0.8).combined(with: .opacity),
+                removal: .scale(scale: 0.8).combined(with: .opacity)
+            ))
+            .onAppear { startTimer() }
+            .onDisappear { stopTimer() }
+            .onChange(of: isActive) { _, newValue in
+                if newValue {
+                    resetAndStartTimer()
+                } else {
+                    stopTimer()
                 }
             }
         }
-        .onAppear { startTimer() }
-        .onDisappear { timer?.invalidate() }
+    }
+
+    private var progress: CGFloat {
+        guard totalSeconds > 0 else { return 0 }
+        return CGFloat(timeRemaining) / CGFloat(totalSeconds)
     }
 
     private var timeFormatted: String {
@@ -586,12 +628,55 @@ struct RestTimerOverlay: View {
     }
 
     private func startTimer() {
+        timeRemaining = totalSeconds
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if timeRemaining > 0 {
                 timeRemaining -= 1
             } else {
-                timer?.invalidate()
-                onDismiss()
+                withAnimation(.easeOut(duration: 0.3)) {
+                    isActive = false
+                }
+                stopTimer()
+            }
+        }
+    }
+
+    private func resetAndStartTimer() {
+        stopTimer()
+        startTimer()
+    }
+
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    private func dismissTimer() {
+        withAnimation(.easeOut(duration: 0.3)) {
+            isActive = false
+        }
+        stopTimer()
+    }
+}
+
+// MARK: - Rest Timer Controller (manages timer state and reset logic)
+
+class RestTimerController: ObservableObject {
+    @Published var isActive: Bool = false
+    @Published var restSeconds: Int = 0
+
+    func triggerRest(seconds: Int) {
+        restSeconds = seconds
+        // If timer is already active, this will cause it to reset via onChange
+        if isActive {
+            // Briefly deactivate to trigger reset
+            isActive = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self.isActive = true
+            }
+        } else {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                isActive = true
             }
         }
     }
@@ -661,6 +746,182 @@ struct FeedbackModalOverlay: View {
             .shadow(color: .black.opacity(0.25), radius: 30, x: 0, y: 10)
             .padding(.horizontal, Spacing.xl)
         }
+    }
+}
+
+// MARK: - Exercise Demo Tab
+
+struct ExerciseDemoTab: View {
+    let exercise: DBExercise
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                // Exercise title
+                Text(exercise.displayName)
+                    .font(.trainTitle2)
+                    .foregroundColor(.trainTextPrimary)
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.md)
+
+                // Equipment info
+                HStack(spacing: Spacing.md) {
+                    HStack(spacing: Spacing.xs) {
+                        Image(systemName: "dumbbell")
+                            .font(.caption)
+                        Text(exercise.equipmentCategory)
+                            .font(.trainCaption)
+                    }
+                    .foregroundColor(.trainTextSecondary)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
+                    .glassCompactCard(cornerRadius: CornerRadius.sm)
+
+                    if let specific = exercise.equipmentSpecific {
+                        HStack(spacing: Spacing.xs) {
+                            Image(systemName: "gearshape")
+                                .font(.caption)
+                            Text(specific)
+                                .font(.trainCaption)
+                        }
+                        .foregroundColor(.trainTextSecondary)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.xs)
+                        .glassCompactCard(cornerRadius: CornerRadius.sm)
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+
+                // Muscle groups
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("Muscles Worked")
+                        .font(.trainHeadline)
+                        .foregroundColor(.trainTextPrimary)
+
+                    HStack(spacing: Spacing.sm) {
+                        // Primary muscle as capsule
+                        Text(exercise.primaryMuscle)
+                            .font(.trainCaption)
+                            .foregroundColor(.trainPrimary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.trainPrimary.opacity(0.1))
+                            .clipShape(Capsule())
+
+                        // Secondary muscle as capsule (if any)
+                        if let secondary = exercise.secondaryMuscle {
+                            Text(secondary)
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.trainTextSecondary.opacity(0.1))
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+                .padding(Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .appCard()
+                .padding(.horizontal, Spacing.lg)
+
+                // Instructions
+                if let instructions = exercise.instructions, !instructions.isEmpty {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        Text("How to Perform")
+                            .font(.trainHeadline)
+                            .foregroundColor(.trainTextPrimary)
+
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            ForEach(Array(exercise.instructionSteps.enumerated()), id: \.offset) { index, step in
+                                HStack(alignment: .top, spacing: Spacing.md) {
+                                    // Step number circle
+                                    Text("\(index + 1)")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .frame(width: 24, height: 24)
+                                        .background(Color.trainPrimary)
+                                        .clipShape(Circle())
+
+                                    // Instruction text - remove "Step X:" prefix if present
+                                    let cleanedStep = cleanStepText(step)
+                                    Text(cleanedStep)
+                                        .font(.trainBody)
+                                        .foregroundColor(.trainTextSecondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
+                    }
+                    .padding(Spacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .appCard()
+                    .padding(.horizontal, Spacing.lg)
+                } else {
+                    // Placeholder when no instructions
+                    VStack(spacing: Spacing.md) {
+                        Image(systemName: "text.justify.leading")
+                            .font(.system(size: 32))
+                            .foregroundColor(.trainTextSecondary.opacity(0.5))
+
+                        Text("Instructions coming soon")
+                            .font(.trainBody)
+                            .foregroundColor(.trainTextSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(Spacing.xl)
+                    .appCard()
+                    .padding(.horizontal, Spacing.lg)
+                }
+
+                // Complexity indicator
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("Exercise Complexity")
+                        .font(.trainHeadline)
+                        .foregroundColor(.trainTextPrimary)
+
+                    HStack(spacing: Spacing.xs) {
+                        ForEach(1...4, id: \.self) { level in
+                            Circle()
+                                .fill(level <= exercise.complexityLevel ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3))
+                                .frame(width: 12, height: 12)
+                        }
+
+                        Text(complexityLabel)
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+                            .padding(.leading, Spacing.sm)
+                    }
+                }
+                .padding(Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .appCard()
+                .padding(.horizontal, Spacing.lg)
+
+                Spacer().frame(height: 100)
+            }
+        }
+    }
+
+    private var complexityLabel: String {
+        switch exercise.complexityLevel {
+        case 1: return "Beginner Friendly"
+        case 2: return "Some Experience"
+        case 3: return "Intermediate"
+        case 4: return "Advanced"
+        default: return "Standard"
+        }
+    }
+
+    // Clean up step text by removing "Step X:" prefix
+    private func cleanStepText(_ step: String) -> String {
+        // Remove "Step 1:", "Step 2:", etc. prefixes
+        let pattern = "^Step\\s*\\d+\\s*:\\s*"
+        if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+            let range = NSRange(step.startIndex..., in: step)
+            return regex.stringByReplacingMatches(in: step, options: [], range: range, withTemplate: "")
+        }
+        return step
     }
 }
 

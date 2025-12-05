@@ -14,7 +14,7 @@ struct CombinedLibraryView: View {
     @State private var showSearch: Bool = false
     @State private var searchText: String = ""
 
-    enum LibraryTab: String, CaseIterable {
+    enum LibraryTab: String, CaseIterable, Hashable {
         case exercises = "Exercises"
         case education = "Education"
 
@@ -67,7 +67,7 @@ struct CombinedLibraryView: View {
                     .padding(.top, Spacing.md)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 } else {
-                    // Compact pill toolbar
+                    // Compact pill toolbar with glass lens effect
                     HStack(spacing: Spacing.sm) {
                         // Search button
                         Button(action: {
@@ -83,29 +83,16 @@ struct CombinedLibraryView: View {
                                 .clipShape(Circle())
                         }
 
-                        // Tab pills
-                        HStack(spacing: 4) {
-                            ForEach(LibraryTab.allCases, id: \.self) { tab in
-                                Button(action: {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        selectedTab = tab
-                                    }
-                                }) {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: tab.icon)
-                                            .font(.system(size: 14))
-                                            .foregroundColor(selectedTab == tab ? .trainPrimary : .trainTextSecondary)
-                                        Text(tab.rawValue)
-                                            .font(.system(size: 14, weight: .medium))
-                                            .foregroundColor(selectedTab == tab ? .trainTextPrimary : .trainTextSecondary)
-                                    }
-                                    .padding(.horizontal, Spacing.md)
-                                    .padding(.vertical, 10)
-                                    .background(selectedTab == tab ? Color.trainPrimary.opacity(0.15) : Color.clear)
-                                    .clipShape(Capsule())
-                                }
-                            }
-                        }
+                        // Tab pills with glass lens effect - reduced width by 20%
+                        GlassTabBar(
+                            selectedTab: $selectedTab,
+                            tabs: LibraryTab.allCases.map { tab in
+                                GlassTabItem(id: tab, icon: tab.icon, label: tab.rawValue)
+                            },
+                            showLabels: true,
+                            lensInset: 0.2  // 20% inset from each side for library toggle
+                        )
+                        .frame(width: 176)
                         .padding(4)
                         .background(Color.white.opacity(0.08))
                         .clipShape(Capsule())
@@ -209,7 +196,7 @@ struct ExerciseLibraryContent: View {
                 ScrollView {
                     LazyVStack(spacing: Spacing.md) {
                         ForEach(filteredExercises) { exercise in
-                            NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
+                            NavigationLink(destination: ExerciseDetailView(exercise: exercise, showLoggerTab: false)) {
                                 ExerciseRowCard(exercise: exercise)
                             }
                         }

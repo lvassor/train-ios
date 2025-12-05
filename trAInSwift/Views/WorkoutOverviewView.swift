@@ -30,9 +30,10 @@ struct WorkoutOverviewView: View {
     }
 
     // State
-    @State private var startTime = Date()
+    @State private var startTime: Date? = nil  // nil until first exercise opened
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer?
+    @State private var workoutStarted = false  // Track if workout has begun
     @State private var showWarmUpTimer = true
     @State private var warmUpTimeRemaining: TimeInterval = 300 // 5 minutes
     @State private var warmUpTimer: Timer?
@@ -116,12 +117,14 @@ struct WorkoutOverviewView: View {
                                         ExerciseOverviewCard(
                                             exercise: exercise,
                                             isCompleted: completedExercises.contains(exercise.id),
+                                            contraindicatedInjury: getContraindicatedInjury(for: exercise),
                                             onTap: {
-                                                // Check for injury warnings
+                                                startWorkoutTimerIfNeeded()  // Start timer on first exercise tap
+                                                selectedExerciseIndex = index
+                                            },
+                                            onWarningTap: {
                                                 if let warning = checkInjuryWarning(for: exercise) {
                                                     showInjuryWarning = warning
-                                                } else {
-                                                    selectedExerciseIndex = index
                                                 }
                                             },
                                             onSwap: {
@@ -196,7 +199,7 @@ struct WorkoutOverviewView: View {
                 )
             }
         }
-        .warmDarkGradientBackground()
+        .charcoalGradientBackground()
         .navigationBarBackButtonHidden(true)
         .navigationDestination(item: $selectedExerciseIndex) { index in
             if index < sessionExercises.count {
@@ -243,7 +246,10 @@ struct WorkoutOverviewView: View {
             Text("Are you sure you want to cancel this workout? Your progress will not be saved.")
         }
         .onAppear {
-            startTimer()
+            // Only resume timer if workout was already started
+            if workoutStarted {
+                resumeTimer()
+            }
             initializeSessionExercises()
             initializeLoggedExercises()
         }
@@ -255,9 +261,29 @@ struct WorkoutOverviewView: View {
     // MARK: - Timer Functions
 
     private func startTimer() {
+        // Only start timer if not already started
+        guard !workoutStarted else { return }
+        workoutStarted = true
         startTime = Date()
+        resumeTimer()
+    }
+
+    private func resumeTimer() {
+        // Resume timer from stored startTime
+        guard let start = startTime else { return }
+        timer?.invalidate()  // Clear any existing timer
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            elapsedTime = Date().timeIntervalSince(startTime)
+            elapsedTime = Date().timeIntervalSince(start)
+        }
+    }
+
+    private func startWorkoutTimerIfNeeded() {
+        // Start the workout timer when first exercise is opened
+        if !workoutStarted {
+            startTimer()
+        } else if timer == nil {
+            // Timer was invalidated but workout was started - resume it
+            resumeTimer()
         }
     }
 
@@ -321,33 +347,49 @@ struct WorkoutOverviewView: View {
         let userInjuries = currentUser.injuriesArray
         guard !userInjuries.isEmpty else { return nil }
 
-        // Map exercise primary muscles to potential injury concerns
-        let muscleToInjury: [String: [String]] = [
-            "Chest": ["Shoulder", "Upper Back"],
-            "Shoulders": ["Shoulder", "Neck"],
-            "Back": ["Lower Back", "Upper Back"],
-            "Biceps": ["Elbow", "Shoulder"],
-            "Triceps": ["Elbow", "Shoulder"],
-            "Legs": ["Knee", "Hip", "Lower Back"],
-            "Quadriceps": ["Knee", "Hip"],
-            "Hamstrings": ["Knee", "Hip", "Lower Back"],
-            "Glutes": ["Hip", "Lower Back"],
-            "Core": ["Lower Back"],
-            "Abs": ["Lower Back"]
-        ]
+        // Query the database for contraindications
+        do {
+            guard let dbExercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: exercise.exerciseId) else {
+                return nil
+            }
 
-        // Get the primary muscle from exercise
-        let primaryMuscle = exercise.primaryMuscle
-
-        if let relatedInjuries = muscleToInjury[primaryMuscle] {
-            for injury in userInjuries {
-                if relatedInjuries.contains(injury) {
-                    return "This exercise targets \(primaryMuscle), which may affect your \(injury) injury. Proceed with caution or consider swapping for an alternative."
+            // Check if this exercise is contraindicated for any of the user's injuries
+            if try ExerciseDatabaseManager.shared.isContraindicated(exercise: dbExercise, forInjuries: userInjuries) {
+                let contraindications = try ExerciseDatabaseManager.shared.fetchContraindications(for: dbExercise)
+                let matchingInjuries = Set(contraindications).intersection(Set(userInjuries))
+                if let firstInjury = matchingInjuries.first {
+                    return "This exercise may aggravate your \(firstInjury) injury. Consider swapping for an alternative or proceed with caution."
                 }
             }
+        } catch {
+            print("❌ Error checking contraindications: \(error)")
         }
 
         return nil
+    }
+
+    /// Check if an exercise has contraindications (for showing warning icon)
+    private func hasContraindication(for exercise: ProgramExercise) -> Bool {
+        return checkInjuryWarning(for: exercise) != nil
+    }
+
+    /// Get the injury type for warning display
+    private func getContraindicatedInjury(for exercise: ProgramExercise) -> String? {
+        guard let currentUser = authService.currentUser else { return nil }
+        let userInjuries = currentUser.injuriesArray
+        guard !userInjuries.isEmpty else { return nil }
+
+        do {
+            guard let dbExercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: exercise.exerciseId) else {
+                return nil
+            }
+
+            let contraindications = try ExerciseDatabaseManager.shared.fetchContraindications(for: dbExercise)
+            let matchingInjuries = Set(contraindications).intersection(Set(userInjuries))
+            return matchingInjuries.first
+        } catch {
+            return nil
+        }
     }
 
     private func saveWorkout() {
@@ -471,7 +513,9 @@ struct WarmUpCard: View {
 struct ExerciseOverviewCard: View {
     let exercise: ProgramExercise
     let isCompleted: Bool
+    var contraindicatedInjury: String? = nil
     let onTap: () -> Void
+    var onWarningTap: (() -> Void)? = nil
     let onSwap: () -> Void
 
     var body: some View {
@@ -491,10 +535,22 @@ struct ExerciseOverviewCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(exercise.exerciseName)
-                        .font(.trainBodyMedium)
-                        .foregroundColor(isCompleted ? .trainTextSecondary : .trainTextPrimary)
-                        .strikethrough(isCompleted)
+                    HStack(spacing: Spacing.xs) {
+                        Text(exercise.exerciseName)
+                            .font(.trainBodyMedium)
+                            .foregroundColor(isCompleted ? .trainTextSecondary : .trainTextPrimary)
+                            .strikethrough(isCompleted)
+
+                        // Contraindication warning icon
+                        if contraindicatedInjury != nil {
+                            Button(action: { onWarningTap?() }) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.orange)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
 
                     HStack(spacing: Spacing.sm) {
                         Text("\(exercise.sets) × \(exercise.repRange)")
@@ -527,7 +583,11 @@ struct ExerciseOverviewCard: View {
                     .foregroundColor(.trainTextSecondary)
             }
             .padding(Spacing.md)
-            .background(isCompleted ? Color.trainPrimary.opacity(0.05) : Color.clear)
+            .background(
+                contraindicatedInjury != nil
+                    ? Color.gray.opacity(0.15)
+                    : (isCompleted ? Color.trainPrimary.opacity(0.05) : Color.clear)
+            )
             .appCard()
         }
         .buttonStyle(ScaleButtonStyle())

@@ -13,7 +13,7 @@ struct WelcomeView: View {
 
     var body: some View {
         ZStack {
-            Color.trainDark
+            AppGradient.background
                 .ignoresSafeArea()
 
             VStack(spacing: 48) {

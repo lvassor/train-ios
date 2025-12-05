@@ -535,12 +535,12 @@ struct MuscleGroupsStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             VStack(alignment: .center, spacing: Spacing.sm) {
-                Text("Which muscle groups do you want to prioritise?")
+                Text("Any muscle groups you want to prioritise?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Tap on the body to select up to 3 muscle groups")
+                Text("Optional - select up to 3, or skip this step")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -552,9 +552,14 @@ struct MuscleGroupsStepView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 400)
 
-            // Selected muscles display below body
-            if !selectedGroups.isEmpty {
-                VStack(alignment: .center, spacing: Spacing.sm) {
+            // Selected muscles display below body, or "None selected" message
+            VStack(alignment: .center, spacing: Spacing.sm) {
+                if selectedGroups.isEmpty {
+                    Text("None selected — we'll create a balanced programme")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+                        .italic()
+                } else {
                     Text("Selected: \(selectedGroups.count) of 3")
                         .font(.trainCaption)
                         .foregroundColor(.trainTextSecondary)
@@ -581,8 +586,8 @@ struct MuscleGroupsStepView: View {
                         }
                     }
                 }
-                .frame(maxWidth: .infinity)
             }
+            .frame(maxWidth: .infinity)
 
             Spacer()
         }
@@ -608,40 +613,44 @@ struct MuscleGroupButton: View {
     }
 }
 
-// MARK: - Q7: Experience
+// MARK: - Q7: Experience (Confidence-Based)
 struct ExperienceStepView: View {
     @Binding var experience: String
 
+    // Experience levels (maps to complexity constraints in BUSINESS_RULES.md Section 6)
     let experiences = [
-        ("0_months", "0 months", "Complete beginner"),
-        ("0_6_months", "0 - 6 months", "Learning the basics"),
-        ("6_months_2_years", "6 months - 2 years", "Starting to find your feet"),
-        ("2_plus_years", "2+ years", "Feeling confident")
+        ("no_experience", "No Experience", "Brand new to resistance training? We'll start with simple, effective exercises."),
+        ("beginner", "Beginner", "Getting started with lifting? We'll build your foundation with approachable movements."),
+        ("intermediate", "Intermediate", "Comfortable in the gym? We'll add variety with more compound exercises."),
+        ("advanced", "Advanced", "Confident and consistent? We'll include the full range of complex lifts.")
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
-                Text("What's your current experience with strength training?")
+                Text("How confident do you feel in the gym?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("This helps us set the right difficulty level")
+                Text("This helps us match exercises to your comfort level")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
 
-            VStack(spacing: Spacing.md) {
+            VStack(spacing: Spacing.sm) {
                 ForEach(experiences, id: \.0) { value, title, subtitle in
                     OptionCard(
                         title: title,
                         subtitle: subtitle,
                         isSelected: experience == value,
+                        useAutoHeight: true,
+                        subtitleFont: .trainCaption,
                         action: { experience = value }
                     )
+                    .frame(minHeight: 70)
                 }
             }
 
@@ -716,22 +725,64 @@ struct MotivationStepView: View {
 // MARK: - Q9: Equipment
 struct EquipmentStepView: View {
     @Binding var selectedEquipment: [String]
+    @Binding var selectedDetailedEquipment: [String: Set<String>]  // Category -> selected items
     @State private var showingEquipmentInfo: String?
+    @State private var expandedCategories: Set<String> = []
 
-    let equipment = [
-        ("dumbbells", "Dumbbells"),
-        ("barbells", "Barbells"),
-        ("kettlebells", "Kettlebells"),
-        ("cable_machines", "Cable Machines"),
-        ("pin_loaded", "Pin-loaded Machines"),
-        ("plate_loaded", "Plate-loaded Machines")
+    // All equipment categories with sub-items - ordered as specified
+    // Order: Barbells, Dumbbells, Kettlebells, Cable Machines, Pin-Loaded, Plate-Loaded, Other
+    let equipmentCategories: [(String, String, [String])] = [
+        ("barbells", "Barbells", [
+            "Squat Rack",
+            "Flat Bench Press",
+            "Incline Bench Press",
+            "Decline Bench Press",
+            "Landmine Attachment",
+            "Hip Thrust Bench"
+        ]),
+        ("dumbbells", "Dumbbells", []),  // No sub-items
+        ("kettlebells", "Kettlebells", []),  // No sub-items
+        ("cable_machines", "Cable Machines", [
+            "Single Adjustable Cable Machine",
+            "Dual Cable Machine",
+            "Lat Pull Down Machine",
+            "Cable Row Machine"
+        ]),
+        ("pin_loaded", "Pin-Loaded Machines", [
+            "Leg Press Machine",
+            "Leg Extension Machine",
+            "Lying Leg Curl Machine",
+            "Seated Leg Curl Machine",
+            "Standing Calf Raise Machine",
+            "Seated Calf Raise Machine",
+            "Hip Abduction Machine",
+            "Hip Adduction Machine",
+            "Assisted Pull-Up/Dip Machine"
+        ]),
+        ("plate_loaded", "Plate-Loaded Machines", [
+            "Leg Press Machine",
+            "Hack Squat Machine",
+            "Leg Extension Machine",
+            "Lying Leg Curl Machine",
+            "Seated Leg Curl Machine",
+            "Standing Calf Raise Machine",
+            "Seated Calf Raise Machine",
+            "Glute Kickback Machine"
+        ]),
+        ("other", "Other", [
+            "Ab Wheel",
+            "Dip Station",
+            "Flat Bench",
+            "Pull-Up Bar",
+            "Roman Chair"
+        ])
     ]
 
     var body: some View {
         ZStack {
             VStack(alignment: .leading, spacing: Spacing.lg) {
                 VStack(alignment: .center, spacing: Spacing.sm) {
-                    Text("What equipment do you have at your availability?")
+                    Text("What equipment do you have available?")
                         .font(.trainTitle2)
                         .foregroundColor(.trainTextPrimary)
                         .multilineTextAlignment(.center)
@@ -744,19 +795,21 @@ struct EquipmentStepView: View {
                 .frame(maxWidth: .infinity)
 
                 VStack(spacing: Spacing.md) {
-                    ForEach(equipment, id: \.0) { value, title in
-                        EquipmentCard(
+                    ForEach(equipmentCategories, id: \.0) { categoryKey, title, subItems in
+                        ExpandableEquipmentCard(
+                            categoryKey: categoryKey,
                             title: title,
-                            isSelected: selectedEquipment.contains(value),
-                            onSelect: { toggleEquipment(value) },
-                            onInfo: { showingEquipmentInfo = value }
+                            subItems: subItems,
+                            isSelected: selectedEquipment.contains(categoryKey),
+                            isExpanded: expandedCategories.contains(categoryKey),
+                            selectedSubItems: selectedDetailedEquipment[categoryKey] ?? Set<String>(),
+                            onToggleCategory: { toggleEquipment(categoryKey, subItems: subItems) },
+                            onToggleExpand: { toggleExpand(categoryKey) },
+                            onToggleSubItem: { subItem in toggleSubItem(category: categoryKey, subItem: subItem, allSubItems: subItems) }
                         )
                     }
                 }
-
-                Spacer()
             }
-            // No horizontal padding here - parent ScrollView already has it to match progress bar
 
             // Equipment Info Modal
             if let equipmentType = showingEquipmentInfo {
@@ -768,46 +821,140 @@ struct EquipmentStepView: View {
         }
     }
 
-    private func toggleEquipment(_ item: String) {
+    private func toggleEquipment(_ item: String, subItems: [String]) {
         if selectedEquipment.contains(item) {
+            // Deselect: remove parent and all children
             selectedEquipment.removeAll { $0 == item }
+            selectedDetailedEquipment[item] = nil
+            expandedCategories.remove(item)
         } else {
+            // Select: add parent and select all children
             selectedEquipment.append(item)
+            if !subItems.isEmpty {
+                selectedDetailedEquipment[item] = Set(subItems)
+            }
+        }
+    }
+
+    private func toggleExpand(_ item: String) {
+        if expandedCategories.contains(item) {
+            expandedCategories.remove(item)
+        } else {
+            expandedCategories.insert(item)
+        }
+    }
+
+    private func toggleSubItem(category: String, subItem: String, allSubItems: [String]) {
+        var currentSet = selectedDetailedEquipment[category] ?? Set<String>()
+        if currentSet.contains(subItem) {
+            currentSet.remove(subItem)
+        } else {
+            currentSet.insert(subItem)
+        }
+        selectedDetailedEquipment[category] = currentSet
+
+        // If all sub-items are unchecked, uncheck the parent too
+        if currentSet.isEmpty {
+            selectedEquipment.removeAll { $0 == category }
+        } else if !selectedEquipment.contains(category) {
+            // If any sub-item is checked, ensure parent is checked
+            selectedEquipment.append(category)
         }
     }
 }
 
-// MARK: - Equipment Card with Info Button
+// MARK: - Expandable Equipment Card
 
-struct EquipmentCard: View {
+struct ExpandableEquipmentCard: View {
+    let categoryKey: String
     let title: String
+    let subItems: [String]
     let isSelected: Bool
-    let onSelect: () -> Void
-    let onInfo: () -> Void
+    let isExpanded: Bool
+    let selectedSubItems: Set<String>
+    let onToggleCategory: () -> Void
+    let onToggleExpand: () -> Void
+    let onToggleSubItem: (String) -> Void
+
+    // Check if all children are selected (full selection) vs partial
+    private var isFullySelected: Bool {
+        subItems.isEmpty || selectedSubItems.count == subItems.count
+    }
+
+    // Parent has partial selection (some but not all children)
+    private var isPartiallySelected: Bool {
+        !selectedSubItems.isEmpty && selectedSubItems.count < subItems.count
+    }
+
+    // Parent background: accent (trainPrimary) if fully selected, orange tint if partially selected
+    private var parentBackgroundColor: Color {
+        if isSelected && isFullySelected {
+            return Color.trainPrimary  // Full accent color when all selected
+        } else if isPartiallySelected {
+            return Color.orange.opacity(0.3)  // Orange tint when partial
+        }
+        return Color.clear
+    }
+
+    // Text color changes when fully selected
+    private var parentTextColor: Color {
+        (isSelected && isFullySelected) ? .white : .trainTextPrimary
+    }
 
     var body: some View {
-        Button(action: onSelect) {
+        VStack(spacing: 0) {
+            // Main category row - tapping highlights, chevron expands
             HStack {
-                Text(title)
-                    .font(.trainBodyMedium)
-                    .foregroundColor(isSelected ? .white : .trainTextPrimary)
+                // Tappable title area
+                Button(action: onToggleCategory) {
+                    Text(title)
+                        .font(.trainBodyMedium)
+                        .foregroundColor(parentTextColor)
+                }
+                .buttonStyle(PlainButtonStyle())
 
                 Spacer()
 
-                Button(action: {
-                    onInfo()
-                }) {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 20))
-                        .foregroundColor(isSelected ? .white.opacity(0.8) : .trainTextSecondary)
+                // Expand/collapse chevron (only show if has sub-items)
+                if !subItems.isEmpty {
+                    Button(action: onToggleExpand) {
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor((isSelected && isFullySelected) ? .white.opacity(0.7) : .trainTextSecondary)
+                            .frame(width: 30, height: 30)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                .buttonStyle(PlainButtonStyle())
             }
             .padding(Spacing.md)
-            .background(isSelected ? Color.trainPrimary : .clear)
-            .appCard(cornerRadius: CornerRadius.md)
+            .background(parentBackgroundColor)
+
+            // Expandable sub-items (orange tint when selected)
+            if isExpanded && !subItems.isEmpty {
+                VStack(spacing: 0) {
+                    ForEach(subItems, id: \.self) { subItem in
+                        let isSubItemSelected = selectedSubItems.contains(subItem)
+
+                        Button(action: { onToggleSubItem(subItem) }) {
+                            HStack {
+                                Text(subItem)
+                                    .font(.trainBody)
+                                    .foregroundColor(isSubItemSelected ? .trainTextPrimary : .trainTextSecondary)
+
+                                Spacer()
+                            }
+                            .padding(.horizontal, Spacing.lg)
+                            .padding(.vertical, Spacing.sm)
+                            .background(isSubItemSelected ? Color.orange.opacity(0.15) : .clear)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.bottom, Spacing.xs)
+            }
         }
-        .buttonStyle(PlainButtonStyle())
+        .appCard(cornerRadius: CornerRadius.md)
+        .animation(.easeInOut(duration: 0.2), value: isExpanded)
     }
 }
 
@@ -1122,24 +1269,25 @@ struct SessionDurationStepView: View {
 struct InjuriesStepView: View {
     @Binding var injuries: [String]
 
-    // Using same muscle groups as priority muscle groups question
+    // Body part injury options - matches database injury_type values
+    // These are anatomical areas, not muscle groups
     let injuryOptions = [
-        ["Chest", "Shoulders"],
-        ["Back", "Triceps"],
-        ["Biceps", "Abs"],
-        ["Quads", "Hamstrings"],
-        ["Glutes", "Calves"]
+        ["Shoulders", "Elbows"],
+        ["Wrists", "Chest"],
+        ["Back", "Neck"],
+        ["Hips", "Knees"],
+        ["Ankles"]
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
-                Text("Do you have any current injuries that might impact your training?")
+                Text("Do you have any injuries?")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("These can be updated at a later date")
+                Text("We'll avoid exercises that might aggravate these areas")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -1147,7 +1295,7 @@ struct InjuriesStepView: View {
             .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.md) {
-                // Two column grid matching priority muscle groups format
+                // Two column grid for body parts
                 ForEach(injuryOptions, id: \.self) { row in
                     HStack(spacing: Spacing.md) {
                         ForEach(row, id: \.self) { injury in
@@ -1162,12 +1310,16 @@ struct InjuriesStepView: View {
                             }
                             .buttonStyle(ScaleButtonStyle())
                         }
+                        // Add empty spacer if odd number in row
+                        if row.count == 1 {
+                            Color.clear.frame(maxWidth: .infinity)
+                        }
                     }
                 }
 
                 // None option - spans full width
                 Button(action: { injuries = [] }) {
-                    Text("No injuries or limitations")
+                    Text("No injuries")
                         .font(.trainBodyMedium)
                         .foregroundColor(injuries.isEmpty ? .white : .trainTextPrimary)
                         .frame(maxWidth: .infinity)

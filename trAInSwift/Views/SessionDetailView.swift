@@ -131,7 +131,7 @@ struct SessionDetailView: View {
                 }
             }
         }
-        .warmDarkGradientBackground()
+        .charcoalGradientBackground()
         .scrollContentBackground(.hidden)
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(isPresented: $startWorkout) {
@@ -154,12 +154,9 @@ struct SessionDetailView: View {
     }
 
     private func loadExerciseDetails(exerciseId: String) {
-        // Convert exerciseId string to Int and fetch from database
-        guard let id = Int(exerciseId) else { return }
-
         Task {
             do {
-                let exercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: id)
+                let exercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: exerciseId)
 
                 if let exercise = exercise {
                     await MainActor.run {

@@ -148,6 +148,7 @@ struct PaywallView: View {
                 }
             }
         }
+        .charcoalGradientBackground()
         .task {
             await loadProducts()
         }

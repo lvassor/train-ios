@@ -44,11 +44,9 @@ struct QuestionnaireView: View {
                 })
             } else {
                 VStack(spacing: 0) {
-                    // Back button and progress bar
-                    // Show back arrow on cover pages (section 0 and 2) and question pages (section 1 and 3)
+                    // Back button and progress bar at top
                     VStack(spacing: 0) {
                         HStack {
-                            // Always show back button on all steps
                             Button(action: previousStep) {
                                 Image(systemName: "arrow.left")
                                     .font(.title3)
@@ -58,7 +56,6 @@ struct QuestionnaireView: View {
                         }
                         .padding(16)
 
-                        // Show progress bar based on current section (only for question pages)
                         if currentSection == 1 {
                             QuestionnaireProgressBar(currentStep: currentStepInSection + 1, totalSteps: section1TotalSteps)
                                 .padding(.horizontal, 16)
@@ -70,25 +67,25 @@ struct QuestionnaireView: View {
                         }
                     }
 
-                    // Current step content
-                    if currentSection == 0 || currentSection == 2 {
-                        // Cover pages - don't use ScrollView, fill entire space
-                        currentStepView
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        // Question pages - use ScrollView with conditional scrolling
-                        ScrollView {
-                            VStack(spacing: 32) {
-                                currentStepView
+                    // Content + Button in ZStack so content scrolls behind button
+                    ZStack(alignment: .bottom) {
+                        // Content area - fills available space
+                        if currentSection == 0 || currentSection == 2 {
+                            currentStepView
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else {
+                            ScrollView(showsIndicators: false) {
+                                VStack(spacing: 32) {
+                                    currentStepView
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.top, 16)
+                                .padding(.bottom, 100)
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
+                            .scrollDisabled(shouldDisableScrollForCurrentStep())
                         }
-                        .scrollDisabled(shouldDisableScrollForCurrentStep())
-                    }
 
-                    // Continue button
-                    VStack {
+                        // Continue button floating on top - NO background
                         CustomButton(
                             title: buttonTitle,
                             action: nextStep,
@@ -99,6 +96,7 @@ struct QuestionnaireView: View {
                 }
             }
         }
+        .charcoalGradientBackground()
     }
 
     private var buttonTitle: String {
@@ -128,7 +126,10 @@ struct QuestionnaireView: View {
             case 2:
                 MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
             case 3:
-                EquipmentStepView(selectedEquipment: $viewModel.questionnaireData.equipmentAvailable)
+                EquipmentStepView(
+                    selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
+                    selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
+                )
             case 4:
                 InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
             case 5:
@@ -191,9 +192,9 @@ struct QuestionnaireView: View {
                 return !viewModel.questionnaireData.primaryGoal.isEmpty
             case 1: // Experience
                 return !viewModel.questionnaireData.experienceLevel.isEmpty
-            case 2: // Muscle Groups
+            case 2: // Muscle Groups (optional, 0-3)
                 let count = viewModel.questionnaireData.targetMuscleGroups.count
-                return count >= 1 && count <= 3
+                return count >= 0 && count <= 3
             case 3: // Equipment
                 return !viewModel.questionnaireData.equipmentAvailable.isEmpty
             case 4: // Injuries
@@ -237,9 +238,13 @@ struct QuestionnaireView: View {
         return true
     }
 
-    // Disable scrolling for all questionnaire pages
+    // Enable scrolling only for pages that need it (equipment step has expandable content)
     private func shouldDisableScrollForCurrentStep() -> Bool {
-        return true  // All pages are non-scrollable
+        // Equipment step (section 1, step 3) needs scrolling for expandable categories
+        if currentSection == 1 && currentStepInSection == 3 {
+            return false  // Enable scrolling for equipment
+        }
+        return true  // All other pages are non-scrollable
     }
 
     private func nextStep() {

@@ -116,7 +116,7 @@ class DynamicProgramGenerator {
 
         let templates = getSessionTemplates(splitType: splitType, duration: sessionDuration, daysPerWeek: daysPerWeek)
         var generatedSessions: [ProgramSession] = []
-        var usedExerciseIds = Set<Int>()
+        var usedExerciseIds = Set<String>()
 
         for template in templates {
             let exercises = try generateExercisesForSession(
@@ -150,7 +150,7 @@ class DynamicProgramGenerator {
         targetMuscles: [String],
         fitnessGoal: String,
         complexityRules: DBUserExperienceComplexity,
-        usedExerciseIds: inout Set<Int>
+        usedExerciseIds: inout Set<String>
     ) throws -> [ProgramExercise] {
 
         var sessionExercises: [ProgramExercise] = []
@@ -207,7 +207,7 @@ class DynamicProgramGenerator {
                 usedExerciseIds.insert(dbExercise.exerciseId)
 
                 // Track if we added a complexity-4 exercise
-                if dbExercise.complexityLevel == 4 {
+                if dbExercise.numericComplexity == 4 {
                     sessionHasComplexity4 = true
                 }
             }
@@ -232,18 +232,18 @@ class DynamicProgramGenerator {
 
         // Determine rest period based on complexity and rep range
         let rest = getRestSeconds(
-            complexityLevel: dbExercise.complexityLevel,
+            complexityLevel: dbExercise.numericComplexity,
             repRange: repRange
         )
 
         return ProgramExercise(
-            exerciseId: String(dbExercise.exerciseId),
+            exerciseId: dbExercise.exerciseId,
             exerciseName: dbExercise.displayName,
             sets: sets,
             repRange: repRange,
             restSeconds: rest,
             primaryMuscle: dbExercise.primaryMuscle,
-            equipmentType: dbExercise.equipmentType
+            equipmentType: dbExercise.equipmentName ?? "Unknown"
         )
     }
 
@@ -264,6 +264,8 @@ class DynamicProgramGenerator {
 
     private func getSetsForExperience(_ experience: ExperienceLevel) -> Int {
         switch experience {
+        case .noExperience:
+            return 3
         case .beginner:
             return 3
         case .intermediate:
