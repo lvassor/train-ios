@@ -306,17 +306,19 @@ extension ExerciseDatabaseFilter {
 }
 
 // MARK: - Injury Type (for questionnaire)
+// These now map to muscle groups (primary_muscle values in exercises table)
 
 enum InjuryType: String, CaseIterable, Codable {
-    case ankles = "Ankles"
     case back = "Back"
+    case biceps = "Biceps"
+    case calves = "Calves"
     case chest = "Chest"
-    case elbows = "Elbows"
-    case hips = "Hips"
-    case knees = "Knees"
-    case neck = "Neck"
+    case core = "Core"
+    case glutes = "Glutes"
+    case hamstrings = "Hamstrings"
+    case quads = "Quads"
     case shoulders = "Shoulders"
-    case wrists = "Wrists"
+    case triceps = "Triceps"
 
     var displayName: String { rawValue }
 }

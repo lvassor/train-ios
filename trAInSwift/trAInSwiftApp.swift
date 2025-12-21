@@ -39,10 +39,12 @@ struct trAInSwiftApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environment(\.cardStyle, .warm) // Set app-wide card style to warm glass
-                .preferredColorScheme(.dark) // Dark mode for warm gradient theme
+            SplashScreenWrapper {
+                ContentView()
+            }
+            .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            .environment(\.cardStyle, .warm) // Set app-wide card style to warm glass
+            .preferredColorScheme(.dark) // Dark mode for warm gradient theme
         }
     }
 }

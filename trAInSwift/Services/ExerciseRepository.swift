@@ -4,9 +4,57 @@
 //
 //  High-level service for exercise selection with business rules
 //  Updated for new database schema with equipment_category/equipment_specific
+//  Updated with scoring-based selection algorithm
 //
 
 import Foundation
+
+// MARK: - Exercise Scoring Result
+
+/// Result of scoring an exercise for selection
+struct ScoredExercise {
+    let exercise: DBExercise
+    let score: Int
+    let isCompound: Bool
+
+    /// For sorting: compounds first, then by complexity (descending)
+    var displaySortKey: (Int, Int) {
+        return (isCompound ? 0 : 1, -exercise.complexityLevel)
+    }
+}
+
+// MARK: - Exercise Selection Validation
+
+/// Warnings that can occur during exercise selection
+/// NOTE: Injuries do NOT filter exercises - they only show warning icons in UI
+enum ExerciseSelectionWarning: Equatable {
+    case noExercisesForMuscle(muscle: String)
+    case insufficientExercises(muscle: String, requested: Int, found: Int)
+    case equipmentLimitedSelection(muscle: String)
+
+    var message: String {
+        switch self {
+        case .noExercisesForMuscle(let muscle):
+            return "No exercises available for \(muscle). Check your equipment selection."
+        case .insufficientExercises(let muscle, let requested, let found):
+            return "Only found \(found) of \(requested) exercises for \(muscle)."
+        case .equipmentLimitedSelection(let muscle):
+            return "Limited exercise variety for \(muscle) with selected equipment."
+        }
+    }
+
+    var title: String {
+        return "Exercise Selection Notice"
+    }
+}
+
+/// Result of exercise selection including any warnings
+struct ExerciseSelectionResult {
+    let exercises: [DBExercise]
+    let warnings: [ExerciseSelectionWarning]
+
+    var hasWarnings: Bool { !warnings.isEmpty }
+}
 
 class ExerciseRepository {
     private let dbManager = ExerciseDatabaseManager.shared
@@ -16,9 +64,200 @@ class ExerciseRepository {
         print("🔧 Using ExerciseDatabaseManager.shared")
     }
 
-    // MARK: - Exercise Selection for Program Generation
+    // MARK: - Stage 1: Build User Pool
 
-    /// Select exercises for a workout session with intelligent variety and business rules
+    /// Build the pool of available exercises based on user's equipment and experience level
+    /// This is the first stage of the selection algorithm
+    /// NOTE: Injuries do NOT filter exercises - they are only used for UI warnings in WorkoutOverview
+    func buildUserPool(
+        primaryMuscle: String?,
+        availableEquipment: [String],
+        experienceLevel: ExperienceLevel,
+        userInjuries: [String],
+        excludedExerciseIds: Set<String>
+    ) throws -> (pool: [DBExercise], maxComplexity: Int, warnings: [ExerciseSelectionWarning]) {
+
+        // Get max complexity from database based on experience level
+        guard let complexityRules = try dbManager.fetchExperienceComplexity(for: experienceLevel) else {
+            throw RepositoryError.experienceLevelNotFound
+        }
+
+        let maxComplexity = complexityRules.maxComplexity
+        let warnings: [ExerciseSelectionWarning] = []
+
+        print("🏊 Building user pool for \(primaryMuscle ?? "all muscles")")
+        print("   Equipment: \(availableEquipment)")
+        print("   Max complexity from DB: \(maxComplexity)")
+        print("   User injuries (for UI only, not filtering): \(userInjuries)")
+
+        // Stage 1: Filter by equipment AND complexity (from DB)
+        // NOTE: Injuries are NOT used for filtering - exercises with injury contraindications
+        // are still included but will show a warning icon in the UI
+        let filter = ExerciseDatabaseFilter(
+            equipmentCategories: availableEquipment,
+            maxComplexity: maxComplexity,
+            primaryMuscle: primaryMuscle,
+            excludeInjuries: [], // Never filter by injuries - they're for UI warnings only
+            excludeExerciseIds: excludedExerciseIds
+        )
+
+        let pool = try dbManager.fetchExercises(filter: filter)
+
+        print("   Pool size: \(pool.count)")
+
+        // Add warning if pool is empty
+        var resultWarnings = warnings
+        if pool.isEmpty, let muscle = primaryMuscle {
+            resultWarnings.append(.noExercisesForMuscle(muscle: muscle))
+        }
+
+        return (pool, maxComplexity, resultWarnings)
+    }
+
+    // MARK: - Stage 2: Score and Select Exercises
+
+    /// Score exercises and select based on weighted random selection
+    /// Scoring rules:
+    /// - Compounds: complexity 4 = 20pts, complexity 3 = 15pts, complexity 2 = 10pts, complexity 1 = 5pts
+    /// - Isolations: Advanced = 8pts, Intermediate = 6pts, Beginner/NoExp = 4pts
+    func scoreAndSelectExercises(
+        from pool: [DBExercise],
+        count: Int,
+        experienceLevel: ExperienceLevel,
+        excludedExerciseIds: Set<String>,
+        allowComplexity4: Bool,
+        requireComplexity4First: Bool,
+        maxComplexity: Int
+    ) -> [ScoredExercise] {
+
+        guard !pool.isEmpty else { return [] }
+
+        var availablePool = pool.filter { !excludedExerciseIds.contains($0.exerciseId) }
+        var selectedExercises: [ScoredExercise] = []
+        var usedCanonicalNames = Set<String>()
+
+        print("🎯 Scoring \(availablePool.count) exercises for selection (need \(count))")
+
+        // Score all exercises
+        var scoredPool = availablePool.map { exercise -> ScoredExercise in
+            let score = calculateScore(for: exercise, experienceLevel: experienceLevel)
+            let isCompound = !exercise.isIsolation
+            return ScoredExercise(exercise: exercise, score: score, isCompound: isCompound)
+        }
+
+        // BUSINESS RULE: If complexity-4 required first, select one first
+        if requireComplexity4First && allowComplexity4 {
+            let complexity4Candidates = scoredPool.filter {
+                $0.exercise.complexityLevel == 4 && $0.isCompound
+            }
+
+            if let selected = weightedRandomSelect(from: complexity4Candidates) {
+                selectedExercises.append(selected)
+                usedCanonicalNames.insert(selected.exercise.canonicalName)
+                scoredPool.removeAll { $0.exercise.exerciseId == selected.exercise.exerciseId }
+                print("   ✅ Selected complexity-4 first: \(selected.exercise.displayName) (score: \(selected.score))")
+            }
+        }
+
+        // Select remaining exercises with weighted random selection
+        while selectedExercises.count < count && !scoredPool.isEmpty {
+            // Prefer exercises with different canonical names for variety
+            let preferredCandidates = scoredPool.filter { !usedCanonicalNames.contains($0.exercise.canonicalName) }
+            let candidates = preferredCandidates.isEmpty ? scoredPool : preferredCandidates
+
+            // Apply complexity cap if we already have a complexity-4
+            let hasComplexity4 = selectedExercises.contains { $0.exercise.complexityLevel == 4 }
+            let filteredCandidates: [ScoredExercise]
+
+            if hasComplexity4 {
+                // Only allow up to complexity 3 for remaining (unless isolation)
+                filteredCandidates = candidates.filter {
+                    $0.exercise.complexityLevel <= 3 || $0.exercise.isIsolation
+                }
+            } else {
+                filteredCandidates = candidates
+            }
+
+            guard let selected = weightedRandomSelect(from: filteredCandidates.isEmpty ? candidates : filteredCandidates) else {
+                break
+            }
+
+            selectedExercises.append(selected)
+            usedCanonicalNames.insert(selected.exercise.canonicalName)
+            scoredPool.removeAll { $0.exercise.exerciseId == selected.exercise.exerciseId }
+
+            print("   ✅ Selected: \(selected.exercise.displayName) (score: \(selected.score), compound: \(selected.isCompound))")
+        }
+
+        return selectedExercises
+    }
+
+    /// Calculate score for an exercise based on business rules
+    private func calculateScore(for exercise: DBExercise, experienceLevel: ExperienceLevel) -> Int {
+        if exercise.isIsolation {
+            // Isolation scoring based on experience level
+            switch experienceLevel {
+            case .advanced:
+                return 8
+            case .intermediate:
+                return 6
+            case .beginner, .noExperience:
+                return 4
+            }
+        } else {
+            // Compound scoring based on complexity
+            switch exercise.complexityLevel {
+            case 4:
+                return 20
+            case 3:
+                return 15
+            case 2:
+                return 10
+            default:
+                return 5
+            }
+        }
+    }
+
+    /// Weighted random selection - higher scores have higher probability
+    private func weightedRandomSelect(from candidates: [ScoredExercise]) -> ScoredExercise? {
+        guard !candidates.isEmpty else { return nil }
+
+        let totalScore = candidates.reduce(0) { $0 + $1.score }
+        guard totalScore > 0 else { return candidates.first }
+
+        let randomValue = Int.random(in: 0..<totalScore)
+        var cumulative = 0
+
+        for candidate in candidates {
+            cumulative += candidate.score
+            if randomValue < cumulative {
+                return candidate
+            }
+        }
+
+        return candidates.last
+    }
+
+    // MARK: - Stage 3: Sort for Display
+
+    /// Sort exercises for display: compounds first, then by complexity (descending)
+    func sortForDisplay(_ exercises: [ScoredExercise]) -> [DBExercise] {
+        return exercises
+            .sorted { lhs, rhs in
+                // First: compounds before isolations
+                if lhs.isCompound != rhs.isCompound {
+                    return lhs.isCompound
+                }
+                // Second: higher complexity first
+                return lhs.exercise.complexityLevel > rhs.exercise.complexityLevel
+            }
+            .map { $0.exercise }
+    }
+
+    // MARK: - Main Selection Method (Updated with Scoring)
+
+    /// Select exercises for a workout session using the new scoring algorithm
     func selectExercises(
         count: Int,
         movementPattern: String? = nil,
@@ -31,103 +270,88 @@ class ExerciseRepository {
         requireComplexity4First: Bool = false
     ) throws -> [DBExercise] {
 
-        // Get experience complexity rules
+        let result = try selectExercisesWithWarnings(
+            count: count,
+            movementPattern: movementPattern,
+            primaryMuscle: primaryMuscle,
+            experienceLevel: experienceLevel,
+            availableEquipment: availableEquipment,
+            userInjuries: userInjuries,
+            excludedExerciseIds: excludedExerciseIds,
+            allowComplexity4: allowComplexity4,
+            requireComplexity4First: requireComplexity4First
+        )
+
+        return result.exercises
+    }
+
+    /// Select exercises with detailed warnings for UI display
+    func selectExercisesWithWarnings(
+        count: Int,
+        movementPattern: String? = nil,
+        primaryMuscle: String? = nil,
+        experienceLevel: ExperienceLevel,
+        availableEquipment: [String],
+        userInjuries: [String],
+        excludedExerciseIds: Set<String>,
+        allowComplexity4: Bool = false,
+        requireComplexity4First: Bool = false
+    ) throws -> ExerciseSelectionResult {
+
+        var allWarnings: [ExerciseSelectionWarning] = []
+
+        // Stage 1: Build User Pool
+        let (pool, maxComplexity, poolWarnings) = try buildUserPool(
+            primaryMuscle: primaryMuscle,
+            availableEquipment: availableEquipment,
+            experienceLevel: experienceLevel,
+            userInjuries: userInjuries,
+            excludedExerciseIds: excludedExerciseIds
+        )
+        allWarnings.append(contentsOf: poolWarnings)
+
+        // Handle empty pool
+        if pool.isEmpty {
+            return ExerciseSelectionResult(exercises: [], warnings: allWarnings)
+        }
+
+        // Get complexity rules for complexity-4 handling
         guard let complexityRules = try dbManager.fetchExperienceComplexity(for: experienceLevel) else {
             throw RepositoryError.experienceLevelNotFound
         }
 
-        var selectedExercises: [DBExercise] = []
-        var usedExerciseIds = excludedExerciseIds
+        // Stage 2: Score and Select
+        let shouldAllowComplexity4 = allowComplexity4 && complexityRules.maxComplexity4PerSession > 0
+        let shouldRequireComplexity4First = requireComplexity4First && complexityRules.complexity4MustBeFirst
 
-        // BUSINESS RULE: If complexity-4 allowed and must be first, select one first
-        if allowComplexity4 && requireComplexity4First && complexityRules.maxComplexity4PerSession > 0 {
-            let complexity4Filter = ExerciseDatabaseFilter(
-                canonicalName: movementPattern,
-                equipmentCategories: availableEquipment,
-                maxComplexity: 4,
-                primaryMuscle: primaryMuscle,
-                excludeInjuries: userInjuries,
-                excludeExerciseIds: usedExerciseIds
-            )
+        let scoredExercises = scoreAndSelectExercises(
+            from: pool,
+            count: count,
+            experienceLevel: experienceLevel,
+            excludedExerciseIds: excludedExerciseIds,
+            allowComplexity4: shouldAllowComplexity4,
+            requireComplexity4First: shouldRequireComplexity4First,
+            maxComplexity: maxComplexity
+        )
 
-            // Find complexity-4 exercises only
-            var complexity4Exercises = try dbManager.fetchExercises(filter: complexity4Filter)
-                .filter { $0.complexityLevel == 4 && !$0.isIsolation }
-
-            // FALLBACK: If no complexity-4 exercises found with injuries, try without injury filter
-            if complexity4Exercises.isEmpty && !userInjuries.isEmpty {
-                print("⚠️ No complexity-4 exercises found for \(primaryMuscle ?? "unknown") with injury filters")
-                print("   Retrying without injury contraindications as fallback...")
-
-                let fallbackFilter = ExerciseDatabaseFilter(
-                    canonicalName: movementPattern,
-                    equipmentCategories: availableEquipment,
-                    maxComplexity: 4,
-                    primaryMuscle: primaryMuscle,
-                    excludeInjuries: [], // Remove injury filter
-                    excludeExerciseIds: usedExerciseIds
-                )
-
-                complexity4Exercises = try dbManager.fetchExercises(filter: fallbackFilter)
-                    .filter { $0.complexityLevel == 4 && !$0.isIsolation }
-                print("   ✅ Fallback found \(complexity4Exercises.count) complexity-4 exercises")
-            }
-
-            if let firstExercise = complexity4Exercises.first {
-                selectedExercises.append(firstExercise)
-                usedExerciseIds.insert(firstExercise.exerciseId)
-            }
+        // Check for insufficient exercises
+        if scoredExercises.count < count, let muscle = primaryMuscle {
+            allWarnings.append(.insufficientExercises(
+                muscle: muscle,
+                requested: count,
+                found: scoredExercises.count
+            ))
         }
 
-        // Select remaining exercises
-        let remainingCount = count - selectedExercises.count
-        if remainingCount > 0 {
-            // BUSINESS RULE: Don't allow more complexity-4 exercises (unless isolation)
-            let maxComplexityForRemaining = selectedExercises.contains(where: { $0.complexityLevel == 4 }) ?
-                3 : complexityRules.maxComplexity
+        // Stage 3: Sort for Display
+        let sortedExercises = sortForDisplay(scoredExercises)
 
-            let filter = ExerciseDatabaseFilter(
-                canonicalName: movementPattern,
-                equipmentCategories: availableEquipment,
-                maxComplexity: maxComplexityForRemaining,
-                primaryMuscle: primaryMuscle,
-                excludeInjuries: userInjuries,
-                excludeExerciseIds: usedExerciseIds
-            )
+        print("✅ Selection complete: \(sortedExercises.count) exercises for \(primaryMuscle ?? "session")")
 
-            var candidates = try dbManager.fetchExercises(filter: filter)
-
-            // FALLBACK: If no exercises found and injuries were specified, retry without injury filter
-            if candidates.isEmpty && !userInjuries.isEmpty {
-                print("⚠️ No exercises found for \(primaryMuscle ?? "unknown") with injury filters")
-                print("   Retrying without injury contraindications as fallback...")
-
-                let fallbackFilter = ExerciseDatabaseFilter(
-                    canonicalName: movementPattern,
-                    equipmentCategories: availableEquipment,
-                    maxComplexity: maxComplexityForRemaining,
-                    primaryMuscle: primaryMuscle,
-                    excludeInjuries: [], // Remove injury filter
-                    excludeExerciseIds: usedExerciseIds
-                )
-
-                candidates = try dbManager.fetchExercises(filter: fallbackFilter)
-                print("   ✅ Fallback found \(candidates.count) exercises (use with caution)")
-            }
-
-            let additionalExercises = selectDiverseExercises(
-                from: candidates,
-                count: remainingCount,
-                avoidingIds: usedExerciseIds
-            )
-
-            selectedExercises.append(contentsOf: additionalExercises)
-        }
-
-        return selectedExercises
+        return ExerciseSelectionResult(exercises: sortedExercises, warnings: allWarnings)
     }
 
-    /// Select exercises ensuring variety (prefer different canonical names)
+    /// Select exercises ensuring variety (prefer different canonical names) - LEGACY METHOD
     private func selectDiverseExercises(
         from candidates: [DBExercise],
         count: Int,
@@ -164,6 +388,7 @@ class ExerciseRepository {
     // MARK: - Alternative Exercise Lookup
 
     /// Find alternative exercises for a given exercise (same canonical name)
+    /// NOTE: Injuries do NOT filter alternatives - they're for UI warnings only
     func findAlternatives(
         for exercise: DBExercise,
         experienceLevel: ExperienceLevel,
@@ -184,7 +409,7 @@ class ExerciseRepository {
             equipmentCategories: availableEquipment,
             maxComplexity: complexityRules.maxComplexity,
             primaryMuscle: exercise.primaryMuscle,
-            excludeInjuries: userInjuries,
+            excludeInjuries: [], // Never filter by injuries - they're for UI warnings only
             excludeExerciseIds: excludedIds
         )
 

@@ -176,6 +176,24 @@ struct ExerciseSwapCarousel: View {
                 await MainActor.run {
                     alternatives = Array(sorted.prefix(5))
                     isLoading = false
+
+                    // Debug: Log thumbnail URLs for all alternatives
+                    print("🔄 Carousel loaded for: \(currentExercise.exerciseName)")
+                    print("   Found \(alternatives.count) alternatives:")
+                    for alt in alternatives {
+                        let media = ExerciseMediaMapping.media(for: alt.exerciseId)
+                        if let media = media {
+                            if media.mediaType == .video, let guid = media.guid {
+                                let url = BunnyConfig.videoThumbnailURL(for: guid)
+                                print("   ✅ \(alt.exerciseId) (\(alt.displayName)): \(url?.absoluteString ?? "nil")")
+                            } else if media.mediaType == .image, let filename = media.imageFilename {
+                                let url = BunnyConfig.imageURL(for: filename)
+                                print("   🖼️ \(alt.exerciseId) (\(alt.displayName)): \(url?.absoluteString ?? "nil")")
+                            }
+                        } else {
+                            print("   ❌ \(alt.exerciseId) (\(alt.displayName)): NO MAPPING FOUND")
+                        }
+                    }
                 }
             } catch {
                 print("Error loading alternatives: \(error)")
@@ -210,8 +228,67 @@ struct ExerciseSwapCarousel: View {
 struct AlternativeExerciseCard: View {
     let exercise: DBExercise
 
+    // Get media info for this exercise
+    private var exerciseMedia: ExerciseMedia? {
+        ExerciseMediaMapping.media(for: exercise.exerciseId)
+    }
+
+    // Get thumbnail URL based on media type
+    private var thumbnailURL: URL? {
+        guard let media = exerciseMedia else {
+            print("⚠️ No media mapping for exercise: \(exercise.exerciseId)")
+            return nil
+        }
+
+        if media.mediaType == .video, let guid = media.guid {
+            // Video thumbnail from Bunny Stream
+            let url = BunnyConfig.videoThumbnailURL(for: guid)
+            print("🎬 Thumbnail URL for \(exercise.exerciseId): \(url?.absoluteString ?? "nil")")
+            return url
+        } else if media.mediaType == .image, let filename = media.imageFilename {
+            // Static image from storage
+            let url = BunnyConfig.imageURL(for: filename)
+            print("🖼️ Image URL for \(exercise.exerciseId): \(url?.absoluteString ?? "nil")")
+            return url
+        }
+        return nil
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            // Thumbnail
+            ZStack {
+                if let url = thumbnailURL {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            thumbnailPlaceholder
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        case .failure:
+                            thumbnailPlaceholder
+                        @unknown default:
+                            thumbnailPlaceholder
+                        }
+                    }
+                } else {
+                    thumbnailPlaceholder
+                }
+
+                // Play icon overlay for videos
+                if exerciseMedia?.mediaType == .video {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(.white.opacity(0.9))
+                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                }
+            }
+            .frame(height: 80)
+            .frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
+
             // Exercise name
             Text(exercise.displayName)
                 .font(.trainBodyMedium)
@@ -219,44 +296,31 @@ struct AlternativeExerciseCard: View {
                 .lineLimit(2)
 
             // Badges
-            HStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.xs) {
                 // Equipment
-                HStack(spacing: 4) {
+                HStack(spacing: 2) {
                     Image(systemName: "dumbbell")
-                        .font(.system(size: 12))
+                        .font(.system(size: 10))
                     Text(exercise.equipmentType)
-                        .font(.trainCaption)
+                        .font(.system(size: 11))
                 }
                 .foregroundColor(.trainTextSecondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
                 .background(Color.trainTextSecondary.opacity(0.1))
                 .clipShape(Capsule())
 
                 // Primary muscle
                 Text(exercise.primaryMuscle)
-                    .font(.trainCaption)
+                    .font(.system(size: 11))
                     .foregroundColor(.trainPrimary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
                     .background(Color.trainPrimary.opacity(0.1))
                     .clipShape(Capsule())
-
-                // Secondary muscle as tag
-                if let secondaryMuscle = exercise.secondaryMuscle, !secondaryMuscle.isEmpty {
-                    Text(secondaryMuscle)
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.trainTextSecondary.opacity(0.1))
-                        .clipShape(Capsule())
-                }
             }
-
-            Spacer()
         }
-        .padding(Spacing.md)
+        .padding(Spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.trainBackground.opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
@@ -265,6 +329,15 @@ struct AlternativeExerciseCard: View {
                 .stroke(Color.trainPrimary.opacity(0.3), lineWidth: 1)
         )
         .padding(.horizontal, Spacing.lg)
+    }
+
+    private var thumbnailPlaceholder: some View {
+        ZStack {
+            Color.trainTextSecondary.opacity(0.1)
+            Image(systemName: "figure.strengthtraining.traditional")
+                .font(.system(size: 24))
+                .foregroundColor(.trainTextSecondary.opacity(0.5))
+        }
     }
 }
 

@@ -540,7 +540,8 @@ struct MuscleGroupsStepView: View {
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Optional - select up to 3, or skip this step")
+                // Combined subtitle with selection status
+                Text(selectionStatusText)
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -552,44 +553,42 @@ struct MuscleGroupsStepView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 400)
 
-            // Selected muscles display below body, or "None selected" message
-            VStack(alignment: .center, spacing: Spacing.sm) {
-                if selectedGroups.isEmpty {
-                    Text("None selected — we'll create a balanced programme")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-                        .italic()
-                } else {
-                    Text("Selected: \(selectedGroups.count) of 3")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
+            // Selected muscles pills (only shown when selections exist)
+            if !selectedGroups.isEmpty {
+                HStack(spacing: Spacing.sm) {
+                    ForEach(selectedGroups, id: \.self) { muscle in
+                        HStack(spacing: 6) {
+                            Text(muscle)
+                                .font(.trainCaption)
+                                .foregroundColor(.white)
 
-                    HStack(spacing: Spacing.sm) {
-                        ForEach(selectedGroups, id: \.self) { muscle in
-                            HStack(spacing: 6) {
-                                Text(muscle)
-                                    .font(.trainCaption)
-                                    .foregroundColor(.white)
-
-                                Button(action: {
-                                    selectedGroups.removeAll { $0 == muscle }
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.white.opacity(0.9))
-                                }
+                            Button(action: {
+                                selectedGroups.removeAll { $0 == muscle }
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white.opacity(0.9))
                             }
-                            .padding(.horizontal, Spacing.sm)
-                            .padding(.vertical, 6)
-                            .background(Color.trainPrimary)
-                            .cornerRadius(CornerRadius.lg)
                         }
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, 6)
+                        .background(Color.trainPrimary)
+                        .cornerRadius(CornerRadius.lg)
                     }
                 }
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity)
 
             Spacer()
+        }
+    }
+
+    // Combined selection status text
+    private var selectionStatusText: String {
+        if selectedGroups.isEmpty {
+            return "Optional: Select up to 3, or skip for a balanced programme"
+        } else {
+            return "Selected \(selectedGroups.count) of 3\nTap to remove"
         }
     }
 }
@@ -647,7 +646,7 @@ struct ExperienceStepView: View {
                         subtitle: subtitle,
                         isSelected: experience == value,
                         useAutoHeight: true,
-                        subtitleFont: .trainCaption,
+                        subtitleFont: .trainCaptionLarge,
                         action: { experience = value }
                     )
                     .frame(minHeight: 70)
@@ -659,7 +658,7 @@ struct ExperienceStepView: View {
     }
 }
 
-// MARK: - Q8: Motivation
+// MARK: - Q8: Motivation (Optional)
 struct MotivationStepView: View {
     @Binding var selectedMotivations: [String]
     @Binding var otherText: String
@@ -669,8 +668,7 @@ struct MotivationStepView: View {
         ("need_guidance", "I need more guidance"),
         ("lack_confidence", "I lack confidence when I exercise"),
         ("need_motivation", "I need motivation"),
-        ("need_accountability", "I need accountability"),
-        ("other", "Other")
+        ("need_accountability", "I need accountability")
     ]
 
     var body: some View {
@@ -681,7 +679,7 @@ struct MotivationStepView: View {
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Select all that apply")
+                Text("Select all that apply (optional)")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -693,16 +691,9 @@ struct MotivationStepView: View {
                     MultiSelectCard(
                         title: title,
                         isSelected: selectedMotivations.contains(value),
-                        isCompact: true,  // Use compact version
+                        isCompact: true,
                         action: { toggleMotivation(value) }
                     )
-                }
-
-                if selectedMotivations.contains("other") {
-                    TextField("Please specify", text: $otherText)
-                        .font(.trainBody)
-                        .padding(Spacing.md)
-                        .appCard()
                 }
             }
 
@@ -713,9 +704,6 @@ struct MotivationStepView: View {
     private func toggleMotivation(_ motivation: String) {
         if selectedMotivations.contains(motivation) {
             selectedMotivations.removeAll { $0 == motivation }
-            if motivation == "other" {
-                otherText = ""
-            }
         } else {
             selectedMotivations.append(motivation)
         }
@@ -903,15 +891,11 @@ struct ExpandableEquipmentCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Main category row - tapping highlights, chevron expands
+            // Main category row - entire row toggles selection, chevron expands
             HStack {
-                // Tappable title area
-                Button(action: onToggleCategory) {
-                    Text(title)
-                        .font(.trainBodyMedium)
-                        .foregroundColor(parentTextColor)
-                }
-                .buttonStyle(PlainButtonStyle())
+                Text(title)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(parentTextColor)
 
                 Spacer()
 
@@ -928,6 +912,10 @@ struct ExpandableEquipmentCard: View {
             }
             .padding(Spacing.md)
             .background(parentBackgroundColor)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onToggleCategory()
+            }
 
             // Expandable sub-items (orange tint when selected)
             if isExpanded && !subItems.isEmpty {
@@ -1219,7 +1207,48 @@ struct TrainingDaysStepView: View {
                 .frame(height: 30)
             }
 
+            // Split suggestion based on days selected
+            VStack(spacing: Spacing.sm) {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.trainPrimary)
+
+                    Text("Your programme will be:")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+
+                    Spacer()
+                }
+
+                Text(splitSuggestion)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+            }
+            .padding(Spacing.md)
+            .appCard()
+
             Spacer()
+        }
+    }
+
+    // Split suggestion text based on days selected
+    private var splitSuggestion: String {
+        switch trainingDays {
+        case 1:
+            return "Full Body (1x per week)"
+        case 2:
+            return "Upper/Lower or Full Body (2x per week)"
+        case 3:
+            return "Push/Pull/Legs (1x per week each)"
+        case 4:
+            return "Upper/Lower (2x per week each)"
+        case 5:
+            return "Push/Pull/Legs + Upper/Lower hybrid"
+        case 6:
+            return "Push/Pull/Legs (2x per week each)"
+        default:
+            return "Custom split"
         }
     }
 }
@@ -1269,14 +1298,14 @@ struct SessionDurationStepView: View {
 struct InjuriesStepView: View {
     @Binding var injuries: [String]
 
-    // Body part injury options - matches database injury_type values
-    // These are anatomical areas, not muscle groups
+    // Muscle group injury options - matches database injury_type values
+    // These correspond to primary_muscle values in exercises table
     let injuryOptions = [
-        ["Shoulders", "Elbows"],
-        ["Wrists", "Chest"],
-        ["Back", "Neck"],
-        ["Hips", "Knees"],
-        ["Ankles"]
+        ["Chest", "Back"],
+        ["Shoulders", "Triceps"],
+        ["Biceps", "Quads"],
+        ["Hamstrings", "Glutes"],
+        ["Calves", "Core"]
     ]
 
     var body: some View {

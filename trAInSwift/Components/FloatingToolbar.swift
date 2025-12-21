@@ -2,69 +2,16 @@
 //  FloatingToolbar.swift
 //  trAInSwift
 //
-//  Floating pill-shaped bottom navigation with sliding lens glass effect
-//  Uses GlassTabBar for the sophisticated Apple Phone app-style interaction
+//  Native TabView wrapper that triggers sheets for non-dashboard tabs
 //
 
 import SwiftUI
 
-struct FloatingToolbar: View {
-    let onDashboard: () -> Void
-    let onMilestones: () -> Void
-    let onExerciseLibrary: () -> Void
-    let onAccount: () -> Void
-
-    @Binding var selectedTab: ToolbarTab
-
-    var body: some View {
-        HStack(spacing: 12) {
-            // Main toolbar pill with glass lens effect
-            GlassTabBar(
-                selectedTab: $selectedTab,
-                excludeAccount: true,
-                onTabSelected: { tab in
-                    switch tab {
-                    case .dashboard: onDashboard()
-                    case .milestones: onMilestones()
-                    case .library: onExerciseLibrary()
-                    case .account: break
-                    }
-                }
-            )
-            .frame(width: 180)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 4)
-            .background(.ultraThinMaterial)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule()
-                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-            )
-
-            // Account button (separate floating circle)
-            Button(action: onAccount) {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 26))
-                    .foregroundColor(.white.opacity(0.7))
-                    .frame(width: 50, height: 50)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
-                    .overlay(
-                        Circle()
-                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                    )
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
-    }
-}
-
-enum ToolbarTab: CaseIterable, Hashable {
-    case dashboard
-    case milestones
-    case library
-    case account
+enum ToolbarTab: Int, CaseIterable, Hashable {
+    case dashboard = 0
+    case milestones = 1
+    case library = 2
+    case account = 3
 
     var icon: String {
         switch self {
@@ -77,7 +24,7 @@ enum ToolbarTab: CaseIterable, Hashable {
 
     var title: String {
         switch self {
-        case .dashboard: return "Dashboard"
+        case .dashboard: return "Home"
         case .milestones: return "Milestones"
         case .library: return "Library"
         case .account: return "Account"
@@ -85,23 +32,109 @@ enum ToolbarTab: CaseIterable, Hashable {
     }
 }
 
+struct MainTabView<DashboardContent: View>: View {
+    @ViewBuilder let dashboardContent: () -> DashboardContent
+
+    @State private var selectedTab: ToolbarTab = .dashboard
+    @State private var showMilestones = false
+    @State private var showLibrary = false
+    @State private var showAccount = false
+    @State private var milestonesDetent: PresentationDetent = .fraction(0.66)
+    @State private var libraryDetent: PresentationDetent = .fraction(0.66)
+
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            // Dashboard - actual content
+            Tab(ToolbarTab.dashboard.title, systemImage: ToolbarTab.dashboard.icon, value: .dashboard) {
+                dashboardContent()
+            }
+
+            // Milestones - placeholder that triggers sheet
+            Tab(ToolbarTab.milestones.title, systemImage: ToolbarTab.milestones.icon, value: .milestones) {
+                Color.clear
+            }
+
+            // Library - placeholder that triggers sheet
+            Tab(ToolbarTab.library.title, systemImage: ToolbarTab.library.icon, value: .library) {
+                Color.clear
+            }
+
+            // Account - visually distinct trailing tab (like Search in Apple docs)
+            Tab(value: .account, role: .search) {
+                Color.clear
+            } label: {
+                Label(ToolbarTab.account.title, systemImage: ToolbarTab.account.icon)
+            }
+        }
+        .tint(Color.trainPrimary)
+        .onChange(of: selectedTab) { _, newTab in
+            switch newTab {
+            case .dashboard:
+                break
+            case .milestones:
+                showMilestones = true
+            case .library:
+                showLibrary = true
+            case .account:
+                showAccount = true
+            }
+        }
+        .sheet(isPresented: $showMilestones, onDismiss: {
+            selectedTab = .dashboard
+        }) {
+            NavigationStack {
+                MilestonesView()
+            }
+            .presentationDetents([.fraction(0.66), .large], selection: $milestonesDetent)
+            .presentationDragIndicator(.visible)
+            .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.66)))
+        }
+        .sheet(isPresented: $showLibrary, onDismiss: {
+            selectedTab = .dashboard
+        }) {
+            NavigationStack {
+                CombinedLibraryView()
+            }
+            .presentationDetents([.fraction(0.66), .large], selection: $libraryDetent)
+            .presentationDragIndicator(.visible)
+            .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.66)))
+        }
+        .sheet(isPresented: $showAccount, onDismiss: {
+            selectedTab = .dashboard
+        }) {
+            ProfileView()
+                .presentationDetents([.fraction(0.66), .large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+}
+
+// MARK: - Legacy FloatingToolbar (kept for compatibility during transition)
+
+struct FloatingToolbar: View {
+    let onDashboard: () -> Void
+    let onMilestones: () -> Void
+    let onExerciseLibrary: () -> Void
+    let onAccount: () -> Void
+
+    @Binding var selectedTab: ToolbarTab
+
+    var body: some View {
+        // Empty - this is now handled by MainTabView
+        EmptyView()
+    }
+}
+
 // MARK: - Preview
 
 #Preview {
-    ZStack {
-        AppGradient.background
-            .ignoresSafeArea()
+    MainTabView {
+        ZStack {
+            AppGradient.background
+                .ignoresSafeArea()
 
-        VStack {
-            Spacer()
-
-            FloatingToolbar(
-                onDashboard: {},
-                onMilestones: {},
-                onExerciseLibrary: {},
-                onAccount: {},
-                selectedTab: .constant(.dashboard)
-            )
+            Text("Dashboard Content")
+                .foregroundColor(.white)
         }
     }
 }

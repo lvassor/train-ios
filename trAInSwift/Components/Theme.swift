@@ -52,6 +52,7 @@ extension Font {
     static let trainBody = Font.system(size: 16, weight: .regular)          // Regular for body text
     static let trainBodyMedium = Font.system(size: 18, weight: .medium, design: .rounded)   // Rounded for interactive elements
     static let trainCaption = Font.system(size: 14, weight: .regular)       // Slightly smaller caption
+    static let trainCaptionLarge = Font.system(size: 15.5, weight: .regular)  // Larger caption for questionnaire descriptions
 
     // Special - rounded design for numbers
     static let trainLargeNumber = Font.system(size: 72, weight: .bold, design: .rounded)
@@ -308,5 +309,54 @@ struct AppCardView<Content: View>: View {
         case .ultraThin:
             content.glassCard(cornerRadius: cornerRadius)
         }
+    }
+}
+
+// MARK: - Edge Fade Mask (Apple-style scroll fade)
+
+extension View {
+    /// Apple-style edge fade effect for scrollable content
+    /// Creates a soft blur/fade at the top and bottom edges as content scrolls
+    /// - Parameters:
+    ///   - topFade: Height of the top fade gradient (default: 20)
+    ///   - bottomFade: Height of the bottom fade gradient (default: 40)
+    func edgeFadeMask(topFade: CGFloat = 20, bottomFade: CGFloat = 40) -> some View {
+        self.mask(
+            VStack(spacing: 0) {
+                // Top fade: transparent to opaque
+                LinearGradient(
+                    colors: [.clear, .black],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: topFade)
+
+                // Middle: fully opaque
+                Rectangle()
+                    .fill(Color.black)
+
+                // Bottom fade: opaque to transparent
+                LinearGradient(
+                    colors: [.black, .clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: bottomFade)
+            }
+        )
+    }
+
+    /// Scrollable content with Apple-style edge fading
+    /// Wraps content in a ScrollView with edge fade mask applied
+    func scrollableWithEdgeFade(
+        _ axes: Axis.Set = .vertical,
+        showsIndicators: Bool = true,
+        topFade: CGFloat = 20,
+        bottomFade: CGFloat = 40
+    ) -> some View {
+        ScrollView(axes, showsIndicators: showsIndicators) {
+            self
+        }
+        .edgeFadeMask(topFade: topFade, bottomFade: bottomFade)
     }
 }

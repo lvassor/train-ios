@@ -13,6 +13,8 @@ struct QuestionnaireView: View {
     @State private var currentStepInSection = 0 // Step within current section
     @State private var showingProgramLoading = false
     @State private var showingProgramReady = false
+    @State private var showingEquipmentWarning = false
+    @State private var hasSeenEquipmentWarning = false
 
     let onComplete: () -> Void
     var onBack: (() -> Void)?
@@ -83,6 +85,7 @@ struct QuestionnaireView: View {
                                 .padding(.bottom, 100)
                             }
                             .scrollDisabled(shouldDisableScrollForCurrentStep())
+                            .edgeFadeMask(topFade: 16, bottomFade: 60)
                         }
 
                         // Continue button floating on top - NO background
@@ -91,12 +94,32 @@ struct QuestionnaireView: View {
                             action: nextStep,
                             isEnabled: isCurrentStepValid
                         )
-                        .padding(16)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 16)
                     }
                 }
             }
         }
         .charcoalGradientBackground()
+        .alert(viewModel.warningAlertTitle, isPresented: $viewModel.showWarningAlert) {
+            Button("OK", role: .cancel) {
+                viewModel.dismissWarningAlert()
+            }
+        } message: {
+            Text(viewModel.warningAlertMessage)
+        }
+        .alert("Limited Equipment", isPresented: $showingEquipmentWarning) {
+            Button("Continue Anyway", role: .destructive) {
+                showingEquipmentWarning = false
+                hasSeenEquipmentWarning = true
+                proceedFromEquipmentStep()
+            }
+            Button("Add More Equipment", role: .cancel) {
+                showingEquipmentWarning = false
+            }
+        } message: {
+            Text("Selecting only one equipment type may limit your exercise variety and program effectiveness. For the best results, we recommend adding at least one more equipment category.")
+        }
     }
 
     private var buttonTitle: String {
@@ -200,14 +223,11 @@ struct QuestionnaireView: View {
             case 4: // Injuries
                 return true // Injuries are optional
             case 5: // Training Days
-                return viewModel.questionnaireData.trainingDaysPerWeek >= 2
+                return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
             case 6: // Session Duration
                 return !viewModel.questionnaireData.sessionDuration.isEmpty
-            case 7: // Motivation
-                if viewModel.questionnaireData.motivations.contains("other") {
-                    return !viewModel.questionnaireData.motivationOther.isEmpty
-                }
-                return !viewModel.questionnaireData.motivations.isEmpty
+            case 7: // Motivation (optional - users can proceed without selecting)
+                return true
             default:
                 return true
             }
@@ -248,6 +268,25 @@ struct QuestionnaireView: View {
     }
 
     private func nextStep() {
+        // Check if leaving equipment step with limited equipment selection
+        if currentSection == 1 && currentStepInSection == 3 {
+            let equipmentCount = viewModel.questionnaireData.equipmentAvailable.count
+            if equipmentCount == 1 && !hasSeenEquipmentWarning {
+                // Show warning modal for single equipment selection
+                showingEquipmentWarning = true
+                return
+            }
+        }
+
+        proceedToNextStep()
+    }
+
+    private func proceedFromEquipmentStep() {
+        // Called after user dismisses the equipment warning
+        proceedToNextStep()
+    }
+
+    private func proceedToNextStep() {
         withAnimation(.easeInOut(duration: 0.15)) {  // Doubled speed (was ~0.35s default, now 0.15s)
             if currentSection == 0 {
                 // Move from Section 1 cover to first question
@@ -351,3 +390,4 @@ struct SectionCoverView: View {
         .padding(Spacing.lg)
     }
 }
+

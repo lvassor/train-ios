@@ -48,15 +48,23 @@ struct QuestionnaireData: Codable {
     var motivations: [String] = []
     var motivationOther: String = ""
 
-    // Q9: Equipment (multi-select)
-    var equipmentAvailable: [String] = []
-    var detailedEquipment: [String: Set<String>] = [:]  // Category -> specific items (e.g., "barbells" -> ["Squat Rack", "Flat Bench"])
+    // Q9: Equipment (multi-select) - default to all selected
+    var equipmentAvailable: [String] = [
+        "barbells", "dumbbells", "kettlebells", "cable_machines", "pin_loaded", "plate_loaded", "other"
+    ]
+    var detailedEquipment: [String: Set<String>] = [
+        "barbells": ["Squat Rack", "Flat Bench Press", "Incline Bench Press", "Decline Bench Press", "Landmine Attachment", "Hip Thrust Bench"],
+        "cable_machines": ["Single Adjustable Cable Machine", "Dual Cable Machine", "Lat Pull Down Machine", "Cable Row Machine"],
+        "pin_loaded": ["Leg Press Machine", "Leg Extension Machine", "Lying Leg Curl Machine", "Seated Leg Curl Machine", "Standing Calf Raise Machine", "Seated Calf Raise Machine", "Hip Abduction Machine", "Hip Adduction Machine", "Assisted Pull-Up/Dip Machine"],
+        "plate_loaded": ["Leg Press Machine", "Hack Squat Machine", "Leg Extension Machine", "Lying Leg Curl Machine", "Seated Leg Curl Machine", "Standing Calf Raise Machine", "Seated Calf Raise Machine", "Glute Kickback Machine"],
+        "other": ["Ab Wheel", "Dip Station", "Flat Bench", "Pull-Up Bar", "Roman Chair"]
+    ]  // Category -> specific items (e.g., "barbells" -> ["Squat Rack", "Flat Bench"])
 
     // Q10: Training Frequency
     var trainingDaysPerWeek: Int = 3
 
     // Additional fields for program generation
-    var sessionDuration: String = "45-60 min" // "30-45 min", "45-60 min", "60-90 min"
+    var sessionDuration: String = "" // "30-45 min", "45-60 min", "60-90 min" - no default, user must select
     var injuries: [String] = [] // List of current injuries/limitations
 
     enum HeightUnit: String, Codable {

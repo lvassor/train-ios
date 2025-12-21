@@ -151,7 +151,7 @@ def create_database():
     print(f"   ✅ {len(df_exercises)} exercises imported")
 
     # Import contraindications from Excel
-    df_contra = pd.read_excel('train_exercise_contraindications_prod.xlsx', sheet_name='data')
+    df_contra = pd.read_excel('train_exercise_contraindications_prod.xlsx', sheet_name='Sheet1')
 
     for _, row in df_contra.iterrows():
         cursor.execute('''

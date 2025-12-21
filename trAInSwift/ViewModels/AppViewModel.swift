@@ -14,6 +14,11 @@ class AppViewModel: ObservableObject {
     @Published var questionnaireData = QuestionnaireData()
     @Published var isGeneratingProgram = false
 
+    // Warning alert state for native iOS modals
+    @Published var showWarningAlert = false
+    @Published var warningAlertTitle = ""
+    @Published var warningAlertMessage = ""
+
     private let programGenerator = ProgramGenerator()
 
     init() {
@@ -31,17 +36,37 @@ class AppViewModel: ObservableObject {
         // Save questionnaire data to user
         authService.updateQuestionnaireData(questionnaireData)
 
-        // Generate program based on questionnaire
+        // Generate program based on questionnaire (with warnings)
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
 
-            let program = self.programGenerator.generateProgram(from: self.questionnaireData)
+            let result = self.programGenerator.generateProgramWithWarnings(from: self.questionnaireData)
 
             DispatchQueue.main.async {
-                self.authService.updateProgram(program)
+                self.authService.updateProgram(result.program)
                 self.isGeneratingProgram = false
+
+                // Show warning alert if there are any warnings
+                if result.hasWarnings {
+                    self.showWarnings(result.uniqueWarnings)
+                }
             }
         }
+    }
+
+    // MARK: - Warning Display
+
+    /// Show warnings to user via native iOS alert
+    private func showWarnings(_ warnings: [ExerciseSelectionWarning]) {
+        guard !warnings.isEmpty else { return }
+
+        // Build warning message from unique warnings
+        let messages = warnings.map { $0.message }
+        let combinedMessage = messages.joined(separator: "\n\n")
+
+        warningAlertTitle = "Program Generation Notice"
+        warningAlertMessage = combinedMessage
+        showWarningAlert = true
     }
 
     // MARK: - Program Management

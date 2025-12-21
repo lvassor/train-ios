@@ -67,7 +67,7 @@ struct CombinedLibraryView: View {
                     .padding(.top, Spacing.md)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 } else {
-                    // Compact pill toolbar with glass lens effect
+                    // Compact toolbar with native segmented picker
                     HStack(spacing: Spacing.sm) {
                         // Search button
                         Button(action: {
@@ -83,19 +83,15 @@ struct CombinedLibraryView: View {
                                 .clipShape(Circle())
                         }
 
-                        // Tab pills with glass lens effect - reduced width by 20%
-                        GlassTabBar(
-                            selectedTab: $selectedTab,
-                            tabs: LibraryTab.allCases.map { tab in
-                                GlassTabItem(id: tab, icon: tab.icon, label: tab.rawValue)
-                            },
-                            showLabels: true,
-                            lensInset: 0.2  // 20% inset from each side for library toggle
-                        )
-                        .frame(width: 176)
-                        .padding(4)
-                        .background(Color.white.opacity(0.08))
-                        .clipShape(Capsule())
+                        // Tab picker with native segmented control
+                        Picker("Library", selection: $selectedTab) {
+                            ForEach(LibraryTab.allCases, id: \.self) { tab in
+                                Label(tab.rawValue, systemImage: tab.icon)
+                                    .tag(tab)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 200)
                     }
                     .padding(.horizontal, Spacing.lg)
                     .padding(.top, Spacing.md)
@@ -129,8 +125,8 @@ struct ExerciseLibraryContent: View {
     @State private var selectedEquipment: Set<String> = []
     @State private var isLoading: Bool = true
 
-    let muscleGroups = ["Chest", "Back", "Shoulders", "Arms", "Legs", "Core"]
-    let equipmentTypes = ["Barbell", "Dumbbell", "Cable", "Machine", "Kettlebell", "Bodyweight"]
+    let muscleGroups = ["Chest", "Back", "Shoulders", "Biceps", "Triceps", "Quads", "Hamstrings", "Glutes", "Calves", "Core"]
+    let equipmentTypes = ["Barbells", "Dumbbells", "Cables", "Kettlebells", "Pin-Loaded Machines", "Plate-Loaded Machines", "Other"]
 
     var body: some View {
         VStack(spacing: 0) {

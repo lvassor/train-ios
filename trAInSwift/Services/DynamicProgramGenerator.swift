@@ -3,9 +3,33 @@
 //  trAInSwift
 //
 //  Dynamic program generation using SQLite database and questionnaire answers
+//  Updated with scoring-based exercise selection and validation warnings
 //
 
 import Foundation
+
+// MARK: - Program Generation Result
+
+/// Result of program generation including any warnings
+struct ProgramGenerationResult {
+    let program: Program
+    let warnings: [ExerciseSelectionWarning]
+
+    var hasWarnings: Bool { !warnings.isEmpty }
+
+    /// Get unique warnings (de-duplicated)
+    var uniqueWarnings: [ExerciseSelectionWarning] {
+        var seen = Set<String>()
+        return warnings.filter { warning in
+            let key = warning.message
+            if seen.contains(key) {
+                return false
+            }
+            seen.insert(key)
+            return true
+        }
+    }
+}
 
 class DynamicProgramGenerator {
     private let exerciseRepo = ExerciseRepository()
@@ -17,6 +41,75 @@ class DynamicProgramGenerator {
 
     // MARK: - Main Generation Function
 
+    /// Generate program and return result with any warnings
+    func generateProgramWithWarnings(from questionnaireData: QuestionnaireData) throws -> ProgramGenerationResult {
+        var allWarnings: [ExerciseSelectionWarning] = []
+
+        print("🏋️ Generating dynamic program from questionnaire data...")
+        print("   Days per week: \(questionnaireData.trainingDaysPerWeek)")
+        print("   Experience: \(questionnaireData.experienceLevel)")
+        print("   Goal: \(questionnaireData.primaryGoal)")
+
+        // Map questionnaire data to program parameters
+        let experienceLevel = ExperienceLevel.fromQuestionnaire(questionnaireData.experienceLevel)
+        let availableEquipment = ExerciseDatabaseFilter.mapEquipmentFromQuestionnaire(questionnaireData.equipmentAvailable)
+        let splitType = determineSplitType(
+            days: questionnaireData.trainingDaysPerWeek,
+            duration: questionnaireData.sessionDuration
+        )
+        let sessionDuration = mapSessionDuration(questionnaireData.sessionDuration)
+
+        // Get complexity rules for this user
+        let complexityRules = try exerciseRepo.getComplexityRules(for: experienceLevel)
+        print("   Max complexity: \(complexityRules.maxComplexity)")
+
+        // Generate sessions based on split type (with warnings)
+        let (sessions, sessionWarnings) = try generateSessionsWithWarnings(
+            splitType: splitType,
+            sessionDuration: sessionDuration,
+            experienceLevel: experienceLevel,
+            availableEquipment: availableEquipment,
+            userInjuries: questionnaireData.injuries,
+            targetMuscles: questionnaireData.targetMuscleGroups,
+            fitnessGoal: questionnaireData.primaryGoal,
+            complexityRules: complexityRules,
+            daysPerWeek: questionnaireData.trainingDaysPerWeek
+        )
+        allWarnings.append(contentsOf: sessionWarnings)
+
+        // CRITICAL VALIDATION: Check for empty sessions
+        print("🔍 Validating generated sessions...")
+        for (index, session) in sessions.enumerated() {
+            print("   Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
+            if session.exercises.isEmpty {
+                print("   ❌ CRITICAL: Session '\(session.dayName)' has 0 exercises!")
+                print("      This will cause the workout logger to fail!")
+                print("      Equipment: \(availableEquipment)")
+                print("      Injuries: \(questionnaireData.injuries)")
+                print("      Experience: \(experienceLevel)")
+            }
+        }
+
+        let program = Program(
+            type: splitType,
+            daysPerWeek: questionnaireData.trainingDaysPerWeek,
+            sessionDuration: sessionDuration,
+            sessions: sessions,
+            totalWeeks: 8
+        )
+
+        print("✅ Dynamic program generated successfully!")
+        print("   Program: \(splitType.description)")
+        print("   Sessions: \(sessions.count)")
+        print("   Total exercises: \(sessions.reduce(0) { $0 + $1.exercises.count })")
+        if !allWarnings.isEmpty {
+            print("⚠️ Warnings: \(allWarnings.count)")
+        }
+
+        return ProgramGenerationResult(program: program, warnings: allWarnings)
+    }
+
+    /// Legacy method for backward compatibility
     func generateProgram(from questionnaireData: QuestionnaireData) throws -> Program {
         print("🏋️ Generating dynamic program from questionnaire data...")
         print("   Days per week: \(questionnaireData.trainingDaysPerWeek)")
@@ -82,6 +175,9 @@ class DynamicProgramGenerator {
 
     private func determineSplitType(days: Int, duration: String) -> ProgramType {
         switch days {
+        case 1:
+            // 1-day: Always Full Body
+            return .fullBody
         case 2:
             // 2-day: 30-45min = Upper/Lower, 45-90min = Full Body
             return duration == "30-45 min" ? .upperLower : .fullBody
@@ -95,6 +191,9 @@ class DynamicProgramGenerator {
             // 5-day: Hybrid - sessions will be Push/Pull/Legs/Upper/Lower
             // Return pushPullLegs as the "type" but sessions will include Upper/Lower too
             return .pushPullLegs
+        case 6:
+            // 6-day: PPL x 2 (same template as 3-day, repeated twice)
+            return .pushPullLegs
         default:
             return .fullBody
         }
@@ -102,6 +201,49 @@ class DynamicProgramGenerator {
 
     // MARK: - Session Generation
 
+    /// Generate sessions with warning collection
+    private func generateSessionsWithWarnings(
+        splitType: ProgramType,
+        sessionDuration: SessionDuration,
+        experienceLevel: ExperienceLevel,
+        availableEquipment: [String],
+        userInjuries: [String],
+        targetMuscles: [String],
+        fitnessGoal: String,
+        complexityRules: DBUserExperienceComplexity,
+        daysPerWeek: Int
+    ) throws -> ([ProgramSession], [ExerciseSelectionWarning]) {
+
+        let templates = getSessionTemplates(splitType: splitType, duration: sessionDuration, daysPerWeek: daysPerWeek)
+        var generatedSessions: [ProgramSession] = []
+        var allWarnings: [ExerciseSelectionWarning] = []
+        var usedExerciseIds = Set<String>()
+
+        for template in templates {
+            let (exercises, warnings) = try generateExercisesForSessionWithWarnings(
+                template: template,
+                experienceLevel: experienceLevel,
+                availableEquipment: availableEquipment,
+                userInjuries: userInjuries,
+                targetMuscles: targetMuscles,
+                fitnessGoal: fitnessGoal,
+                complexityRules: complexityRules,
+                usedExerciseIds: &usedExerciseIds
+            )
+
+            allWarnings.append(contentsOf: warnings)
+
+            let session = ProgramSession(
+                dayName: template.dayName,
+                exercises: exercises
+            )
+            generatedSessions.append(session)
+        }
+
+        return (generatedSessions, allWarnings)
+    }
+
+    /// Legacy method for backward compatibility
     private func generateSessions(
         splitType: ProgramType,
         sessionDuration: SessionDuration,
@@ -114,35 +256,24 @@ class DynamicProgramGenerator {
         daysPerWeek: Int
     ) throws -> [ProgramSession] {
 
-        let templates = getSessionTemplates(splitType: splitType, duration: sessionDuration, daysPerWeek: daysPerWeek)
-        var generatedSessions: [ProgramSession] = []
-        var usedExerciseIds = Set<String>()
-
-        for template in templates {
-            let exercises = try generateExercisesForSession(
-                template: template,
-                experienceLevel: experienceLevel,
-                availableEquipment: availableEquipment,
-                userInjuries: userInjuries,
-                targetMuscles: targetMuscles,
-                fitnessGoal: fitnessGoal,
-                complexityRules: complexityRules,
-                usedExerciseIds: &usedExerciseIds
-            )
-
-            let session = ProgramSession(
-                dayName: template.dayName,
-                exercises: exercises
-            )
-            generatedSessions.append(session)
-        }
-
-        return generatedSessions
+        let (sessions, _) = try generateSessionsWithWarnings(
+            splitType: splitType,
+            sessionDuration: sessionDuration,
+            experienceLevel: experienceLevel,
+            availableEquipment: availableEquipment,
+            userInjuries: userInjuries,
+            targetMuscles: targetMuscles,
+            fitnessGoal: fitnessGoal,
+            complexityRules: complexityRules,
+            daysPerWeek: daysPerWeek
+        )
+        return sessions
     }
 
     // MARK: - Exercise Selection for Session
 
-    private func generateExercisesForSession(
+    /// Generate exercises for a session with warning collection
+    private func generateExercisesForSessionWithWarnings(
         template: SessionTemplate,
         experienceLevel: ExperienceLevel,
         availableEquipment: [String],
@@ -151,9 +282,10 @@ class DynamicProgramGenerator {
         fitnessGoal: String,
         complexityRules: DBUserExperienceComplexity,
         usedExerciseIds: inout Set<String>
-    ) throws -> [ProgramExercise] {
+    ) throws -> ([ProgramExercise], [ExerciseSelectionWarning]) {
 
         var sessionExercises: [ProgramExercise] = []
+        var sessionWarnings: [ExerciseSelectionWarning] = []
         var sessionHasComplexity4 = false
 
         // Process each muscle group in the template
@@ -172,13 +304,13 @@ class DynamicProgramGenerator {
                 complexityRules.maxComplexity4PerSession > 0
             let requireComplexity4First = complexityRules.complexity4MustBeFirst
 
-            // Select exercises from database
+            // Select exercises from database using new scoring system
             print("🔍 Selecting exercises for: \(muscleGroup.muscle) (need \(targetCount))")
             print("   Equipment: \(availableEquipment)")
             print("   Injuries: \(userInjuries)")
             print("   Already used: \(usedExerciseIds.count) exercises")
 
-            let dbExercises = try exerciseRepo.selectExercises(
+            let result = try exerciseRepo.selectExercisesWithWarnings(
                 count: targetCount,
                 movementPattern: muscleGroup.movementPattern,
                 primaryMuscle: muscleGroup.muscle,
@@ -190,14 +322,17 @@ class DynamicProgramGenerator {
                 requireComplexity4First: requireComplexity4First
             )
 
-            print("   ✅ Found \(dbExercises.count) exercises for \(muscleGroup.muscle)")
-            if dbExercises.isEmpty {
+            // Collect warnings
+            sessionWarnings.append(contentsOf: result.warnings)
+
+            print("   ✅ Found \(result.exercises.count) exercises for \(muscleGroup.muscle)")
+            if result.exercises.isEmpty {
                 print("   ❌ WARNING: NO EXERCISES FOUND for \(muscleGroup.muscle)!")
                 print("      This will create an empty session!")
             }
 
             // Convert to ProgramExercise with sets/reps based on goal
-            for dbExercise in dbExercises {
+            for dbExercise in result.exercises {
                 let programExercise = createProgramExercise(
                     from: dbExercise,
                     fitnessGoal: fitnessGoal,
@@ -213,7 +348,32 @@ class DynamicProgramGenerator {
             }
         }
 
-        return sessionExercises
+        return (sessionExercises, sessionWarnings)
+    }
+
+    /// Legacy method for backward compatibility
+    private func generateExercisesForSession(
+        template: SessionTemplate,
+        experienceLevel: ExperienceLevel,
+        availableEquipment: [String],
+        userInjuries: [String],
+        targetMuscles: [String],
+        fitnessGoal: String,
+        complexityRules: DBUserExperienceComplexity,
+        usedExerciseIds: inout Set<String>
+    ) throws -> [ProgramExercise] {
+
+        let (exercises, _) = try generateExercisesForSessionWithWarnings(
+            template: template,
+            experienceLevel: experienceLevel,
+            availableEquipment: availableEquipment,
+            userInjuries: userInjuries,
+            targetMuscles: targetMuscles,
+            fitnessGoal: fitnessGoal,
+            complexityRules: complexityRules,
+            usedExerciseIds: &usedExerciseIds
+        )
+        return exercises
     }
 
     // MARK: - ProgramExercise Creation
@@ -302,9 +462,15 @@ class DynamicProgramGenerator {
         duration: SessionDuration,
         daysPerWeek: Int
     ) -> [SessionTemplate] {
-        // Need to handle 5-day specially since it's a hybrid
+        // Handle special cases first
+        if daysPerWeek == 1 {
+            return get1DayTemplates(duration: duration)
+        }
         if daysPerWeek == 5 {
             return get5DayTemplates(duration: duration)
+        }
+        if daysPerWeek == 6 {
+            return get6DayTemplates(duration: duration)
         }
 
         switch splitType {
@@ -647,6 +813,162 @@ class DynamicProgramGenerator {
                     (muscle: "Biceps", count: 1, movementPattern: nil)
                 ]),
                 SessionTemplate(dayName: "Lower", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        }
+    }
+
+    private func get1DayTemplates(duration: SessionDuration) -> [SessionTemplate] {
+        // 1-day: Single Full Body session hitting all major muscle groups
+        // Focus on compound movements to maximize efficiency
+        switch duration {
+        case .short:
+            // 30-45 min: Abbreviated full body
+            return [
+                SessionTemplate(dayName: "Full Body", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case .medium:
+            // 45-60 min: Standard full body
+            return [
+                SessionTemplate(dayName: "Full Body", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Back", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case .long:
+            // 60-90 min: Extended full body with arm work
+            return [
+                SessionTemplate(dayName: "Full Body", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Back", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 1, movementPattern: nil),
+                    (muscle: "Biceps", count: 1, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil),
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        }
+    }
+
+    private func get6DayTemplates(duration: SessionDuration) -> [SessionTemplate] {
+        // 6-day: PPL x 2 (Push/Pull/Legs repeated twice)
+        // Each muscle group gets hit twice per week for optimal hypertrophy
+        switch duration {
+        case .short:
+            // 30-45 min
+            return [
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 2, movementPattern: nil),
+                    (muscle: "Biceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 1, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 2, movementPattern: nil),
+                    (muscle: "Biceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 1, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 1, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case .medium:
+            // 45-60 min
+            return [
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 3, movementPattern: nil),
+                    (muscle: "Biceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 2, movementPattern: nil),
+                    (muscle: "Shoulders", count: 2, movementPattern: nil),
+                    (muscle: "Triceps", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 3, movementPattern: nil),
+                    (muscle: "Biceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ])
+            ]
+        case .long:
+            // 60-90 min
+            return [
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 3, movementPattern: nil),
+                    (muscle: "Shoulders", count: 3, movementPattern: nil),
+                    (muscle: "Triceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 3, movementPattern: nil),
+                    (muscle: "Biceps", count: 3, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
+                    (muscle: "Quads", count: 2, movementPattern: nil),
+                    (muscle: "Hamstrings", count: 2, movementPattern: nil),
+                    (muscle: "Glutes", count: 1, movementPattern: nil),
+                    (muscle: "Core", count: 1, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Push", muscleGroups: [
+                    (muscle: "Chest", count: 3, movementPattern: nil),
+                    (muscle: "Shoulders", count: 3, movementPattern: nil),
+                    (muscle: "Triceps", count: 2, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Pull", muscleGroups: [
+                    (muscle: "Back", count: 3, movementPattern: nil),
+                    (muscle: "Biceps", count: 3, movementPattern: nil)
+                ]),
+                SessionTemplate(dayName: "Legs", muscleGroups: [
                     (muscle: "Quads", count: 2, movementPattern: nil),
                     (muscle: "Hamstrings", count: 2, movementPattern: nil),
                     (muscle: "Glutes", count: 1, movementPattern: nil),

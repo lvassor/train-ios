@@ -9,18 +9,20 @@ import SwiftUI
 import CoreData
 
 struct DashboardView: View {
+    var body: some View {
+        MainTabView {
+            DashboardContent()
+        }
+    }
+}
+
+// MARK: - Dashboard Content
+
+struct DashboardContent: View {
     @ObservedObject var authService = AuthService.shared
     @State private var showProgramOverview = false
-    @State private var showCalendar = false
-    @State private var showProfile = false
-    @State private var showExerciseLibrary = false
-    @State private var showMilestones = false
-    @State private var showVideoLibrary = false
     @State private var isProgramProgressExpanded = false
     @State private var currentStreak: Int = 0
-    @State private var milestonesDetent: PresentationDetent = .fraction(0.66)
-    @State private var libraryDetent: PresentationDetent = .fraction(0.66)
-    @State private var selectedToolbarTab: ToolbarTab = .dashboard
 
     var user: UserProfile? {
         authService.currentUser
@@ -58,22 +60,9 @@ struct DashboardView: View {
                             }
 
                             Spacer()
-
-                            // Streak counter - commented out for MVP
-                            // HStack(spacing: 4) {
-                            //     Text("🔥")
-                            //         .font(.system(size: 20))
-                            //
-                            //     Text("\(currentStreak)")
-                            //         .font(.trainBodyMedium)
-                            //         .foregroundColor(.trainTextPrimary)
-                            // }
                         }
                         .padding(.horizontal, Spacing.lg)
                         .padding(.top, Spacing.md)
-                        // .onAppear {
-                        //     currentStreak = calculateStreak()
-                        // }
 
                         if let program = userProgram {
                             // Weekly Calendar (now at top with session counter)
@@ -115,61 +104,16 @@ struct DashboardView: View {
                             .padding(.top, Spacing.xxl)
                         }
                     }
-                    .padding(.bottom, 90) // Space for floating toolbar
+                    .padding(.bottom, 20)
                 }
                 .scrollContentBackground(.hidden)
-
-                // Floating toolbar overlay - content scrolls behind
-                VStack {
-                    Spacer()
-                    FloatingToolbar(
-                        onDashboard: { /* Already on dashboard */ },
-                        onMilestones: { showMilestones = true },
-                        onExerciseLibrary: { showExerciseLibrary = true },
-                        onAccount: { showProfile = true },
-                        selectedTab: $selectedToolbarTab
-                    )
-                }
+                .edgeFadeMask(topFade: 16, bottomFade: 60)
             }
             .background(Color.clear)
             .navigationDestination(isPresented: $showProgramOverview) {
                 if let program = userProgram {
                     ProgramOverviewView(userProgram: program)
                 }
-            }
-            .sheet(isPresented: $showExerciseLibrary, onDismiss: {
-                selectedToolbarTab = .dashboard
-            }) {
-                NavigationStack {
-                    CombinedLibraryView()
-                }
-                .presentationDetents([.fraction(0.66), .large], selection: $libraryDetent)
-                .presentationDragIndicator(.visible)
-                .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.66)))
-            }
-            .sheet(isPresented: $showMilestones, onDismiss: {
-                selectedToolbarTab = .dashboard
-            }) {
-                NavigationStack {
-                    MilestonesView()
-                }
-                .presentationDetents([.fraction(0.66), .large], selection: $milestonesDetent)
-                .presentationDragIndicator(.visible)
-                .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.66)))
-            }
-            .sheet(isPresented: $showCalendar, onDismiss: {
-                selectedToolbarTab = .dashboard
-            }) {
-                CalendarView()
-                    .presentationDetents([.fraction(0.66), .large])
-                    .presentationDragIndicator(.visible)
-            }
-            .sheet(isPresented: $showProfile, onDismiss: {
-                selectedToolbarTab = .dashboard
-            }) {
-                ProfileView()
-                    .presentationDetents([.fraction(0.66), .large])
-                    .presentationDragIndicator(.visible)
             }
         }
         .containerBackground(AppGradient.background, for: .navigation)
@@ -380,15 +324,9 @@ struct WeeklySessionsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             // Header
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Your Weekly Sessions")
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.trainTextPrimary)
-
-                Text("\(completedThisWeek)/\(Int(userProgram.daysPerWeek)) complete")
-                    .font(.trainBody)
-                    .foregroundColor(.trainTextSecondary)
-            }
+            Text("Your Program")
+                .font(.trainBodyMedium)
+                .foregroundColor(.trainTextPrimary)
 
             if let programData = userProgram.getProgram() {
                 let sessionsToShow = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
@@ -432,16 +370,33 @@ struct WeeklySessionsSection: View {
     }
 
     private var completedThisWeek: Int {
-        let currentWeekSessions = userProgram.completedSessionsSet.filter { sessionId in
-            sessionId.hasPrefix("week\(userProgram.currentWeek)-")
-        }
-        return currentWeekSessions.count
+        sessionsCompletedThisWeek.count
+    }
+
+    /// Sessions completed this calendar week (Monday-Sunday)
+    private var sessionsCompletedThisWeek: [CDWorkoutSession] {
+        guard let userId = AuthService.shared.currentUser?.id else { return [] }
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let weekday = calendar.component(.weekday, from: today)
+        let daysFromMonday = (weekday == 1) ? 6 : weekday - 2
+
+        guard let weekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: today),
+              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return [] }
+
+        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
+            userId as CVarArg, weekStart as NSDate, weekEnd as NSDate
+        )
+
+        return (try? PersistenceController.shared.container.viewContext.fetch(fetchRequest)) ?? []
     }
 
     private var nextSessionIndex: Int? {
         for index in 0..<Int(userProgram.daysPerWeek) {
-            let sessionId = "week\(userProgram.currentWeek)-session\(index)"
-            if !userProgram.completedSessionsSet.contains(sessionId) {
+            if !isSessionCompleted(sessionIndex: index) {
                 return index
             }
         }
@@ -449,8 +404,15 @@ struct WeeklySessionsSection: View {
     }
 
     private func isSessionCompleted(sessionIndex: Int) -> Bool {
-        let sessionId = "week\(userProgram.currentWeek)-session\(sessionIndex)"
-        return userProgram.completedSessionsSet.contains(sessionId)
+        guard let programData = userProgram.getProgram() else { return false }
+        let sessions = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
+        guard sessionIndex < sessions.count else { return false }
+
+        let sessionName = sessions[sessionIndex].dayName
+        let priorCount = sessions.prefix(sessionIndex).filter { $0.dayName == sessionName }.count
+        let completedCount = sessionsCompletedThisWeek.filter { $0.sessionName == sessionName }.count
+
+        return completedCount > priorCount
     }
 
     /// Generate display names with numbering for repeated workout types
@@ -560,9 +522,35 @@ struct HorizontalDayButtonsRow: View {
         .frame(height: 44)
     }
 
+    /// Sessions completed this calendar week (Monday-Sunday)
+    private var sessionsCompletedThisWeek: [CDWorkoutSession] {
+        guard let userId = AuthService.shared.currentUser?.id else { return [] }
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let weekday = calendar.component(.weekday, from: today)
+        let daysFromMonday = (weekday == 1) ? 6 : weekday - 2
+
+        guard let weekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: today),
+              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return [] }
+
+        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
+            userId as CVarArg, weekStart as NSDate, weekEnd as NSDate
+        )
+
+        return (try? PersistenceController.shared.container.viewContext.fetch(fetchRequest)) ?? []
+    }
+
     private func isSessionCompleted(sessionIndex: Int) -> Bool {
-        let sessionId = "week\(userProgram.currentWeek)-session\(sessionIndex)"
-        return userProgram.completedSessionsSet.contains(sessionId)
+        guard sessionIndex < sessions.count else { return false }
+
+        let sessionName = sessions[sessionIndex].dayName
+        let priorCount = sessions.prefix(sessionIndex).filter { $0.dayName == sessionName }.count
+        let completedCount = sessionsCompletedThisWeek.filter { $0.sessionName == sessionName }.count
+
+        return completedCount > priorCount
     }
 }
 
@@ -929,28 +917,54 @@ struct UpcomingWorkoutsSection: View {
         }
     }
 
+    /// Sessions completed this calendar week (Monday-Sunday)
+    private var sessionsCompletedThisWeek: [CDWorkoutSession] {
+        guard let userId = AuthService.shared.currentUser?.id else { return [] }
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let weekday = calendar.component(.weekday, from: today)
+        let daysFromMonday = (weekday == 1) ? 6 : weekday - 2
+
+        guard let weekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: today),
+              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return [] }
+
+        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
+            userId as CVarArg, weekStart as NSDate, weekEnd as NSDate
+        )
+
+        return (try? PersistenceController.shared.container.viewContext.fetch(fetchRequest)) ?? []
+    }
+
+    private func isSessionCompleted(sessionIndex: Int, sessions: [ProgramSession]) -> Bool {
+        guard sessionIndex < sessions.count else { return false }
+
+        let sessionName = sessions[sessionIndex].dayName
+        let priorCount = sessions.prefix(sessionIndex).filter { $0.dayName == sessionName }.count
+        let completedCount = sessionsCompletedThisWeek.filter { $0.sessionName == sessionName }.count
+
+        return completedCount > priorCount
+    }
+
     private var upcomingSessions: [SessionInfo] {
         var upcoming: [SessionInfo] = []
         guard let programData = userProgram.getProgram() else { return [] }
 
-        // CRITICAL: Only consider sessions within daysPerWeek limit
         let daysPerWeek = Int(userProgram.daysPerWeek)
         let sessionsToConsider = Array(programData.sessions.prefix(daysPerWeek))
 
-        // Find first incomplete session
         var foundNext = false
         for (index, session) in sessionsToConsider.enumerated() {
-            let sessionId = "week\(userProgram.currentWeek)-session\(index)"
-            if !userProgram.completedSessionsSet.contains(sessionId) {
+            if !isSessionCompleted(sessionIndex: index, sessions: sessionsToConsider) {
                 if foundNext {
-                    // This is an upcoming session
                     upcoming.append(SessionInfo(
                         id: index,
                         name: session.dayName,
                         exerciseCount: session.exercises.count
                     ))
                 } else {
-                    // This is the next session, skip it
                     foundNext = true
                 }
             }

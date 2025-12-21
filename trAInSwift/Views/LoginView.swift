@@ -96,19 +96,6 @@ struct LoginView: View {
                     .disabled(email.isEmpty || password.isEmpty)
                     .opacity(email.isEmpty || password.isEmpty ? 0.6 : 1.0)
 
-                    // Test account hint (DEBUG only)
-                    #if DEBUG
-                    VStack(spacing: Spacing.xs) {
-                        Text("Test Account")
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
-
-                        Text("test@test.com / password123")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.trainPrimary)
-                    }
-                    .padding(.top, Spacing.sm)
-                    #endif
                 }
                 .padding(.horizontal, Spacing.lg)
 

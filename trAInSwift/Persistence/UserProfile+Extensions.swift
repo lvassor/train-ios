@@ -38,6 +38,19 @@ extension UserProfile {
         }
     }
 
+    static func fetch(byAppleId appleId: String, context: NSManagedObjectContext) -> UserProfile? {
+        let request = UserProfile.fetchRequest()
+        request.predicate = NSPredicate(format: "appleUserIdentifier == %@", appleId)
+        request.fetchLimit = 1
+
+        do {
+            return try context.fetch(request).first
+        } catch {
+            print("❌ Failed to fetch user by Apple ID: \(error)")
+            return nil
+        }
+    }
+
     static func fetchAll(context: NSManagedObjectContext) -> [UserProfile] {
         let request = UserProfile.fetchRequest()
 

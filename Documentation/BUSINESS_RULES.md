@@ -15,6 +15,7 @@
 4. [Program Generation - Sets & Reps (iOS App)](#4-program-generation---sets--reps-ios-app)
 5. [Program Generation - Rest Periods (iOS App)](#5-program-generation---rest-periods-ios-app)
 6. [Program Generation - Exercise Selection by Experience Level (iOS App)](#6-program-generation---exercise-selection-by-experience-level-ios-app)
+7. [Exercise Scoring System (iOS App)](#7-exercise-scoring-system-ios-app)
 
 ---
 
@@ -643,7 +644,129 @@ func getEligibleExercises(userLevel: ExperienceLevel, slot: ProgramSlot) -> [Exe
 
 ---
 
-**Document Version**: 2.0
+## 7. Exercise Scoring System (iOS App)
+
+### What This Does
+The scoring system is a weighted random selection algorithm that determines which exercises to include in a user's program. Higher-scored exercises have a greater probability of being selected, but randomization ensures variety across generated programs.
+
+### Stage 1: Build User Pool
+
+Before scoring, the app builds a pool of available exercises:
+
+```
+User Pool = exercises WHERE:
+  - equipment_category IN user's selected equipment
+  - complexity_level <= max_complexity (from user_experience_complexity table)
+  - is_in_programme = 1
+```
+
+**Important**:
+- Max complexity is read from the database, NOT hardcoded.
+- Injuries do NOT filter exercises - they only display warning icons in the Workout Overview UI.
+
+| Experience Level | Max Complexity from DB |
+|-----------------|------------------------|
+| NO_EXPERIENCE   | 2                      |
+| BEGINNER        | 3                      |
+| INTERMEDIATE    | 3                      |
+| ADVANCED        | 4                      |
+
+### Stage 2: Scoring Rules
+
+#### Compound Exercises (is_isolation = false)
+
+| Complexity Level | Score (Points) | Selection Probability |
+|------------------|----------------|----------------------|
+| 4                | 20             | Highest              |
+| 3                | 15             | High                 |
+| 2                | 10             | Medium               |
+| 1                | 5              | Low                  |
+
+#### Isolation Exercises (is_isolation = true)
+
+| Experience Level | Score (Points) |
+|------------------|----------------|
+| Advanced         | 8              |
+| Intermediate     | 6              |
+| Beginner/NoExp   | 4              |
+
+### The Selection Algorithm
+
+```
+1. Build User Pool (filtered by equipment + complexity)
+2. Score all exercises in pool
+
+3. IF experience allows complexity 4 AND must be first:
+   - Select one complexity-4 compound using weighted random
+   - Mark as first exercise
+
+4. FOR each remaining exercise slot:
+   - IF complexity-4 already selected:
+     - Cap remaining candidates at complexity 3
+   - Prefer exercises with different canonical_names (variety)
+   - Use weighted random selection:
+     probability(exercise) = exercise.score / sum(all_scores)
+
+5. SORT final list for display:
+   - Compounds first, then isolations
+   - Within each group: higher complexity first
+```
+
+### Weighted Random Selection Example
+
+Given a pool with these scores:
+- Barbell Squat: 20 points
+- Romanian Deadlift: 15 points
+- Leg Press: 10 points
+- Leg Extension: 6 points
+
+Total = 51 points
+
+Selection probabilities:
+- Barbell Squat: 20/51 = 39.2%
+- Romanian Deadlift: 15/51 = 29.4%
+- Leg Press: 10/51 = 19.6%
+- Leg Extension: 6/51 = 11.8%
+
+### Stage 3: Sort for Display
+
+Final exercise order in the workout:
+
+```
+1. Compounds (is_isolation = false)
+   - Ordered by complexity: 4 → 3 → 2 → 1
+
+2. Isolations (is_isolation = true)
+   - Ordered by complexity: 4 → 3 → 2 → 1
+```
+
+**Rationale**: Perform demanding exercises when fresh, then move to targeted isolation work.
+
+### Stage 4: Error Handling
+
+The system generates warnings for UI display:
+
+| Warning Type | Trigger Condition | User Message |
+|-------------|-------------------|--------------|
+| `noExercisesForMuscle` | Empty pool after filtering | "No exercises available for {muscle}. Check your equipment selection." |
+| `insufficientExercises` | Found fewer than requested | "Only found {found} of {requested} exercises for {muscle}." |
+| `equipmentLimitedSelection` | Very few options available | "Limited exercise variety for {muscle} with selected equipment." |
+
+Warnings are displayed via native iOS alert after program generation completes.
+
+**Note**: Injuries do NOT generate warnings during selection - contraindicated exercises are included in the program but display a warning icon in the Workout Overview UI.
+
+### Key Implementation Files
+
+- `ExerciseRepository.swift` - Core scoring and selection logic
+- `DynamicProgramGenerator.swift` - Session generation orchestration
+- `WorkoutViewModel.swift` - Warning alert state management
+- `QuestionnaireView.swift` - Alert presentation
+
+---
+
+**Document Version**: 3.0
 **Created**: December 5, 2025
+**Updated**: December 9, 2025
 **Authors**: Luke Vassor & Brody Bastiman
 **Applies to**: trAIn Web (JavaScript) & trAIn iOS (Swift)

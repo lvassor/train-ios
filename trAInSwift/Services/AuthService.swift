@@ -3,8 +3,8 @@
 //  trAInSwift
 //
 //  Authentication service using Core Data + Keychain
-//  Passwords stored securely in Keychain
-//  User data stored in Core Data
+//  Supports email/password and Sign in with Apple
+//  Passwords stored securely (hashed) in Keychain
 //
 
 import Foundation
@@ -18,6 +18,7 @@ class AuthService: ObservableObject {
     @Published var isAuthenticated: Bool = false
 
     private let keychain = KeychainService.shared
+    private let appleSignIn = AppleSignInService.shared
     private let persistence = PersistenceController.shared
     private var context: NSManagedObjectContext {
         persistence.container.viewContext
@@ -61,43 +62,10 @@ class AuthService: ObservableObject {
         AppLogger.logAuth("Session cleared")
     }
 
-    // MARK: - Authentication
+    // MARK: - Email/Password Authentication
 
     func login(email: String, password: String) -> Result<UserProfile, AuthError> {
         let normalizedEmail = email.lowercased().trimmingCharacters(in: .whitespaces)
-
-        #if DEBUG
-        // Check test accounts first - but NO automatic program creation
-        // All users, including test accounts, MUST complete the questionnaire
-        if TestAccounts.isTestAccount(email: normalizedEmail),
-           let testPassword = TestAccounts.getPassword(for: normalizedEmail),
-           testPassword == password {
-            // Check if user already exists in Core Data
-            if let existingUser = UserProfile.fetch(byEmail: normalizedEmail, context: context) {
-                existingUser.updateLastLogin()
-                currentUser = existingUser
-                isAuthenticated = true
-                saveSession()
-                AppLogger.logAuth("Test user logged in successfully")
-                return .success(existingUser)
-            } else {
-                // Create new test user WITHOUT any program
-                // They must go through questionnaire like everyone else
-                let newUser = UserProfile.create(email: normalizedEmail, context: context)
-                do {
-                    try keychain.savePassword(testPassword, for: normalizedEmail)
-                } catch {
-                    AppLogger.logAuth("Failed to save test password to keychain: \(error.localizedDescription)", level: .warning)
-                }
-
-                currentUser = newUser
-                isAuthenticated = true
-                saveSession()
-                AppLogger.logAuth("New test user created - must complete questionnaire")
-                return .success(newUser)
-            }
-        }
-        #endif
 
         // Check stored users
         guard let user = UserProfile.fetch(byEmail: normalizedEmail, context: context) else {
@@ -105,7 +73,13 @@ class AuthService: ObservableObject {
             return .failure(.userNotFound)
         }
 
-        // Verify password from Keychain
+        // Check if this is an Apple Sign In user (no password stored)
+        if user.isAppleUser {
+            AppLogger.logAuth("Login failed: user signed up with Apple", level: .notice)
+            return .failure(.useAppleSignIn)
+        }
+
+        // Verify password from Keychain (passwords are hashed)
         if keychain.verifyPassword(password, for: normalizedEmail) {
             user.updateLastLogin()
             currentUser = user
@@ -122,14 +96,14 @@ class AuthService: ObservableObject {
     func signup(email: String, password: String, name: String = "") -> Result<UserProfile, AuthError> {
         let normalizedEmail = email.lowercased().trimmingCharacters(in: .whitespaces)
 
-        // Validate email
-        guard normalizedEmail.contains("@") && normalizedEmail.contains(".") else {
+        // Validate email format
+        guard isValidEmail(normalizedEmail) else {
             return .failure(.invalidEmail)
         }
 
-        // Validate password
-        guard password.count >= 6 else {
-            return .failure(.passwordTooShort)
+        // Validate password (min 6 chars, must contain number and special char)
+        guard isValidPassword(password) else {
+            return .failure(.passwordTooWeak)
         }
 
         // Check if user already exists
@@ -140,8 +114,9 @@ class AuthService: ObservableObject {
         // Create new user
         let newUser = UserProfile.create(email: normalizedEmail, context: context)
         newUser.name = name
+        newUser.isAppleUser = false
 
-        // Save password to Keychain
+        // Save hashed password to Keychain
         do {
             try keychain.savePassword(password, for: normalizedEmail)
         } catch {
@@ -154,11 +129,105 @@ class AuthService: ObservableObject {
         isAuthenticated = true
         saveSession()
 
+        AppLogger.logAuth("New user signed up successfully")
         return .success(newUser)
+    }
+
+    // MARK: - Sign in with Apple
+
+    func signInWithApple(completion: @escaping (Result<UserProfile, AuthError>) -> Void) {
+        appleSignIn.signIn { [weak self] result in
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let appleResult):
+                    self.handleAppleSignInResult(appleResult, completion: completion)
+                case .failure(let error):
+                    if (error as NSError).code == 1001 {
+                        // User cancelled
+                        completion(.failure(.cancelled))
+                    } else {
+                        AppLogger.logAuth("Apple Sign In failed: \(error.localizedDescription)", level: .error)
+                        completion(.failure(.appleSignInFailed))
+                    }
+                }
+            }
+        }
+    }
+
+    private func handleAppleSignInResult(_ result: AppleSignInResult, completion: @escaping (Result<UserProfile, AuthError>) -> Void) {
+        let userIdentifier = result.userIdentifier
+
+        // Check if user already exists by Apple user identifier
+        if let existingUser = UserProfile.fetch(byAppleId: userIdentifier, context: context) {
+            existingUser.updateLastLogin()
+            currentUser = existingUser
+            isAuthenticated = true
+            saveSession()
+            AppLogger.logAuth("Apple user logged in successfully")
+            completion(.success(existingUser))
+            return
+        }
+
+        // Check if user exists by email (linking accounts)
+        if let email = result.email,
+           let existingUser = UserProfile.fetch(byEmail: email.lowercased(), context: context) {
+            // Link Apple ID to existing account
+            existingUser.appleUserIdentifier = userIdentifier
+            existingUser.isAppleUser = true
+            existingUser.updateLastLogin()
+            currentUser = existingUser
+            isAuthenticated = true
+            saveSession()
+            AppLogger.logAuth("Linked Apple ID to existing account")
+            completion(.success(existingUser))
+            return
+        }
+
+        // Create new user with Apple credentials
+        // Note: email may be nil on subsequent logins (Apple only provides it once)
+        let email = result.email ?? "\(userIdentifier)@privaterelay.appleid.com"
+        let newUser = UserProfile.create(email: email.lowercased(), context: context)
+        newUser.name = result.fullName ?? ""
+        newUser.appleUserIdentifier = userIdentifier
+        newUser.isAppleUser = true
+
+        // Store Apple identifier in Keychain
+        do {
+            try keychain.saveAppleUserIdentifier(userIdentifier, for: email)
+        } catch {
+            AppLogger.logAuth("Failed to save Apple identifier: \(error)", level: .warning)
+            // Continue anyway - not critical
+        }
+
+        currentUser = newUser
+        isAuthenticated = true
+        saveSession()
+
+        AppLogger.logAuth("New Apple user created successfully")
+        completion(.success(newUser))
     }
 
     func logout() {
         clearSession()
+    }
+
+    // MARK: - Validation Helpers
+
+    private func isValidEmail(_ email: String) -> Bool {
+        // RFC 5322 simplified validation
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
+    }
+
+    private func isValidPassword(_ password: String) -> Bool {
+        // Minimum 6 characters, must contain at least one number and one special character
+        guard password.count >= 6 else { return false }
+        let hasNumber = password.rangeOfCharacter(from: .decimalDigits) != nil
+        let hasSpecial = password.rangeOfCharacter(from: CharacterSet(charactersIn: "!@#$%^&*()_+-=[]{}|;:',.<>?/~`")) != nil
+        return hasNumber && hasSpecial
     }
 
     // MARK: - User Management
@@ -293,10 +362,14 @@ class AuthService: ObservableObject {
 enum AuthError: LocalizedError {
     case invalidEmail
     case passwordTooShort
+    case passwordTooWeak
     case emailAlreadyExists
     case userNotFound
     case invalidCredentials
     case keychainError
+    case useAppleSignIn
+    case appleSignInFailed
+    case cancelled
 
     var errorDescription: String? {
         switch self {
@@ -304,6 +377,8 @@ enum AuthError: LocalizedError {
             return "Please enter a valid email address"
         case .passwordTooShort:
             return "Password must be at least 6 characters"
+        case .passwordTooWeak:
+            return "Password must contain at least one number and one special character"
         case .emailAlreadyExists:
             return "An account with this email already exists"
         case .userNotFound:
@@ -312,6 +387,12 @@ enum AuthError: LocalizedError {
             return "Invalid email or password"
         case .keychainError:
             return "Failed to securely store password"
+        case .useAppleSignIn:
+            return "This account uses Sign in with Apple"
+        case .appleSignInFailed:
+            return "Sign in with Apple failed. Please try again."
+        case .cancelled:
+            return "Sign in was cancelled"
         }
     }
 }

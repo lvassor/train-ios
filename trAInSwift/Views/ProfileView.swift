@@ -12,6 +12,7 @@ struct ProfileView: View {
     @ObservedObject var authService = AuthService.shared
     @State private var showLogoutConfirmation = false
     @State private var shouldRestartQuestionnaire = false
+    @State private var showEditProfile = false
 
     var body: some View {
         NavigationView {
@@ -28,9 +29,15 @@ struct ProfileView: View {
                                         .foregroundColor(.trainPrimary)
                                 )
 
-                            Text(authService.currentUser?.email ?? "")
+                            Text(authService.currentUser?.name ?? authService.currentUser?.email ?? "")
                                 .font(.trainHeadline)
                                 .foregroundColor(.trainTextPrimary)
+
+                            if let name = authService.currentUser?.name, !name.isEmpty {
+                                Text(authService.currentUser?.email ?? "")
+                                    .font(.trainBody)
+                                    .foregroundColor(.trainTextSecondary)
+                            }
 
                             if let user = authService.currentUser {
                                 Text("Member since \(formatDate(user.createdAt ?? Date()))")
@@ -53,7 +60,7 @@ struct ProfileView: View {
                             ProfileMenuItem(
                                 icon: "person.circle",
                                 title: "Edit Profile",
-                                action: {}
+                                action: { showEditProfile = true }
                             )
 
                             Divider()
@@ -98,12 +105,131 @@ struct ProfileView: View {
         } message: {
             Text("Are you sure you want to log out?")
         }
+        .sheet(isPresented: $showEditProfile) {
+            EditProfileView()
+        }
     }
 
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
+    }
+}
+
+// MARK: - Edit Profile View
+
+struct EditProfileView: View {
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var authService = AuthService.shared
+    @State private var name: String = ""
+    @State private var email: String = ""
+    @State private var showSaveConfirmation = false
+    @State private var hasChanges = false
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: Spacing.lg) {
+                    // Profile Avatar
+                    Circle()
+                        .fill(Color.trainPrimary.opacity(0.2))
+                        .frame(width: 100, height: 100)
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 44))
+                                .foregroundColor(.trainPrimary)
+                        )
+                        .padding(.top, Spacing.xl)
+
+                    // Form Fields
+                    VStack(spacing: Spacing.md) {
+                        // Name Field
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            Text("Full Name")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(.trainTextPrimary)
+
+                            TextField("Enter your name", text: $name)
+                                .textInputAutocapitalization(.words)
+                                .autocorrectionDisabled()
+                                .padding(Spacing.md)
+                                .background(Color.white.opacity(0.08))
+                                .cornerRadius(CornerRadius.md)
+                                .onChange(of: name) { _, _ in
+                                    checkForChanges()
+                                }
+                        }
+
+                        // Email Field (read-only)
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            Text("Email")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(.trainTextPrimary)
+
+                            Text(email)
+                                .font(.trainBody)
+                                .foregroundColor(.trainTextSecondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(Spacing.md)
+                                .background(Color.white.opacity(0.04))
+                                .cornerRadius(CornerRadius.md)
+
+                            Text("Email cannot be changed")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                        }
+                    }
+                    .padding(.horizontal, Spacing.lg)
+
+                    Spacer()
+                }
+            }
+            .background(.ultraThinMaterial)
+            .navigationTitle("Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.trainTextSecondary)
+                }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        saveProfile()
+                    }
+                    .foregroundColor(hasChanges ? .trainPrimary : .trainTextSecondary)
+                    .disabled(!hasChanges)
+                }
+            }
+            .onAppear {
+                loadCurrentProfile()
+            }
+        }
+    }
+
+    private func loadCurrentProfile() {
+        if let user = authService.currentUser {
+            name = user.name ?? ""
+            email = user.email ?? ""
+        }
+    }
+
+    private func checkForChanges() {
+        guard let user = authService.currentUser else {
+            hasChanges = false
+            return
+        }
+        hasChanges = name != (user.name ?? "")
+    }
+
+    private func saveProfile() {
+        guard let user = authService.currentUser else { return }
+        user.name = name
+        authService.updateUser(user)
+        dismiss()
     }
 }
 

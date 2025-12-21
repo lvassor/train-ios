@@ -647,11 +647,12 @@ On successful signup:
 ---
 
 ### 4.5 Program Generation Logic
-**File:** `DynamicProgramGenerator.swift`
+**Files:** `DynamicProgramGenerator.swift`, `ExerciseRepository.swift`, `ProgramGenerator.swift`
 
 **Split Type Determination:**
 | Days | Duration | Split Type |
 |------|----------|------------|
+| 1 | Any | Full Body |
 | 2 | 30-45 min | Upper/Lower |
 | 2 | 45-90 min | Full Body |
 | 3 | Any | Push/Pull/Legs |
@@ -659,12 +660,38 @@ On successful signup:
 | 5 | Any | Hybrid (PPL + Upper/Lower) |
 | 6 | Any | Push/Pull/Legs x2 |
 
-**Exercise Selection Considers:**
-- User experience level (complexity filtering)
-- Available equipment
-- Injury contraindications
-- Target muscle group priorities
-- Session duration (exercise count)
+**Exercise Selection Algorithm (3 Stages):**
+
+**Stage 1 - Build User Pool:**
+- Filter by user's available equipment
+- Filter by max complexity from `user_experience_complexity` DB table
+- Filter out injury contraindications
+- Fallback: If pool empty, retry without injury filter and add warning
+
+**Stage 2 - Score and Select:**
+| Exercise Type | Condition | Score |
+|---------------|-----------|-------|
+| Compound | Complexity 4 | 20 pts |
+| Compound | Complexity 3 | 15 pts |
+| Compound | Complexity 2 | 10 pts |
+| Compound | Complexity 1 | 5 pts |
+| Isolation | Advanced user | 8 pts |
+| Isolation | Intermediate | 6 pts |
+| Isolation | Beginner/NoExp | 4 pts |
+
+Selection uses weighted random: `probability = score / total_scores`
+
+**Stage 3 - Sort for Display:**
+1. Compounds first (by complexity descending)
+2. Isolations second (by complexity descending)
+
+**Validation Warnings:**
+System generates warnings displayed via native iOS alert:
+- `noExercisesForMuscle` - Empty pool after filtering
+- `insufficientExercises` - Found fewer than requested
+- `injuryFilterBypassed` - Had to remove injury filter
+
+See `BUSINESS_RULES.md` Section 7 and `SCORING_FLOWCHART.md` for detailed documentation.
 
 ---
 

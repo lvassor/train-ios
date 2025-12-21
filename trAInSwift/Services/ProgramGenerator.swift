@@ -17,16 +17,21 @@ class ProgramGenerator {
 
     // MARK: - Main Generation Function
 
-    func generateProgram(from questionnaireData: QuestionnaireData) -> Program {
+    /// Generate program and return any warnings for UI display
+    func generateProgramWithWarnings(from questionnaireData: QuestionnaireData) -> ProgramGenerationResult {
         AppLogger.logProgram("Generating personalised program: \(questionnaireData.trainingDaysPerWeek) days/week, \(questionnaireData.sessionDuration)")
 
         do {
-            // Use dynamic database-driven program generation
-            let program = try dynamicGenerator.generateProgram(from: questionnaireData)
+            // Use dynamic database-driven program generation with warnings
+            let result = try dynamicGenerator.generateProgramWithWarnings(from: questionnaireData)
 
-            AppLogger.logProgram("Program generated: \(program.type.description), \(program.sessions.count) sessions, \(program.sessions.reduce(0) { $0 + $1.exercises.count }) exercises")
+            AppLogger.logProgram("Program generated: \(result.program.type.description), \(result.program.sessions.count) sessions, \(result.program.sessions.reduce(0) { $0 + $1.exercises.count }) exercises")
 
-            return program
+            if result.hasWarnings {
+                AppLogger.logProgram("Generation warnings: \(result.uniqueWarnings.count)", level: .warning)
+            }
+
+            return result
 
         } catch {
             AppLogger.logProgram("Error generating dynamic program: \(error.localizedDescription), falling back to hardcoded", level: .warning)
@@ -38,8 +43,13 @@ class ProgramGenerator {
             )
 
             AppLogger.logProgram("Fallback program loaded: \(fallbackProgram.type.description)")
-            return fallbackProgram
+            return ProgramGenerationResult(program: fallbackProgram, warnings: [])
         }
+    }
+
+    /// Legacy method for backward compatibility
+    func generateProgram(from questionnaireData: QuestionnaireData) -> Program {
+        return generateProgramWithWarnings(from: questionnaireData).program
     }
 
 }

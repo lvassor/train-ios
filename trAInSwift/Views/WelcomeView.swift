@@ -19,15 +19,17 @@ struct WelcomeView: View {
             VStack(spacing: 48) {
                 Spacer()
 
-                VStack(spacing: 16) {
-                    Text("train.")
-                        .font(.system(size: 64, weight: .bold))
-                        .foregroundColor(.trainPrimary)
-                        .tracking(1)
+                VStack(spacing: 12) {
+                    // Logo with text
+                    Image("TrainLogoWithText")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 200)
 
-                    Text("built for you")
+                    Text("The world's #1\nstrength training app")
                         .font(.trainSubtitle)
                         .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
                 }
 
                 Spacer()
@@ -44,7 +46,7 @@ struct WelcomeView: View {
                             .font(.trainBody)
                             .foregroundColor(.white.opacity(0.8))
 
-                        Button(action: onLogin) {
+                        Button(action: {}) {
                             Text("log in")
                                 .font(.trainBody)
                                 .foregroundColor(.trainPrimary)

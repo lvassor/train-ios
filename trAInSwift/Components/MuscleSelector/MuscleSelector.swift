@@ -139,23 +139,32 @@ struct MuscleSelector: View {
         ZStack {
             // Render all body parts
             ForEach(bodyParts, id: \.slug) { part in
-                let isSelectable = part.slug.isSelectable
+                // Triceps and trapezius are only selectable on back view
+                let isSelectableOnCurrentView = part.slug.isSelectable && isSelectableOnSide(part.slug)
                 let groupName = part.slug.questionnaireGroupName ?? part.slug.displayName
                 let isSelected = selectedMuscles.contains(groupName)
 
                 MusclePathView(
                     paths: part.paths.allPaths,
-                    fillColor: getFillColor(for: part, isSelected: isSelected),
+                    fillColor: getFillColor(for: part, isSelected: isSelected, isSelectable: isSelectableOnCurrentView),
                     isSelected: isSelected,
                     onTap: {
-                        if isSelectable {
+                        if isSelectableOnCurrentView {
                             toggleMuscle(groupName)
                         }
                     }
                 )
-                .allowsHitTesting(isSelectable)
+                .allowsHitTesting(isSelectableOnCurrentView)
             }
         }
+    }
+
+    // Triceps and trapezius are only selectable on back view
+    private func isSelectableOnSide(_ slug: MuscleSlug) -> Bool {
+        if side == .front && (slug == .triceps || slug == .trapezius) {
+            return false
+        }
+        return true
     }
 
     private func getBodyParts() -> [MusclePart] {
@@ -171,12 +180,12 @@ struct MuscleSelector: View {
         }
     }
 
-    private func getFillColor(for part: MusclePart, isSelected: Bool) -> Color {
+    private func getFillColor(for part: MusclePart, isSelected: Bool, isSelectable: Bool = true) -> Color {
         if isSelected {
             return Color.trainPrimary
         }
 
-        if !part.slug.isSelectable {
+        if !part.slug.isSelectable || !isSelectable {
             return Color(hex: part.defaultColor) ?? .gray
         }
 
@@ -196,13 +205,12 @@ struct MuscleSelector: View {
     }
 }
 
-// MARK: - Compact Muscle Selector (for questionnaire)
+// MARK: - Compact Muscle Selector (for questionnaire) - Side by Side Front/Back
 
 struct CompactMuscleSelector: View {
     @Binding var selectedMuscles: [String]
     let maxSelections: Int
 
-    @State private var side: MuscleSelector.BodySide = .front
     @State private var gender: MuscleSelector.BodyGender = .male
 
     // Standard canvas dimensions for aspect ratio (matching transformed data viewBox)
@@ -215,92 +223,92 @@ struct CompactMuscleSelector: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Toggle row with Gender and Side toggles
-            HStack(spacing: Spacing.md) {
-                // Gender toggle
-                HStack(spacing: 0) {
-                    ForEach(MuscleSelector.BodyGender.allCases, id: \.self) { bodyGender in
-                        Button(action: {
-                            // Instant switch - no animation to avoid shape mixing
-                            gender = bodyGender
-                        }) {
-                            Image(systemName: bodyGender == .male ? "figure.stand" : "figure.stand.dress")
-                                .font(.system(size: 14))
-                                .foregroundColor(gender == bodyGender ? .white : .trainTextPrimary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, Spacing.xs)
-                                .background(gender == bodyGender ? Color.trainPrimary : Color.clear)
-                        }
+        VStack(spacing: Spacing.sm) {
+            // Gender toggle only (no front/back toggle - both shown)
+            HStack(spacing: 0) {
+                ForEach(MuscleSelector.BodyGender.allCases, id: \.self) { bodyGender in
+                    Button(action: {
+                        gender = bodyGender
+                    }) {
+                        Image(systemName: bodyGender == .male ? "figure.stand" : "figure.stand.dress")
+                            .font(.system(size: 14))
+                            .foregroundColor(gender == bodyGender ? .white : .trainTextPrimary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, Spacing.xs)
+                            .background(gender == bodyGender ? Color.trainPrimary : Color.clear)
                     }
                 }
-                .background(Color.trainTextSecondary.opacity(0.1))
-                .cornerRadius(CornerRadius.sm)
-                .frame(width: 80)
-
-                // Side toggle
-                HStack(spacing: 0) {
-                    ForEach(MuscleSelector.BodySide.allCases, id: \.self) { bodySide in
-                        Button(action: {
-                            // Instant switch - no animation to avoid shape mixing
-                            side = bodySide
-                        }) {
-                            Text(bodySide.rawValue)
-                                .font(.trainCaption)
-                                .foregroundColor(side == bodySide ? .white : .trainTextPrimary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, Spacing.xs)
-                                .background(side == bodySide ? Color.trainPrimary : Color.clear)
-                        }
-                    }
-                }
-                .background(Color.trainTextSecondary.opacity(0.1))
-                .cornerRadius(CornerRadius.sm)
             }
-            .padding(.top, -8)
+            .background(Color.trainTextSecondary.opacity(0.1))
+            .cornerRadius(CornerRadius.sm)
+            .frame(width: 80)
 
-            // Body diagram - scales to fit available width while maintaining aspect ratio
-            GeometryReader { geometry in
-                let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight)
+            // Side by side body diagrams - front and back
+            HStack(spacing: Spacing.sm) {
+                // Front view
+                VStack(spacing: 4) {
+                    Text("Front")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
 
-                ZStack {
-                    bodyDiagram
-                        .frame(width: svgWidth, height: svgHeight)
-                        .scaleEffect(scale, anchor: .center)
-                        .frame(width: geometry.size.width, height: geometry.size.height)
+                    bodyDiagram(side: .front)
                 }
-                .frame(width: geometry.size.width, height: geometry.size.height)
+
+                // Back view
+                VStack(spacing: 4) {
+                    Text("Back")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+
+                    bodyDiagram(side: .back)
+                }
             }
-            .aspectRatio(svgWidth / svgHeight, contentMode: .fit)
         }
     }
 
     @ViewBuilder
-    private var bodyDiagram: some View {
-        let bodyParts = getBodyParts()
+    private func bodyDiagram(side: MuscleSelector.BodySide) -> some View {
+        let bodyParts = getBodyParts(side: side)
 
-        ZStack {
-            ForEach(bodyParts, id: \.slug) { part in
-                let isSelectable = part.slug.isSelectable
-                let groupName = part.slug.questionnaireGroupName ?? part.slug.displayName
-                let isSelected = selectedMuscles.contains(groupName)
+        GeometryReader { geometry in
+            let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight)
 
-                MusclePathView(
-                    paths: part.paths.allPaths,
-                    fillColor: getFillColor(for: part, isSelected: isSelected),
-                    isSelected: isSelected,
-                    onTap: {
-                        if isSelectable {
-                            toggleMuscle(groupName)
+            ZStack {
+                ForEach(bodyParts, id: \.slug) { part in
+                    // Triceps and trapezius are only selectable on back view
+                    let isSelectableOnCurrentView = part.slug.isSelectable && isSelectableOnSide(part.slug, side: side)
+                    let groupName = part.slug.questionnaireGroupName ?? part.slug.displayName
+                    let isSelected = selectedMuscles.contains(groupName)
+
+                    MusclePathView(
+                        paths: part.paths.allPaths,
+                        fillColor: getFillColor(for: part, isSelected: isSelected, isSelectable: isSelectableOnCurrentView),
+                        isSelected: isSelected,
+                        onTap: {
+                            if isSelectableOnCurrentView {
+                                toggleMuscle(groupName)
+                            }
                         }
-                    }
-                )
-                .allowsHitTesting(isSelectable)
+                    )
+                    .allowsHitTesting(isSelectableOnCurrentView)
+                }
             }
+            .frame(width: svgWidth, height: svgHeight)
+            .scaleEffect(scale, anchor: .center)
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
+        .aspectRatio(svgWidth / svgHeight, contentMode: .fit)
     }
 
-    private func getBodyParts() -> [MusclePart] {
+    // Triceps and trapezius are only selectable on back view
+    private func isSelectableOnSide(_ slug: MuscleSlug, side: MuscleSelector.BodySide) -> Bool {
+        if side == .front && (slug == .triceps || slug == .trapezius) {
+            return false
+        }
+        return true
+    }
+
+    private func getBodyParts(side: MuscleSelector.BodySide) -> [MusclePart] {
         switch (gender, side) {
         case (.male, .front):
             return BodyDataProvider.maleFront
@@ -313,11 +321,11 @@ struct CompactMuscleSelector: View {
         }
     }
 
-    private func getFillColor(for part: MusclePart, isSelected: Bool) -> Color {
+    private func getFillColor(for part: MusclePart, isSelected: Bool, isSelectable: Bool = true) -> Color {
         if isSelected {
             return Color.trainPrimary
         }
-        if !part.slug.isSelectable {
+        if !part.slug.isSelectable || !isSelectable {
             return Color(hex: part.defaultColor) ?? .gray
         }
         return Color(hex: "#3f3f3f") ?? .gray

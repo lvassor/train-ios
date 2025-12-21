@@ -9,6 +9,20 @@
 import SwiftUI
 import Combine
 
+// MARK: - Logger Tab Options
+
+enum LoggerTabOption: String, CaseIterable, Hashable {
+    case logger = "Logger"
+    case demo = "Demo"
+
+    var icon: String {
+        switch self {
+        case .logger: return "list.bullet.clipboard"
+        case .demo: return "play.circle.fill"
+        }
+    }
+}
+
 struct ExerciseLoggerView: View {
     @Environment(\.dismiss) var dismiss
 
@@ -74,26 +88,22 @@ struct ExerciseLoggerView: View {
                     onBack: onCancel
                 )
 
-                // Tab toggle with glass lens effect
-                GlassTabBar(
-                    selectedTab: $selectedTab,
-                    tabs: LoggerTabOption.allCases.map { tab in
-                        GlassTabItem(id: tab, icon: tab.icon, label: tab.rawValue)
-                    },
-                    showLabels: true,
-                    lensInset: 0.12,
-                    onTabSelected: { tab in
-                        if tab == .demo {
-                            loadExerciseDetails()
-                        }
+                // Tab toggle with native segmented picker
+                Picker("View", selection: $selectedTab) {
+                    ForEach(LoggerTabOption.allCases, id: \.self) { tab in
+                        Label(tab.rawValue, systemImage: tab.icon)
+                            .tag(tab)
                     }
-                )
-                .frame(width: 170)
-                .padding(5)
-                .background(Color.white.opacity(0.08))
-                .clipShape(Capsule())
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 200)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.md)
+                .onChange(of: selectedTab) { _, newTab in
+                    if newTab == .demo {
+                        loadExerciseDetails()
+                    }
+                }
 
                 // Content
                 if selectedTab == .logger {
@@ -764,65 +774,66 @@ struct ExerciseDemoTab: View {
                     .padding(.horizontal, Spacing.lg)
                     .padding(.top, Spacing.md)
 
-                // Equipment info
-                HStack(spacing: Spacing.md) {
-                    HStack(spacing: Spacing.xs) {
-                        Image(systemName: "dumbbell")
-                            .font(.caption)
-                        Text(exercise.equipmentCategory)
-                            .font(.trainCaption)
-                    }
-                    .foregroundColor(.trainTextSecondary)
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, Spacing.xs)
-                    .glassCompactCard(cornerRadius: CornerRadius.sm)
+                // Video/Image Demo Player
+                ExerciseMediaPlayer(exerciseId: exercise.exerciseId)
+                    .padding(.horizontal, Spacing.lg)
 
-                    if let specific = exercise.equipmentSpecific {
+                // Muscles & Equipment cards (side by side)
+                HStack(alignment: .top, spacing: Spacing.sm) {
+                    // Muscles card (left)
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text("Muscles")
+                            .font(.trainHeadline)
+                            .foregroundColor(.trainTextPrimary)
+
                         HStack(spacing: Spacing.xs) {
-                            Image(systemName: "gearshape")
+                            // Primary muscle
+                            Text(exercise.primaryMuscle)
+                                .font(.trainCaption)
+                                .foregroundColor(.trainPrimary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.trainPrimary.opacity(0.1))
+                                .clipShape(Capsule())
+
+                            // Secondary muscle (if any)
+                            if let secondary = exercise.secondaryMuscle {
+                                Text(secondary)
+                                    .font(.trainCaption)
+                                    .foregroundColor(.trainTextSecondary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.trainTextSecondary.opacity(0.1))
+                                    .clipShape(Capsule())
+                            }
+                        }
+                    }
+                    .padding(Spacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .appCard()
+
+                    // Equipment card (right)
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text("Equipment")
+                            .font(.trainHeadline)
+                            .foregroundColor(.trainTextPrimary)
+
+                        HStack(spacing: Spacing.xs) {
+                            Image(systemName: "dumbbell")
                                 .font(.caption)
-                            Text(specific)
+                            Text(exercise.equipmentCategory)
                                 .font(.trainCaption)
                         }
                         .foregroundColor(.trainTextSecondary)
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, Spacing.xs)
-                        .glassCompactCard(cornerRadius: CornerRadius.sm)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.trainTextSecondary.opacity(0.1))
+                        .clipShape(Capsule())
                     }
+                    .padding(Spacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .appCard()
                 }
-                .padding(.horizontal, Spacing.lg)
-
-                // Muscle groups
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Muscles Worked")
-                        .font(.trainHeadline)
-                        .foregroundColor(.trainTextPrimary)
-
-                    HStack(spacing: Spacing.sm) {
-                        // Primary muscle as capsule
-                        Text(exercise.primaryMuscle)
-                            .font(.trainCaption)
-                            .foregroundColor(.trainPrimary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.trainPrimary.opacity(0.1))
-                            .clipShape(Capsule())
-
-                        // Secondary muscle as capsule (if any)
-                        if let secondary = exercise.secondaryMuscle {
-                            Text(secondary)
-                                .font(.trainCaption)
-                                .foregroundColor(.trainTextSecondary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.trainTextSecondary.opacity(0.1))
-                                .clipShape(Capsule())
-                        }
-                    }
-                }
-                .padding(Spacing.md)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .appCard()
                 .padding(.horizontal, Spacing.lg)
 
                 // Instructions
@@ -901,6 +912,7 @@ struct ExerciseDemoTab: View {
                 Spacer().frame(height: 100)
             }
         }
+        .edgeFadeMask(topFade: 12, bottomFade: 50)
     }
 
     private var complexityLabel: String {

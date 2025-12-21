@@ -19,12 +19,12 @@ struct QuestionnaireProgressBar: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
-                // Background track - uses muted fill from ColorPalette
+                // Background track
                 Capsule()
-                    .fill(Color.trainMutedFill.opacity(0.3))
+                    .fill(Color.white.opacity(0.2))
                     .frame(height: ElementHeight.progressBar)
 
-                // Progress fill - continuous bar matching button color
+                // Progress fill - accent color (orange)
                 Capsule()
                     .fill(Color.trainPrimary)
                     .frame(width: geometry.size.width * progress, height: ElementHeight.progressBar)

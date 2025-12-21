@@ -157,10 +157,9 @@ struct WeeklyCalendarView: View {
     // MARK: - Helper Methods
 
     private var completedThisWeek: Int {
-        let currentWeekSessions = userProgram.completedSessionsSet.filter { sessionId in
-            sessionId.hasPrefix("week\(userProgram.currentWeek)-")
-        }
-        return currentWeekSessions.count
+        // Count how many days this week have a workout logged
+        let weekDays = getWeekDays()
+        return weekDays.filter { $0.workoutLetter != nil }.count
     }
 
     private var monthYearString: String {
