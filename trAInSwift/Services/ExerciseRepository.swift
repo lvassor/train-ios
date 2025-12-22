@@ -120,11 +120,14 @@ class ExerciseRepository {
     /// Scoring rules:
     /// - Compounds: complexity 4 = 20pts, complexity 3 = 15pts, complexity 2 = 10pts, complexity 1 = 5pts
     /// - Isolations: Advanced = 8pts, Intermediate = 6pts, Beginner/NoExp = 4pts
+    /// excludedDisplayNames: Program-level tracking of used display names to prevent duplicates across sessions
     func scoreAndSelectExercises(
         from pool: [DBExercise],
         count: Int,
         experienceLevel: ExperienceLevel,
         excludedExerciseIds: Set<String>,
+        excludedDisplayNames: Set<String>,
+        excludedCanonicalNames: Set<String> = [],  // Session-level canonical name exclusion
         allowComplexity4: Bool,
         requireComplexity4First: Bool,
         maxComplexity: Int
@@ -132,11 +135,18 @@ class ExerciseRepository {
 
         guard !pool.isEmpty else { return [] }
 
-        var availablePool = pool.filter { !excludedExerciseIds.contains($0.exerciseId) }
+        // Filter out exercises by ID, display name (program-level), and canonical name (session-level)
+        let availablePool = pool.filter {
+            !excludedExerciseIds.contains($0.exerciseId) &&
+            !excludedDisplayNames.contains($0.displayName) &&
+            !excludedCanonicalNames.contains($0.canonicalName)
+        }
         var selectedExercises: [ScoredExercise] = []
-        var usedCanonicalNames = Set<String>()
 
         print("🎯 Scoring \(availablePool.count) exercises for selection (need \(count))")
+        print("   Already excluded \(excludedDisplayNames.count) display names from program")
+        print("   Already excluded \(excludedCanonicalNames.count) canonical names from session")
+        print("   Experience level for scoring: \(experienceLevel)")
 
         // Score all exercises
         var scoredPool = availablePool.map { exercise -> ScoredExercise in
@@ -144,6 +154,16 @@ class ExerciseRepository {
             let isCompound = !exercise.isIsolation
             return ScoredExercise(exercise: exercise, score: score, isCompound: isCompound)
         }
+
+        // Debug: Print top 5 scored exercises
+        let topScored = scoredPool.sorted { $0.score > $1.score }.prefix(5)
+        print("   📊 Top 5 scored exercises in pool:")
+        for scored in topScored {
+            print("      - \(scored.exercise.displayName): \(scored.score)pts (complexity: \(scored.exercise.complexityLevel), equip: \(scored.exercise.equipmentCategory ?? "?"))")
+        }
+
+        // Track canonical names used within this selection to prevent variations
+        var usedCanonicalNamesInSelection = Set<String>()
 
         // BUSINESS RULE: If complexity-4 required first, select one first
         if requireComplexity4First && allowComplexity4 {
@@ -153,38 +173,36 @@ class ExerciseRepository {
 
             if let selected = weightedRandomSelect(from: complexity4Candidates) {
                 selectedExercises.append(selected)
-                usedCanonicalNames.insert(selected.exercise.canonicalName)
-                scoredPool.removeAll { $0.exercise.exerciseId == selected.exercise.exerciseId }
+                usedCanonicalNamesInSelection.insert(selected.exercise.canonicalName)
+                // Remove all exercises with same canonical name (no bench press variations in same session)
+                scoredPool.removeAll { $0.exercise.canonicalName == selected.exercise.canonicalName }
                 print("   ✅ Selected complexity-4 first: \(selected.exercise.displayName) (score: \(selected.score))")
             }
         }
 
         // Select remaining exercises with weighted random selection
         while selectedExercises.count < count && !scoredPool.isEmpty {
-            // Prefer exercises with different canonical names for variety
-            let preferredCandidates = scoredPool.filter { !usedCanonicalNames.contains($0.exercise.canonicalName) }
-            let candidates = preferredCandidates.isEmpty ? scoredPool : preferredCandidates
-
             // Apply complexity cap if we already have a complexity-4
             let hasComplexity4 = selectedExercises.contains { $0.exercise.complexityLevel == 4 }
-            let filteredCandidates: [ScoredExercise]
+            let candidates: [ScoredExercise]
 
             if hasComplexity4 {
                 // Only allow up to complexity 3 for remaining (unless isolation)
-                filteredCandidates = candidates.filter {
+                candidates = scoredPool.filter {
                     $0.exercise.complexityLevel <= 3 || $0.exercise.isIsolation
                 }
             } else {
-                filteredCandidates = candidates
+                candidates = scoredPool
             }
 
-            guard let selected = weightedRandomSelect(from: filteredCandidates.isEmpty ? candidates : filteredCandidates) else {
+            guard let selected = weightedRandomSelect(from: candidates.isEmpty ? scoredPool : candidates) else {
                 break
             }
 
             selectedExercises.append(selected)
-            usedCanonicalNames.insert(selected.exercise.canonicalName)
-            scoredPool.removeAll { $0.exercise.exerciseId == selected.exercise.exerciseId }
+            usedCanonicalNamesInSelection.insert(selected.exercise.canonicalName)
+            // Remove all exercises with same canonical name (no bench press variations in same session)
+            scoredPool.removeAll { $0.exercise.canonicalName == selected.exercise.canonicalName }
 
             print("   ✅ Selected: \(selected.exercise.displayName) (score: \(selected.score), compound: \(selected.isCompound))")
         }
@@ -198,21 +216,21 @@ class ExerciseRepository {
             // Isolation scoring based on experience level
             switch experienceLevel {
             case .advanced:
-                return 8
+                return 10
             case .intermediate:
                 return 6
             case .beginner, .noExperience:
-                return 4
+                return 5  // Equal to complexity-1 compounds for beginners
             }
         } else {
-            // Compound scoring based on complexity
+            // Compound scoring based on complexity - heavily favor high complexity
             switch exercise.complexityLevel {
             case 4:
-                return 20
+                return 100
             case 3:
-                return 15
+                return 50
             case 2:
-                return 10
+                return 20
             default:
                 return 5
             }
@@ -294,6 +312,8 @@ class ExerciseRepository {
         availableEquipment: [String],
         userInjuries: [String],
         excludedExerciseIds: Set<String>,
+        excludedDisplayNames: Set<String> = [],
+        excludedCanonicalNames: Set<String> = [],  // Session-level: no same movement pattern in one session
         allowComplexity4: Bool = false,
         requireComplexity4First: Bool = false
     ) throws -> ExerciseSelectionResult {
@@ -329,6 +349,8 @@ class ExerciseRepository {
             count: count,
             experienceLevel: experienceLevel,
             excludedExerciseIds: excludedExerciseIds,
+            excludedDisplayNames: excludedDisplayNames,
+            excludedCanonicalNames: excludedCanonicalNames,
             allowComplexity4: shouldAllowComplexity4,
             requireComplexity4First: shouldRequireComplexity4First,
             maxComplexity: maxComplexity

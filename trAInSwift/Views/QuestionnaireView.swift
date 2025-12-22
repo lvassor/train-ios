@@ -9,7 +9,8 @@ import SwiftUI
 
 struct QuestionnaireView: View {
     @EnvironmentObject var viewModel: WorkoutViewModel
-    @State private var currentSection = 0 // 0 = Section 1 cover, 1 = Section 1 questions, 2 = Section 2 cover, 3 = Section 2 questions
+    // 0 = Section 1 cover, 1 = Section 1 questions, 2 = Section 2 cover, 3 = Section 2 questions
+    @State private var currentSection = 0
     @State private var currentStepInSection = 0 // Step within current section
     @State private var showingProgramLoading = false
     @State private var showingProgramReady = false
@@ -21,8 +22,8 @@ struct QuestionnaireView: View {
 
     // Section 1: Availability (8 questions)
     let section1TotalSteps = 8
-    // Section 2: About You (4 questions)
-    let section2TotalSteps = 4
+    // Section 2: About You (5 questions - Name, Age, Gender, Height, Weight)
+    let section2TotalSteps = 5
 
     var body: some View {
         ZStack {
@@ -73,6 +74,7 @@ struct QuestionnaireView: View {
                     ZStack(alignment: .bottom) {
                         // Content area - fills available space
                         if currentSection == 0 || currentSection == 2 {
+                            // Cover pages - no scrolling needed
                             currentStepView
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else {
@@ -175,20 +177,22 @@ struct QuestionnaireView: View {
                 iconName: "person.fill"
             )
         case 3:
-            // Section 2 Questions (9-12)
+            // Section 2 Questions (1-5: Name, Age, Gender, Height, Weight)
             switch currentStepInSection {
             case 0:
-                AgeStepView(dateOfBirth: $viewModel.questionnaireData.dateOfBirth)
+                NameStepView(name: $viewModel.questionnaireData.name)
             case 1:
-                GenderStepView(selectedGender: $viewModel.questionnaireData.gender)
+                AgeStepView(dateOfBirth: $viewModel.questionnaireData.dateOfBirth)
             case 2:
+                GenderStepView(selectedGender: $viewModel.questionnaireData.gender)
+            case 3:
                 HeightStepView(
                     heightCm: $viewModel.questionnaireData.heightCm,
                     heightFt: $viewModel.questionnaireData.heightFt,
                     heightIn: $viewModel.questionnaireData.heightIn,
                     unit: $viewModel.questionnaireData.heightUnit
                 )
-            case 3:
+            case 4:
                 WeightStepView(
                     weightKg: $viewModel.questionnaireData.weightKg,
                     weightLbs: $viewModel.questionnaireData.weightLbs,
@@ -232,19 +236,22 @@ struct QuestionnaireView: View {
                 return true
             }
         } else if currentSection == 3 {
-            // Section 2 questions
+            // Section 2 questions (Name, Age, Gender, Height, Weight)
             switch currentStepInSection {
-            case 0: // Age
+            case 0: // Name
+                let sanitizedName = viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                return sanitizedName.count >= 2 && sanitizedName.count <= 30
+            case 1: // Age
                 return viewModel.questionnaireData.age >= 18
-            case 1: // Gender
+            case 2: // Gender
                 return !viewModel.questionnaireData.gender.isEmpty
-            case 2: // Height
+            case 3: // Height
                 if viewModel.questionnaireData.heightUnit == .cm {
                     return viewModel.questionnaireData.heightCm >= 100 && viewModel.questionnaireData.heightCm <= 250
                 } else {
                     return viewModel.questionnaireData.heightFt >= 3 && viewModel.questionnaireData.heightFt <= 8
                 }
-            case 3: // Weight
+            case 4: // Weight
                 if viewModel.questionnaireData.weightUnit == .kg {
                     return viewModel.questionnaireData.weightKg >= 30 && viewModel.questionnaireData.weightKg <= 200
                 } else {
@@ -263,6 +270,10 @@ struct QuestionnaireView: View {
         // Equipment step (section 1, step 3) needs scrolling for expandable categories
         if currentSection == 1 && currentStepInSection == 3 {
             return false  // Enable scrolling for equipment
+        }
+        // Name step (section 3, step 0) should not scroll - simple input
+        if currentSection == 3 && currentStepInSection == 0 {
+            return true  // Disable scrolling for name
         }
         return true  // All other pages are non-scrollable
     }
@@ -320,7 +331,7 @@ struct QuestionnaireView: View {
     private func previousStep() {
         withAnimation(.easeInOut(duration: 0.15)) {  // Doubled speed (was ~0.35s default, now 0.15s)
             if currentSection == 0 {
-                // On Section 1 cover (Availability), go back to previous screen
+                // On Section 1 cover (Availability), go back to home screen
                 onBack?()
             } else if currentSection == 1 {
                 // In Section 1 questions

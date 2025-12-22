@@ -196,6 +196,16 @@ enum ExperienceLevel: String, Codable, CaseIterable {
     // Map from questionnaire format to database format
     static func fromQuestionnaire(_ level: String) -> ExperienceLevel {
         switch level {
+        // Current UI values
+        case "no_experience":
+            return .noExperience
+        case "beginner":
+            return .beginner
+        case "intermediate":
+            return .intermediate
+        case "advanced":
+            return .advanced
+        // Legacy values (for backward compatibility)
         case "0_months":
             return .noExperience
         case "0_6_months":
@@ -283,7 +293,7 @@ extension ExerciseDatabaseFilter {
                 dbEquipment.append("Pin-Loaded Machines")
             case "plate_loaded":
                 dbEquipment.append("Plate-Loaded Machines")
-            case "bodyweight":
+            case "bodyweight", "other":
                 dbEquipment.append("Other")
             default:
                 break

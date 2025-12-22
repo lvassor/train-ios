@@ -9,6 +9,93 @@ import SwiftUI
 import UIKit
 import SlidingRuler
 
+// MARK: - Name Step (First question in About You section)
+struct NameStepView: View {
+    @Binding var name: String
+    @FocusState private var isTextFieldFocused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
+                Text("What shall we call you?")
+                    .font(.trainTitle2)
+                    .foregroundColor(.trainTextPrimary)
+
+                Text("Please enter your username")
+                    .font(.trainSubtitle)
+                    .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+
+            // Text field with styling
+            TextField("", text: $name)
+                .placeholder(when: name.isEmpty) {
+                    Text("Enter your name")
+                        .foregroundColor(.trainTextSecondary.opacity(0.6))
+                }
+                .font(.trainBody)
+                .foregroundColor(.trainTextPrimary)
+                .padding(Spacing.md)
+                .appCard(cornerRadius: CornerRadius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                        .stroke(isTextFieldFocused ? Color.trainPrimary : Color.white.opacity(0.12), lineWidth: isTextFieldFocused ? 2 : 1)
+                )
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.words)
+                .focused($isTextFieldFocused)
+                .onChange(of: name) { _, newValue in
+                    // Sanitize input: remove potentially dangerous characters
+                    name = sanitizeUsername(newValue)
+                }
+
+            // Character count hint
+            Text("\(name.count)/30 characters")
+                .font(.trainCaption)
+                .foregroundColor(name.count > 30 ? .red : .trainTextSecondary)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .onAppear {
+            // Auto-focus the text field
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                isTextFieldFocused = true
+            }
+        }
+    }
+
+    /// Sanitize username to prevent SQL injection and other issues
+    private func sanitizeUsername(_ input: String) -> String {
+        // Remove SQL injection characters and limit length
+        let dangerous = CharacterSet(charactersIn: "';\"\\--/*<>")
+        var sanitized = input.components(separatedBy: dangerous).joined()
+
+        // Remove excessive whitespace
+        sanitized = sanitized.replacingOccurrences(of: "  ", with: " ")
+
+        // Limit to 30 characters
+        if sanitized.count > 30 {
+            sanitized = String(sanitized.prefix(30))
+        }
+
+        return sanitized
+    }
+}
+
+// MARK: - Placeholder extension for TextField
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content
+    ) -> some View {
+        ZStack(alignment: alignment) {
+            placeholder().opacity(shouldShow ? 1 : 0)
+            self
+        }
+    }
+}
+
 // MARK: - Q1: Gender
 struct GenderStepView: View {
     @Binding var selectedGender: String

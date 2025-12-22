@@ -120,16 +120,14 @@ struct DashboardContent: View {
     }
 
     private func getUserFirstName() -> String {
-        // Try to use the stored name first
+        // Name now comes from the questionnaire (stored in user.name)
         if let name = user?.name, !name.isEmpty {
             let firstName = name.components(separatedBy: " ").first ?? name
             // Title case the first name
             return firstName.prefix(1).uppercased() + firstName.dropFirst().lowercased()
         }
-        // Fall back to email
-        guard let email = user?.email else { return "User" }
-        let emailName = email.components(separatedBy: "@").first ?? "User"
-        return emailName.prefix(1).uppercased() + emailName.dropFirst().lowercased()
+        // Fallback should not happen as questionnaire requires a name
+        return "Athlete"
     }
 
     private func calculateStreak() -> Int {

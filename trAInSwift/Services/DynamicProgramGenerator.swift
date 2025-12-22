@@ -47,8 +47,9 @@ class DynamicProgramGenerator {
 
         print("🏋️ Generating dynamic program from questionnaire data...")
         print("   Days per week: \(questionnaireData.trainingDaysPerWeek)")
-        print("   Experience: \(questionnaireData.experienceLevel)")
+        print("   Experience (raw): \(questionnaireData.experienceLevel)")
         print("   Goal: \(questionnaireData.primaryGoal)")
+        print("   📦 Equipment from questionnaire: \(questionnaireData.equipmentAvailable)")
 
         // Map questionnaire data to program parameters
         let experienceLevel = ExperienceLevel.fromQuestionnaire(questionnaireData.experienceLevel)
@@ -59,9 +60,14 @@ class DynamicProgramGenerator {
         )
         let sessionDuration = mapSessionDuration(questionnaireData.sessionDuration)
 
+        print("   🔄 Experience mapped to: \(experienceLevel)")
+        print("   🔄 Equipment mapped to DB values: \(availableEquipment)")
+
         // Get complexity rules for this user
         let complexityRules = try exerciseRepo.getComplexityRules(for: experienceLevel)
         print("   Max complexity: \(complexityRules.maxComplexity)")
+        print("   Max complexity-4 per session: \(complexityRules.maxComplexity4PerSession)")
+        print("   Complexity-4 must be first: \(complexityRules.complexity4MustBeFirst)")
 
         // Generate sessions based on split type (with warnings)
         let (sessions, sessionWarnings) = try generateSessionsWithWarnings(
@@ -105,6 +111,16 @@ class DynamicProgramGenerator {
         if !allWarnings.isEmpty {
             print("⚠️ Warnings: \(allWarnings.count)")
         }
+
+        // Debug: Print full program details
+        print("\n📋 FULL PROGRAM BREAKDOWN:")
+        for session in sessions {
+            print("   \(session.dayName):")
+            for exercise in session.exercises {
+                print("      - \(exercise.exerciseName) (complexity: \(exercise.complexityLevel), isolation: \(exercise.isIsolation), equipment: \(exercise.equipmentType))")
+            }
+        }
+        print("")
 
         return ProgramGenerationResult(program: program, warnings: allWarnings)
     }
@@ -218,6 +234,7 @@ class DynamicProgramGenerator {
         var generatedSessions: [ProgramSession] = []
         var allWarnings: [ExerciseSelectionWarning] = []
         var usedExerciseIds = Set<String>()
+        var usedDisplayNames = Set<String>()
 
         for template in templates {
             let (exercises, warnings) = try generateExercisesForSessionWithWarnings(
@@ -228,7 +245,8 @@ class DynamicProgramGenerator {
                 targetMuscles: targetMuscles,
                 fitnessGoal: fitnessGoal,
                 complexityRules: complexityRules,
-                usedExerciseIds: &usedExerciseIds
+                usedExerciseIds: &usedExerciseIds,
+                usedDisplayNames: &usedDisplayNames
             )
 
             allWarnings.append(contentsOf: warnings)
@@ -281,12 +299,17 @@ class DynamicProgramGenerator {
         targetMuscles: [String],
         fitnessGoal: String,
         complexityRules: DBUserExperienceComplexity,
-        usedExerciseIds: inout Set<String>
+        usedExerciseIds: inout Set<String>,
+        usedDisplayNames: inout Set<String>
     ) throws -> ([ProgramExercise], [ExerciseSelectionWarning]) {
 
         var sessionExercises: [ProgramExercise] = []
         var sessionWarnings: [ExerciseSelectionWarning] = []
         var sessionHasComplexity4 = false
+
+        // Session-level canonical name tracking (reset per session)
+        // This prevents variations like "Bench Press", "Incline Bench Press", "Decline Bench Press" in same session
+        var sessionCanonicalNames = Set<String>()
 
         // Process each muscle group in the template
         for (index, muscleGroup) in template.muscleGroups.enumerated() {
@@ -310,6 +333,8 @@ class DynamicProgramGenerator {
             print("   Injuries: \(userInjuries)")
             print("   Already used: \(usedExerciseIds.count) exercises")
 
+            print("   🚫 Session canonical names already used: \(sessionCanonicalNames)")
+
             let result = try exerciseRepo.selectExercisesWithWarnings(
                 count: targetCount,
                 movementPattern: muscleGroup.movementPattern,
@@ -318,6 +343,8 @@ class DynamicProgramGenerator {
                 availableEquipment: availableEquipment,
                 userInjuries: userInjuries,
                 excludedExerciseIds: usedExerciseIds,
+                excludedDisplayNames: usedDisplayNames,
+                excludedCanonicalNames: sessionCanonicalNames,  // Session-level: no same movement in one session
                 allowComplexity4: allowComplexity4,
                 requireComplexity4First: requireComplexity4First
             )
@@ -340,12 +367,25 @@ class DynamicProgramGenerator {
                 )
                 sessionExercises.append(programExercise)
                 usedExerciseIds.insert(dbExercise.exerciseId)
+                usedDisplayNames.insert(dbExercise.displayName)
+                sessionCanonicalNames.insert(dbExercise.canonicalName)  // Session-level dedup
+                print("      ➕ Added: \(dbExercise.displayName) (canonical: \(dbExercise.canonicalName))")
 
                 // Track if we added a complexity-4 exercise
                 if dbExercise.numericComplexity == 4 {
                     sessionHasComplexity4 = true
                 }
             }
+        }
+
+        // Sort entire session: compounds first (by complexity descending), then isolations (by complexity descending)
+        sessionExercises.sort { lhs, rhs in
+            // First: compounds before isolations
+            if lhs.isIsolation != rhs.isIsolation {
+                return !lhs.isIsolation  // compounds (false) come before isolations (true)
+            }
+            // Second: higher complexity first
+            return lhs.complexityLevel > rhs.complexityLevel
         }
 
         return (sessionExercises, sessionWarnings)
@@ -360,7 +400,8 @@ class DynamicProgramGenerator {
         targetMuscles: [String],
         fitnessGoal: String,
         complexityRules: DBUserExperienceComplexity,
-        usedExerciseIds: inout Set<String>
+        usedExerciseIds: inout Set<String>,
+        usedDisplayNames: inout Set<String>
     ) throws -> [ProgramExercise] {
 
         let (exercises, _) = try generateExercisesForSessionWithWarnings(
@@ -371,7 +412,8 @@ class DynamicProgramGenerator {
             targetMuscles: targetMuscles,
             fitnessGoal: fitnessGoal,
             complexityRules: complexityRules,
-            usedExerciseIds: &usedExerciseIds
+            usedExerciseIds: &usedExerciseIds,
+            usedDisplayNames: &usedDisplayNames
         )
         return exercises
     }
@@ -403,7 +445,9 @@ class DynamicProgramGenerator {
             repRange: repRange,
             restSeconds: rest,
             primaryMuscle: dbExercise.primaryMuscle,
-            equipmentType: dbExercise.equipmentName ?? "Unknown"
+            equipmentType: dbExercise.equipmentName ?? "Unknown",
+            complexityLevel: dbExercise.complexityLevel,
+            isIsolation: dbExercise.isIsolation
         )
     }
 

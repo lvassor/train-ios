@@ -250,6 +250,11 @@ class AuthService: ObservableObject {
         user.injuriesArray = data.injuries
         user.priorityMusclesArray = data.targetMuscleGroups
 
+        // Update user's name from questionnaire (overrides Apple Sign In name if set)
+        if !data.name.isEmpty {
+            user.name = data.name
+        }
+
         saveSession()
     }
 

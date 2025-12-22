@@ -87,6 +87,8 @@ struct ProgramExercise: Codable, Identifiable {
     let restSeconds: Int
     let primaryMuscle: String
     let equipmentType: String
+    let complexityLevel: Int  // 1-4, used for sorting exercises in session
+    let isIsolation: Bool     // Used for sorting (compounds before isolations)
 
     init(exerciseId: String,
          exerciseName: String,
@@ -94,7 +96,9 @@ struct ProgramExercise: Codable, Identifiable {
          repRange: String,
          restSeconds: Int,
          primaryMuscle: String,
-         equipmentType: String) {
+         equipmentType: String,
+         complexityLevel: Int = 2,
+         isIsolation: Bool = false) {
         self.id = UUID().uuidString
         self.exerciseId = exerciseId
         self.exerciseName = exerciseName
@@ -103,6 +107,8 @@ struct ProgramExercise: Codable, Identifiable {
         self.restSeconds = restSeconds
         self.primaryMuscle = primaryMuscle
         self.equipmentType = equipmentType
+        self.complexityLevel = complexityLevel
+        self.isIsolation = isIsolation
     }
 
     var repsMin: Int {
