@@ -4,7 +4,8 @@
 
 1. [Workout Logger - Progression/Regression Prompts](#1-workout-logger---progressionregression-prompts)
 2. [Workout Logger - Rep Counter](#2-workout-logger---rep-counter)
-3. [Programme Generation](#3-programme-generation)
+3. [Questionnaire - Split Selection](#3-questionnaire---split-selection)
+4. [Programme Generation](#4-programme-generation)
 
 ---
 
@@ -91,11 +92,70 @@ FOR each exercise:
 
 ---
 
-## 3. Programme Generation
+## 3. Questionnaire - Split Selection
+
+The questionnaire includes a Split Selection step that appears after the user selects their training days per week. This step presents split options based on their selected day count, with recommendations based on experience level and muscle group priorities.
+
+### 3.1 Split Selection Step
+
+**When it appears:**
+- After Q10 (Training Days per Week)
+- Shows splits available for the selected day count
+- Reads from `split_templates.json` to get available splits
+
+**Display order:**
+1. Recommended splits first (with "Recommended" label)
+2. Non-recommended splits after
+
+### 3.2 Recommendation Logic
+
+**For 2-day training:**
+- **Beginners/No experience:** Full Body recommended
+- **Intermediate/Advanced:** Upper/Lower recommended
+
+**For 3-day training:**
+- **Beginners/No experience:** Full Body recommended
+- **Intermediate/Advanced with 2+ leg priority muscles:** 1 Upper 2 Lower recommended
+- **Intermediate/Advanced with 2+ upper priority muscles:** 2 Upper 1 Lower recommended
+- **Intermediate/Advanced (default):** Push/Pull/Legs recommended
+
+**Priority muscle categorization:**
+- **Upper muscles:** Chest, Shoulder, Back, Bicep, Tricep
+- **Lower muscles:** Quad, Hamstring, Glute, Calf
+
+### 3.3 UI Elements
+
+**Split option cards:**
+- Title: Split name (e.g., "Upper Lower", "Push Pull Legs")
+- Subtitle: Brief explanation (e.g., "Train upper body one day, lower body the next")
+- Selected state: Primary color background with white text
+- Unselected state: Card background with primary text
+
+**Recommended label:**
+- Text: "Recommended"
+- Background: Primary accent color
+- Position: Overlaid on top-left of card
+- Offset: 12px right, 8px up from card edge
+
+### 3.4 Split Explanations
+
+| Split Name | Explanation |
+|------------|-------------|
+| Upper Lower | Train upper body one day, lower body the next |
+| Full Body | Work all muscle groups each session |
+| Push Pull Legs | Pushing movements, pulling movements, and legs |
+| 2 Upper 1 Lower | Two upper body days, one lower body day |
+| 1 Upper 2 Lower | One upper body day, two lower body days |
+| PPL Upper Lower | Push/Pull/Legs plus Upper/Lower |
+| Push Pull Legs x2 | Push/Pull/Legs repeated twice per week |
+
+---
+
+## 4. Programme Generation
 
 When a user completes the questionnaire, the app generates a personalised workout programme. This section details the rules governing that generation.
 
-### 3.1 Split Type Selection
+### 4.1 Split Type Selection
 
 Based on training days per week and session duration, the app selects a workout split. Splits follow the [Split Templates](split_templates.json) file.
 
@@ -104,7 +164,7 @@ Based on training days per week and session duration, the app selects a workout 
 - Exercise canonical names do not repeat WITHIN a session (but may repeat between sessions)
 - If a muscle is in the user's "target muscle groups", it gets +1 exercise
 
-### 3.2 Experience-Based Complexity Rules
+### 4.2 Experience-Based Complexity Rules
 
 | Experience Level | Max Complexity | Complexity-4 Rules |
 |------------------|----------------|-------------------|
@@ -113,7 +173,7 @@ Based on training days per week and session duration, the app selects a workout 
 | Intermediate | 3 | Not allowed |
 | Advanced | 4 | Max 1 per session, must be first exercise |
 
-### 3.3 Exercise Pool Construction
+### 4.3 Exercise Pool Construction
 
 ```
 FOR each muscle group in the session template:
@@ -127,7 +187,7 @@ FOR each muscle group in the session template:
     - canonical_name NOT already used in this SESSION
 ```
 
-### 3.4 Exercise Scoring & Selection
+### 4.4 Exercise Scoring & Selection
 
 **Compound Exercise Scores:**
 
@@ -166,7 +226,7 @@ FOR each exercise slot needed:
     REMOVE all exercises with same canonical_name from pool
 ```
 
-### 3.5 Sets, Reps, and Rest Assignment
+### 4.5 Sets, Reps, and Rest Assignment
 
 **Rep Ranges (based on goal):**
 
