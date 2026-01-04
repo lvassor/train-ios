@@ -123,44 +123,14 @@ struct DBExerciseContraindication: Codable, FetchableRecord, TableRecord {
     }
 }
 
-// MARK: - User Experience Complexity Model
+// MARK: - Experience Complexity Rules (Hardcoded)
 
-struct DBUserExperienceComplexity: Codable, FetchableRecord, TableRecord {
-    static let databaseTableName = "user_experience_complexity"
-
-    let experienceLevel: String
-    let displayName: String
+/// Complexity rules for exercise selection based on experience level.
+/// These rules determine which exercises are eligible for a user's programme.
+struct ExperienceComplexityRules {
     let maxComplexity: Int
     let maxComplexity4PerSession: Int
     let complexity4MustBeFirst: Bool
-
-    enum Columns {
-        static let experienceLevel = Column("experience_level")
-        static let displayName = Column("display_name")
-        static let maxComplexity = Column("max_complexity")
-        static let maxComplexity4PerSession = Column("max_complexity_4_per_session")
-        static let complexity4MustBeFirst = Column("complexity_4_must_be_first")
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case experienceLevel = "experience_level"
-        case displayName = "display_name"
-        case maxComplexity = "max_complexity"
-        case maxComplexity4PerSession = "max_complexity_4_per_session"
-        case complexity4MustBeFirst = "complexity_4_must_be_first"
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        experienceLevel = try container.decode(String.self, forKey: .experienceLevel)
-        displayName = try container.decode(String.self, forKey: .displayName)
-        maxComplexity = try container.decode(Int.self, forKey: .maxComplexity)
-        maxComplexity4PerSession = try container.decode(Int.self, forKey: .maxComplexity4PerSession)
-
-        // SQLite stores boolean as integer (0 or 1)
-        let boolInt = try container.decode(Int.self, forKey: .complexity4MustBeFirst)
-        complexity4MustBeFirst = boolInt == 1
-    }
 }
 
 // MARK: - Experience Level Enum
@@ -226,6 +196,24 @@ enum ExperienceLevel: String, Codable, CaseIterable {
         case .beginner: return "0_6_months"
         case .intermediate: return "6_months_2_years"
         case .advanced: return "2_plus_years"
+        }
+    }
+
+    /// Complexity rules for exercise selection.
+    /// - noExperience: Only complexity 1 exercises (simplest movements)
+    /// - beginner: Up to complexity 2
+    /// - intermediate: Up to complexity 3
+    /// - advanced: Up to complexity 4, with one complexity-4 exercise allowed per session (must be first)
+    var complexityRules: ExperienceComplexityRules {
+        switch self {
+        case .noExperience:
+            return ExperienceComplexityRules(maxComplexity: 1, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
+        case .beginner:
+            return ExperienceComplexityRules(maxComplexity: 2, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
+        case .intermediate:
+            return ExperienceComplexityRules(maxComplexity: 3, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
+        case .advanced:
+            return ExperienceComplexityRules(maxComplexity: 4, maxComplexity4PerSession: 1, complexity4MustBeFirst: true)
         }
     }
 }

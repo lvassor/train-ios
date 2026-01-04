@@ -76,12 +76,10 @@ class ExerciseDatabaseManager {
         try dbQueue.read { db in
             let exerciseCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM exercises") ?? 0
             let contraCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM exercise_contraindications") ?? 0
-            let expCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM user_experience_complexity") ?? 0
 
             print("📊 Database verification:")
             print("   - Exercises: \(exerciseCount)")
             print("   - Contraindications: \(contraCount)")
-            print("   - Experience levels: \(expCount)")
 
             if exerciseCount == 0 {
                 throw DatabaseError.emptyDatabase
@@ -185,19 +183,6 @@ class ExerciseDatabaseManager {
         return try dbQueue.read { db in
             try DBExercise
                 .filter(Column("exercise_id") == id)
-                .fetchOne(db)
-        }
-    }
-
-    /// Fetch experience complexity rules for a given experience level
-    func fetchExperienceComplexity(for level: ExperienceLevel) throws -> DBUserExperienceComplexity? {
-        guard let dbQueue = dbQueue else {
-            throw DatabaseError.databaseNotInitialized
-        }
-
-        return try dbQueue.read { db in
-            try DBUserExperienceComplexity
-                .filter(Column("experience_level") == level.rawValue)
                 .fetchOne(db)
         }
     }

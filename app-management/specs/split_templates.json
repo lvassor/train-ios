@@ -1,0 +1,178 @@
+{
+    "1-day": {
+        "Full Body": {
+            "30-45 minutes": {
+                "Full Body": { "Chest": 1, "Shoulder": 1, "Back": 1, "Quad": 1, "Hamstring": 1, "Core": 1 }
+            },
+            "45-60 minutes": {
+                "Full Body": { "Chest": 1, "Shoulder": 1, "Back": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            },
+            "60-90 minutes": {
+                "Full Body": { "Chest": 1, "Shoulder": 1, "Back": 1, "Bicep": 1, "Tricep": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            }
+        }
+    },
+    "2-day": {
+        "Upper Lower": {
+            "30-45 minutes": {
+                "Upper": { "Chest": 1, "Shoulder": 1, "Back": 1 },
+                "Lower": { "Quad": 2, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            }
+        },
+        "Full Body": {
+            "45-60 minutes": {
+                "Full Body 1": { "Chest": 1, "Shoulder": 1, "Back": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Full Body 2": { "Chest": 1, "Shoulder": 1, "Back": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            },
+            "60-90 minutes": {
+                "Full Body 1": { "Chest": 1, "Shoulder": 1, "Back": 1, "Bicep": 1, "Tricep": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Full Body 2": { "Chest": 1, "Shoulder": 1, "Back": 1, "Bicep": 1, "Tricep": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            }
+        }
+    },
+    "3-day": {
+        "Push Pull Legs": {
+            "30-45 minutes": {
+                "Push": { "Chest": 1, "Shoulder": 2, "Tricep": 1 },
+                "Pull": { "Back": 2, "Bicep": 2 },
+                "Legs": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            },
+            "45-60 minutes": {
+                "Push": { "Chest": 2, "Shoulder": 2, "Tricep": 1 },
+                "Pull": { "Back": 3, "Bicep": 2 },
+                "Legs": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            },
+            "60-90 minutes": {
+                "Push": { "Chest": 3, "Shoulder": 3, "Tricep": 2 },
+                "Pull": { "Back": 3, "Bicep": 3 },
+                "Legs": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            }
+        },
+        "Full Body": {
+            "30-45 minutes": {
+                "Full Body 1": { "Chest": 1, "Back": 1, "Shoulder": 1, "Quad": 1, "Hamstring": 1, "Core": 1 },
+                "Full Body 2": { "Chest": 1, "Back": 1, "Shoulder": 1, "Quad": 1, "Hamstring": 1, "Core": 1 },
+                "Full Body 3": { "Chest": 1, "Back": 1, "Shoulder": 1, "Quad": 1, "Hamstring": 1, "Core": 1 }
+            },
+            "45-60 minutes": {
+                "Full Body 1": { "Chest": 1, "Back": 1, "Shoulder": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Full Body 2": { "Chest": 1, "Back": 1, "Shoulder": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Full Body 3": { "Chest": 1, "Back": 1, "Shoulder": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            },
+            "60-90 minutes": {
+                "Full Body 1": { "Chest": 1, "Back": 1, "Shoulder": 1, "Bicep": 1, "Tricep": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Full Body 2": { "Chest": 1, "Back": 1, "Shoulder": 1, "Bicep": 1, "Tricep": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Full Body 3": { "Chest": 1, "Back": 1, "Shoulder": 1, "Bicep": 1, "Tricep": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            }
+        },
+        "2 Upper 1 Lower": {
+            "30-45 minutes": {
+                "Upper 1": { "Chest": 1, "Back": 1, "Shoulder": 1, "Bicep": 1 },
+                "Upper 2": { "Chest": 1, "Back": 1, "Shoulder": 1, "Tricep": 1 },
+                "Lower": { "Quad": 2, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            },
+            "45-60 minutes": {
+                "Upper 1": { "Chest": 2, "Back": 2, "Shoulder": 1, "Bicep": 1 },
+                "Upper 2": { "Chest": 2, "Back": 2, "Shoulder": 1, "Tricep": 1 },
+                "Lower": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            },
+            "60-90 minutes": {
+                "Upper 1": { "Chest": 2, "Back": 2, "Shoulder": 2, "Bicep": 1, "Tricep": 1 },
+                "Upper 2": { "Chest": 2, "Back": 2, "Shoulder": 2, "Bicep": 1, "Tricep": 1 },
+                "Lower": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            }
+        },
+        "1 Upper 2 Lower": {
+            "30-45 minutes": {
+                "Upper": { "Chest": 1, "Back": 1, "Shoulder": 1, "Bicep": 1, "Tricep": 1 },
+                "Lower 1": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Lower 2": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            },
+            "45-60 minutes": {
+                "Upper": { "Chest": 2, "Back": 2, "Shoulder": 2, "Bicep": 1, "Tricep": 1 },
+                "Lower 1": { "Quad": 2, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Lower 2": { "Quad": 1, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            },
+            "60-90 minutes": {
+                "Upper": { "Chest": 2, "Back": 3, "Shoulder": 2, "Bicep": 1, "Tricep": 1 },
+                "Lower 1": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 },
+                "Lower 2": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            }
+        }
+    },
+    "4-day": {
+        "Upper Lower": {
+            "30-45 minutes": {
+                "Upper 1": { "Chest": 1, "Shoulder": 1, "Back": 1 },
+                "Lower 1": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Upper 2": { "Chest": 1, "Shoulder": 1, "Back": 1 },
+                "Lower 2": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            },
+            "45-60 minutes": {
+                "Upper 1": { "Chest": 2, "Shoulder": 2, "Back": 2 },
+                "Lower 1": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 },
+                "Upper 2": { "Chest": 2, "Shoulder": 2, "Back": 2 },
+                "Lower 2": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            },
+            "60-90 minutes": {
+                "Upper 1": { "Chest": 2, "Shoulder": 2, "Back": 2, "Tricep": 1, "Bicep": 1 },
+                "Lower 1": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 },
+                "Upper 2": { "Chest": 2, "Shoulder": 2, "Back": 2, "Tricep": 1, "Bicep": 1 },
+                "Lower 2": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            }
+        }
+    },
+    "5-day": {
+        "PPL Upper Lower": {
+            "30-45 minutes": {
+                "Push": { "Chest": 1, "Shoulder": 2, "Tricep": 1 },
+                "Pull": { "Back": 2, "Bicep": 2 },
+                "Legs": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Upper": { "Chest": 1, "Shoulder": 1, "Back": 1 },
+                "Lower": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            },
+            "45-60 minutes": {
+                "Push": { "Chest": 2, "Shoulder": 2, "Tricep": 1 },
+                "Pull": { "Back": 3, "Bicep": 2 },
+                "Legs": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 },
+                "Upper": { "Chest": 2, "Shoulder": 2, "Back": 2 },
+                "Lower": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            },
+            "60-90 minutes": {
+                "Push": { "Chest": 3, "Shoulder": 3, "Tricep": 2 },
+                "Pull": { "Back": 3, "Bicep": 3 },
+                "Legs": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 },
+                "Upper": { "Chest": 2, "Shoulder": 2, "Back": 2, "Tricep": 1, "Bicep": 1 },
+                "Lower": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            }
+        }
+    },
+    "6-day": {
+        "Push Pull Legs x2": {
+            "30-45 minutes": {
+                "Push 1": { "Chest": 1, "Shoulder": 2, "Tricep": 1 },
+                "Pull 1": { "Back": 2, "Bicep": 2 },
+                "Legs 1": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
+                "Push 2": { "Chest": 1, "Shoulder": 2, "Tricep": 1 },
+                "Pull 2": { "Back": 2, "Bicep": 2 },
+                "Legs 2": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
+            },
+            "45-60 minutes": {
+                "Push 1": { "Chest": 2, "Shoulder": 2, "Tricep": 1 },
+                "Pull 1": { "Back": 3, "Bicep": 2 },
+                "Legs 1": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 },
+                "Push 2": { "Chest": 2, "Shoulder": 2, "Tricep": 1 },
+                "Pull 2": { "Back": 3, "Bicep": 2 },
+                "Legs 2": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            },
+            "60-90 minutes": {
+                "Push 1": { "Chest": 3, "Shoulder": 3, "Tricep": 2 },
+                "Pull 1": { "Back": 3, "Bicep": 3 },
+                "Legs 1": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 },
+                "Push 2": { "Chest": 3, "Shoulder": 3, "Tricep": 2 },
+                "Pull 2": { "Back": 3, "Bicep": 3 },
+                "Legs 2": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
+            }
+        }
+    }
+}

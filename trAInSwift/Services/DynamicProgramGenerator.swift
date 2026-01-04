@@ -63,8 +63,8 @@ class DynamicProgramGenerator {
         print("   🔄 Experience mapped to: \(experienceLevel)")
         print("   🔄 Equipment mapped to DB values: \(availableEquipment)")
 
-        // Get complexity rules for this user
-        let complexityRules = try exerciseRepo.getComplexityRules(for: experienceLevel)
+        // Get complexity rules for this user (hardcoded based on experience level)
+        let complexityRules = experienceLevel.complexityRules
         print("   Max complexity: \(complexityRules.maxComplexity)")
         print("   Max complexity-4 per session: \(complexityRules.maxComplexity4PerSession)")
         print("   Complexity-4 must be first: \(complexityRules.complexity4MustBeFirst)")
@@ -141,8 +141,8 @@ class DynamicProgramGenerator {
         )
         let sessionDuration = mapSessionDuration(questionnaireData.sessionDuration)
 
-        // Get complexity rules for this user
-        let complexityRules = try exerciseRepo.getComplexityRules(for: experienceLevel)
+        // Get complexity rules for this user (hardcoded based on experience level)
+        let complexityRules = experienceLevel.complexityRules
         print("   Max complexity: \(complexityRules.maxComplexity)")
 
         // Generate sessions based on split type
@@ -226,7 +226,7 @@ class DynamicProgramGenerator {
         userInjuries: [String],
         targetMuscles: [String],
         fitnessGoal: String,
-        complexityRules: DBUserExperienceComplexity,
+        complexityRules: ExperienceComplexityRules,
         daysPerWeek: Int
     ) throws -> ([ProgramSession], [ExerciseSelectionWarning]) {
 
@@ -270,7 +270,7 @@ class DynamicProgramGenerator {
         userInjuries: [String],
         targetMuscles: [String],
         fitnessGoal: String,
-        complexityRules: DBUserExperienceComplexity,
+        complexityRules: ExperienceComplexityRules,
         daysPerWeek: Int
     ) throws -> [ProgramSession] {
 
@@ -298,7 +298,7 @@ class DynamicProgramGenerator {
         userInjuries: [String],
         targetMuscles: [String],
         fitnessGoal: String,
-        complexityRules: DBUserExperienceComplexity,
+        complexityRules: ExperienceComplexityRules,
         usedExerciseIds: inout Set<String>,
         usedDisplayNames: inout Set<String>
     ) throws -> ([ProgramExercise], [ExerciseSelectionWarning]) {
@@ -399,7 +399,7 @@ class DynamicProgramGenerator {
         userInjuries: [String],
         targetMuscles: [String],
         fitnessGoal: String,
-        complexityRules: DBUserExperienceComplexity,
+        complexityRules: ExperienceComplexityRules,
         usedExerciseIds: inout Set<String>,
         usedDisplayNames: inout Set<String>
     ) throws -> [ProgramExercise] {

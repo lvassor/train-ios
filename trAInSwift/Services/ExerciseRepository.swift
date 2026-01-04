@@ -77,17 +77,14 @@ class ExerciseRepository {
         excludedExerciseIds: Set<String>
     ) throws -> (pool: [DBExercise], maxComplexity: Int, warnings: [ExerciseSelectionWarning]) {
 
-        // Get max complexity from database based on experience level
-        guard let complexityRules = try dbManager.fetchExperienceComplexity(for: experienceLevel) else {
-            throw RepositoryError.experienceLevelNotFound
-        }
-
+        // Get max complexity from experience level (hardcoded rules)
+        let complexityRules = experienceLevel.complexityRules
         let maxComplexity = complexityRules.maxComplexity
         let warnings: [ExerciseSelectionWarning] = []
 
         print("🏊 Building user pool for \(primaryMuscle ?? "all muscles")")
         print("   Equipment: \(availableEquipment)")
-        print("   Max complexity from DB: \(maxComplexity)")
+        print("   Max complexity: \(maxComplexity)")
         print("   User injuries (for UI only, not filtering): \(userInjuries)")
 
         // Stage 1: Filter by equipment AND complexity (from DB)
@@ -336,9 +333,7 @@ class ExerciseRepository {
         }
 
         // Get complexity rules for complexity-4 handling
-        guard let complexityRules = try dbManager.fetchExperienceComplexity(for: experienceLevel) else {
-            throw RepositoryError.experienceLevelNotFound
-        }
+        let complexityRules = experienceLevel.complexityRules
 
         // Stage 2: Score and Select
         let shouldAllowComplexity4 = allowComplexity4 && complexityRules.maxComplexity4PerSession > 0
@@ -419,9 +414,7 @@ class ExerciseRepository {
         excludedExerciseIds: Set<String>
     ) throws -> [DBExercise] {
 
-        guard let complexityRules = try dbManager.fetchExperienceComplexity(for: experienceLevel) else {
-            throw RepositoryError.experienceLevelNotFound
-        }
+        let complexityRules = experienceLevel.complexityRules
 
         var excludedIds = excludedExerciseIds
         excludedIds.insert(exercise.exerciseId)
@@ -441,11 +434,8 @@ class ExerciseRepository {
     // MARK: - Utility Methods
 
     /// Get experience complexity rules
-    func getComplexityRules(for experienceLevel: ExperienceLevel) throws -> DBUserExperienceComplexity {
-        guard let rules = try dbManager.fetchExperienceComplexity(for: experienceLevel) else {
-            throw RepositoryError.experienceLevelNotFound
-        }
-        return rules
+    func getComplexityRules(for experienceLevel: ExperienceLevel) -> ExperienceComplexityRules {
+        return experienceLevel.complexityRules
     }
 
     /// Check if an exercise is contraindicated for given injuries

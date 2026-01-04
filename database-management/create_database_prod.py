@@ -80,16 +80,6 @@ def create_database():
     )
     ''')
 
-    # User experience complexity table
-    cursor.execute('''
-    CREATE TABLE user_experience_complexity (
-        experience_level TEXT PRIMARY KEY,
-        display_name TEXT NOT NULL,
-        max_complexity INTEGER NOT NULL,
-        max_complexity_4_per_session INTEGER NOT NULL DEFAULT 0,
-        complexity_4_must_be_first INTEGER NOT NULL DEFAULT 0
-    )
-    ''')
 
     # ============================================
     # CREATE INDEXES
@@ -160,23 +150,6 @@ def create_database():
         ''', (row['canonical_name'], row['injury_type']))
 
     print(f"   ✅ {len(df_contra)} contraindications imported")
-
-    # Insert experience complexity data (hardcoded based on BUSINESS_RULES.md)
-    experience_data = [
-        ('NO_EXPERIENCE', 'Just Starting Out', 1, 0, 0),
-        ('BEGINNER', 'Finding My Feet', 2, 0, 0),
-        ('INTERMEDIATE', 'Getting Comfortable', 3, 0, 0),
-        ('ADVANCED', 'Confident & Consistent', 4, 1, 1)
-    ]
-
-    for exp in experience_data:
-        cursor.execute('''
-            INSERT INTO user_experience_complexity
-            (experience_level, display_name, max_complexity, max_complexity_4_per_session, complexity_4_must_be_first)
-            VALUES (?, ?, ?, ?, ?)
-        ''', exp)
-
-    print(f"   ✅ {len(experience_data)} experience levels imported")
 
     # ============================================
     # VERIFY DATA
