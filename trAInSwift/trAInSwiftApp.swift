@@ -13,6 +13,9 @@ struct trAInSwiftApp: App {
     // Initialize Core Data persistence controller
     let persistenceController = PersistenceController.shared
 
+    // Initialize theme manager
+    @StateObject private var themeManager = ThemeManager()
+
     init() {
         // CRITICAL: Configure UINavigationBar appearance globally to allow gradient through
         let appearance = UINavigationBarAppearance()
@@ -44,7 +47,8 @@ struct trAInSwiftApp: App {
             }
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
             .environment(\.cardStyle, .warm) // Set app-wide card style to warm glass
-            .preferredColorScheme(.dark) // Dark mode for warm gradient theme
+            .environmentObject(themeManager) // Provide theme manager to all views
+            .preferredColorScheme(themeManager.currentMode == .light ? .light : .dark)
         }
     }
 }
