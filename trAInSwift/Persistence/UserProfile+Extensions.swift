@@ -51,6 +51,19 @@ extension UserProfile {
         }
     }
 
+    static func fetch(byGoogleId googleId: String, context: NSManagedObjectContext) -> UserProfile? {
+        let request = UserProfile.fetchRequest()
+        request.predicate = NSPredicate(format: "googleUserIdentifier == %@", googleId)
+        request.fetchLimit = 1
+
+        do {
+            return try context.fetch(request).first
+        } catch {
+            print("❌ Failed to fetch user by Google ID: \(error)")
+            return nil
+        }
+    }
+
     static func fetchAll(context: NSManagedObjectContext) -> [UserProfile] {
         let request = UserProfile.fetchRequest()
 

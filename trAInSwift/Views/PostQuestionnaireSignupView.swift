@@ -19,33 +19,38 @@ struct PostQuestionnaireSignupView: View {
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
     @State private var showTermsAndConditions: Bool = false
+    @State private var showPrivacyPolicy: Bool = false
+    @State private var showEmailSignup: Bool = false
+    @State private var showLogin: Bool = false
     @State private var isSigningInWithApple: Bool = false
+    @State private var isSigningInWithGoogle: Bool = false
 
     let onSignupSuccess: () -> Void
 
     var body: some View {
         ScrollView {
-                VStack(spacing: Spacing.xl) {
-                    Spacer()
-                        .frame(height: 60)
+            VStack(spacing: Spacing.xl) {
+                Spacer()
+                    .frame(height: 60)
 
-                    // Header
-                    VStack(spacing: Spacing.sm) {
-                        Text("Create Your Account")
-                            .font(.trainTitle)
-                            .foregroundColor(.trainTextPrimary)
+                // Header
+                VStack(spacing: Spacing.sm) {
+                    Text("Create Your Account")
+                        .font(.trainTitle)
+                        .foregroundColor(.trainTextPrimary)
 
-                        Text("Start your training journey")
-                            .font(.trainSubtitle)
-                            .foregroundColor(.trainTextSecondary)
-                    }
+                    Text("Start your training journey")
+                        .font(.trainSubtitle)
+                        .foregroundColor(.trainTextSecondary)
+                }
 
-                    // Sign in with Apple Button
+                VStack(spacing: Spacing.lg) {
+                    // Sign up with Apple Button
                     Button(action: handleAppleSignIn) {
-                        HStack {
+                        HStack(spacing: Spacing.md) {
                             Image(systemName: "apple.logo")
                                 .font(.system(size: 18, weight: .medium))
-                            Text("Sign in with Apple")
+                            Text("Sign up with Apple")
                                 .font(.system(size: 17, weight: .medium))
                         }
                         .foregroundColor(.black)
@@ -54,22 +59,237 @@ struct PostQuestionnaireSignupView: View {
                         .background(Color.white)
                         .cornerRadius(CornerRadius.md)
                     }
-                    .padding(.horizontal, Spacing.lg)
 
-                    // Divider
+                    // Sign up with Google Button
+                    Button(action: handleGoogleSignUp) {
+                        HStack(spacing: Spacing.md) {
+                            Image(systemName: "globe")
+                                .font(.system(size: 18, weight: .medium))
+                            Text("Sign up with Google")
+                                .font(.system(size: 17, weight: .medium))
+                        }
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: ButtonHeight.standard)
+                        .background(Color.white)
+                        .cornerRadius(CornerRadius.md)
+                    }
+
+                    // Continue with Email Button
+                    Button(action: { showEmailSignup = true }) {
+                        Text("Continue with Email")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: ButtonHeight.standard)
+                            .background(Color.trainPrimary)
+                            .cornerRadius(CornerRadius.md)
+                    }
+
+                    // OR Divider
                     HStack {
                         Rectangle()
-                            .fill(Color.trainBorder)
+                            .fill(Color.trainBorder.opacity(0.3))
                             .frame(height: 1)
-                        Text("or")
+                        Text("OR")
                             .font(.trainCaption)
                             .foregroundColor(.trainTextSecondary)
-                            .padding(.horizontal, Spacing.sm)
+                            .padding(.horizontal, Spacing.md)
                         Rectangle()
-                            .fill(Color.trainBorder)
+                            .fill(Color.trainBorder.opacity(0.3))
                             .frame(height: 1)
                     }
-                    .padding(.horizontal, Spacing.lg)
+
+                    // Log in with existing account Button
+                    Button(action: { showLogin = true }) {
+                        Text("Log in with existing account")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: ButtonHeight.standard)
+                            .background(Color.gray.opacity(0.3))
+                            .cornerRadius(CornerRadius.md)
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+
+                // Privacy Policy and Terms links
+                VStack(spacing: Spacing.sm) {
+                    HStack(spacing: Spacing.xs) {
+                        Button(action: { showPrivacyPolicy = true }) {
+                            Text("Privacy Policy")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                                .underline()
+                        }
+
+                        Text("•")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+
+                        Button(action: { showTermsAndConditions = true }) {
+                            Text("Terms of Service")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary)
+                                .underline()
+                        }
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.lg)
+
+                Spacer()
+            }
+        }
+        .background(Color.trainBackground.ignoresSafeArea())
+        .sheet(isPresented: $showTermsAndConditions) {
+            TermsAndConditionsSheet()
+        }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            PrivacyPolicySheet()
+        }
+        .sheet(isPresented: $showEmailSignup) {
+            EmailSignupSheet(
+                onSignupSuccess: onSignupSuccess,
+                questionnaireData: viewModel.questionnaireData,
+                generatedProgram: viewModel.generatedProgram
+            )
+        }
+        .sheet(isPresented: $showLogin) {
+            LoginView(
+                onLoginSuccess: onSignupSuccess,
+                onBack: { showLogin = false }
+            )
+        }
+        .overlay {
+            if isSigningInWithApple || isSigningInWithGoogle {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .tint(.white)
+                    .scaleEffect(1.5)
+            }
+        }
+    }
+
+    private var isFormValid: Bool {
+        !fullName.isEmpty &&
+        !email.isEmpty &&
+        !password.isEmpty &&
+        isValidPassword(password) &&
+        acceptedTerms
+    }
+
+    private func isValidPassword(_ password: String) -> Bool {
+        guard password.count >= 6 else { return false }
+        let hasNumber = password.rangeOfCharacter(from: .decimalDigits) != nil
+        let hasSpecial = password.rangeOfCharacter(from: CharacterSet(charactersIn: "!@#$%^&*()_+-=[]{}|;:',.<>?/~`")) != nil
+        return hasNumber && hasSpecial
+    }
+
+    private func handleAppleSignIn() {
+        isSigningInWithApple = true
+        showError = false
+
+        authService.signInWithApple { result in
+            isSigningInWithApple = false
+
+            switch result {
+            case .success(let user):
+                print("✅ Apple Sign In successful:")
+                print("   Email: \(user.email ?? "private")")
+                print("   User ID: \(user.id?.uuidString ?? "nil")")
+
+                // Save questionnaire data and program
+                authService.updateQuestionnaireData(viewModel.questionnaireData)
+                print("✅ Questionnaire data saved to user profile")
+
+                if let program = viewModel.generatedProgram {
+                    authService.updateProgram(program)
+                    print("✅ Program saved to database after Apple Sign In")
+                }
+
+                onSignupSuccess()
+
+            case .failure(let error):
+                if error != .cancelled {
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
+        }
+    }
+
+    private func handleGoogleSignUp() {
+        isSigningInWithGoogle = true
+        showError = false
+
+        authService.signInWithGoogle { result in
+            isSigningInWithGoogle = false
+
+            switch result {
+            case .success(let user):
+                print("✅ Google Sign Up successful:")
+                print("   Email: \(user.email ?? "private")")
+                print("   User ID: \(user.id?.uuidString ?? "nil")")
+
+                // Save questionnaire data and program
+                authService.updateQuestionnaireData(viewModel.questionnaireData)
+                print("✅ Questionnaire data saved to user profile")
+
+                if let program = viewModel.generatedProgram {
+                    authService.updateProgram(program)
+                    print("✅ Program saved to database after Google Sign Up")
+                }
+
+                onSignupSuccess()
+
+            case .failure(let error):
+                if error != .cancelled {
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
+        }
+    }
+
+}
+
+// MARK: - Email Signup Sheet
+
+struct EmailSignupSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var authService = AuthService.shared
+
+    @State private var fullName: String = ""
+    @State private var email: String = ""
+    @State private var password: String = ""
+    @State private var acceptedTerms: Bool = false
+    @State private var showError: Bool = false
+    @State private var errorMessage: String = ""
+    @State private var showTermsAndConditions: Bool = false
+
+    let onSignupSuccess: () -> Void
+    let questionnaireData: QuestionnaireData
+    let generatedProgram: Program?
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: Spacing.xl) {
+                    Spacer()
+                        .frame(height: 20)
+
+                    // Header
+                    VStack(spacing: Spacing.sm) {
+                        Text("Create Account")
+                            .font(.trainTitle)
+                            .foregroundColor(.trainTextPrimary)
+
+                        Text("Sign up with your email")
+                            .font(.trainSubtitle)
+                            .foregroundColor(.trainTextSecondary)
+                    }
 
                     // Email/Password Signup Form
                     VStack(spacing: Spacing.lg) {
@@ -151,7 +371,7 @@ struct PostQuestionnaireSignupView: View {
 
                         // Sign Up Button
                         Button(action: handleSignup) {
-                            Text("Sign Up with Email")
+                            Text("Create Account")
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
@@ -165,20 +385,22 @@ struct PostQuestionnaireSignupView: View {
                     .padding(.horizontal, Spacing.lg)
 
                     Spacer()
+                }
+            }
+            .background(Color.trainBackground)
+            .navigationTitle("Sign Up")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.trainTextSecondary)
+                }
             }
         }
-        .background(Color.trainBackground.ignoresSafeArea())
         .sheet(isPresented: $showTermsAndConditions) {
             TermsAndConditionsSheet()
-        }
-        .overlay {
-            if isSigningInWithApple {
-                Color.black.opacity(0.3)
-                    .ignoresSafeArea()
-                ProgressView()
-                    .tint(.white)
-                    .scaleEffect(1.5)
-            }
         }
     }
 
@@ -195,39 +417,6 @@ struct PostQuestionnaireSignupView: View {
         let hasNumber = password.rangeOfCharacter(from: .decimalDigits) != nil
         let hasSpecial = password.rangeOfCharacter(from: CharacterSet(charactersIn: "!@#$%^&*()_+-=[]{}|;:',.<>?/~`")) != nil
         return hasNumber && hasSpecial
-    }
-
-    private func handleAppleSignIn() {
-        isSigningInWithApple = true
-        showError = false
-
-        authService.signInWithApple { result in
-            isSigningInWithApple = false
-
-            switch result {
-            case .success(let user):
-                print("✅ Apple Sign In successful:")
-                print("   Email: \(user.email ?? "private")")
-                print("   User ID: \(user.id?.uuidString ?? "nil")")
-
-                // Save questionnaire data and program
-                authService.updateQuestionnaireData(viewModel.questionnaireData)
-                print("✅ Questionnaire data saved to user profile")
-
-                if let program = viewModel.generatedProgram {
-                    authService.updateProgram(program)
-                    print("✅ Program saved to database after Apple Sign In")
-                }
-
-                onSignupSuccess()
-
-            case .failure(let error):
-                if error != .cancelled {
-                    errorMessage = error.localizedDescription
-                    showError = true
-                }
-            }
-        }
     }
 
     private func handleSignup() {
@@ -264,22 +453,91 @@ struct PostQuestionnaireSignupView: View {
             print("   Email: \(email)")
             print("   User ID: \(user.id?.uuidString ?? "nil")")
 
-            // CRITICAL: Save the questionnaire data and program immediately
-            authService.updateQuestionnaireData(viewModel.questionnaireData)
+            // Save the questionnaire data and program immediately
+            authService.updateQuestionnaireData(questionnaireData)
             print("✅ Questionnaire data saved to user profile")
 
-            if let program = viewModel.generatedProgram {
+            if let program = generatedProgram {
                 authService.updateProgram(program)
                 print("✅ Program saved to database immediately after signup")
             } else {
                 print("⚠️ WARNING: No program generated yet!")
             }
 
+            dismiss()
             onSignupSuccess()
         case .failure(let error):
             errorMessage = error.localizedDescription
             showError = true
         }
+    }
+}
+
+// MARK: - Privacy Policy Sheet
+
+struct PrivacyPolicySheet: View {
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Spacing.lg) {
+                    Text("Last Updated: December 2024")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+
+                    Group {
+                        sectionHeader("1. Information We Collect")
+                        sectionBody("We collect information you provide directly to us, such as when you create an account, complete your fitness profile, or contact us for support.")
+
+                        sectionHeader("2. How We Use Your Information")
+                        sectionBody("We use the information we collect to provide, maintain, and improve our services, including generating personalized workout plans and tracking your fitness progress.")
+
+                        sectionHeader("3. Information Sharing")
+                        sectionBody("We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this Privacy Policy.")
+
+                        sectionHeader("4. Data Security")
+                        sectionBody("We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.")
+
+                        sectionHeader("5. Your Privacy Rights")
+                        sectionBody("You have the right to access, update, or delete your personal information. You can manage your account settings within the app or contact us for assistance.")
+
+                        sectionHeader("6. Cookies and Tracking")
+                        sectionBody("We may use cookies and similar tracking technologies to improve your experience and analyze usage patterns.")
+
+                        sectionHeader("7. Changes to Privacy Policy")
+                        sectionBody("We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.")
+
+                        sectionHeader("8. Contact Us")
+                        sectionBody("If you have any questions about this Privacy Policy, please contact us through the app's support feature.")
+                    }
+                }
+                .padding(Spacing.lg)
+            }
+            .background(Color.trainBackground)
+            .navigationTitle("Privacy Policy")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(.trainPrimary)
+                }
+            }
+        }
+    }
+
+    private func sectionHeader(_ text: String) -> some View {
+        Text(text)
+            .font(.trainBodyMedium)
+            .foregroundColor(.trainTextPrimary)
+    }
+
+    private func sectionBody(_ text: String) -> some View {
+        Text(text)
+            .font(.trainBody)
+            .foregroundColor(.trainTextSecondary)
     }
 }
 
