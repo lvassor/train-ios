@@ -275,6 +275,22 @@ class AuthService: ObservableObject {
         return WorkoutProgram.fetchCurrent(forUserId: userId, context: context)
     }
 
+    func getAllPrograms() -> [WorkoutProgram] {
+        guard let user = currentUser, let userId = user.id else { return [] }
+        return WorkoutProgram.fetchAll(forUserId: userId, context: context)
+    }
+
+    func getInactivePrograms() -> [WorkoutProgram] {
+        guard let user = currentUser, let userId = user.id else { return [] }
+        return WorkoutProgram.fetchInactive(forUserId: userId, context: context)
+    }
+
+    func activateProgram(_ program: WorkoutProgram) {
+        program.activate(context: context)
+        saveSession()
+        AppLogger.logProgram("Switched to program: \(program.name ?? "Unknown")")
+    }
+
     func addWorkoutSession(
         sessionName: String,
         weekNumber: Int,

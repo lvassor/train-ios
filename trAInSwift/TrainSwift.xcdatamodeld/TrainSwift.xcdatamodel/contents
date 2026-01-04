@@ -44,6 +44,7 @@
         <attribute name="currentWeek" optional="YES" attributeType="Integer 16" defaultValueString="1" usesScalarValueType="YES"/>
         <attribute name="currentSessionIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="completedSessionsData" optional="YES" attributeType="Binary"/>
+        <attribute name="isActive" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserProfile" inverseName="programs" inverseEntity="UserProfile"/>
         <relationship name="workoutSessions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDWorkoutSession" inverseName="program" inverseEntity="CDWorkoutSession"/>
         <fetchIndex name="byUserId">

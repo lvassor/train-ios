@@ -34,7 +34,7 @@ extension WorkoutProgram {
 
     static func fetchCurrent(forUserId userId: UUID, context: NSManagedObjectContext) -> WorkoutProgram? {
         let request = WorkoutProgram.fetchRequest()
-        request.predicate = NSPredicate(format: "userId == %@", userId as CVarArg)
+        request.predicate = NSPredicate(format: "userId == %@ AND isActive == YES", userId as CVarArg)
         request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
         request.fetchLimit = 1
 
@@ -59,9 +59,51 @@ extension WorkoutProgram {
         }
     }
 
+    static func fetchAll(forUserId userId: UUID, context: NSManagedObjectContext) -> [WorkoutProgram] {
+        let request = WorkoutProgram.fetchRequest()
+        request.predicate = NSPredicate(format: "userId == %@", userId as CVarArg)
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+
+        do {
+            return try context.fetch(request)
+        } catch {
+            print("❌ Failed to fetch all programs: \(error)")
+            return []
+        }
+    }
+
+    static func fetchInactive(forUserId userId: UUID, context: NSManagedObjectContext) -> [WorkoutProgram] {
+        let request = WorkoutProgram.fetchRequest()
+        request.predicate = NSPredicate(format: "userId == %@ AND isActive == NO", userId as CVarArg)
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+
+        do {
+            return try context.fetch(request)
+        } catch {
+            print("❌ Failed to fetch inactive programs: \(error)")
+            return []
+        }
+    }
+
     // MARK: - Create Method
 
     static func create(userId: UUID, program: Program, context: NSManagedObjectContext) -> WorkoutProgram {
+        // Deactivate all existing programs for this user
+        let existingPrograms = fetchAll(forUserId: userId, context: context)
+        for existingProgram in existingPrograms {
+            existingProgram.isActive = false
+        }
+
+        // Enforce 2 program limit - delete oldest if we already have 2
+        if existingPrograms.count >= 2 {
+            // Sort by creation date and remove oldest
+            let sortedPrograms = existingPrograms.sorted { $0.createdAt ?? Date.distantPast < $1.createdAt ?? Date.distantPast }
+            if let oldestProgram = sortedPrograms.first {
+                context.delete(oldestProgram)
+                print("🗑️ Deleted oldest program to maintain 2 program limit")
+            }
+        }
+
         let workoutProgram = WorkoutProgram(context: context)
         workoutProgram.id = UUID()
         workoutProgram.userId = userId
@@ -74,6 +116,7 @@ extension WorkoutProgram {
         workoutProgram.currentWeek = 1
         workoutProgram.currentSessionIndex = 0
         workoutProgram.completedSessionsData = Data()
+        workoutProgram.isActive = true
 
         // Store exercises as JSON
         if let encoded = try? JSONEncoder().encode(program.sessions) {
@@ -81,6 +124,20 @@ extension WorkoutProgram {
         }
 
         return workoutProgram
+    }
+
+    // MARK: - Activation Methods
+
+    func activate(context: NSManagedObjectContext) {
+        // Deactivate all other programs for this user
+        let allPrograms = WorkoutProgram.fetchAll(forUserId: userId, context: context)
+        for program in allPrograms where program != self {
+            program.isActive = false
+        }
+
+        // Activate this program
+        isActive = true
+        print("✅ Activated program: \(name ?? "Unknown")")
     }
 
     // MARK: - Helper Methods
