@@ -245,6 +245,9 @@ extension Color {
         Color(hex: ColorPalette.textMuted(for: theme))
     }
 
+    // Secondary accent color (alias for text secondary)
+    static let trainSecondary = Color(hex: ColorPalette.textSecondary)
+
     // UI Elements
     static func trainBorderSubtle(theme: ThemeVariant) -> Color {
         Color(hex: ColorPalette.borderSubtle(for: theme))

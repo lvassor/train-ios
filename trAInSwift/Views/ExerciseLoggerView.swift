@@ -8,6 +8,7 @@
 
 import SwiftUI
 import Combine
+import ActivityKit
 
 // MARK: - Logger Tab Options
 
@@ -45,6 +46,9 @@ struct ExerciseLoggerView: View {
     @State private var feedbackMessage: String = ""
     @State private var feedbackType: FeedbackType = .success
     @StateObject private var restTimerController = RestTimerController()
+
+    // Live Activity Manager
+    @ObservedObject private var liveActivityManager = WorkoutLiveActivityManager.shared
 
     enum WeightUnit: String, CaseIterable {
         case kg = "kg"
@@ -410,7 +414,12 @@ struct SetLoggingSection: View {
                         onComplete: {
                             if exercise.restSeconds > 0 {
                                 restTimerController.triggerRest(seconds: exercise.restSeconds)
+                                // Update Live Activity with rest timer
+                                if #available(iOS 16.1, *) {
+                                    liveActivityManager.startRestTimer(seconds: exercise.restSeconds, elapsedTime: 0)
+                                }
                             }
+                            updateLiveActivityProgress()
                         }
                     )
                 }
@@ -947,6 +956,20 @@ struct ExerciseDemoTab: View {
             return regex.stringByReplacingMatches(in: step, options: [], range: range, withTemplate: "")
         }
         return step
+    }
+
+    private func updateLiveActivityProgress() {
+        guard #available(iOS 16.1, *) else { return }
+
+        let completedSetsCount = loggedExercise.sets.filter { $0.completed }.count
+        let currentSet = min(completedSetsCount + 1, loggedExercise.sets.count)
+
+        liveActivityManager.updateWorkoutProgress(
+            currentExercise: loggedExercise,
+            currentSet: currentSet,
+            elapsedTime: 0, // Will be managed by the main workout view
+            isResting: false
+        )
     }
 }
 

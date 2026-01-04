@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import ActivityKit
 
 struct WorkoutOverviewView: View {
     @Environment(\.dismiss) var dismiss
@@ -47,6 +48,9 @@ struct WorkoutOverviewView: View {
     @State private var showInjuryWarning: String? = nil
     @State private var exerciseToSwap: ProgramExercise? = nil
     @State private var sessionExercises: [ProgramExercise] = [] // Mutable copy for swapping
+
+    // Live Activity Manager
+    @ObservedObject private var liveActivityManager = WorkoutLiveActivityManager.shared
 
     // Computed properties
     private var canCompleteWorkout: Bool {
@@ -214,6 +218,7 @@ struct WorkoutOverviewView: View {
                     onComplete: { logged in
                         completedExercises.insert(exercise.id)
                         loggedExercises[exercise.id] = logged
+                        updateLiveActivityForNextExercise(completedIndex: index)
                         selectedExerciseIndex = nil
                     },
                     onCancel: {
@@ -240,7 +245,13 @@ struct WorkoutOverviewView: View {
             )
         }
         .confirmationDialog("Cancel Workout", isPresented: $showCancelConfirmation, titleVisibility: .visible) {
-            Button("Discard Workout", role: .destructive) { dismiss() }
+            Button("Discard Workout", role: .destructive) {
+                // End Live Activity when workout is cancelled
+                if #available(iOS 16.1, *) {
+                    liveActivityManager.endWorkoutActivity()
+                }
+                dismiss()
+            }
             Button("Continue Workout", role: .cancel) {}
         } message: {
             Text("Are you sure you want to cancel this workout? Your progress will not be saved.")
@@ -281,9 +292,45 @@ struct WorkoutOverviewView: View {
         // Start the workout timer when first exercise is opened
         if !workoutStarted {
             startTimer()
+            startLiveActivity()
         } else if timer == nil {
             // Timer was invalidated but workout was started - resume it
             resumeTimer()
+        }
+    }
+
+    private func startLiveActivity() {
+        guard let validSession = session,
+              let firstExercise = sessionExercises.first,
+              let loggedFirstExercise = loggedExercises[firstExercise.id] else { return }
+
+        if #available(iOS 16.1, *) {
+            liveActivityManager.startWorkoutActivity(
+                workoutName: validSession.dayName,
+                totalExercises: sessionExercises.count,
+                currentExercise: loggedFirstExercise,
+                exerciseIndex: 0
+            )
+        }
+    }
+
+    private func updateLiveActivityForNextExercise(completedIndex: Int) {
+        guard #available(iOS 16.1, *) else { return }
+
+        let nextIndex = completedIndex + 1
+        if nextIndex < sessionExercises.count {
+            // Update to next exercise
+            let nextExercise = sessionExercises[nextIndex]
+            if let loggedNextExercise = loggedExercises[nextExercise.id] {
+                liveActivityManager.updateExercise(
+                    currentExercise: loggedNextExercise,
+                    exerciseIndex: nextIndex,
+                    elapsedTime: elapsedTime
+                )
+            }
+        } else {
+            // All exercises completed - end the activity
+            liveActivityManager.endWorkoutActivity()
         }
     }
 
@@ -411,6 +458,11 @@ struct WorkoutOverviewView: View {
         )
 
         authService.completeCurrentSession()
+
+        // End Live Activity when workout is saved
+        if #available(iOS 16.1, *) {
+            liveActivityManager.endWorkoutActivity()
+        }
     }
 }
 
