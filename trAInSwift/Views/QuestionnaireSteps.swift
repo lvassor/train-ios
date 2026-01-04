@@ -592,7 +592,7 @@ struct GoalsStepView: View {
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Let's customise your training programme")
+                Text("Let's customise your training program")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -673,7 +673,7 @@ struct MuscleGroupsStepView: View {
     // Combined selection status text
     private var selectionStatusText: String {
         if selectedGroups.isEmpty {
-            return "Optional: Select up to 3, or skip for a balanced programme"
+            return "Optional: Select up to 3, or skip for a balanced program"
         } else {
             return "Selected \(selectedGroups.count) of 3\nTap to remove"
         }
@@ -1301,7 +1301,7 @@ struct TrainingDaysStepView: View {
                         .font(.system(size: 14))
                         .foregroundColor(.trainPrimary)
 
-                    Text("Your programme will be:")
+                    Text("Your program will be:")
                         .font(.trainCaption)
                         .foregroundColor(.trainTextSecondary)
 
@@ -1358,7 +1358,7 @@ struct SessionDurationStepView: View {
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("This affects the number of exercises in your programme")
+                Text("This affects the number of exercises in your program")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)

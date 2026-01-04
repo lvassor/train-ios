@@ -17,12 +17,31 @@ struct LoginView: View {
     @State private var showPasswordReset: Bool = false
 
     var onLoginSuccess: (() -> Void)? = nil
+    var onBack: (() -> Void)? = nil
 
     var body: some View {
         ScrollView {
             VStack(spacing: Spacing.xl) {
-                Spacer()
-                    .frame(height: 60)
+                // Back button row
+                if onBack != nil {
+                    HStack {
+                        Button(action: { onBack?() }) {
+                            HStack(spacing: Spacing.xs) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text("Back")
+                                    .font(.trainBodyMedium)
+                            }
+                            .foregroundColor(.trainTextSecondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.md)
+                } else {
+                    Spacer()
+                        .frame(height: 60)
+                }
 
                 // Logo/Title
                 VStack(spacing: Spacing.md) {

@@ -41,7 +41,7 @@ struct MilestonesView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.ultraThinMaterial)
+        .background(.thinMaterial)
         .navigationTitle("Milestones")
         .navigationBarTitleDisplayMode(.inline)
     }

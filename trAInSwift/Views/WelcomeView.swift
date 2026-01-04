@@ -46,7 +46,7 @@ struct WelcomeView: View {
                             .font(.trainBody)
                             .foregroundColor(.white.opacity(0.8))
 
-                        Button(action: {}) {
+                        Button(action: onLogin) {
                             Text("log in")
                                 .font(.trainBody)
                                 .foregroundColor(.trainPrimary)

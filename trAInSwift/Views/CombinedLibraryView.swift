@@ -106,7 +106,7 @@ struct CombinedLibraryView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.ultraThinMaterial)
+        .background(.thinMaterial)
         .navigationTitle("Library")
         .navigationBarTitleDisplayMode(.inline)
     }

@@ -39,8 +39,6 @@ struct MainTabView<DashboardContent: View>: View {
     @State private var showMilestones = false
     @State private var showLibrary = false
     @State private var showAccount = false
-    @State private var milestonesDetent: PresentationDetent = .fraction(0.66)
-    @State private var libraryDetent: PresentationDetent = .fraction(0.66)
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -84,27 +82,47 @@ struct MainTabView<DashboardContent: View>: View {
         }) {
             NavigationStack {
                 MilestonesView()
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") {
+                                showMilestones = false
+                            }
+                            .foregroundColor(.trainPrimary)
+                        }
+                    }
             }
-            .presentationDetents([.fraction(0.66), .large], selection: $milestonesDetent)
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
-            .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.66)))
+            .presentationBackgroundInteraction(.enabled)
+            .presentationBackground(.clear)
         }
         .sheet(isPresented: $showLibrary, onDismiss: {
             selectedTab = .dashboard
         }) {
             NavigationStack {
                 CombinedLibraryView()
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") {
+                                showLibrary = false
+                            }
+                            .foregroundColor(.trainPrimary)
+                        }
+                    }
             }
-            .presentationDetents([.fraction(0.66), .large], selection: $libraryDetent)
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
-            .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.66)))
+            .presentationBackgroundInteraction(.enabled)
+            .presentationBackground(.clear)
         }
         .sheet(isPresented: $showAccount, onDismiss: {
             selectedTab = .dashboard
         }) {
             ProfileView()
-                .presentationDetents([.fraction(0.66), .large])
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+                .presentationBackgroundInteraction(.enabled)
+                .presentationBackground(.clear)
         }
     }
 }
