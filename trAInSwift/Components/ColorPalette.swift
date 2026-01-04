@@ -129,6 +129,9 @@ extension Color {
     static let trainTextPrimary = Color(hex: ColorPalette.textPrimary)
     static let trainTextSecondary = Color(hex: ColorPalette.textSecondary)
 
+    // Secondary accent color (alias for text secondary)
+    static let trainSecondary = Color(hex: ColorPalette.textSecondary)
+
     // UI Elements
     static let trainBorder = Color(hex: ColorPalette.border)
     static let trainDisabled = Color(hex: ColorPalette.disabled)
