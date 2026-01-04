@@ -79,11 +79,11 @@ struct DashboardContent: View {
                                     .font(.system(size: 48))
                                     .foregroundColor(.orange)
 
-                                Text("No Training Programme Found")
+                                Text("No Training Program Found")
                                     .font(.trainTitle)
                                     .foregroundColor(.trainTextPrimary)
 
-                                Text("There was an issue loading your programme. Please contact support or restart the questionnaire.")
+                                Text("There was an issue loading your program. Please contact support or restart the questionnaire.")
                                     .font(.trainBody)
                                     .foregroundColor(.trainTextSecondary)
                                     .multilineTextAlignment(.center)
@@ -184,7 +184,7 @@ struct ProgramProgressCard: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Button(action: onTap) {
                 HStack {
-                    Text("Your Programme")
+                    Text("Your Program")
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
 

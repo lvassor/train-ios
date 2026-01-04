@@ -323,7 +323,7 @@ struct ProgramCard: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             // Header with expand/collapse chevron
             HStack {
-                Text("Your Programme")
+                Text("Your Program")
                     .font(.trainHeadline)
                     .foregroundColor(.trainTextPrimary)
 
@@ -343,7 +343,7 @@ struct ProgramCard: View {
             if !isExpanded {
                 // Collapsed: Show summary
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(authService.getCurrentProgram()?.getProgram()?.type.description ?? "No Programme")
+                    Text(authService.getCurrentProgram()?.getProgram()?.type.description ?? "No Program")
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
 
@@ -454,7 +454,7 @@ struct ProgramCard: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will log you out and let you retake the quiz to create a new programme. Continue?")
+            Text("This will log you out and let you retake the quiz to create a new program. Continue?")
         }
     }
 

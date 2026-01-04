@@ -25,7 +25,9 @@ struct ContentView: View {
                 // Not authenticated - show onboarding flow
                 if showLogin {
                     // Show login screen
-                    LoginView()
+                    LoginView(onBack: {
+                        showLogin = false
+                    })
                 } else if showQuestionnaire {
                     // Show questionnaire (internally handles: questionnaire → programme ready → signup → loading → REAL paywall)
                     // NOTE: Program is saved immediately after signup in PostQuestionnaireSignupView
