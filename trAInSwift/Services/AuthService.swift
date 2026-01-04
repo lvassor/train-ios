@@ -19,6 +19,7 @@ class AuthService: ObservableObject {
 
     private let keychain = KeychainService.shared
     private let appleSignIn = AppleSignInService.shared
+    private let googleSignIn = GoogleSignInService.shared
     private let persistence = PersistenceController.shared
     private var context: NSManagedObjectContext {
         persistence.container.viewContext
@@ -77,6 +78,12 @@ class AuthService: ObservableObject {
         if user.isAppleUser {
             AppLogger.logAuth("Login failed: user signed up with Apple", level: .notice)
             return .failure(.useAppleSignIn)
+        }
+
+        // Check if this is a Google Sign In user (no password stored)
+        if user.isGoogleUser {
+            AppLogger.logAuth("Login failed: user signed up with Google", level: .notice)
+            return .failure(.useGoogleSignIn)
         }
 
         // Verify password from Keychain (passwords are hashed)
@@ -209,7 +216,81 @@ class AuthService: ObservableObject {
         completion(.success(newUser))
     }
 
+    // MARK: - Sign in with Google
+
+    func signInWithGoogle(completion: @escaping (Result<UserProfile, AuthError>) -> Void) {
+        googleSignIn.signIn { [weak self] result in
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let googleResult):
+                    self.handleGoogleSignInResult(googleResult, completion: completion)
+                case .failure(let error):
+                    if let googleError = error as? GoogleSignInError, googleError == .cancelled {
+                        completion(.failure(.cancelled))
+                    } else {
+                        AppLogger.logAuth("Google Sign In failed: \(error.localizedDescription)", level: .error)
+                        completion(.failure(.googleSignInFailed))
+                    }
+                }
+            }
+        }
+    }
+
+    private func handleGoogleSignInResult(_ result: GoogleSignInResult, completion: @escaping (Result<UserProfile, AuthError>) -> Void) {
+        let userIdentifier = result.userID
+        let email = result.email
+
+        // Check if user already exists by Google user identifier
+        if let existingUser = UserProfile.fetch(byGoogleId: userIdentifier, context: context) {
+            existingUser.updateLastLogin()
+            currentUser = existingUser
+            isAuthenticated = true
+            saveSession()
+            AppLogger.logAuth("Google user logged in successfully")
+            completion(.success(existingUser))
+            return
+        }
+
+        // Check if user exists by email (linking accounts)
+        if let existingUser = UserProfile.fetch(byEmail: email.lowercased(), context: context) {
+            // Link Google ID to existing account
+            existingUser.googleUserIdentifier = userIdentifier
+            existingUser.isGoogleUser = true
+            existingUser.updateLastLogin()
+            currentUser = existingUser
+            isAuthenticated = true
+            saveSession()
+            AppLogger.logAuth("Linked Google ID to existing account")
+            completion(.success(existingUser))
+            return
+        }
+
+        // Create new user with Google credentials
+        let newUser = UserProfile.create(email: email.lowercased(), context: context)
+        newUser.name = result.fullName ?? ""
+        newUser.googleUserIdentifier = userIdentifier
+        newUser.isGoogleUser = true
+
+        // Store Google identifier in Keychain
+        do {
+            try keychain.saveGoogleUserIdentifier(userIdentifier, for: email)
+        } catch {
+            AppLogger.logAuth("Failed to save Google identifier: \(error)", level: .warning)
+            // Continue anyway - not critical
+        }
+
+        currentUser = newUser
+        isAuthenticated = true
+        saveSession()
+
+        AppLogger.logAuth("New Google user created successfully")
+        completion(.success(newUser))
+    }
+
     func logout() {
+        googleSignIn.signOut()
         clearSession()
     }
 
@@ -389,7 +470,9 @@ enum AuthError: LocalizedError {
     case invalidCredentials
     case keychainError
     case useAppleSignIn
+    case useGoogleSignIn
     case appleSignInFailed
+    case googleSignInFailed
     case cancelled
 
     var errorDescription: String? {
@@ -410,8 +493,12 @@ enum AuthError: LocalizedError {
             return "Failed to securely store password"
         case .useAppleSignIn:
             return "This account uses Sign in with Apple"
+        case .useGoogleSignIn:
+            return "This account uses Google Sign-In"
         case .appleSignInFailed:
             return "Sign in with Apple failed. Please try again."
+        case .googleSignInFailed:
+            return "Google Sign-In failed. Please try again."
         case .cancelled:
             return "Sign in was cancelled"
         }
