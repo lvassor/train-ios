@@ -610,10 +610,10 @@ struct ExerciseListView: View {
             VStack(spacing: 0) {
                 ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, _ in
                     VStack(spacing: 0) {
-                        // Timeline node (hollow orange circle)
+                        // Timeline node (solid orange circle)
                         Circle()
-                            .stroke(orangeAccent, lineWidth: 2.5)
-                            .frame(width: 26, height: 26)
+                            .fill(orangeAccent)
+                            .frame(width: 13, height: 13)
 
                         // Connecting line (don't show after last item)
                         if index < session.exercises.count - 1 {

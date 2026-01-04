@@ -53,7 +53,40 @@ struct WeeklyCalendarView: View {
             .padding(.bottom, 14)
 
             if isExpanded {
-                // Expanded month view - dynamically builds around current week
+                // Month navigation controls
+                HStack {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            currentDate = calendar.date(byAdding: .month, value: -1, to: currentDate) ?? currentDate
+                        }
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.trainTextPrimary)
+                            .frame(width: 32, height: 32)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(Circle())
+                    }
+
+                    Spacer()
+
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            currentDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
+                        }
+                    }) {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.trainTextPrimary)
+                            .frame(width: 32, height: 32)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+
+                // Expanded month view - dynamically builds around current date
                 expandedMonthView
                     .padding(.horizontal, 16)
                     .padding(.bottom, 14)
@@ -84,7 +117,7 @@ struct WeeklyCalendarView: View {
     // MARK: - Expanded Month View
 
     private var expandedMonthView: some View {
-        let monthData = getMonthDataAroundCurrentWeek()
+        let monthData = getMonthData(for: currentDate)
 
         return VStack(spacing: 8) {
             // Day headers (M T W T F S S - Monday to Sunday)
@@ -103,7 +136,7 @@ struct WeeklyCalendarView: View {
                     ForEach(monthData[weekIndex], id: \.date) { dayInfo in
                         dayCircle(for: dayInfo, isCompact: true)
                             .frame(maxWidth: .infinity)
-                            .opacity(dayInfo.isCurrentMonth ? 1.0 : 0.2)
+                            .opacity(calendar.component(.month, from: dayInfo.date) == calendar.component(.month, from: currentDate) ? 1.0 : 0.2)
                     }
                 }
             }
@@ -187,11 +220,11 @@ struct WeeklyCalendarView: View {
         return days
     }
 
-    private func getMonthData() -> [[DayInfo]] {
+    private func getMonthData(for date: Date) -> [[DayInfo]] {
         var weeks: [[DayInfo]] = []
 
         // Get first day of the month
-        let components = calendar.dateComponents([.year, .month], from: currentDate)
+        let components = calendar.dateComponents([.year, .month], from: date)
         guard let firstOfMonth = calendar.date(from: components) else { return [] }
 
         // Find the Sunday that starts the calendar
@@ -273,7 +306,7 @@ struct WeeklyCalendarView: View {
     private func getDayInfo(for date: Date) -> DayInfo {
         let day = calendar.component(.day, from: date)
         let isToday = calendar.isDateInToday(date)
-        let isCurrentMonth = calendar.component(.month, from: date) == calendar.component(.month, from: currentDate)
+        let isCurrentMonth = true // This will be determined in the view where needed
 
         // M T W T F S S (Monday to Sunday)
         let weekdaySymbols = ["S", "M", "T", "W", "T", "F", "S"]  // Sunday=0, Monday=1, etc.
