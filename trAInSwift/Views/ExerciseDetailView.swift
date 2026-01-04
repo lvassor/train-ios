@@ -14,7 +14,7 @@ struct ExerciseDetailView: View {
     @State private var selectedTab: ExerciseDetailTab = .demo
 
     enum ExerciseDetailTab {
-        case logger, demo
+        case logger, demo, history
     }
 
     init(exercise: DBExercise, showLoggerTab: Bool = true) {
@@ -26,8 +26,8 @@ struct ExerciseDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
                 // Tab toggle - matches CombinedLibraryView toolbar style
-                if showLoggerTab {
-                    HStack(spacing: 4) {
+                HStack(spacing: 4) {
+                    if showLoggerTab {
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 selectedTab = .logger
@@ -46,38 +46,59 @@ struct ExerciseDetailView: View {
                             .background(selectedTab == .logger ? Color.trainPrimary.opacity(0.15) : Color.clear)
                             .clipShape(Capsule())
                         }
-
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                selectedTab = .demo
-                            }
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "play.circle.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(selectedTab == .demo ? .trainPrimary : .trainTextSecondary)
-                                Text("Demo")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(selectedTab == .demo ? .trainTextPrimary : .trainTextSecondary)
-                            }
-                            .padding(.horizontal, Spacing.md)
-                            .padding(.vertical, 10)
-                            .background(selectedTab == .demo ? Color.trainPrimary.opacity(0.15) : Color.clear)
-                            .clipShape(Capsule())
-                        }
                     }
-                    .padding(4)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(Capsule())
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.top, Spacing.md)
+
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedTab = .demo
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(selectedTab == .demo ? .trainPrimary : .trainTextSecondary)
+                            Text("Demo")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(selectedTab == .demo ? .trainTextPrimary : .trainTextSecondary)
+                        }
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, 10)
+                        .background(selectedTab == .demo ? Color.trainPrimary.opacity(0.15) : Color.clear)
+                        .clipShape(Capsule())
+                    }
+
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedTab = .history
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chart.xyaxis.line")
+                                .font(.system(size: 14))
+                                .foregroundColor(selectedTab == .history ? .trainPrimary : .trainTextSecondary)
+                            Text("History")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(selectedTab == .history ? .trainTextPrimary : .trainTextSecondary)
+                        }
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, 10)
+                        .background(selectedTab == .history ? Color.trainPrimary.opacity(0.15) : Color.clear)
+                        .clipShape(Capsule())
+                    }
                 }
+                .padding(4)
+                .background(Color.white.opacity(0.08))
+                .clipShape(Capsule())
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.md)
 
                 // Content
-                if selectedTab == .demo || !showLoggerTab {
+                if selectedTab == .demo {
                     ExerciseDemoTab(exercise: exercise)
-                } else {
+                } else if selectedTab == .logger {
                     ExerciseLoggerTab(exercise: exercise)
+                } else {
+                    ExerciseHistoryView(exercise: exercise)
                 }
         }
         .background {

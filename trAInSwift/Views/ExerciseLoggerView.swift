@@ -14,11 +14,13 @@ import Combine
 enum LoggerTabOption: String, CaseIterable, Hashable {
     case logger = "Logger"
     case demo = "Demo"
+    case history = "History"
 
     var icon: String {
         switch self {
         case .logger: return "list.bullet.clipboard"
         case .demo: return "play.circle.fill"
+        case .history: return "chart.xyaxis.line"
         }
     }
 }
@@ -96,11 +98,11 @@ struct ExerciseLoggerView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 200)
+                .frame(width: 280)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.md)
                 .onChange(of: selectedTab) { _, newTab in
-                    if newTab == .demo {
+                    if newTab == .demo || newTab == .history {
                         loadExerciseDetails()
                     }
                 }
@@ -127,10 +129,21 @@ struct ExerciseLoggerView: View {
                         }
                     }
                     .scrollDismissesKeyboard(.interactively)
-                } else {
+                } else if selectedTab == .demo {
                     // Demo view
                     if let dbExercise = selectedDBExercise {
                         ExerciseDemoTab(exercise: dbExercise)
+                    } else {
+                        VStack {
+                            ProgressView("Loading exercise...")
+                                .foregroundColor(.trainTextPrimary)
+                        }
+                        .frame(maxHeight: .infinity)
+                    }
+                } else {
+                    // History view
+                    if let dbExercise = selectedDBExercise {
+                        ExerciseHistoryView(exercise: dbExercise)
                     } else {
                         VStack {
                             ProgressView("Loading exercise...")
