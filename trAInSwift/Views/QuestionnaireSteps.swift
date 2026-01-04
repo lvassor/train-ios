@@ -1340,7 +1340,182 @@ struct TrainingDaysStepView: View {
     }
 }
 
-// MARK: - Q11: Session Duration
+// MARK: - Q11: Split Selection
+struct SplitSelectionStepView: View {
+    @Binding var selectedSplit: String
+    @Binding var trainingDays: Int
+    @Binding var experience: String
+    @Binding var targetMuscleGroups: [String]
+
+    // Load split templates from JSON
+    @State private var splitTemplates: [String: [String: Any]] = [:]
+
+    // Get available splits for current day count
+    private var availableSplits: [String] {
+        guard let dayKey = "\(trainingDays)-day",
+              let daysData = splitTemplates[dayKey] as? [String: Any] else {
+            return []
+        }
+        return Array(daysData.keys).sorted()
+    }
+
+    // Generate brief explanation for each split
+    private func splitExplanation(for splitName: String) -> String {
+        switch splitName {
+        case "Upper Lower":
+            return "Train upper body one day, lower body the next"
+        case "Full Body":
+            return "Work all muscle groups each session"
+        case "Push Pull Legs":
+            return "Pushing movements, pulling movements, and legs"
+        case "2 Upper 1 Lower":
+            return "Two upper body days, one lower body day"
+        case "1 Upper 2 Lower":
+            return "One upper body day, two lower body days"
+        case "PPL Upper Lower":
+            return "Push/Pull/Legs plus Upper/Lower"
+        case "Push Pull Legs x2":
+            return "Push/Pull/Legs repeated twice per week"
+        default:
+            return "Balanced training split"
+        }
+    }
+
+    // Check if a split is recommended
+    private func isRecommended(_ splitName: String) -> Bool {
+        switch trainingDays {
+        case 2:
+            if experience == "no_experience" || experience == "beginner" {
+                return splitName == "Full Body"
+            } else {
+                return splitName == "Upper Lower"
+            }
+        case 3:
+            if experience == "no_experience" || experience == "beginner" {
+                return splitName == "Full Body"
+            } else {
+                // Count priority muscle categories
+                let upperMuscles = ["Chest", "Shoulder", "Back", "Bicep", "Tricep"]
+                let lowerMuscles = ["Quad", "Hamstring", "Glute", "Calf"]
+
+                let upperPriorityCount = targetMuscleGroups.filter { upperMuscles.contains($0) }.count
+                let lowerPriorityCount = targetMuscleGroups.filter { lowerMuscles.contains($0) }.count
+
+                if lowerPriorityCount >= 2 {
+                    return splitName == "1 Upper 2 Lower"
+                } else if upperPriorityCount >= 2 {
+                    return splitName == "2 Upper 1 Lower"
+                } else {
+                    return splitName == "Push Pull Legs"
+                }
+            }
+        default:
+            return false
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
+                Text("Choose your training split")
+                    .font(.trainTitle2)
+                    .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
+
+                Text("Based on your \(trainingDays)-day schedule")
+                    .font(.trainSubtitle)
+                    .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+
+            VStack(spacing: Spacing.md) {
+                // First show recommended splits
+                ForEach(availableSplits.filter { isRecommended($0) }, id: \.self) { splitName in
+                    SplitOptionCard(
+                        title: splitName,
+                        subtitle: splitExplanation(for: splitName),
+                        isSelected: selectedSplit == splitName,
+                        isRecommended: true,
+                        action: { selectedSplit = splitName }
+                    )
+                }
+
+                // Then show other splits
+                ForEach(availableSplits.filter { !isRecommended($0) }, id: \.self) { splitName in
+                    SplitOptionCard(
+                        title: splitName,
+                        subtitle: splitExplanation(for: splitName),
+                        isSelected: selectedSplit == splitName,
+                        isRecommended: false,
+                        action: { selectedSplit = splitName }
+                    )
+                }
+            }
+
+            Spacer()
+        }
+        .onAppear {
+            loadSplitTemplates()
+        }
+    }
+
+    private func loadSplitTemplates() {
+        guard let path = Bundle.main.path(forResource: "split_templates", ofType: "json"),
+              let data = NSData(contentsOfFile: path),
+              let json = try? JSONSerialization.jsonObject(with: data as Data, options: []) as? [String: Any] else {
+            print("Failed to load split_templates.json")
+            return
+        }
+        splitTemplates = json
+    }
+}
+
+// MARK: - Split Option Card
+struct SplitOptionCard: View {
+    let title: String
+    let subtitle: String
+    let isSelected: Bool
+    let isRecommended: Bool
+    let action: () -> Void
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            Button(action: action) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text(title)
+                        .font(.trainBodyMedium)
+                        .foregroundColor(isSelected ? .white : .trainTextPrimary)
+                        .multilineTextAlignment(.leading)
+
+                    Text(subtitle)
+                        .font(.trainCaption)
+                        .foregroundColor(isSelected ? .white.opacity(0.8) : .trainTextSecondary)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(Spacing.md)
+                .background(isSelected ? Color.trainPrimary : .clear)
+                .appCard()
+            }
+            .buttonStyle(ScaleButtonStyle())
+
+            // Recommended label
+            if isRecommended {
+                Text("Recommended")
+                    .font(.trainCaption)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, 4)
+                    .background(Color.trainPrimary)
+                    .cornerRadius(8)
+                    .offset(x: 12, y: -8)
+            }
+        }
+    }
+}
+
+// MARK: - Q12: Session Duration
 struct SessionDurationStepView: View {
     @Binding var sessionDuration: String
 

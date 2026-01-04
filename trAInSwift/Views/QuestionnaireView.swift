@@ -20,8 +20,8 @@ struct QuestionnaireView: View {
     let onComplete: () -> Void
     var onBack: (() -> Void)?
 
-    // Section 1: Availability (8 questions)
-    let section1TotalSteps = 8
+    // Section 1: Availability (9 questions)
+    let section1TotalSteps = 9
     // Section 2: About You (5 questions - Name, Age, Gender, Height, Weight)
     let section2TotalSteps = 5
 
@@ -160,8 +160,15 @@ struct QuestionnaireView: View {
             case 5:
                 TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
             case 6:
-                SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
+                SplitSelectionStepView(
+                    selectedSplit: $viewModel.questionnaireData.selectedSplit,
+                    trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek,
+                    experience: $viewModel.questionnaireData.experienceLevel,
+                    targetMuscleGroups: $viewModel.questionnaireData.targetMuscleGroups
+                )
             case 7:
+                SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
+            case 8:
                 MotivationStepView(
                     selectedMotivations: $viewModel.questionnaireData.motivations,
                     otherText: $viewModel.questionnaireData.motivationOther
@@ -228,9 +235,11 @@ struct QuestionnaireView: View {
                 return true // Injuries are optional
             case 5: // Training Days
                 return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
-            case 6: // Session Duration
+            case 6: // Split Selection
+                return !viewModel.questionnaireData.selectedSplit.isEmpty
+            case 7: // Session Duration
                 return !viewModel.questionnaireData.sessionDuration.isEmpty
-            case 7: // Motivation (optional - users can proceed without selecting)
+            case 8: // Motivation (optional - users can proceed without selecting)
                 return true
             default:
                 return true
