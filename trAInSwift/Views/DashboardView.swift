@@ -342,7 +342,8 @@ struct WeeklySessionsSection: View {
                 SessionActionButton(
                     userProgram: userProgram,
                     sessionIndex: selectedSessionIndex,
-                    isCompleted: isSessionCompleted(sessionIndex: selectedSessionIndex)
+                    isCompleted: isSessionCompleted(sessionIndex: selectedSessionIndex),
+                    hasBeenCompletedThisWeek: hasSessionBeenCompletedThisWeek(sessionIndex: selectedSessionIndex)
                 )
 
                 // Dynamic Content: Exercise List or Completion Summary
@@ -372,6 +373,7 @@ struct WeeklySessionsSection: View {
     }
 
     /// Sessions completed this calendar week (Monday-Sunday)
+    /// This now represents the current training week that resets every Monday
     private var sessionsCompletedThisWeek: [CDWorkoutSession] {
         guard let userId = AuthService.shared.currentUser?.id else { return [] }
 
@@ -410,7 +412,22 @@ struct WeeklySessionsSection: View {
         let priorCount = sessions.prefix(sessionIndex).filter { $0.dayName == sessionName }.count
         let completedCount = sessionsCompletedThisWeek.filter { $0.sessionName == sessionName }.count
 
+        // A session is "completed" for UI purposes if it has been done at least once this week
+        // But users can still start additional sessions beyond the program requirements
         return completedCount > priorCount
+    }
+
+    /// Check if this specific session instance has been completed this week
+    /// Used for showing both Start and View buttons appropriately
+    private func hasSessionBeenCompletedThisWeek(sessionIndex: Int) -> Bool {
+        guard let programData = userProgram.getProgram() else { return false }
+        let sessions = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
+        guard sessionIndex < sessions.count else { return false }
+
+        let sessionName = sessions[sessionIndex].dayName
+        let completedCount = sessionsCompletedThisWeek.filter { $0.sessionName == sessionName }.count
+
+        return completedCount > 0
     }
 
     /// Generate display names with numbering for repeated workout types
@@ -521,6 +538,7 @@ struct HorizontalDayButtonsRow: View {
     }
 
     /// Sessions completed this calendar week (Monday-Sunday)
+    /// Weekly logic automatically resets every Monday
     private var sessionsCompletedThisWeek: [CDWorkoutSession] {
         guard let userId = AuthService.shared.currentUser?.id else { return [] }
 
@@ -558,28 +576,11 @@ struct SessionActionButton: View {
     let userProgram: WorkoutProgram
     let sessionIndex: Int
     let isCompleted: Bool
+    let hasBeenCompletedThisWeek: Bool
 
     var body: some View {
-        if isCompleted {
-            // View Completed Workout button
-            NavigationLink(destination: SessionLogView(
-                userProgram: userProgram,
-                sessionIndex: sessionIndex
-            )) {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 18))
-                    Text("View Completed Workout")
-                        .font(.trainBodyMedium)
-                }
-                .foregroundColor(.trainPrimary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.md)
-                .background(Color.trainPrimary.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-            }
-        } else {
-            // Start Workout button - now navigates to WorkoutOverviewView
+        VStack(spacing: Spacing.sm) {
+            // Always show Start Workout button (now allows 4th session even when 3/3 completed)
             NavigationLink(destination: WorkoutOverviewView(
                 weekNumber: Int(userProgram.currentWeek),
                 sessionIndex: sessionIndex
@@ -591,6 +592,26 @@ struct SessionActionButton: View {
                     .padding(.vertical, Spacing.md)
                     .background(Color.trainPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+            }
+
+            // Show View Completed Workout button below Start button if session has been completed this week
+            if hasBeenCompletedThisWeek {
+                NavigationLink(destination: SessionLogView(
+                    userProgram: userProgram,
+                    sessionIndex: sessionIndex
+                )) {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18))
+                        Text("View Completed Workout")
+                            .font(.trainBodyMedium)
+                    }
+                    .foregroundColor(.trainPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Spacing.md)
+                    .background(Color.trainPrimary.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                }
             }
         }
     }
@@ -916,6 +937,7 @@ struct UpcomingWorkoutsSection: View {
     }
 
     /// Sessions completed this calendar week (Monday-Sunday)
+    /// Weekly logic automatically resets every Monday
     private var sessionsCompletedThisWeek: [CDWorkoutSession] {
         guard let userId = AuthService.shared.currentUser?.id else { return [] }
 
