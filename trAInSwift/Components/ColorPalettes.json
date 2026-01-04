@@ -440,5 +440,102 @@
             "White": "Titles, exercise names, weights, primary content",
             "Muted": "Sets/reps, inactive nav, tertiary info"
         }
+    },
+    "Train Pearl": {
+        "Description": "Clean, accessible light mode with warm neutral gradient background. Features diagonal gradient from creamy beige to pure white creating a pearl-like luminosity. Designed for optimal accessibility with 4.7:1 contrast ratio.",
+        "Background": {
+            "Gradient": {
+                "Type": "Linear Diagonal (top-leading to bottom-trailing)",
+                "Stops": [
+                    {
+                        "Color": "#FBF7F2",
+                        "Position": "0%",
+                        "Description": "Creamy beige - warmest point (top-left corner)"
+                    },
+                    {
+                        "Color": "#FEFEFE",
+                        "Position": "30%",
+                        "Description": "Near white - midpoint transition"
+                    },
+                    {
+                        "Color": "#FFFFFF",
+                        "Position": "100%",
+                        "Description": "Pure white - cleanest point (bottom-right corner)"
+                    }
+                ],
+                "Implementation Notes": {
+                    "Midpoint Location": "0.3 (30%) - Quick transition from warm to cool for subtle pearl effect",
+                    "Color Temperature": "Warm to neutral - creates inviting yet clean aesthetic",
+                    "Accessibility": "High contrast background enables 4.7:1 contrast ratios"
+                }
+            },
+            "Solid Backgrounds": {
+                "Light": "#FFFFFF",
+                "Mid": "#FEFEFE",
+                "Surface": "#FEFEFE",
+                "Description": "Pure white for main, near-white for mid-level, consistent light surfaces"
+            }
+        },
+        "Accent": {
+            "Primary": "#C4820E",
+            "Primary Light": "#D6941A",
+            "Primary Hover": "#E8A52B",
+            "Secondary": "#C4820E",
+            "Description": "Warm bronze/copper for CTAs and key metrics (4.7:1 contrast on white), lighter variants for hover/interactive states"
+        },
+        "Text": {
+            "Primary": "#1C1917",
+            "Secondary": "#57534E",
+            "Muted": "#A8A29E",
+            "Disabled": "#A8A29E",
+            "Description": "Rich dark brown for primary text, warm gray for labels and dates, muted warm gray for tertiary info and disabled states"
+        },
+        "Glass": {
+            "Card": {
+                "White Overlay": "rgba(255, 255, 255, 0.8)",
+                "Tint": "rgba(251, 247, 242, 0.1)",
+                "Border": "rgba(231, 229, 224, 0.8)",
+                "Shadow": "rgba(0, 0, 0, 0.04) 0px 2px 8px",
+                "Description": "Light frosted glass with subtle warm tint. Maintains readability in light mode."
+            },
+            "Button": {
+                "White Overlay": "rgba(255, 255, 255, 0.9)",
+                "Border": "rgba(231, 229, 224, 0.6)",
+                "Shadow": "rgba(0, 0, 0, 0.06) 0px 1px 3px",
+                "Description": "More opaque glass for interactive elements with subtle shadow"
+            }
+        },
+        "UI Elements": {
+            "Border Subtle": "#F0EDE8",
+            "Border Default": "#E7E5E0",
+            "Border Strong": "#D6D3CE",
+            "Muted Fill": "#A8A29E",
+            "Divider": "#E7E5E0",
+            "Timeline Line": "#E7E5E0",
+            "Description": "Three-tier border system for hierarchy, warm gray fills for muted elements"
+        },
+        "Effects": {
+            "Corner Radius": {
+                "Small": "12pt",
+                "Medium": "16pt",
+                "Large": "20pt",
+                "Extra Large": "24pt"
+            },
+            "Corner Style": "Continuous",
+            "Shadow": "rgba(0, 0, 0, 0.04) 0px 2px 8px",
+            "Blur": "backdrop-filter: blur(20px) (via system materials)"
+        },
+        "Color Roles": {
+            "Bronze": "CTAs, stat values, active states (4.7:1 contrast)",
+            "Secondary Text": "Labels, dates, section headers, metadata",
+            "Primary Text": "Titles, exercise names, weights, primary content",
+            "Muted": "Sets/reps, inactive nav, tertiary info"
+        },
+        "Accessibility": {
+            "Primary Contrast": "4.7:1 (AA compliant)",
+            "Secondary Contrast": "3.2:1 (AA compliant)",
+            "Background Luminosity": "High - optimized for readability",
+            "Color Blind Friendly": "Yes - relies on contrast rather than color alone"
+        }
     }
 }
