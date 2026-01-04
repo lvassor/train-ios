@@ -92,9 +92,17 @@ struct ProfileView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
-                .background(.ultraThinMaterial)
+                .background(.thinMaterial)
                 .navigationTitle("Account Settings")
                 .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            dismiss()
+                        }
+                        .foregroundColor(.trainPrimary)
+                    }
+                }
         }
         .confirmationDialog("Log Out", isPresented: $showLogoutConfirmation, titleVisibility: .visible) {
             Button("Log Out", role: .destructive) {
