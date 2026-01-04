@@ -13,6 +13,7 @@ struct ProfileView: View {
     @State private var showLogoutConfirmation = false
     @State private var shouldRestartQuestionnaire = false
     @State private var showEditProfile = false
+    @State private var showProgramSelector = false
 
     var body: some View {
         NavigationView {
@@ -63,6 +64,17 @@ struct ProfileView: View {
                                 action: { showEditProfile = true }
                             )
 
+                            if authService.getInactivePrograms().count > 0 {
+                                Divider()
+                                    .padding(.leading, 60)
+
+                                ProfileMenuItem(
+                                    icon: "dumbbell",
+                                    title: "Switch Program",
+                                    action: { showProgramSelector = true }
+                                )
+                            }
+
                             Divider()
                                 .padding(.leading, 60)
 
@@ -107,6 +119,20 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showEditProfile) {
             EditProfileView()
+        }
+        .sheet(isPresented: $showProgramSelector) {
+            ProgramSelectorView()
+        }
+        .fullScreenCover(isPresented: $shouldRestartQuestionnaire) {
+            QuestionnaireView(
+                onComplete: {
+                    shouldRestartQuestionnaire = false
+                },
+                onBack: {
+                    shouldRestartQuestionnaire = false
+                }
+            )
+            .environmentObject(WorkoutViewModel())
         }
     }
 
@@ -446,15 +472,13 @@ struct ProgramCard: View {
         .padding(Spacing.md)
         .appCard()
         .confirmationDialog("Retake Quiz", isPresented: $showRetakeConfirmation, titleVisibility: .visible) {
-            Button("Retake Quiz", role: .destructive) {
-                // Log out to restart questionnaire flow
-                // This will clear the user session and allow them to take the quiz again
-                authService.logout()
-                dismiss()
+            Button("Retake Quiz") {
+                // Navigate to questionnaire while keeping current program as inactive
+                shouldRestartQuestionnaire = true
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will log you out and let you retake the quiz to create a new program. Continue?")
+            Text("This will create a new program while keeping your current one available to switch back to.")
         }
     }
 
@@ -485,6 +509,145 @@ struct ProgramCard: View {
         default:
             return .male // "male" or "other" defaults to male
         }
+    }
+}
+
+// MARK: - Program Selector View
+
+struct ProgramSelectorView: View {
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var authService = AuthService.shared
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: Spacing.lg) {
+                    // Current Program
+                    if let currentProgram = authService.getCurrentProgram() {
+                        VStack(alignment: .leading, spacing: Spacing.md) {
+                            Text("Current Program")
+                                .font(.trainHeadline)
+                                .foregroundColor(.trainTextPrimary)
+
+                            ProgramSelectionCard(program: currentProgram, isActive: true)
+                        }
+                        .padding(.horizontal, Spacing.lg)
+                    }
+
+                    // Previous Programs
+                    let inactivePrograms = authService.getInactivePrograms()
+                    if !inactivePrograms.isEmpty {
+                        VStack(alignment: .leading, spacing: Spacing.md) {
+                            Text("Previous Programs")
+                                .font(.trainHeadline)
+                                .foregroundColor(.trainTextPrimary)
+
+                            ForEach(inactivePrograms, id: \.id) { program in
+                                ProgramSelectionCard(program: program, isActive: false) {
+                                    authService.activateProgram(program)
+                                    dismiss()
+                                }
+                            }
+                        }
+                        .padding(.horizontal, Spacing.lg)
+                    }
+
+                    Spacer()
+                }
+                .padding(.top, Spacing.xl)
+            }
+            .background(.ultraThinMaterial)
+            .navigationTitle("Switch Program")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(.trainPrimary)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Program Selection Card
+
+struct ProgramSelectionCard: View {
+    let program: WorkoutProgram
+    let isActive: Bool
+    var onSelect: (() -> Void)? = nil
+
+    var body: some View {
+        Button(action: {
+            onSelect?()
+        }) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack {
+                    Text(program.name ?? "Unknown Program")
+                        .font(.trainBodyMedium)
+                        .foregroundColor(.trainTextPrimary)
+
+                    Spacer()
+
+                    if isActive {
+                        Text("ACTIVE")
+                            .font(.trainCaption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, 2)
+                            .background(Color.trainPrimary)
+                            .clipShape(Capsule())
+                    } else if onSelect != nil {
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.trainTextSecondary)
+                    }
+                }
+
+                HStack(spacing: Spacing.sm) {
+                    Text("\(program.daysPerWeek) days/week")
+                        .font(.trainBody)
+                        .foregroundColor(.trainTextSecondary)
+
+                    Text("•")
+                        .font(.trainBody)
+                        .foregroundColor(.trainTextSecondary)
+
+                    Text(program.sessionDuration ?? "Unknown")
+                        .font(.trainBody)
+                        .foregroundColor(.trainTextSecondary)
+                }
+
+                if let createdAt = program.createdAt {
+                    Text("Created \(formatRelativeDate(createdAt))")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+                }
+
+                // Progress indicator
+                HStack(spacing: Spacing.sm) {
+                    Text("Week \(program.currentWeek) of \(program.totalWeeks)")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+
+                    Spacer()
+
+                    ProgressView(value: Double(program.currentWeek), total: Double(program.totalWeeks))
+                        .progressViewStyle(LinearProgressViewStyle(tint: .trainPrimary))
+                        .frame(width: 60)
+                }
+            }
+            .padding(Spacing.md)
+            .appCard()
+        }
+        .disabled(isActive || onSelect == nil)
+    }
+
+    private func formatRelativeDate(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.dateTimeStyle = .named
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 }
 
