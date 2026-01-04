@@ -358,7 +358,7 @@ struct ProgramCard: View {
                 if let program = authService.getCurrentProgram()?.getProgram() {
                     VStack(spacing: Spacing.md) {
                         // Split Type Card
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                        VStack(alignment: .center, spacing: Spacing.sm) {
                             Text("Split Type")
                                 .font(.trainCaption)
                                 .foregroundColor(.trainTextSecondary)
@@ -366,25 +366,25 @@ struct ProgramCard: View {
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.trainTextPrimary)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity)
                         .padding(Spacing.md)
                         .glassCard(cornerRadius: CornerRadius.md)
 
                         // Duration and Frequency Cards (side by side)
                         HStack(spacing: Spacing.md) {
-                            VStack(alignment: .leading, spacing: Spacing.sm) {
-                                Text("Duration")
+                            VStack(alignment: .center, spacing: Spacing.sm) {
+                                Text("Session Duration")
                                     .font(.trainCaption)
                                     .foregroundColor(.trainTextSecondary)
-                                Text("\(program.totalWeeks) weeks")
+                                Text(getUserSessionDuration())
                                     .font(.trainBodyMedium)
                                     .foregroundColor(.trainTextPrimary)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .frame(maxWidth: .infinity)
                             .padding(Spacing.md)
                             .glassCard(cornerRadius: CornerRadius.md)
 
-                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                            VStack(alignment: .center, spacing: Spacing.sm) {
                                 Text("Frequency")
                                     .font(.trainCaption)
                                     .foregroundColor(.trainTextSecondary)
@@ -392,7 +392,7 @@ struct ProgramCard: View {
                                     .font(.trainBodyMedium)
                                     .foregroundColor(.trainTextPrimary)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .frame(maxWidth: .infinity)
                             .padding(Spacing.md)
                             .glassCard(cornerRadius: CornerRadius.md)
                         }
@@ -411,10 +411,10 @@ struct ProgramCard: View {
                                         StaticMuscleView(
                                             muscleGroup: muscleGroup,
                                             gender: getUserGender(),
-                                            size: 60,
+                                            size: 90,
                                             useUniformBaseColor: true
                                         )
-                                        .frame(width: 60, height: 60)
+                                        .frame(width: 90, height: 90)
                                         Text(muscleGroup)
                                             .font(.trainCaption)
                                             .foregroundColor(.trainTextSecondary)
@@ -485,6 +485,17 @@ struct ProgramCard: View {
         default:
             return .male // "male" or "other" defaults to male
         }
+    }
+
+    private func getUserSessionDuration() -> String {
+        // Get session duration from questionnaire data
+        guard let user = authService.currentUser,
+              let questionnaireData = user.getQuestionnaireData(),
+              !questionnaireData.sessionDuration.isEmpty else {
+            return "45-60 min" // Default fallback
+        }
+
+        return questionnaireData.sessionDuration
     }
 }
 
