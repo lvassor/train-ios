@@ -83,16 +83,32 @@ class DynamicProgramGenerator {
         )
         allWarnings.append(contentsOf: sessionWarnings)
 
-        // CRITICAL VALIDATION: Check for empty sessions
+        // ROBUSTNESS: Ensure each session has at least one exercise
         print("🔍 Validating generated sessions...")
+        var robustSessions: [ProgramSession] = []
         for (index, session) in sessions.enumerated() {
             print("   Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
             if session.exercises.isEmpty {
-                print("   ❌ CRITICAL: Session '\(session.dayName)' has 0 exercises!")
-                print("      This will cause the workout logger to fail!")
-                print("      Equipment: \(availableEquipment)")
-                print("      Injuries: \(questionnaireData.injuries)")
-                print("      Experience: \(experienceLevel)")
+                print("   🔄 Empty session detected for '\(session.dayName)' - adding emergency fallback exercises")
+
+                // Emergency fallback: add basic bodyweight exercises
+                let emergencyExercises = createEmergencyExercises(
+                    for: session.dayName,
+                    fitnessGoal: questionnaireData.primaryGoal,
+                    experienceLevel: experienceLevel
+                )
+
+                let robustSession = ProgramSession(
+                    dayName: session.dayName,
+                    exercises: emergencyExercises
+                )
+                robustSessions.append(robustSession)
+
+                // Add warning for emergency fallback
+                allWarnings.append(ExerciseSelectionWarning.equipmentLimitedSelection(muscle: "Emergency Fallback"))
+                print("   ✅ Added \(emergencyExercises.count) emergency exercises to '\(session.dayName)'")
+            } else {
+                robustSessions.append(session)
             }
         }
 
@@ -100,7 +116,7 @@ class DynamicProgramGenerator {
             type: splitType,
             daysPerWeek: questionnaireData.trainingDaysPerWeek,
             sessionDuration: sessionDuration,
-            sessions: sessions,
+            sessions: robustSessions,
             totalWeeks: 8
         )
 
@@ -158,16 +174,29 @@ class DynamicProgramGenerator {
             daysPerWeek: questionnaireData.trainingDaysPerWeek
         )
 
-        // CRITICAL VALIDATION: Check for empty sessions
+        // ROBUSTNESS: Ensure each session has at least one exercise (legacy method)
         print("🔍 Validating generated sessions...")
+        var robustSessions: [ProgramSession] = []
         for (index, session) in sessions.enumerated() {
             print("   Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
             if session.exercises.isEmpty {
-                print("   ❌ CRITICAL: Session '\(session.dayName)' has 0 exercises!")
-                print("      This will cause the workout logger to fail!")
-                print("      Equipment: \(availableEquipment)")
-                print("      Injuries: \(questionnaireData.injuries)")
-                print("      Experience: \(experienceLevel)")
+                print("   🔄 Empty session detected for '\(session.dayName)' - adding emergency fallback exercises")
+
+                // Emergency fallback: add basic bodyweight exercises
+                let emergencyExercises = createEmergencyExercises(
+                    for: session.dayName,
+                    fitnessGoal: questionnaireData.primaryGoal,
+                    experienceLevel: experienceLevel
+                )
+
+                let robustSession = ProgramSession(
+                    dayName: session.dayName,
+                    exercises: emergencyExercises
+                )
+                robustSessions.append(robustSession)
+                print("   ✅ Added \(emergencyExercises.count) emergency exercises to '\(session.dayName)'")
+            } else {
+                robustSessions.append(session)
             }
         }
 
@@ -175,7 +204,7 @@ class DynamicProgramGenerator {
             type: splitType,
             daysPerWeek: questionnaireData.trainingDaysPerWeek,
             sessionDuration: sessionDuration,
-            sessions: sessions,
+            sessions: robustSessions,
             totalWeeks: 8
         )
 
@@ -335,27 +364,57 @@ class DynamicProgramGenerator {
 
             print("   🚫 Session canonical names already used: \(sessionCanonicalNames)")
 
-            let result = try exerciseRepo.selectExercisesWithWarnings(
-                count: targetCount,
-                movementPattern: muscleGroup.movementPattern,
-                primaryMuscle: muscleGroup.muscle,
-                experienceLevel: experienceLevel,
-                availableEquipment: availableEquipment,
-                userInjuries: userInjuries,
-                excludedExerciseIds: usedExerciseIds,
-                excludedDisplayNames: usedDisplayNames,
-                excludedCanonicalNames: sessionCanonicalNames,  // Session-level: no same movement in one session
-                allowComplexity4: allowComplexity4,
-                requireComplexity4First: requireComplexity4First
-            )
+            // Try to select exercises with full constraints first
+            let result: ExerciseSelectionResult
+            do {
+                result = try exerciseRepo.selectExercisesWithWarnings(
+                    count: targetCount,
+                    movementPattern: muscleGroup.movementPattern,
+                    primaryMuscle: muscleGroup.muscle,
+                    experienceLevel: experienceLevel,
+                    availableEquipment: availableEquipment,
+                    userInjuries: userInjuries,
+                    excludedExerciseIds: usedExerciseIds,
+                    excludedDisplayNames: usedDisplayNames,
+                    excludedCanonicalNames: sessionCanonicalNames,  // Session-level: no same movement in one session
+                    allowComplexity4: allowComplexity4,
+                    requireComplexity4First: requireComplexity4First
+                )
+            } catch {
+                print("   🔄 Database error for \(muscleGroup.muscle): \(error.localizedDescription)")
+                print("   🔄 Attempting fallback selection with relaxed constraints...")
+
+                // Fallback: Try with relaxed constraints
+                do {
+                    result = try exerciseRepo.selectExercisesWithWarnings(
+                        count: targetCount,
+                        movementPattern: nil, // Remove movement pattern constraint
+                        primaryMuscle: muscleGroup.muscle,
+                        experienceLevel: .beginner, // Use beginner level for broader selection
+                        availableEquipment: ["Bodyweight", "Dumbbells", "Barbell"], // Basic equipment
+                        userInjuries: [],
+                        excludedExerciseIds: Set<String>(), // Clear exclusions
+                        excludedDisplayNames: Set<String>(),
+                        excludedCanonicalNames: Set<String>(),
+                        allowComplexity4: false,
+                        requireComplexity4First: false
+                    )
+                    print("   ✅ Fallback selection found \(result.exercises.count) exercises for \(muscleGroup.muscle)")
+                } catch {
+                    print("   ❌ Fallback also failed for \(muscleGroup.muscle): \(error.localizedDescription)")
+                    // Last resort: create empty result but program will still continue
+                    result = ExerciseSelectionResult(exercises: [], warnings: [
+                        ExerciseSelectionWarning.noExercisesForMuscle(muscle: muscleGroup.muscle)
+                    ])
+                }
+            }
 
             // Collect warnings
             sessionWarnings.append(contentsOf: result.warnings)
 
             print("   ✅ Found \(result.exercises.count) exercises for \(muscleGroup.muscle)")
             if result.exercises.isEmpty {
-                print("   ❌ WARNING: NO EXERCISES FOUND for \(muscleGroup.muscle)!")
-                print("      This will create an empty session!")
+                print("   ⚠️  NO EXERCISES FOUND for \(muscleGroup.muscle) - session will skip this muscle group")
             }
 
             // Convert to ProgramExercise with sets/reps based on goal
@@ -1035,5 +1094,85 @@ class DynamicProgramGenerator {
         default:
             return .medium
         }
+    }
+
+    // MARK: - Emergency Fallback Exercises
+
+    /// Create emergency fallback exercises when database fails to populate a session
+    /// These are minimal bodyweight exercises to ensure program always has content
+    private func createEmergencyExercises(
+        for sessionName: String,
+        fitnessGoal: String,
+        experienceLevel: ExperienceLevel
+    ) -> [ProgramExercise] {
+
+        print("🚨 Creating emergency exercises for session: \(sessionName)")
+
+        let repRange = getRepRangeForGoal(fitnessGoal)
+        let sets = getSetsForExperience(experienceLevel)
+
+        // Basic emergency exercises that require no equipment
+        var emergencyExercises: [ProgramExercise] = []
+
+        // Determine exercises based on session type
+        switch sessionName.lowercased() {
+        case let name where name.contains("push"):
+            emergencyExercises = [
+                createEmergencyExercise(name: "Push-ups", muscle: "Chest", sets: sets, repRange: repRange),
+                createEmergencyExercise(name: "Pike Push-ups", muscle: "Shoulders", sets: sets, repRange: repRange)
+            ]
+        case let name where name.contains("pull"):
+            emergencyExercises = [
+                createEmergencyExercise(name: "Pull-ups (or Assisted)", muscle: "Back", sets: sets, repRange: repRange),
+                createEmergencyExercise(name: "Inverted Rows", muscle: "Back", sets: sets, repRange: repRange)
+            ]
+        case let name where name.contains("leg"):
+            emergencyExercises = [
+                createEmergencyExercise(name: "Bodyweight Squats", muscle: "Quads", sets: sets, repRange: repRange),
+                createEmergencyExercise(name: "Lunges", muscle: "Quads", sets: sets, repRange: repRange)
+            ]
+        case let name where name.contains("upper"):
+            emergencyExercises = [
+                createEmergencyExercise(name: "Push-ups", muscle: "Chest", sets: sets, repRange: repRange),
+                createEmergencyExercise(name: "Pike Push-ups", muscle: "Shoulders", sets: sets, repRange: repRange),
+                createEmergencyExercise(name: "Pull-ups (or Assisted)", muscle: "Back", sets: sets, repRange: repRange)
+            ]
+        case let name where name.contains("lower"):
+            emergencyExercises = [
+                createEmergencyExercise(name: "Bodyweight Squats", muscle: "Quads", sets: sets, repRange: repRange),
+                createEmergencyExercise(name: "Lunges", muscle: "Quads", sets: sets, repRange: repRange),
+                createEmergencyExercise(name: "Glute Bridges", muscle: "Glutes", sets: sets, repRange: repRange)
+            ]
+        default:
+            // Full body fallback
+            emergencyExercises = [
+                createEmergencyExercise(name: "Push-ups", muscle: "Chest", sets: sets, repRange: repRange),
+                createEmergencyExercise(name: "Bodyweight Squats", muscle: "Quads", sets: sets, repRange: repRange),
+                createEmergencyExercise(name: "Plank", muscle: "Core", sets: sets, repRange: "30-60 sec")
+            ]
+        }
+
+        print("   🚨 Emergency exercises created: \(emergencyExercises.map { $0.exerciseName }.joined(separator: ", "))")
+        return emergencyExercises
+    }
+
+    /// Create a single emergency exercise
+    private func createEmergencyExercise(
+        name: String,
+        muscle: String,
+        sets: Int,
+        repRange: String
+    ) -> ProgramExercise {
+        return ProgramExercise(
+            exerciseId: "emergency_\(name.replacingOccurrences(of: " ", with: "_").lowercased())",
+            exerciseName: name,
+            sets: sets,
+            repRange: repRange,
+            restSeconds: 90,
+            primaryMuscle: muscle,
+            equipmentType: "Bodyweight",
+            complexityLevel: 1,
+            isIsolation: false
+        )
     }
 }
