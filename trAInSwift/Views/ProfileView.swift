@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var authService = AuthService.shared
     @State private var showLogoutConfirmation = false
     @State private var shouldRestartQuestionnaire = false
@@ -22,28 +23,28 @@ struct ProfileView: View {
                         // User Info
                         VStack(spacing: Spacing.md) {
                             Circle()
-                                .fill(Color.trainPrimary.opacity(0.2))
+                                .fill(Color.trainPrimary(theme: themeManager.activeTheme).opacity(0.2))
                                 .frame(width: 80, height: 80)
                                 .overlay(
                                     Image(systemName: "person.fill")
                                         .font(.system(size: 36))
-                                        .foregroundColor(.trainPrimary)
+                                        .foregroundColor(.trainPrimary(theme: themeManager.activeTheme))
                                 )
 
                             Text(authService.currentUser?.name ?? authService.currentUser?.email ?? "")
                                 .font(.trainHeadline)
-                                .foregroundColor(.trainTextPrimary)
+                                .foregroundColor(.trainTextPrimary(theme: themeManager.activeTheme))
 
                             if let name = authService.currentUser?.name, !name.isEmpty {
                                 Text(authService.currentUser?.email ?? "")
                                     .font(.trainBody)
-                                    .foregroundColor(.trainTextSecondary)
+                                    .foregroundColor(.trainTextSecondary(theme: themeManager.activeTheme))
                             }
 
                             if let user = authService.currentUser {
                                 Text("Member since \(formatDate(user.createdAt ?? Date()))")
                                     .font(.trainCaption)
-                                    .foregroundColor(.trainTextSecondary)
+                                    .foregroundColor(.trainTextSecondary(theme: themeManager.activeTheme))
                             }
                         }
                         .padding(.top, Spacing.xl)
@@ -74,6 +75,12 @@ struct ProfileView: View {
                                     action: { showProgramSelector = true }
                                 )
                             }
+
+                            Divider()
+                                .padding(.leading, 60)
+
+                            // Theme Toggle
+                            ThemeToggleRow(themeManager: themeManager)
 
                             Divider()
                                 .padding(.leading, 60)
@@ -116,6 +123,7 @@ struct ProfileView: View {
                     }
                 }
         }
+        .appThemeBackground(theme: themeManager.activeTheme)
         .confirmationDialog("Log Out", isPresented: $showLogoutConfirmation, titleVisibility: .visible) {
             Button("Log Out", role: .destructive) {
                 authService.logout()
@@ -667,6 +675,39 @@ struct ProgramSelectionCard: View {
         let formatter = RelativeDateTimeFormatter()
         formatter.dateTimeStyle = .named
         return formatter.localizedString(for: date, relativeTo: Date())
+    }
+}
+
+// MARK: - Theme Toggle Row
+
+struct ThemeToggleRow: View {
+    @ObservedObject var themeManager: ThemeManager
+
+    var body: some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: themeManager.currentMode == .light ? "sun.max.fill" : "moon.fill")
+                .font(.title3)
+                .foregroundColor(.trainPrimary(theme: themeManager.activeTheme))
+                .frame(width: 28)
+
+            Text("Appearance")
+                .font(.trainBody)
+                .foregroundColor(.trainTextPrimary(theme: themeManager.activeTheme))
+
+            Spacer()
+
+            // Theme Picker
+            Picker("Theme", selection: Binding(
+                get: { themeManager.currentMode },
+                set: { themeManager.setTheme($0) }
+            )) {
+                Text("Dark").tag(AppThemeMode.dark)
+                Text("Light").tag(AppThemeMode.light)
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .frame(width: 120)
+        }
+        .padding(Spacing.md)
     }
 }
 

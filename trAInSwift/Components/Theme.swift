@@ -117,35 +117,49 @@ struct Layout {
 
 // MARK: - Centralized App Gradient
 
-/// Centralized gradient/background configuration - all colors flow from ColorPalette
-/// Change colors in ColorPalette.swift to update backgrounds app-wide
+/// Centralized gradient/background configuration - supports theme switching
 struct AppGradient {
-    /// The main app background stops - diagonal gradient with charcoal tones
-    /// Light corner fades to midpoint (at 45%), then gradually darkens
-    static var stops: [Gradient.Stop] {
-        [
-            .init(color: .trainGradientLight, location: 0.0),
-            .init(color: .trainGradientMid, location: 0.45),
-            .init(color: .trainGradientDark, location: 1.0)
-        ]
+    /// The main app background stops based on theme
+    static func stops(for theme: ThemeVariant) -> [Gradient.Stop] {
+        switch theme {
+        case .gold, .orange:
+            // Dark mode: diagonal gradient with charcoal tones
+            return [
+                .init(color: .trainGradientLight(theme: theme), location: 0.0),
+                .init(color: .trainGradientMid(theme: theme), location: 0.45),
+                .init(color: .trainGradientDark(theme: theme), location: 1.0)
+            ]
+        case .light:
+            // Light mode: Train Pearl diagonal gradient
+            return [
+                .init(color: .trainGradientLight(theme: theme), location: 0.0),
+                .init(color: .trainGradientMid(theme: theme), location: 0.30),
+                .init(color: .trainGradientDark(theme: theme), location: 1.0)
+            ]
+        }
     }
 
-    /// The main app background gradient - diagonal from top-left to bottom-right
-    static var background: LinearGradient {
+    /// The main app background gradient based on theme
+    static func background(for theme: ThemeVariant) -> LinearGradient {
         LinearGradient(
-            stops: stops,
+            stops: stops(for: theme),
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
     }
 
-    /// Solid dark for sheets, toolbars, etc.
-    static var solid: Color { .trainGradientMid }
+    /// Solid color for sheets, toolbars, etc.
+    static func solid(for theme: ThemeVariant) -> Color {
+        .trainGradientMid(theme: theme)
+    }
 
-    /// Simple two-color gradient (edge to edge) for toolbars, etc.
+    /// Legacy compatibility - uses orange theme by default
+    static var stops: [Gradient.Stop] { stops(for: .orange) }
+    static var background: LinearGradient { background(for: .orange) }
+    static var solid: Color { solid(for: .orange) }
     static var simple: LinearGradient {
         LinearGradient(
-            colors: [.trainGradientMid, .trainGradientMid],
+            colors: [solid(for: .orange), solid(for: .orange)],
             startPoint: .top,
             endPoint: .bottom
         )
@@ -155,7 +169,20 @@ struct AppGradient {
 // MARK: - Background Gradients
 
 extension View {
-    /// Main app background - applies charcoal gradient from ColorPalette
+    /// Theme-aware app background - applies appropriate gradient based on theme
+    /// Use ONLY for full-screen view backgrounds, NOT for scroll content or cards
+    func appThemeBackground(theme: ThemeVariant) -> some View {
+        ZStack {
+            // Gradient MUST be the first layer to ensure it's always visible
+            AppGradient.background(for: theme)
+                .ignoresSafeArea()
+
+            // Content on top of gradient
+            self
+        }
+    }
+
+    /// Main app background - applies charcoal gradient from ColorPalette (legacy)
     /// Use ONLY for full-screen view backgrounds, NOT for scroll content or cards
     func charcoalGradientBackground() -> some View {
         ZStack {
