@@ -19,7 +19,7 @@ struct ScoredExercise {
 
     /// For sorting: compounds first, then by complexity (descending)
     var displaySortKey: (Int, Int) {
-        return (isCompound ? 0 : 1, -exercise.complexityLevel)
+        return (isCompound ? 0 : 1, -exercise.numericComplexity)
     }
 }
 
@@ -31,6 +31,8 @@ enum ExerciseSelectionWarning: Equatable {
     case noExercisesForMuscle(muscle: String)
     case insufficientExercises(muscle: String, requested: Int, found: Int)
     case equipmentLimitedSelection(muscle: String)
+    case lowFillRate(fillRate: Double)
+    case exerciseRepeats
 
     var message: String {
         switch self {
@@ -40,6 +42,10 @@ enum ExerciseSelectionWarning: Equatable {
             return "Only found \(found) of \(requested) exercises for \(muscle)."
         case .equipmentLimitedSelection(let muscle):
             return "Limited exercise variety for \(muscle) with selected equipment."
+        case .lowFillRate(let fillRate):
+            return "Programme only \(String(format: "%.1f", fillRate))% filled due to equipment limitations."
+        case .exerciseRepeats:
+            return "Some exercises repeated due to limited equipment variety."
         }
     }
 
@@ -113,98 +119,65 @@ class ExerciseRepository {
 
     // MARK: - Stage 2: Score and Select Exercises
 
-    /// Score exercises and select based on weighted random selection
-    /// Scoring rules:
-    /// - Compounds: complexity 4 = 20pts, complexity 3 = 15pts, complexity 2 = 10pts, complexity 1 = 5pts
-    /// - Isolations: Advanced = 8pts, Intermediate = 6pts, Beginner/NoExp = 4pts
-    /// excludedDisplayNames: Program-level tracking of used display names to prevent duplicates across sessions
-    func scoreAndSelectExercises(
+    /// MCV Heuristic: Select exercises using Most Constrained Variable approach
+    /// Uses canonical_rating for deterministic ordering instead of weighted random
+    func mcvSelectExercises(
         from pool: [DBExercise],
         count: Int,
         experienceLevel: ExperienceLevel,
         excludedExerciseIds: Set<String>,
         excludedDisplayNames: Set<String>,
         excludedCanonicalNames: Set<String> = [],  // Session-level canonical name exclusion
-        allowComplexity4: Bool,
-        requireComplexity4First: Bool,
-        maxComplexity: Int
-    ) -> [ScoredExercise] {
+        allowDisplayNameRepeats: Bool = false  // Soft constraint relaxation
+    ) -> ([DBExercise], Bool) {  // Returns (exercises, wasRelaxed)
 
-        guard !pool.isEmpty else { return [] }
+        guard !pool.isEmpty else { return ([], false) }
 
-        // Filter out exercises by ID, display name (program-level), and canonical name (session-level)
-        let availablePool = pool.filter {
+        // Hard constraints: filter by IDs and canonical names (within session)
+        var availablePool = pool.filter {
             !excludedExerciseIds.contains($0.exerciseId) &&
-            !excludedDisplayNames.contains($0.displayName) &&
             !excludedCanonicalNames.contains($0.canonicalName)
         }
-        var selectedExercises: [ScoredExercise] = []
 
-        print("🎯 Scoring \(availablePool.count) exercises for selection (need \(count))")
-        print("   Already excluded \(excludedDisplayNames.count) display names from program")
-        print("   Already excluded \(excludedCanonicalNames.count) canonical names from session")
-        print("   Experience level for scoring: \(experienceLevel)")
-
-        // Score all exercises
-        var scoredPool = availablePool.map { exercise -> ScoredExercise in
-            let score = calculateScore(for: exercise, experienceLevel: experienceLevel)
-            let isCompound = !exercise.isIsolation
-            return ScoredExercise(exercise: exercise, score: score, isCompound: isCompound)
-        }
-
-        // Debug: Print top 5 scored exercises
-        let topScored = scoredPool.sorted { $0.score > $1.score }.prefix(5)
-        print("   📊 Top 5 scored exercises in pool:")
-        for scored in topScored {
-            print("      - \(scored.exercise.displayName): \(scored.score)pts (complexity: \(scored.exercise.complexityLevel), equip: \(scored.exercise.equipmentCategory ?? "?"))")
-        }
-
-        // Track canonical names used within this selection to prevent variations
-        var usedCanonicalNamesInSelection = Set<String>()
-
-        // BUSINESS RULE: If complexity-4 required first, select one first
-        if requireComplexity4First && allowComplexity4 {
-            let complexity4Candidates = scoredPool.filter {
-                $0.exercise.complexityLevel == 4 && $0.isCompound
-            }
-
-            if let selected = weightedRandomSelect(from: complexity4Candidates) {
-                selectedExercises.append(selected)
-                usedCanonicalNamesInSelection.insert(selected.exercise.canonicalName)
-                // Remove all exercises with same canonical name (no bench press variations in same session)
-                scoredPool.removeAll { $0.exercise.canonicalName == selected.exercise.canonicalName }
-                print("   ✅ Selected complexity-4 first: \(selected.exercise.displayName) (score: \(selected.score))")
+        // Soft constraint: filter by display names (across programme) unless relaxed
+        if !allowDisplayNameRepeats {
+            availablePool = availablePool.filter {
+                !excludedDisplayNames.contains($0.displayName)
             }
         }
 
-        // Select remaining exercises with weighted random selection
-        while selectedExercises.count < count && !scoredPool.isEmpty {
-            // Apply complexity cap if we already have a complexity-4
-            let hasComplexity4 = selectedExercises.contains { $0.exercise.complexityLevel == 4 }
-            let candidates: [ScoredExercise]
+        var selectedExercises: [DBExercise] = []
+        var usedCanonicalNames = Set<String>()
+        let relaxationUsed = allowDisplayNameRepeats && !excludedDisplayNames.isEmpty
 
-            if hasComplexity4 {
-                // Only allow up to complexity 3 for remaining (unless isolation)
-                candidates = scoredPool.filter {
-                    $0.exercise.complexityLevel <= 3 || $0.exercise.isIsolation
-                }
-            } else {
-                candidates = scoredPool
+        print("🎯 MCV Heuristic selecting \(count) exercises from pool of \(availablePool.count)")
+        print("   Display name relaxation: \(allowDisplayNameRepeats ? "ENABLED" : "DISABLED")")
+
+        // MCV Selection: Select highest canonical_rating exercises
+        let sortedPool = availablePool.sorted { lhs, rhs in
+            // First: Higher canonical rating
+            if lhs.canonicalRating != rhs.canonicalRating {
+                return lhs.canonicalRating > rhs.canonicalRating
             }
-
-            guard let selected = weightedRandomSelect(from: candidates.isEmpty ? scoredPool : candidates) else {
-                break
-            }
-
-            selectedExercises.append(selected)
-            usedCanonicalNamesInSelection.insert(selected.exercise.canonicalName)
-            // Remove all exercises with same canonical name (no bench press variations in same session)
-            scoredPool.removeAll { $0.exercise.canonicalName == selected.exercise.canonicalName }
-
-            print("   ✅ Selected: \(selected.exercise.displayName) (score: \(selected.score), compound: \(selected.isCompound))")
+            // Tie-breaker: Alphabetical by display name for deterministic results
+            return lhs.displayName < rhs.displayName
         }
 
-        return selectedExercises
+        for exercise in sortedPool {
+            if selectedExercises.count >= count { break }
+
+            // Skip if canonical name already used in this selection
+            if usedCanonicalNames.contains(exercise.canonicalName) { continue }
+
+            selectedExercises.append(exercise)
+            usedCanonicalNames.insert(exercise.canonicalName)
+
+            print("   ✅ Selected: \(exercise.displayName) (rating: \(exercise.canonicalRating))")
+        }
+
+        print("   📊 Selected \(selectedExercises.count) of \(count) requested exercises")
+
+        return (selectedExercises, relaxationUsed)
     }
 
     /// Calculate score for an exercise based on business rules
@@ -221,16 +194,8 @@ class ExerciseRepository {
             }
         } else {
             // Compound scoring based on complexity - heavily favor high complexity
-            switch exercise.complexityLevel {
-            case 4:
-                return 100
-            case 3:
-                return 50
-            case 2:
-                return 20
-            default:
-                return 5
-            }
+            // Use canonical_rating directly instead of complexity-based scoring
+            return exercise.canonicalRating
         }
     }
 
@@ -300,7 +265,7 @@ class ExerciseRepository {
         return result.exercises
     }
 
-    /// Select exercises with detailed warnings for UI display
+    /// Select exercises with detailed warnings for UI display using MCV heuristic
     func selectExercisesWithWarnings(
         count: Int,
         movementPattern: String? = nil,
@@ -318,7 +283,7 @@ class ExerciseRepository {
         var allWarnings: [ExerciseSelectionWarning] = []
 
         // Stage 1: Build User Pool
-        let (pool, maxComplexity, poolWarnings) = try buildUserPool(
+        let (pool, _, poolWarnings) = try buildUserPool(
             primaryMuscle: primaryMuscle,
             availableEquipment: availableEquipment,
             experienceLevel: experienceLevel,
@@ -332,36 +297,55 @@ class ExerciseRepository {
             return ExerciseSelectionResult(exercises: [], warnings: allWarnings)
         }
 
-        // Get complexity rules for complexity-4 handling
-        let complexityRules = experienceLevel.complexityRules
-
-        // Stage 2: Score and Select
-        let shouldAllowComplexity4 = allowComplexity4 && complexityRules.maxComplexity4PerSession > 0
-        let shouldRequireComplexity4First = requireComplexity4First && complexityRules.complexity4MustBeFirst
-
-        let scoredExercises = scoreAndSelectExercises(
+        // Stage 2: MCV Selection with soft constraint relaxation
+        var (selectedExercises, wasRelaxed) = mcvSelectExercises(
             from: pool,
             count: count,
             experienceLevel: experienceLevel,
             excludedExerciseIds: excludedExerciseIds,
             excludedDisplayNames: excludedDisplayNames,
             excludedCanonicalNames: excludedCanonicalNames,
-            allowComplexity4: shouldAllowComplexity4,
-            requireComplexity4First: shouldRequireComplexity4First,
-            maxComplexity: maxComplexity
+            allowDisplayNameRepeats: false
         )
 
+        // If insufficient exercises and haven't relaxed constraints, try with relaxation
+        if selectedExercises.count < count && !wasRelaxed {
+            print("🔄 Attempting soft constraint relaxation for \(primaryMuscle ?? "muscle")")
+            let (relaxedExercises, _) = mcvSelectExercises(
+                from: pool,
+                count: count,
+                experienceLevel: experienceLevel,
+                excludedExerciseIds: excludedExerciseIds,
+                excludedDisplayNames: excludedDisplayNames,
+                excludedCanonicalNames: excludedCanonicalNames,
+                allowDisplayNameRepeats: true
+            )
+
+            if relaxedExercises.count > selectedExercises.count {
+                selectedExercises = relaxedExercises
+                allWarnings.append(.exerciseRepeats)
+                print("   ✅ Relaxation improved selection: \(relaxedExercises.count) exercises")
+            }
+        }
+
         // Check for insufficient exercises
-        if scoredExercises.count < count, let muscle = primaryMuscle {
+        if selectedExercises.count < count, let muscle = primaryMuscle {
             allWarnings.append(.insufficientExercises(
                 muscle: muscle,
                 requested: count,
-                found: scoredExercises.count
+                found: selectedExercises.count
             ))
         }
 
-        // Stage 3: Sort for Display
-        let sortedExercises = sortForDisplay(scoredExercises)
+        // Stage 3: Sort by canonical_rating (already sorted by MCV, but ensure consistency)
+        let sortedExercises = selectedExercises.sorted { lhs, rhs in
+            // Higher canonical rating first
+            if lhs.canonicalRating != rhs.canonicalRating {
+                return lhs.canonicalRating > rhs.canonicalRating
+            }
+            // Tie-breaker: alphabetical
+            return lhs.displayName < rhs.displayName
+        }
 
         print("✅ Selection complete: \(sortedExercises.count) exercises for \(primaryMuscle ?? "session")")
 
