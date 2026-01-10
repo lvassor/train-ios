@@ -53,7 +53,7 @@ def create_database():
 
     print("📋 Creating tables...")
 
-    # Exercises table - NEW SCHEMA matching Excel structure
+    # Exercises table - NEW SCHEMA with MCV heuristic support
     cursor.execute('''
     CREATE TABLE exercises (
         exercise_id TEXT PRIMARY KEY,
@@ -61,12 +61,15 @@ def create_database():
         display_name TEXT NOT NULL,
         equipment_category TEXT NOT NULL,
         equipment_specific TEXT,
-        complexity_level INTEGER NOT NULL CHECK(complexity_level BETWEEN 1 AND 4),
+        complexity_level TEXT NOT NULL CHECK(complexity_level IN ('all', '1', '2', '3')),
         is_isolation INTEGER NOT NULL DEFAULT 0,
         primary_muscle TEXT NOT NULL,
         secondary_muscle TEXT,
         instructions TEXT,
-        is_in_programme INTEGER NOT NULL DEFAULT 1
+        is_in_programme INTEGER NOT NULL DEFAULT 1,
+        canonical_rating INTEGER NOT NULL DEFAULT 50 CHECK(canonical_rating BETWEEN 0 AND 100),
+        progression_id TEXT,
+        regression_id TEXT
     )
     ''')
 
@@ -94,6 +97,9 @@ def create_database():
     cursor.execute('CREATE INDEX idx_exercises_muscle ON exercises(primary_muscle)')
     cursor.execute('CREATE INDEX idx_exercises_isolation ON exercises(is_isolation)')
     cursor.execute('CREATE INDEX idx_exercises_programme ON exercises(is_in_programme)')
+    cursor.execute('CREATE INDEX idx_exercises_rating ON exercises(canonical_rating)')
+    cursor.execute('CREATE INDEX idx_exercises_progression ON exercises(progression_id)')
+    cursor.execute('CREATE INDEX idx_exercises_regression ON exercises(regression_id)')
     cursor.execute('CREATE INDEX idx_contraindications_canonical ON exercise_contraindications(canonical_name)')
     cursor.execute('CREATE INDEX idx_contraindications_injury ON exercise_contraindications(injury_type)')
 
@@ -112,30 +118,56 @@ def create_database():
     elif 'programme_inclusion' in df_exercises.columns:
         df_exercises = df_exercises.rename(columns={'programme_inclusion': 'is_in_programme'})
 
+    # Handle new complexity level format (convert old integer to new string format if needed)
+    if 'complexity_level' in df_exercises.columns:
+        # Convert old integer complexity to new string format
+        df_exercises['complexity_level'] = df_exercises['complexity_level'].apply(lambda x:
+            'all' if pd.isna(x) or x == 0 else str(int(x)))
+
+    # Ensure new columns exist - no defaults, fail explicitly if missing
+    required_columns = ['canonical_rating', 'progression_id', 'regression_id']
+    for col in required_columns:
+        if col not in df_exercises.columns:
+            raise ValueError(f"Missing required column '{col}' in exercise database. "
+                           f"Please update the Excel file to include this column.")
+        if col == 'canonical_rating' and df_exercises[col].isnull().any():
+            raise ValueError(f"Column '{col}' contains null values. All exercises must have a canonical_rating.")
+
+    # For optional columns, convert NaN to None for nullable fields
+    df_exercises['progression_id'] = df_exercises['progression_id'].apply(
+        lambda x: None if pd.isna(x) else x)
+    df_exercises['regression_id'] = df_exercises['regression_id'].apply(
+        lambda x: None if pd.isna(x) else x)
+
     # Ensure correct column names match our schema
     df_exercises = df_exercises[['exercise_id', 'canonical_name', 'display_name', 'equipment_category',
                                   'equipment_specific', 'complexity_level', 'is_isolation',
-                                  'primary_muscle', 'secondary_muscle', 'instructions', 'is_in_programme']]
+                                  'primary_muscle', 'secondary_muscle', 'instructions', 'is_in_programme',
+                                  'canonical_rating', 'progression_id', 'regression_id']]
 
     # Insert exercises
     for _, row in df_exercises.iterrows():
         cursor.execute('''
             INSERT INTO exercises (exercise_id, canonical_name, display_name, equipment_category,
                                    equipment_specific, complexity_level, is_isolation, primary_muscle,
-                                   secondary_muscle, instructions, is_in_programme)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                   secondary_muscle, instructions, is_in_programme, canonical_rating,
+                                   progression_id, regression_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             row['exercise_id'],
             row['canonical_name'],
             row['display_name'],
             row['equipment_category'],
             row['equipment_specific'] if pd.notna(row['equipment_specific']) else None,
-            int(row['complexity_level']),
+            row['complexity_level'],
             int(row['is_isolation']),
             row['primary_muscle'],
             row['secondary_muscle'] if pd.notna(row['secondary_muscle']) else None,
             row['instructions'] if pd.notna(row['instructions']) else None,
-            int(row['is_in_programme'])
+            int(row['is_in_programme']),
+            int(row['canonical_rating']),
+            row['progression_id'] if pd.notna(row['progression_id']) else None,
+            row['regression_id'] if pd.notna(row['regression_id']) else None
         ))
 
     print(f"   ✅ {len(df_exercises)} exercises imported")
@@ -170,10 +202,6 @@ def create_database():
     cursor.execute("SELECT COUNT(*) FROM exercise_contraindications")
     contra_count = cursor.fetchone()[0]
     print(f"Total contraindications: {contra_count}")
-
-    cursor.execute("SELECT COUNT(*) FROM user_experience_complexity")
-    exp_count = cursor.fetchone()[0]
-    print(f"Total experience levels: {exp_count}")
 
     # Show complexity distribution
     print("\nComplexity Distribution:")
