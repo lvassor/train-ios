@@ -18,7 +18,8 @@ class ValidationResult:
 
 # Error codes
 ERR_ZERO_EXERCISES = "ERR_ZERO_EXERCISES"
-ERR_UNDER_50_PCT = "ERR_UNDER_50_PCT"
+ERR_UNDER_75_PCT = "ERR_UNDER_75_PCT"  # New 75% threshold
+ERR_UNDER_50_PCT = "ERR_UNDER_50_PCT"  # Legacy for compatibility
 ERR_LOW_VARIETY = "ERR_LOW_VARIETY"
 SUCCESS = "SUCCESS"
 
@@ -62,10 +63,10 @@ def validate_session(
             fill_rate_pct=fill_rate
         )
 
-    if fill_rate < 50:
+    if fill_rate < 75:
         return ValidationResult(
-            status=ERR_UNDER_50_PCT,
-            error_details=f"Only {fill_rate:.1f}% filled",
+            status=ERR_UNDER_75_PCT,
+            error_details=f"Only {fill_rate:.1f}% filled (below 75% threshold)",
             total_slots_required=total_slots,
             total_slots_filled=total_filled,
             fill_rate_pct=fill_rate
@@ -139,9 +140,9 @@ def validate_programme(
                     fill_rate_pct=fill_rate
                 )
 
-        if fill_rate < 50:
+        if fill_rate < 75:
             return ValidationResult(
-                status=ERR_UNDER_50_PCT,
+                status=ERR_UNDER_75_PCT,
                 error_details="; ".join(errors),
                 total_slots_required=total_slots,
                 total_slots_filled=total_filled,
