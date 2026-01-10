@@ -20,12 +20,15 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
     let displayName: String             // User-facing name
     let equipmentCategory: String       // High-level: "Barbells", "Dumbbells", "Cables", etc.
     let equipmentSpecific: String?      // Low-level: "Squat Rack", "Flat Bench", etc.
-    let complexityLevel: Int            // 1-4 (integer now, not string)
+    let complexityLevel: String         // "all", "1", "2", "3"
     let isIsolation: Bool               // Whether exercise is isolation (bypasses complexity rules)
     let primaryMuscle: String
     let secondaryMuscle: String?
     let instructions: String?
     let isInProgramme: Bool             // Whether to include in generated programmes
+    let canonicalRating: Int            // 0-100 score for MCV heuristic ordering
+    let progressionId: String?          // Comma-separated exercise_ids for progressions
+    let regressionId: String?           // Comma-separated exercise_ids for regressions
 
     enum Columns {
         static let exerciseId = Column("exercise_id")
@@ -39,6 +42,9 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         static let secondaryMuscle = Column("secondary_muscle")
         static let instructions = Column("instructions")
         static let isInProgramme = Column("is_in_programme")
+        static let canonicalRating = Column("canonical_rating")
+        static let progressionId = Column("progression_id")
+        static let regressionId = Column("regression_id")
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -53,6 +59,9 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         case secondaryMuscle = "secondary_muscle"
         case instructions
         case isInProgramme = "is_in_programme"
+        case canonicalRating = "canonical_rating"
+        case progressionId = "progression_id"
+        case regressionId = "regression_id"
     }
 
     // Convert boolean from SQLite integer
@@ -63,10 +72,13 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         displayName = try container.decode(String.self, forKey: .displayName)
         equipmentCategory = try container.decode(String.self, forKey: .equipmentCategory)
         equipmentSpecific = try container.decodeIfPresent(String.self, forKey: .equipmentSpecific)
-        complexityLevel = try container.decode(Int.self, forKey: .complexityLevel)
+        complexityLevel = try container.decode(String.self, forKey: .complexityLevel)
         primaryMuscle = try container.decode(String.self, forKey: .primaryMuscle)
         secondaryMuscle = try container.decodeIfPresent(String.self, forKey: .secondaryMuscle)
         instructions = try container.decodeIfPresent(String.self, forKey: .instructions)
+        canonicalRating = try container.decode(Int.self, forKey: .canonicalRating)
+        progressionId = try container.decodeIfPresent(String.self, forKey: .progressionId)
+        regressionId = try container.decodeIfPresent(String.self, forKey: .regressionId)
 
         // SQLite stores boolean as integer (0 or 1)
         let isIsolationInt = try container.decode(Int.self, forKey: .isIsolation)
@@ -76,9 +88,20 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         isInProgramme = isInProgrammeInt == 1
     }
 
-    /// Get numeric complexity level for filtering
+    /// Get numeric complexity level for filtering (convert string to int)
     var numericComplexity: Int {
-        return complexityLevel
+        switch complexityLevel {
+        case "all":
+            return 0
+        case "1":
+            return 1
+        case "2":
+            return 2
+        case "3":
+            return 3
+        default:
+            fatalError("Invalid complexity_level: \(complexityLevel). Expected 'all', '1', '2', or '3'")
+        }
     }
 
     /// For backward compatibility - returns equipment_category
@@ -200,10 +223,10 @@ enum ExperienceLevel: String, Codable, CaseIterable {
     }
 
     /// Complexity rules for exercise selection.
-    /// - noExperience: Only complexity 1 exercises (simplest movements)
-    /// - beginner: Up to complexity 2
-    /// - intermediate: Up to complexity 3
-    /// - advanced: Up to complexity 4, with one complexity-4 exercise allowed per session (must be first)
+    /// - noExperience: Only "all" and "1" exercises (simplest movements)
+    /// - beginner: Up to "2"
+    /// - intermediate: Up to "3"
+    /// - advanced: All complexity levels including "3"
     var complexityRules: ExperienceComplexityRules {
         switch self {
         case .noExperience:
@@ -213,7 +236,7 @@ enum ExperienceLevel: String, Codable, CaseIterable {
         case .intermediate:
             return ExperienceComplexityRules(maxComplexity: 3, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
         case .advanced:
-            return ExperienceComplexityRules(maxComplexity: 4, maxComplexity4PerSession: 1, complexity4MustBeFirst: true)
+            return ExperienceComplexityRules(maxComplexity: 3, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
         }
     }
 }
