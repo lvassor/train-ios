@@ -135,6 +135,19 @@ struct MonthNavigationView: View {
                     .foregroundColor(.trainPrimary)
             }
         }
+        .gesture(
+            DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                .onEnded { value in
+                    // Swipe left = next month, Swipe right = previous month
+                    if value.translation.width > 50 {
+                        // Swiped right - go to previous month
+                        previousMonth()
+                    } else if value.translation.width < -50 {
+                        // Swiped left - go to next month
+                        nextMonth()
+                    }
+                }
+        )
     }
 
     private var monthYearString: String {

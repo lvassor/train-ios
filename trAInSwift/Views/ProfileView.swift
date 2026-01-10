@@ -359,6 +359,7 @@ struct ProgramCard: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var authService = AuthService.shared
     @State private var showRetakeConfirmation = false
+    @State private var shouldRestartQuestionnaire = false
     @State private var isExpanded = false
 
     var body: some View {
@@ -495,6 +496,17 @@ struct ProgramCard: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This will create a new program while keeping your current one available to switch back to.")
+        }
+        .fullScreenCover(isPresented: $shouldRestartQuestionnaire) {
+            QuestionnaireView(
+                onComplete: {
+                    shouldRestartQuestionnaire = false
+                },
+                onBack: {
+                    shouldRestartQuestionnaire = false
+                }
+            )
+            .environmentObject(WorkoutViewModel())
         }
     }
 

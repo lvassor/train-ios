@@ -1352,8 +1352,8 @@ struct SplitSelectionStepView: View {
 
     // Get available splits for current day count
     private var availableSplits: [String] {
-        guard let dayKey = "\(trainingDays)-day",
-              let daysData = splitTemplates[dayKey] as? [String: Any] else {
+        let dayKey = "\(trainingDays)-day"
+        guard let daysData = splitTemplates[dayKey] as? [String: Any] else {
             return []
         }
         return Array(daysData.keys).sorted()
@@ -1362,20 +1362,26 @@ struct SplitSelectionStepView: View {
     // Generate brief explanation for each split
     private func splitExplanation(for splitName: String) -> String {
         switch splitName {
-        case "Upper Lower":
-            return "Train upper body one day, lower body the next"
         case "Full Body":
-            return "Work all muscle groups each session"
+            return "Hit every muscle group in one efficient session. Perfect for maintaining strength and fitness with a busy schedule."
+        case "Full Body x2":
+            return "Train your whole body twice per week for balanced development. Great for building a foundation or fitting fitness around a packed schedule."
+        case "Upper Lower":
+            return "Dedicate one day to upper body, one to lower. Allows more focus on each area while keeping things simple."
         case "Push Pull Legs":
-            return "Pushing movements, pulling movements, and legs"
+            return "Organise training by movement pattern: pushing, pulling, and legs. Lets you train harder on each muscle with more recovery time between sessions."
+        case "Full Body x3":
+            return "Hit every muscle group three times per week. Higher frequency means faster skill development and consistent progress."
         case "2 Upper 1 Lower":
-            return "Two upper body days, one lower body day"
+            return "Two upper body sessions and one lower. Ideal if building your upper body is a priority right now."
         case "1 Upper 2 Lower":
-            return "One upper body day, two lower body days"
+            return "One upper body session and two lower. Perfect if you're focusing on building stronger legs and glutes."
+        case "Upper Lower x2":
+            return "Train upper and lower body twice each per week. A proven split that balances volume, intensity, and recovery."
         case "PPL Upper Lower":
-            return "Push/Pull/Legs plus Upper/Lower"
+            return "Combines Push/Pull/Legs with an Upper/Lower split. Gives you the best of both approaches with optimal training frequency."
         case "Push Pull Legs x2":
-            return "Push/Pull/Legs repeated twice per week"
+            return "Push/Pull/Legs twice per week for maximum volume. Best suited for experienced lifters ready to commit to serious training."
         default:
             return "Balanced training split"
         }
@@ -1463,7 +1469,7 @@ struct SplitSelectionStepView: View {
     private func loadSplitTemplates() {
         guard let path = Bundle.main.path(forResource: "split_templates", ofType: "json"),
               let data = NSData(contentsOfFile: path),
-              let json = try? JSONSerialization.jsonObject(with: data as Data, options: []) as? [String: Any] else {
+              let json = try? JSONSerialization.jsonObject(with: data as Data, options: []) as? [String: [String: Any]] else {
             print("Failed to load split_templates.json")
             return
         }

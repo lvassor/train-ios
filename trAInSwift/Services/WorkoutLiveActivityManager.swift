@@ -7,6 +7,7 @@
 
 import ActivityKit
 import Foundation
+import Combine
 
 @available(iOS 16.1, *)
 class WorkoutLiveActivityManager: ObservableObject {
@@ -88,7 +89,8 @@ class WorkoutLiveActivityManager: ObservableObject {
         )
 
         Task {
-            await activity.update(using: .init(state: newState, staleDate: nil))
+            let content = ActivityContent(state: newState, staleDate: nil)
+            await activity.update(content)
             print("✅ Updated Live Activity: \(currentExercise.exerciseName), Set \(currentSet)")
         }
     }
@@ -121,7 +123,7 @@ class WorkoutLiveActivityManager: ObservableObject {
 
         // End current activity and start new one with updated attributes
         Task {
-            await activity.end(using: nil, dismissalPolicy: .immediate)
+            await activity.end(nil, dismissalPolicy: .immediate)
 
             do {
                 let newActivity = try Activity.request(
@@ -155,7 +157,8 @@ class WorkoutLiveActivityManager: ObservableObject {
         )
 
         Task {
-            await activity.update(using: .init(state: newState, staleDate: nil))
+            let content = ActivityContent(state: newState, staleDate: nil)
+            await activity.update(content)
 
             // Start countdown timer
             for i in (1...seconds).reversed() {
@@ -172,7 +175,8 @@ class WorkoutLiveActivityManager: ObservableObject {
                     restTimeRemaining: i > 1 ? i - 1 : nil
                 )
 
-                await currentActivity.update(using: .init(state: updatedState, staleDate: nil))
+                let content = ActivityContent(state: updatedState, staleDate: nil)
+                await currentActivity.update(content)
             }
 
             print("✅ Rest timer completed")
@@ -185,7 +189,7 @@ class WorkoutLiveActivityManager: ObservableObject {
         guard let activity = currentActivity else { return }
 
         Task {
-            await activity.end(using: nil, dismissalPolicy: .default)
+            await activity.end(nil, dismissalPolicy: .default)
 
             await MainActor.run {
                 currentActivity = nil

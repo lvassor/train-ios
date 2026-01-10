@@ -572,7 +572,7 @@ struct ExerciseOverviewCard: View {
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: Spacing.md) {
+            HStack(alignment: .center, spacing: Spacing.md) {
                 // Completion indicator
                 ZStack {
                     Circle()
