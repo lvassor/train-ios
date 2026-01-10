@@ -14,8 +14,10 @@ import Foundation
 struct ProgramGenerationResult {
     let program: Program
     let warnings: [ExerciseSelectionWarning]
+    let lowFillWarning: Bool    // Programme fill rate below 75%
+    let repeatWarning: Bool     // Exercise repeats due to equipment constraints
 
-    var hasWarnings: Bool { !warnings.isEmpty }
+    var hasWarnings: Bool { !warnings.isEmpty || lowFillWarning || repeatWarning }
 
     /// Get unique warnings (de-duplicated)
     var uniqueWarnings: [ExerciseSelectionWarning] {
@@ -112,6 +114,32 @@ class DynamicProgramGenerator {
             }
         }
 
+        // Calculate fill rates for warning detection
+        let templates = getSessionTemplates(splitType: splitType, duration: sessionDuration, daysPerWeek: questionnaireData.trainingDaysPerWeek)
+        var sessionFillRates: [Double] = []
+        var hasRepeats = false
+
+        for (index, session) in robustSessions.enumerated() {
+            if index < templates.count {
+                let template = templates[index]
+                let expectedCount = template.muscleGroups.reduce(0) { $0 + $1.count }
+                let actualCount = session.exercises.count
+                let fillRate = Double(actualCount) / Double(expectedCount) * 100.0
+                sessionFillRates.append(fillRate)
+            }
+        }
+
+        // Check for exercise repeats (look for repeat warnings)
+        hasRepeats = allWarnings.contains { warning in
+            if case .exerciseRepeats = warning {
+                return true
+            }
+            return false
+        }
+
+        // Check if any session is below 75% fill rate
+        let lowFillWarning = sessionFillRates.contains { $0 < 75.0 }
+
         let program = Program(
             type: splitType,
             daysPerWeek: questionnaireData.trainingDaysPerWeek,
@@ -124,6 +152,9 @@ class DynamicProgramGenerator {
         print("   Program: \(splitType.description)")
         print("   Sessions: \(sessions.count)")
         print("   Total exercises: \(sessions.reduce(0) { $0 + $1.exercises.count })")
+        print("   Fill rates: \(sessionFillRates.map { String(format: "%.1f%%", $0) }.joined(separator: ", "))")
+        print("   Low fill warning: \(lowFillWarning)")
+        print("   Repeat warning: \(hasRepeats)")
         if !allWarnings.isEmpty {
             print("⚠️ Warnings: \(allWarnings.count)")
         }
@@ -138,7 +169,12 @@ class DynamicProgramGenerator {
         }
         print("")
 
-        return ProgramGenerationResult(program: program, warnings: allWarnings)
+        return ProgramGenerationResult(
+            program: program,
+            warnings: allWarnings,
+            lowFillWarning: lowFillWarning,
+            repeatWarning: hasRepeats
+        )
     }
 
     /// Legacy method for backward compatibility
@@ -485,17 +521,14 @@ class DynamicProgramGenerator {
         experienceLevel: ExperienceLevel
     ) -> ProgramExercise {
 
-        // Determine rep range based on fitness goal (BUSINESS RULE)
-        let repRange = getRepRangeForGoal(fitnessGoal)
+        // Determine rep range based on fitness goal and canonical rating (NEW BUSINESS RULE)
+        let repRange = getRepRangeForGoalAndRating(fitnessGoal, canonicalRating: dbExercise.canonicalRating)
 
-        // Determine sets based on experience level
-        let sets = getSetsForExperience(experienceLevel)
+        // Always 3 sets for all exercises (NEW RULE)
+        let sets = 3
 
-        // Determine rest period based on complexity and rep range
-        let rest = getRestSeconds(
-            complexityLevel: dbExercise.numericComplexity,
-            repRange: repRange
-        )
+        // Determine rest period based on canonical rating (NEW RULE)
+        let rest = getRestSecondsFromRating(dbExercise.canonicalRating)
 
         return ProgramExercise(
             exerciseId: dbExercise.exerciseId,
@@ -505,51 +538,57 @@ class DynamicProgramGenerator {
             restSeconds: rest,
             primaryMuscle: dbExercise.primaryMuscle,
             equipmentType: dbExercise.equipmentName ?? "Unknown",
-            complexityLevel: dbExercise.complexityLevel,
+            complexityLevel: dbExercise.numericComplexity,
             isIsolation: dbExercise.isIsolation
         )
     }
 
-    // MARK: - Rep Range Rules (BUSINESS LOGIC)
+    // MARK: - Rep Range Rules (NEW BUSINESS LOGIC)
 
-    private func getRepRangeForGoal(_ goal: String) -> String {
-        switch goal {
-        case "get_stronger":
-            return "5-8"
-        case "build_muscle":
-            return "8-12"
-        case "tone_up":
-            return "10-15"
-        default:
-            return "8-12" // Default to hypertrophy
-        }
-    }
+    private func getRepRangeForGoalAndRating(_ goalSelection: String, canonicalRating: Int) -> String {
+        let isHighRating = canonicalRating > 75
 
-    private func getSetsForExperience(_ experience: ExperienceLevel) -> Int {
-        switch experience {
-        case .noExperience:
-            return 3
-        case .beginner:
-            return 3
-        case .intermediate:
-            return 3
-        case .advanced:
-            return 4
-        }
-    }
+        // Define goal combinations
+        let hasGetStronger = goalSelection.contains("get_stronger")
+        let hasIncreaseMuscle = goalSelection.contains("increase_muscle") || goalSelection.contains("build_muscle")
+        let hasFatLoss = goalSelection.contains("fat_loss") || goalSelection.contains("tone_up")
 
-    private func getRestSeconds(complexityLevel: Int, repRange: String) -> Int {
-        let isLowReps = repRange.starts(with: "5") || repRange.starts(with: "6")
-        let isHighComplexity = complexityLevel >= 3
-
-        if isHighComplexity && isLowReps {
-            return 180 // 3 minutes for heavy compounds
-        } else if isHighComplexity {
-            return 120 // 2 minutes for complex exercises
-        } else if isLowReps {
-            return 150 // 2.5 minutes for heavy work
+        // Goal combination logic
+        if hasGetStronger && !hasIncreaseMuscle && !hasFatLoss {
+            // Get Stronger only
+            return isHighRating ? randomChoice(["5-8", "6-10"]) : randomChoice(["6-10", "8-12"])
+        } else if hasGetStronger && hasFatLoss && !hasIncreaseMuscle {
+            // Get Stronger + Fat Loss (no Increase Muscle)
+            return isHighRating ? randomChoice(["5-8", "6-10"]) : randomChoice(["6-10", "8-12"])
+        } else if hasGetStronger {
+            // Get Stronger (alone or with others except Fat Loss only combo)
+            return isHighRating ? randomChoice(["5-8", "6-10"]) : randomChoice(["6-10", "8-12"])
+        } else if hasIncreaseMuscle && hasFatLoss {
+            // Increase Muscle + Fat Loss
+            return randomChoice(["8-12", "10-14"])
+        } else if hasFatLoss && !hasIncreaseMuscle && !hasGetStronger {
+            // Fat Loss only
+            return randomChoice(["8-12", "10-14"])
+        } else if hasIncreaseMuscle && !hasFatLoss {
+            // Increase Muscle only
+            return randomChoice(["6-10", "8-12"])
         } else {
-            return 90 // 90 seconds for isolation/accessories
+            // Default case
+            return "8-12"
+        }
+    }
+
+    private func randomChoice<T>(_ options: [T]) -> T {
+        return options.randomElement() ?? options.first!
+    }
+
+    private func getRestSecondsFromRating(_ canonicalRating: Int) -> Int {
+        if canonicalRating > 80 {
+            return 120 // 2 minutes for highest rated exercises
+        } else if canonicalRating >= 50 {
+            return 90 // 90 seconds for medium rated exercises
+        } else {
+            return 60 // 1 minute for lower rated exercises
         }
     }
 
@@ -1108,8 +1147,9 @@ class DynamicProgramGenerator {
 
         print("🚨 Creating emergency exercises for session: \(sessionName)")
 
-        let repRange = getRepRangeForGoal(fitnessGoal)
-        let sets = getSetsForExperience(experienceLevel)
+        // For emergency exercises, use simple defaults since we don't have canonical_rating
+        let repRange = "8-12" // Default rep range for bodyweight exercises
+        let sets = 3 // Always 3 sets
 
         // Basic emergency exercises that require no equipment
         var emergencyExercises: [ProgramExercise] = []

@@ -45,7 +45,7 @@ class ProgramGenerator {
                 )
 
                 AppLogger.logProgram("Hardcoded fallback program loaded: \(fallbackProgram.type.description)")
-                return ProgramGenerationResult(program: fallbackProgram, warnings: result.warnings)
+                return ProgramGenerationResult(program: fallbackProgram, warnings: result.warnings, lowFillWarning: false, repeatWarning: false)
             }
 
             return result
@@ -60,7 +60,7 @@ class ProgramGenerator {
             )
 
             AppLogger.logProgram("Fallback program loaded: \(fallbackProgram.type.description)")
-            return ProgramGenerationResult(program: fallbackProgram, warnings: [])
+            return ProgramGenerationResult(program: fallbackProgram, warnings: [], lowFillWarning: false, repeatWarning: false)
         }
     }
 

@@ -129,6 +129,12 @@ extension WorkoutProgram {
     // MARK: - Activation Methods
 
     func activate(context: NSManagedObjectContext) {
+        // Ensure userId is not nil
+        guard let userId = userId else {
+            print("❌ Cannot activate program: userId is nil")
+            return
+        }
+
         // Deactivate all other programs for this user
         let allPrograms = WorkoutProgram.fetchAll(forUserId: userId, context: context)
         for program in allPrograms where program != self {
