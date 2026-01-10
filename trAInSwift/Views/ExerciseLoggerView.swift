@@ -125,7 +125,9 @@ struct ExerciseLoggerView: View {
                                 exercise: exercise,
                                 loggedExercise: $loggedExercise,
                                 weightUnit: $weightUnit,
-                                restTimerController: restTimerController
+                                restTimerController: restTimerController,
+                                liveActivityManager: liveActivityManager,
+                                onSetCompleted: updateLiveActivityProgress
                             )
                             .padding(.horizontal, Spacing.lg)
 
@@ -255,6 +257,20 @@ struct ExerciseLoggerView: View {
             showFeedbackNotification = true
         }
     }
+
+    private func updateLiveActivityProgress() {
+        guard #available(iOS 16.1, *) else { return }
+
+        let completedSetsCount = loggedExercise.sets.filter { $0.completed }.count
+        let currentSet = min(completedSetsCount + 1, loggedExercise.sets.count)
+
+        liveActivityManager.updateWorkoutProgress(
+            currentExercise: loggedExercise,
+            currentSet: currentSet,
+            elapsedTime: 0, // Will be managed by the main workout view
+            isResting: false
+        )
+    }
 }
 
 // MARK: - Header
@@ -345,6 +361,8 @@ struct SetLoggingSection: View {
     @Binding var loggedExercise: LoggedExercise
     @Binding var weightUnit: ExerciseLoggerView.WeightUnit
     @ObservedObject var restTimerController: RestTimerController
+    @ObservedObject var liveActivityManager: WorkoutLiveActivityManager
+    let onSetCompleted: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
@@ -419,7 +437,7 @@ struct SetLoggingSection: View {
                                     liveActivityManager.startRestTimer(seconds: exercise.restSeconds, elapsedTime: 0)
                                 }
                             }
-                            updateLiveActivityProgress()
+                            onSetCompleted()
                         }
                     )
                 }
@@ -916,7 +934,7 @@ struct ExerciseDemoTab: View {
                     HStack(spacing: Spacing.xs) {
                         ForEach(1...4, id: \.self) { level in
                             Circle()
-                                .fill(level <= exercise.complexityLevel ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3))
+                                .fill(level <= exercise.numericComplexity ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3))
                                 .frame(width: 12, height: 12)
                         }
 
@@ -938,11 +956,11 @@ struct ExerciseDemoTab: View {
     }
 
     private var complexityLabel: String {
-        switch exercise.complexityLevel {
+        switch exercise.numericComplexity {
+        case 0: return "Available to All"
         case 1: return "Beginner Friendly"
         case 2: return "Some Experience"
         case 3: return "Intermediate"
-        case 4: return "Advanced"
         default: return "Standard"
         }
     }
@@ -958,19 +976,6 @@ struct ExerciseDemoTab: View {
         return step
     }
 
-    private func updateLiveActivityProgress() {
-        guard #available(iOS 16.1, *) else { return }
-
-        let completedSetsCount = loggedExercise.sets.filter { $0.completed }.count
-        let currentSet = min(completedSetsCount + 1, loggedExercise.sets.count)
-
-        liveActivityManager.updateWorkoutProgress(
-            currentExercise: loggedExercise,
-            currentSet: currentSet,
-            elapsedTime: 0, // Will be managed by the main workout view
-            isResting: false
-        )
-    }
 }
 
 // MARK: - Preview

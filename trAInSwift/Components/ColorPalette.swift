@@ -12,6 +12,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Theme selection - includes both dark and light mode variants
 enum ThemeVariant {
@@ -246,7 +247,9 @@ extension Color {
     }
 
     // Secondary accent color (alias for text secondary)
-    static let trainSecondary = Color(hex: ColorPalette.textSecondary)
+    static func trainSecondary(theme: ThemeVariant) -> Color {
+        Color(hex: ColorPalette.textSecondary(for: theme))
+    }
 
     // UI Elements
     static func trainBorderSubtle(theme: ThemeVariant) -> Color {
@@ -270,6 +273,7 @@ extension Color {
 extension Color {
     // These provide backwards compatibility with existing code
     static let trainPrimary = Color.trainPrimary(theme: .orange)
+    static let trainSecondary = Color.trainSecondary(theme: .orange)
     static let trainLight = Color.trainLight(theme: .orange)
     static let trainHover = Color.trainHover(theme: .orange)
     static let trainBackground = Color.trainBackground(theme: .orange)

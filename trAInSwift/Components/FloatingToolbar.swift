@@ -71,10 +71,16 @@ struct MainTabView<DashboardContent: View>: View {
                 break
             case .milestones:
                 showMilestones = true
+                // Reset to dashboard to keep dashboard content visible
+                selectedTab = .dashboard
             case .library:
                 showLibrary = true
+                // Reset to dashboard to keep dashboard content visible
+                selectedTab = .dashboard
             case .account:
                 showAccount = true
+                // Reset to dashboard to keep dashboard content visible
+                selectedTab = .dashboard
             }
         }
         .sheet(isPresented: $showMilestones, onDismiss: {
