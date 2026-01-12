@@ -2,66 +2,45 @@
 //  VideoInterstitialView.swift
 //  trAInSwift
 //
-//  Video interstitial screens for onboarding flow with swipeable TabView
+//  Individual video interstitial screens for strategic placement in onboarding flow
 //
 
 import SwiftUI
 
-struct VideoInterstitialView: View {
+// MARK: - Individual Interstitial Screens
+
+struct FirstVideoInterstitialView: View {
     let onComplete: () -> Void
 
-    @State private var currentPage = 0
-
-    private let interstitialData = [
-        InterstitialData(
+    var body: some View {
+        InterstitialScreen(
             videoName: "onboarding_first",
             subtitle: "You're in the right place",
-            headline: "Real trainers and science-backed programs to hit your goals."
-        ),
-        InterstitialData(
-            videoName: "onboarding_second",
-            subtitle: "We're built for you!",
-            headline: "Train creates your perfect workout for your individual needs."
+            headline: "Real trainers and science-backed programs to hit your goals.",
+            onNext: onComplete
         )
-    ]
-
-    var body: some View {
-        TabView(selection: $currentPage) {
-            ForEach(Array(interstitialData.enumerated()), id: \.offset) { index, data in
-                InterstitialScreen(
-                    videoName: data.videoName,
-                    subtitle: data.subtitle,
-                    headline: data.headline,
-                    isLastScreen: index == interstitialData.count - 1,
-                    onNext: {
-                        if index < interstitialData.count - 1 {
-                            withAnimation(.easeInOut(duration: 0.5)) {
-                                currentPage = index + 1
-                            }
-                        } else {
-                            onComplete()
-                        }
-                    }
-                )
-                .tag(index)
-            }
-        }
-        .tabViewStyle(.page(indexDisplayMode: .never)) // Hide page indicators
-        .ignoresSafeArea()
     }
 }
 
-private struct InterstitialData {
-    let videoName: String
-    let subtitle: String
-    let headline: String
+struct SecondVideoInterstitialView: View {
+    let onComplete: () -> Void
+
+    var body: some View {
+        InterstitialScreen(
+            videoName: "onboarding_second",
+            subtitle: "We're built for you!",
+            headline: "Train creates your perfect workout for your individual needs.",
+            onNext: onComplete
+        )
+    }
 }
+
+// MARK: - Shared Interstitial Component
 
 private struct InterstitialScreen: View {
     let videoName: String
     let subtitle: String
     let headline: String
-    let isLastScreen: Bool
     let onNext: () -> Void
 
     var body: some View {
@@ -97,7 +76,7 @@ private struct InterstitialScreen: View {
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    // NEXT button
+                    // NEXT button with accent color
                     Button(action: onNext) {
                         Text("NEXT")
                             .font(.system(size: 16, weight: .bold))
@@ -113,18 +92,13 @@ private struct InterstitialScreen: View {
                 .padding(.bottom, 60)
             }
         }
-        .gesture(
-            // Allow swipe to advance
-            DragGesture()
-                .onEnded { value in
-                    if value.translation.x < -50 { // Swipe left
-                        onNext()
-                    }
-                }
-        )
     }
 }
 
-#Preview {
-    VideoInterstitialView(onComplete: {})
+#Preview("First Interstitial") {
+    FirstVideoInterstitialView(onComplete: {})
+}
+
+#Preview("Second Interstitial") {
+    SecondVideoInterstitialView(onComplete: {})
 }

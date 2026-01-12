@@ -19,10 +19,10 @@ struct QuestionnaireView: View {
     let onComplete: () -> Void
     var onBack: (() -> Void)?
 
-    // Total steps: Dynamic based on health sync
+    // Total steps: Dynamic based on health sync + 2 video interstitials
     var totalSteps: Int {
-        return viewModel.questionnaireData.skipHeightWeight ? 12 : 13
-        // Goal → HealthProfile → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        return viewModel.questionnaireData.skipHeightWeight ? 14 : 15
+        // Goal → HealthProfile → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → Equipment → [Interstitial2] → Muscles → Injuries
     }
 
     var body: some View {
@@ -157,25 +157,29 @@ struct QuestionnaireView: View {
             switch adjustedStep {
             case 3: // Experience
                 ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
-            case 4: // Training Days
+            case 4: // First Video Interstitial (after experience)
+                FirstVideoInterstitialView(onComplete: proceedToNextStep)
+            case 5: // Training Days
                 TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
-            case 5: // Split Selection
+            case 6: // Split Selection
                 SplitSelectionStepView(
                     selectedSplit: $viewModel.questionnaireData.selectedSplit,
                     trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek,
                     experience: $viewModel.questionnaireData.experienceLevel,
                     targetMuscleGroups: $viewModel.questionnaireData.targetMuscleGroups
                 )
-            case 6: // Session Duration
+            case 7: // Session Duration
                 SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
-            case 7: // Equipment
+            case 8: // Equipment
                 EquipmentStepView(
                     selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
                     selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
                 )
-            case 8: // Muscle Groups
+            case 9: // Second Video Interstitial (after equipment)
+                SecondVideoInterstitialView(onComplete: proceedToNextStep)
+            case 10: // Muscle Groups
                 MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
-            case 9: // Injuries
+            case 11: // Injuries
                 InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
             default:
                 EmptyView()
@@ -225,18 +229,22 @@ struct QuestionnaireView: View {
             switch adjustedStep {
             case 3: // Experience
                 return !viewModel.questionnaireData.experienceLevel.isEmpty
-            case 4: // Training Days
+            case 4: // First Video Interstitial (always valid)
+                return true
+            case 5: // Training Days
                 return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
-            case 5: // Split Selection
+            case 6: // Split Selection
                 return !viewModel.questionnaireData.selectedSplit.isEmpty
-            case 6: // Session Duration
+            case 7: // Session Duration
                 return !viewModel.questionnaireData.sessionDuration.isEmpty
-            case 7: // Equipment
+            case 8: // Equipment
                 return !viewModel.questionnaireData.equipmentAvailable.isEmpty
-            case 8: // Muscle Groups (optional, 0-3)
+            case 9: // Second Video Interstitial (always valid)
+                return true
+            case 10: // Muscle Groups (optional, 0-3)
                 let count = viewModel.questionnaireData.targetMuscleGroups.count
                 return count >= 0 && count <= 3
-            case 9: // Injuries (optional)
+            case 11: // Injuries (optional)
                 return true
             default:
                 return true
@@ -247,11 +255,10 @@ struct QuestionnaireView: View {
     // Enable scrolling only for pages that need it (equipment step has expandable content)
     private func shouldDisableScrollForCurrentStep() -> Bool {
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
-        let equipmentStepNumber = skipHeightWeight ? 6 : 7
 
         // Equipment step needs scrolling for expandable categories
         let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
-        if adjustedStep == 7 { // Equipment step in adjusted numbering
+        if adjustedStep == 8 { // Equipment step (now step 8 due to interstitials)
             return false  // Enable scrolling for equipment
         }
 
@@ -268,7 +275,7 @@ struct QuestionnaireView: View {
 
         // Check if leaving equipment step with limited equipment selection
         let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
-        if adjustedStep == 7 { // Equipment step
+        if adjustedStep == 8 { // Equipment step (now step 8 due to interstitials)
             let equipmentCount = viewModel.questionnaireData.equipmentAvailable.count
             if equipmentCount == 1 && !hasSeenEquipmentWarning {
                 // Show warning modal for single equipment selection
