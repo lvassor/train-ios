@@ -109,75 +109,56 @@ struct HealthProfileStepView: View {
                         .foregroundColor(.trainTextPrimary)
 
                     HStack(spacing: Spacing.md) {
-                        // Male and Female as cards side by side
-                        ForEach(["Male", "Female"], id: \.self) { gender in
-                            Button(action: { selectedGender = gender }) {
+                        // Male, Female, and Other as equal-sized cards horizontally stacked
+                        ForEach(["Male", "Female", "Other"], id: \.self) { gender in
+                            Button(action: {
+                                selectedGender = gender == "Other" ? "Other / Prefer not to say" : gender
+                            }) {
                                 VStack(spacing: Spacing.sm) {
                                     ZStack {
                                         Circle()
-                                            .fill(selectedGender == gender ? Color.white.opacity(0.3) : Color.trainHover)
+                                            .fill((selectedGender == gender || (gender == "Other" && selectedGender == "Other / Prefer not to say")) ? Color.white.opacity(0.3) : Color.trainHover)
                                             .frame(width: 40, height: 40)
 
-                                        Image(systemName: gender == "Male" ? "figure.stand" : "figure.stand.dress")
+                                        Image(systemName: gender == "Male" ? "figure.stand" : gender == "Female" ? "figure.stand.dress" : "person.fill")
                                             .font(.title2)
-                                            .foregroundColor(selectedGender == gender ? .white : .trainPrimary)
+                                            .foregroundColor((selectedGender == gender || (gender == "Other" && selectedGender == "Other / Prefer not to say")) ? .white : .trainPrimary)
                                     }
 
                                     Text(gender)
                                         .font(.trainCaption)
-                                        .foregroundColor(selectedGender == gender ? .white : .trainTextPrimary)
+                                        .foregroundColor((selectedGender == gender || (gender == "Other" && selectedGender == "Other / Prefer not to say")) ? .white : .trainTextPrimary)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Spacing.md)
-                                .background(selectedGender == gender ? Color.trainPrimary : .clear)
+                                .background((selectedGender == gender || (gender == "Other" && selectedGender == "Other / Prefer not to say")) ? Color.trainPrimary : .clear)
                                 .appCard()
                             }
                             .buttonStyle(ScaleButtonStyle())
                         }
                     }
-
-                    // Other option as full width
-                    Button(action: { selectedGender = "Other / Prefer not to say" }) {
-                        HStack(spacing: Spacing.md) {
-                            ZStack {
-                                Circle()
-                                    .fill(selectedGender == "Other / Prefer not to say" ? Color.white.opacity(0.3) : Color.trainHover)
-                                    .frame(width: 40, height: 40)
-
-                                Image(systemName: "person.fill")
-                                    .font(.title3)
-                                    .foregroundColor(selectedGender == "Other / Prefer not to say" ? .white : .trainPrimary)
-                            }
-
-                            Text("Other / Prefer not to say")
-                                .font(.trainBody)
-                                .foregroundColor(selectedGender == "Other / Prefer not to say" ? .white : .trainTextPrimary)
-
-                            Spacer()
-                        }
-                        .padding(Spacing.md)
-                        .frame(maxWidth: .infinity)
-                        .background(selectedGender == "Other / Prefer not to say" ? Color.trainPrimary : .clear)
-                        .appCard()
-                    }
-                    .buttonStyle(ScaleButtonStyle())
                 }
 
-                // Age Selection
+                // Date of Birth Selection
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Age")
+                    Text("Date of Birth")
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
 
-                    DatePicker(
-                        "",
-                        selection: $dateOfBirth,
-                        in: Calendar.current.date(byAdding: .year, value: -100, to: Date())!...Calendar.current.date(byAdding: .year, value: -18, to: Date())!,
-                        displayedComponents: .date
-                    )
-                    .datePickerStyle(.wheel)
+                    HStack {
+                        Spacer()
+                        DatePicker(
+                            "",
+                            selection: $dateOfBirth,
+                            in: Calendar.current.date(byAdding: .year, value: -100, to: Date())!...Calendar.current.date(byAdding: .year, value: -18, to: Date())!,
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(.wheel)
+                        .labelsHidden()
+                        .frame(height: 120)
+                        Spacer()
+                    }
                     .appCard()
-                    .frame(height: 120)
                 }
             }
 

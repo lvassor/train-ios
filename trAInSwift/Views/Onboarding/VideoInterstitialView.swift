@@ -45,53 +45,52 @@ private struct InterstitialScreen: View {
 
     var body: some View {
         ZStack {
-            // Video background
-            VideoBackgroundView(name: videoName)
-                .ignoresSafeArea()
-
-            // Gradient overlay
+            // Fallback gradient background in case video fails
             LinearGradient(
-                colors: [.clear, .black.opacity(0.85)],
+                colors: [.trainPrimary.opacity(0.8), .black],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea(.all, edges: .all)
+
+            // Video background - fills entire viewport (will overlay gradient if successful)
+            VideoBackgroundView(name: videoName)
+                .ignoresSafeArea(.all, edges: .all)
+
+            // Gradient overlay for better text readability
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.75)],
                 startPoint: .center,
                 endPoint: .bottom
             )
-            .ignoresSafeArea()
+            .ignoresSafeArea(.all, edges: .all)
 
-            // Content overlay
+            // Content overlay - positioned at bottom center
             VStack(spacing: 0) {
-                Spacer()
+                Spacer(minLength: 0)
 
                 VStack(spacing: Spacing.lg) {
-                    // Subtitle in gray
+                    // Subtitle in light gray
                     Text(subtitle)
-                        .font(.trainBody)
-                        .foregroundColor(.gray)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white.opacity(0.9))
                         .multilineTextAlignment(.center)
 
-                    // Main headline in white bold
+                    // Main headline - larger, bold, better spacing
                     Text(headline)
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 32, weight: .bold, design: .default))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
+                        .lineSpacing(6)
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
-
-                    // NEXT button with accent color
-                    Button(action: onNext) {
-                        Text("NEXT")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .background(Color.trainPrimary)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                    }
-                    .padding(.top, Spacing.xl)
                 }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 60)
+                .padding(.horizontal, Spacing.xl)
+                .padding(.bottom, 140) // Extra space for Continue button from main questionnaire
             }
         }
+        // Fill entire screen
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

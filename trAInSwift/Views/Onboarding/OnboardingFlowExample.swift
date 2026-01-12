@@ -31,7 +31,7 @@ struct OnboardingFlowExample: View {
             )
 
         case .videoInterstitials:
-            VideoInterstitialView(
+            FirstVideoInterstitialView(
                 onComplete: {
                     currentPhase = .questionnaire
                 }

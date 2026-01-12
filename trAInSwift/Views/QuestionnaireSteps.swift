@@ -576,7 +576,7 @@ struct WeightStepView: View {
 
 // MARK: - Q5: Goals
 struct GoalsStepView: View {
-    @Binding var selectedGoal: String
+    @Binding var selectedGoals: [String]
 
     let goals = [
         ("get_stronger", "Get Stronger", "Build maximum strength & power"),
@@ -592,7 +592,7 @@ struct GoalsStepView: View {
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Let's customise your training program")
+                Text("Select all that apply (at least 1)")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -604,13 +604,29 @@ struct GoalsStepView: View {
                     OptionCard(
                         title: title,
                         subtitle: subtitle,
-                        isSelected: selectedGoal == value,
-                        action: { selectedGoal = value }
+                        isSelected: selectedGoals.contains(value),
+                        action: { toggleGoal(value) }
                     )
+                }
+
+                // Show selection count
+                if !selectedGoals.isEmpty {
+                    Text("\(selectedGoals.count) of 3 selected")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
 
             Spacer()
+        }
+    }
+
+    private func toggleGoal(_ goal: String) {
+        if selectedGoals.contains(goal) {
+            selectedGoals.removeAll { $0 == goal }
+        } else if selectedGoals.count < 3 {
+            selectedGoals.append(goal)
         }
     }
 }

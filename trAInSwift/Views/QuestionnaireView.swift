@@ -19,10 +19,10 @@ struct QuestionnaireView: View {
     let onComplete: () -> Void
     var onBack: (() -> Void)?
 
-    // Total steps: Dynamic based on health sync + 2 video interstitials + referral tracking + separate name step
+    // Total steps: Dynamic based on health sync + 2 video interstitials + separate name step (referral moved to end, not counted in progress)
     var totalSteps: Int {
-        return viewModel.questionnaireData.skipHeightWeight ? 16 : 17
-        // Goal → Name → HealthProfile → Referral → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → Equipment → [Interstitial2] → Muscles → Injuries
+        return viewModel.questionnaireData.skipHeightWeight ? 15 : 16
+        // Goal → Name → HealthProfile → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → Equipment → [Interstitial2] → Muscles → Injuries → Referral (not counted)
     }
 
     var body: some View {
@@ -113,7 +113,7 @@ struct QuestionnaireView: View {
     }
 
     private var buttonTitle: String {
-        if currentStep == totalSteps - 1 {
+        if currentStep == 13 { // Referral step (final step)
             return "Generate Your Program"
         }
         return "Continue"
@@ -121,12 +121,12 @@ struct QuestionnaireView: View {
 
     @ViewBuilder
     private var currentStepView: some View {
-        // New order with conditional height/weight: Goal → Name → HealthProfile → Referral → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        // New order with conditional height/weight: Goal → Name → HealthProfile → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries → Referral (final, not counted)
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
 
         switch currentStep {
         case 0: // Goal
-            GoalsStepView(selectedGoal: $viewModel.questionnaireData.primaryGoal)
+            GoalsStepView(selectedGoals: $viewModel.questionnaireData.primaryGoals)
         case 1: // Name
             NameStepView(name: $viewModel.questionnaireData.name)
         case 2: // Health Profile (age/gender + Apple Health)
@@ -136,9 +136,7 @@ struct QuestionnaireView: View {
                 skipHeightWeight: $viewModel.questionnaireData.skipHeightWeight,
                 healthKitSynced: $viewModel.questionnaireData.healthKitSynced
             )
-        case 3: // Referral tracking
-            ReferralStepView(selectedReferral: $viewModel.questionnaireData.selectedReferral)
-        case 4: // Height/Weight (conditional)
+        case 3: // Height/Weight (conditional) OR Experience (if height/weight skipped)
             if !skipHeightWeight {
                 HeightWeightStepView(
                     heightCm: $viewModel.questionnaireData.heightCm,
@@ -150,53 +148,88 @@ struct QuestionnaireView: View {
                     weightUnit: $viewModel.questionnaireData.weightUnit
                 )
             } else {
-                // If skipped, this case shouldn't be reached, but show experience as fallback
+                // If height/weight skipped, step 3 becomes Experience
                 ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
             }
-        default:
-            // Adjust step numbers based on whether height/weight was skipped
-            let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
-
-            switch adjustedStep {
-            case 5: // Experience
+        case 4: // Experience OR First Video Interstitial
+            if !skipHeightWeight {
                 ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
-            case 6: // First Video Interstitial (after experience)
+            } else {
                 FirstVideoInterstitialView(onComplete: proceedToNextStep)
-            case 7: // Training Days
+            }
+        case 5: // First Video Interstitial OR Training Days
+            if !skipHeightWeight {
+                FirstVideoInterstitialView(onComplete: proceedToNextStep)
+            } else {
                 TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
-            case 8: // Split Selection
+            }
+        case 6: // Training Days OR Split Selection
+            if !skipHeightWeight {
+                TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
+            } else {
                 SplitSelectionStepView(
                     selectedSplit: $viewModel.questionnaireData.selectedSplit,
                     trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek,
                     experience: $viewModel.questionnaireData.experienceLevel,
                     targetMuscleGroups: $viewModel.questionnaireData.targetMuscleGroups
                 )
-            case 9: // Session Duration
+            }
+        case 7: // Split Selection OR Session Duration
+            if !skipHeightWeight {
+                SplitSelectionStepView(
+                    selectedSplit: $viewModel.questionnaireData.selectedSplit,
+                    trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek,
+                    experience: $viewModel.questionnaireData.experienceLevel,
+                    targetMuscleGroups: $viewModel.questionnaireData.targetMuscleGroups
+                )
+            } else {
                 SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
-            case 10: // Equipment
+            }
+        case 8: // Session Duration OR Equipment
+            if !skipHeightWeight {
+                SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
+            } else {
                 EquipmentStepView(
                     selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
                     selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
                 )
-            case 11: // Second Video Interstitial (after equipment)
-                SecondVideoInterstitialView(onComplete: proceedToNextStep)
-            case 12: // Muscle Groups
-                MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
-            case 13: // Injuries
-                InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
-            default:
-                EmptyView()
             }
+        case 9: // Equipment OR Second Video Interstitial
+            if !skipHeightWeight {
+                EquipmentStepView(
+                    selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
+                    selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
+                )
+            } else {
+                SecondVideoInterstitialView(onComplete: proceedToNextStep)
+            }
+        case 10: // Second Video Interstitial OR Muscle Groups
+            if !skipHeightWeight {
+                SecondVideoInterstitialView(onComplete: proceedToNextStep)
+            } else {
+                MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
+            }
+        case 11: // Muscle Groups OR Injuries
+            if !skipHeightWeight {
+                MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
+            } else {
+                InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+            }
+        case 12: // Injuries (final counted step)
+            InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+        case 13: // Referral tracking (final step, not counted in progress)
+            ReferralStepView(selectedReferral: $viewModel.questionnaireData.selectedReferral)
+        default:
+            EmptyView()
         }
     }
 
     private var isCurrentStepValid: Bool {
-        // New order with conditional height/weight: Goal → Name → HealthProfile → Referral → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
 
         switch currentStep {
         case 0: // Goal
-            return !viewModel.questionnaireData.primaryGoal.isEmpty
+            return !viewModel.questionnaireData.primaryGoals.isEmpty
         case 1: // Name
             let sanitizedName = viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines)
             return sanitizedName.count >= 2 && sanitizedName.count <= 30
@@ -204,13 +237,8 @@ struct QuestionnaireView: View {
             let ageValid = viewModel.questionnaireData.age >= 18
             let genderValid = !viewModel.questionnaireData.gender.isEmpty
             return ageValid && genderValid
-        case 3: // Referral tracking (optional)
-            return true // Referral selection is optional
-        case 4: // Height/Weight (conditional)
-            if skipHeightWeight {
-                // If height/weight is skipped, this should be the experience step
-                return !viewModel.questionnaireData.experienceLevel.isEmpty
-            } else {
+        case 3: // Height/Weight OR Experience
+            if !skipHeightWeight {
                 // Validate height/weight
                 let heightValid: Bool
                 if viewModel.questionnaireData.heightUnit == .cm {
@@ -227,34 +255,65 @@ struct QuestionnaireView: View {
                 }
 
                 return heightValid && weightValid
-            }
-        default:
-            // Adjust step numbers based on whether height/weight was skipped
-            let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
-
-            switch adjustedStep {
-            case 5: // Experience
+            } else {
                 return !viewModel.questionnaireData.experienceLevel.isEmpty
-            case 6: // First Video Interstitial (always valid)
-                return true
-            case 7: // Training Days
+            }
+        case 4: // Experience OR First Video Interstitial
+            if !skipHeightWeight {
+                return !viewModel.questionnaireData.experienceLevel.isEmpty
+            } else {
+                return true // Video interstitial always valid
+            }
+        case 5: // First Video Interstitial OR Training Days
+            if !skipHeightWeight {
+                return true // Video interstitial always valid
+            } else {
                 return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
-            case 8: // Split Selection
+            }
+        case 6: // Training Days OR Split Selection
+            if !skipHeightWeight {
+                return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
+            } else {
                 return !viewModel.questionnaireData.selectedSplit.isEmpty
-            case 9: // Session Duration
+            }
+        case 7: // Split Selection OR Session Duration
+            if !skipHeightWeight {
+                return !viewModel.questionnaireData.selectedSplit.isEmpty
+            } else {
                 return !viewModel.questionnaireData.sessionDuration.isEmpty
-            case 10: // Equipment
+            }
+        case 8: // Session Duration OR Equipment
+            if !skipHeightWeight {
+                return !viewModel.questionnaireData.sessionDuration.isEmpty
+            } else {
                 return !viewModel.questionnaireData.equipmentAvailable.isEmpty
-            case 11: // Second Video Interstitial (always valid)
-                return true
-            case 12: // Muscle Groups (optional, 0-3)
+            }
+        case 9: // Equipment OR Second Video Interstitial
+            if !skipHeightWeight {
+                return !viewModel.questionnaireData.equipmentAvailable.isEmpty
+            } else {
+                return true // Video interstitial always valid
+            }
+        case 10: // Second Video Interstitial OR Muscle Groups
+            if !skipHeightWeight {
+                return true // Video interstitial always valid
+            } else {
                 let count = viewModel.questionnaireData.targetMuscleGroups.count
                 return count >= 0 && count <= 3
-            case 13: // Injuries (optional)
-                return true
-            default:
-                return true
             }
+        case 11: // Muscle Groups OR Injuries
+            if !skipHeightWeight {
+                let count = viewModel.questionnaireData.targetMuscleGroups.count
+                return count >= 0 && count <= 3
+            } else {
+                return true // Injuries optional
+            }
+        case 12: // Injuries (final counted step)
+            return true // Injuries optional
+        case 13: // Referral tracking (optional)
+            return true // Referral selection is optional
+        default:
+            return true
         }
     }
 
@@ -263,8 +322,7 @@ struct QuestionnaireView: View {
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
 
         // Equipment step needs scrolling for expandable categories
-        let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
-        if adjustedStep == 10 { // Equipment step (now step 10 due to name + referral + interstitials)
+        if (!skipHeightWeight && currentStep == 9) || (skipHeightWeight && currentStep == 8) {
             return false  // Enable scrolling for equipment
         }
 
@@ -280,8 +338,7 @@ struct QuestionnaireView: View {
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
 
         // Check if leaving equipment step with limited equipment selection
-        let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
-        if adjustedStep == 10 { // Equipment step (now step 10 due to name + referral + interstitials)
+        if (!skipHeightWeight && currentStep == 9) || (skipHeightWeight && currentStep == 8) {
             let equipmentCount = viewModel.questionnaireData.equipmentAvailable.count
             if equipmentCount == 1 && !hasSeenEquipmentWarning {
                 // Show warning modal for single equipment selection
@@ -301,9 +358,13 @@ struct QuestionnaireView: View {
     private func proceedToNextStep() {
         withAnimation(.easeInOut(duration: 0.15)) {
             if currentStep < totalSteps - 1 {
+                // Continue through regular questionnaire steps
                 currentStep += 1
+            } else if currentStep == totalSteps - 1 {
+                // After last counted step (injuries), go to referral step
+                currentStep = 13 // Referral step
             } else {
-                // Complete questionnaire
+                // After referral step (13), complete questionnaire
                 showingProgramLoading = true
             }
         }
@@ -311,7 +372,10 @@ struct QuestionnaireView: View {
 
     private func previousStep() {
         withAnimation(.easeInOut(duration: 0.15)) {
-            if currentStep > 0 {
+            if currentStep == 13 {
+                // From referral step, go back to last counted step (injuries)
+                currentStep = totalSteps - 1
+            } else if currentStep > 0 {
                 currentStep -= 1
             } else {
                 // Go back to home screen

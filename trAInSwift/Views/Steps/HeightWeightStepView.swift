@@ -21,11 +21,11 @@ struct HeightWeightStepView: View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             // Header
             VStack(alignment: .center, spacing: Spacing.sm) {
-                Text("Physical Stats")
+                Text("Height & Weight")
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
 
-                Text("Help us personalize your training program")
+                Text("This helps us calculate your body metrics for personalized workouts and calorie tracking")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -33,19 +33,37 @@ struct HeightWeightStepView: View {
             .frame(maxWidth: .infinity)
 
             // Height Section
-            VStack(alignment: .leading, spacing: Spacing.md) {
+            VStack(alignment: .center, spacing: Spacing.md) {
                 Text("Height")
                     .font(.trainBodyMedium)
                     .foregroundColor(.trainTextPrimary)
+                    .frame(maxWidth: .infinity)
 
-                // Unit selector
+                // Unit selector - toolbar style, center aligned
                 HStack(spacing: Spacing.sm) {
+                    Spacer()
                     ForEach([QuestionnaireData.HeightUnit.cm, .ftIn], id: \.self) { unit in
-                        Button(action: { heightUnit = unit }) {
+                        Button(action: {
+                            let oldUnit = heightUnit
+                            heightUnit = unit
+
+                            // Convert between units when switching
+                            if oldUnit != unit {
+                                if unit == .cm && oldUnit == .ftIn {
+                                    // Convert ft/in to cm
+                                    heightCm = Double(heightFt) * 30.48 + Double(heightIn) * 2.54
+                                } else if unit == .ftIn && oldUnit == .cm {
+                                    // Convert cm to ft/in
+                                    let totalInches = heightCm / 2.54
+                                    heightFt = Int(totalInches / 12)
+                                    heightIn = Int(totalInches.truncatingRemainder(dividingBy: 12))
+                                }
+                            }
+                        }) {
                             Text(unit == .cm ? "cm" : "ft/in")
                                 .font(.trainCaption)
                                 .foregroundColor(heightUnit == unit ? .white : .trainTextSecondary)
-                                .padding(.horizontal, Spacing.md)
+                                .padding(.horizontal, Spacing.lg)
                                 .padding(.vertical, Spacing.sm)
                                 .background(heightUnit == unit ? Color.trainPrimary : Color.trainHover)
                                 .clipShape(Capsule())
@@ -55,90 +73,86 @@ struct HeightWeightStepView: View {
                     Spacer()
                 }
 
-                // Height input
-                if heightUnit == .cm {
-                    SlidingRuler(
-                        value: $heightCm,
-                        in: 100...250,
-                        step: 1,
-                        snap: .unit,
-                        tick: .none,
-                        onEditingChanged: { _ in }
-                    )
-                    .overlay(
+                // Height input - single ruler for both units
+                VStack(spacing: Spacing.md) {
+                    // Display current value
+                    if heightUnit == .cm {
                         Text("\(Int(heightCm)) cm")
-                            .font(.trainTitle3)
-                            .foregroundColor(.trainTextPrimary)
-                    )
-                    .frame(height: 80)
-                    .appCard()
-                } else {
-                    VStack(spacing: Spacing.sm) {
-                        // Feet
+                            .font(.trainMediumNumber)
+                            .foregroundColor(.trainPrimary)
+                            .frame(maxWidth: .infinity)
+
+                        SlidingRuler(
+                            value: $heightCm,
+                            in: 120...220,
+                            step: 10,
+                            snap: .none,
+                            tick: .unit
+                        )
+                        .frame(height: 60)
+                        .onChange(of: heightCm) { _, newValue in
+                            // Update ft/in when cm changes
+                            let totalInches = newValue / 2.54
+                            heightFt = Int(totalInches / 12)
+                            heightIn = Int(totalInches.truncatingRemainder(dividingBy: 12))
+                        }
+                    } else {
+                        Text("\(heightFt)' \(heightIn)\"")
+                            .font(.trainMediumNumber)
+                            .foregroundColor(.trainPrimary)
+                            .frame(maxWidth: .infinity)
+
+                        // Single ruler for ft/in as decimal (e.g., 5.75 ft = 5ft 9in)
                         SlidingRuler(
                             value: Binding(
-                                get: { Double(heightFt) },
-                                set: { heightFt = Int($0) }
+                                get: { Double(heightFt) + Double(heightIn) / 12.0 },
+                                set: { newFeet in
+                                    heightFt = Int(newFeet)
+                                    heightIn = Int((newFeet - Double(Int(newFeet))) * 12.0)
+                                    // Update cm when ft/in changes
+                                    heightCm = Double(heightFt) * 30.48 + Double(heightIn) * 2.54
+                                }
                             ),
                             in: 3...8,
                             step: 1,
-                            snap: .unit,
-                            tick: .none,
-                            onEditingChanged: { _ in }
-                        )
-                        .overlay(
-                            Text("\(heightFt) ft")
-                                .font(.trainBodyMedium)
-                                .foregroundColor(.trainTextPrimary)
+                            snap: .none,
+                            tick: .unit
                         )
                         .frame(height: 60)
-                        .appCard()
-
-                        // Inches
-                        SlidingRuler(
-                            value: Binding(
-                                get: { Double(heightIn) },
-                                set: { heightIn = Int($0) }
-                            ),
-                            in: 0...11,
-                            step: 1,
-                            snap: .unit,
-                            tick: .none,
-                            onEditingChanged: { _ in }
-                        )
-                        .overlay(
-                            Text("\(heightIn) in")
-                                .font(.trainBodyMedium)
-                                .foregroundColor(.trainTextPrimary)
-                        )
-                        .frame(height: 60)
-                        .appCard()
                     }
                 }
+                .padding(Spacing.lg)
+                .appCard()
             }
 
             // Weight Section
-            VStack(alignment: .leading, spacing: Spacing.md) {
+            VStack(alignment: .center, spacing: Spacing.md) {
                 Text("Weight")
                     .font(.trainBodyMedium)
                     .foregroundColor(.trainTextPrimary)
+                    .frame(maxWidth: .infinity)
 
-                // Unit selector
+                // Unit selector - toolbar style, center aligned
                 HStack(spacing: Spacing.sm) {
+                    Spacer()
                     ForEach([QuestionnaireData.WeightUnit.kg, .lbs], id: \.self) { unit in
                         Button(action: {
+                            let oldUnit = weightUnit
                             weightUnit = unit
+
                             // Convert between units when switching
-                            if unit == .kg && weightUnit == .lbs {
-                                weightKg = weightLbs * 0.453592
-                            } else if unit == .lbs && weightUnit == .kg {
-                                weightLbs = weightKg * 2.20462
+                            if oldUnit != unit {
+                                if unit == .kg && oldUnit == .lbs {
+                                    weightKg = weightLbs * 0.453592
+                                } else if unit == .lbs && oldUnit == .kg {
+                                    weightLbs = weightKg * 2.20462
+                                }
                             }
                         }) {
                             Text(unit == .kg ? "kg" : "lbs")
                                 .font(.trainCaption)
                                 .foregroundColor(weightUnit == unit ? .white : .trainTextSecondary)
-                                .padding(.horizontal, Spacing.md)
+                                .padding(.horizontal, Spacing.lg)
                                 .padding(.vertical, Spacing.sm)
                                 .background(weightUnit == unit ? Color.trainPrimary : Color.trainHover)
                                 .clipShape(Capsule())
@@ -148,40 +162,48 @@ struct HeightWeightStepView: View {
                     Spacer()
                 }
 
-                // Weight input
-                if weightUnit == .kg {
-                    SlidingRuler(
-                        value: $weightKg,
-                        in: 30...200,
-                        step: 0.5,
-                        snap: .unit,
-                        tick: .none,
-                        onEditingChanged: { _ in }
-                    )
-                    .overlay(
+                // Weight input - single ruler with proper conversion
+                VStack(spacing: Spacing.md) {
+                    if weightUnit == .kg {
                         Text("\(weightKg, specifier: "%.1f") kg")
-                            .font(.trainTitle3)
-                            .foregroundColor(.trainTextPrimary)
-                    )
-                    .frame(height: 80)
-                    .appCard()
-                } else {
-                    SlidingRuler(
-                        value: $weightLbs,
-                        in: 65...440,
-                        step: 1,
-                        snap: .unit,
-                        tick: .none,
-                        onEditingChanged: { _ in }
-                    )
-                    .overlay(
+                            .font(.trainMediumNumber)
+                            .foregroundColor(.trainPrimary)
+                            .frame(maxWidth: .infinity)
+
+                        SlidingRuler(
+                            value: $weightKg,
+                            in: 30...200,
+                            step: 10,
+                            snap: .none,
+                            tick: .unit
+                        )
+                        .frame(height: 60)
+                        .onChange(of: weightKg) { _, newValue in
+                            // Update lbs when kg changes
+                            weightLbs = newValue * 2.20462
+                        }
+                    } else {
                         Text("\(Int(weightLbs)) lbs")
-                            .font(.trainTitle3)
-                            .foregroundColor(.trainTextPrimary)
-                    )
-                    .frame(height: 80)
-                    .appCard()
+                            .font(.trainMediumNumber)
+                            .foregroundColor(.trainPrimary)
+                            .frame(maxWidth: .infinity)
+
+                        SlidingRuler(
+                            value: $weightLbs,
+                            in: 60...440,
+                            step: 20,
+                            snap: .none,
+                            tick: .unit
+                        )
+                        .frame(height: 60)
+                        .onChange(of: weightLbs) { _, newValue in
+                            // Update kg when lbs changes
+                            weightKg = newValue * 0.453592
+                        }
+                    }
                 }
+                .padding(Spacing.lg)
+                .appCard()
             }
 
             Spacer()
