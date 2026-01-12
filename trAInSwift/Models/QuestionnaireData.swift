@@ -13,9 +13,12 @@ struct QuestionnaireData: Codable {
     var email: String = ""
     var password: String = ""
 
+    // Marketing attribution
+    var selectedReferral: String = ""
+
     // Health sync status (not persisted, just for flow control)
     enum CodingKeys: String, CodingKey {
-        case name, email, password, gender, dateOfBirth, heightCm, heightFt, heightIn, heightUnit
+        case name, email, password, selectedReferral, gender, dateOfBirth, heightCm, heightFt, heightIn, heightUnit
         case weightKg, weightLbs, weightUnit, primaryGoal, targetMuscleGroups, experienceLevel
         case motivations, motivationOther, equipmentAvailable, detailedEquipment, trainingDaysPerWeek
         case selectedSplit, sessionDuration, injuries

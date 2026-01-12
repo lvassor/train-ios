@@ -63,8 +63,10 @@ struct PostQuestionnaireSignupView: View {
                     // Sign up with Google Button
                     Button(action: handleGoogleSignUp) {
                         HStack(spacing: Spacing.md) {
-                            Image(systemName: "globe")
-                                .font(.system(size: 18, weight: .medium))
+                            Image("google")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 18, height: 18)
                             Text("Sign up with Google")
                                 .font(.system(size: 17, weight: .medium))
                         }
