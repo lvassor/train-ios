@@ -8,6 +8,7 @@
 import Foundation
 import HealthKit
 import SwiftUI
+import Combine
 
 struct HealthData {
     let age: Int?
@@ -50,9 +51,8 @@ class HealthKitManager: ObservableObject {
     private let writeDataTypes: Set<HKSampleType> = {
         var types = Set<HKSampleType>()
 
-        if let workoutType = HKObjectType.workoutType() {
-            types.insert(workoutType)
-        }
+        let workoutType = HKObjectType.workoutType()
+        types.insert(workoutType)
         if let activeEnergyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned) {
             types.insert(activeEnergyType)
         }

@@ -64,11 +64,12 @@ struct HeightWeightStepView: View {
                         snap: .unit,
                         tick: .none,
                         onEditingChanged: { _ in }
-                    ) {
+                    )
+                    .overlay(
                         Text("\(Int(heightCm)) cm")
                             .font(.trainTitle3)
                             .foregroundColor(.trainTextPrimary)
-                    }
+                    )
                     .frame(height: 80)
                     .appCard()
                 } else {
@@ -84,11 +85,12 @@ struct HeightWeightStepView: View {
                             snap: .unit,
                             tick: .none,
                             onEditingChanged: { _ in }
-                        ) {
+                        )
+                        .overlay(
                             Text("\(heightFt) ft")
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.trainTextPrimary)
-                        }
+                        )
                         .frame(height: 60)
                         .appCard()
 
@@ -103,11 +105,12 @@ struct HeightWeightStepView: View {
                             snap: .unit,
                             tick: .none,
                             onEditingChanged: { _ in }
-                        ) {
+                        )
+                        .overlay(
                             Text("\(heightIn) in")
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.trainTextPrimary)
-                        }
+                        )
                         .frame(height: 60)
                         .appCard()
                     }
@@ -154,11 +157,12 @@ struct HeightWeightStepView: View {
                         snap: .unit,
                         tick: .none,
                         onEditingChanged: { _ in }
-                    ) {
+                    )
+                    .overlay(
                         Text("\(weightKg, specifier: "%.1f") kg")
                             .font(.trainTitle3)
                             .foregroundColor(.trainTextPrimary)
-                    }
+                    )
                     .frame(height: 80)
                     .appCard()
                 } else {
@@ -169,11 +173,12 @@ struct HeightWeightStepView: View {
                         snap: .unit,
                         tick: .none,
                         onEditingChanged: { _ in }
-                    ) {
+                    )
+                    .overlay(
                         Text("\(Int(weightLbs)) lbs")
                             .font(.trainTitle3)
                             .foregroundColor(.trainTextPrimary)
-                    }
+                    )
                     .frame(height: 80)
                     .appCard()
                 }
