@@ -576,7 +576,7 @@ struct WeightStepView: View {
 
 // MARK: - Q5: Goals
 struct GoalsStepView: View {
-    @Binding var selectedGoal: String
+    @Binding var selectedGoals: [String]
 
     let goals = [
         ("get_stronger", "Get Stronger", "Build maximum strength & power"),
@@ -592,7 +592,7 @@ struct GoalsStepView: View {
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Let's customise your training program")
+                Text("Select all that apply (at least 1)")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -604,13 +604,29 @@ struct GoalsStepView: View {
                     OptionCard(
                         title: title,
                         subtitle: subtitle,
-                        isSelected: selectedGoal == value,
-                        action: { selectedGoal = value }
+                        isSelected: selectedGoals.contains(value),
+                        action: { toggleGoal(value) }
                     )
+                }
+
+                // Show selection count
+                if !selectedGoals.isEmpty {
+                    Text("\(selectedGoals.count) of 3 selected")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
 
             Spacer()
+        }
+    }
+
+    private func toggleGoal(_ goal: String) {
+        if selectedGoals.contains(goal) {
+            selectedGoals.removeAll { $0 == goal }
+        } else if selectedGoals.count < 3 {
+            selectedGoals.append(goal)
         }
     }
 }
@@ -1151,13 +1167,28 @@ struct TrainingDaysStepView: View {
     // Determine recommended range based on experience level
     private var recommendedRange: ClosedRange<Int> {
         switch experienceLevel {
+        case "no_experience", "beginner":
+            return 2...3  // No experience/Beginner: 2-3 days
+        case "intermediate", "advanced":
+            return 3...4  // Intermediate/Advanced: 3-4 days
+        // Legacy support for old format
         case "0_months", "0_6_months":
-            return 2...4  // Beginners: 2-4 days
+            return 2...3  // Beginners: 2-3 days
         case "6_months_2_years", "2_plus_years":
-            return 3...5  // Intermediate/Advanced: 3-5 days
+            return 3...4  // Intermediate/Advanced: 3-4 days
         default:
-            return 3...5  // Default to higher range
+            return 3...4  // Default to higher range
         }
+    }
+
+    // Check if current selection is outside recommended range
+    private var isOutsideRecommendedRange: Bool {
+        !recommendedRange.contains(trainingDays)
+    }
+
+    // Warning message for out-of-range selections
+    private var warningMessage: String {
+        return "We recommend a maximum of \(recommendedRange.upperBound) sessions per week for your experience level, in order for your brain to learn new movements and for your body to recover properly"
     }
 
     var body: some View {
@@ -1294,6 +1325,31 @@ struct TrainingDaysStepView: View {
                 .frame(height: 30)
             }
 
+            // Warning box for out-of-range selections
+            if isOutsideRecommendedRange {
+                VStack(spacing: Spacing.sm) {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.orange)
+
+                        Text("Training Frequency Warning")
+                            .font(.trainCaption)
+                            .foregroundColor(.orange)
+
+                        Spacer()
+                    }
+
+                    Text(warningMessage)
+                        .font(.trainBody)
+                        .foregroundColor(.trainTextPrimary)
+                        .multilineTextAlignment(.leading)
+                }
+                .padding(Spacing.md)
+                .background(Color.orange.opacity(0.1))
+                .appCard()
+            }
+
             // Split suggestion based on days selected
             VStack(spacing: Spacing.sm) {
                 HStack(spacing: Spacing.sm) {
@@ -1392,24 +1448,29 @@ struct SplitSelectionStepView: View {
         switch trainingDays {
         case 2:
             if experience == "no_experience" || experience == "beginner" {
-                return splitName == "Full Body"
+                return splitName == "Full Body x2"
             } else {
                 return splitName == "Upper Lower"
             }
         case 3:
             if experience == "no_experience" || experience == "beginner" {
-                return splitName == "Full Body"
+                return splitName == "Full Body x3"
             } else {
-                // Count priority muscle categories
-                let upperMuscles = ["Chest", "Shoulder", "Back", "Bicep", "Tricep"]
-                let lowerMuscles = ["Quad", "Hamstring", "Glute", "Calf"]
+                // Check for muscle priority overrides
+                let upperMuscles = ["Chest", "Shoulders", "Back", "Biceps", "Triceps", "Traps"]
+                let lowerMuscles = ["Quads", "Hamstrings", "Glutes", "Calves", "Abductors", "Adductors"]
 
-                let upperPriorityCount = targetMuscleGroups.filter { upperMuscles.contains($0) }.count
-                let lowerPriorityCount = targetMuscleGroups.filter { lowerMuscles.contains($0) }.count
+                // Check if ALL priority muscles are lower body
+                let allPriorityMusclesAreLower = !targetMuscleGroups.isEmpty &&
+                    targetMuscleGroups.allSatisfy { lowerMuscles.contains($0) }
 
-                if lowerPriorityCount >= 2 {
+                // Check if ALL priority muscles are upper body
+                let allPriorityMusclesAreUpper = !targetMuscleGroups.isEmpty &&
+                    targetMuscleGroups.allSatisfy { upperMuscles.contains($0) }
+
+                if allPriorityMusclesAreLower {
                     return splitName == "1 Upper 2 Lower"
-                } else if upperPriorityCount >= 2 {
+                } else if allPriorityMusclesAreUpper {
                     return splitName == "2 Upper 1 Lower"
                 } else {
                     return splitName == "Push Pull Legs"

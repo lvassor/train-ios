@@ -13,6 +13,21 @@ struct QuestionnaireData: Codable {
     var email: String = ""
     var password: String = ""
 
+    // Marketing attribution
+    var selectedReferral: String = ""
+
+    // Health sync status (not persisted, just for flow control)
+    enum CodingKeys: String, CodingKey {
+        case name, email, password, selectedReferral, gender, dateOfBirth, heightCm, heightFt, heightIn, heightUnit
+        case weightKg, weightLbs, weightUnit, primaryGoals, targetMuscleGroups, experienceLevel
+        case motivations, motivationOther, equipmentAvailable, detailedEquipment, trainingDaysPerWeek
+        case selectedSplit, sessionDuration, injuries
+        // Skip healthKitSynced and skipHeightWeight from encoding/decoding
+    }
+
+    var healthKitSynced: Bool = false
+    var skipHeightWeight: Bool = false
+
     // Q1: Gender
     var gender: String = "" // "male", "female", "other"
 
@@ -35,8 +50,8 @@ struct QuestionnaireData: Codable {
     var weightLbs: Double = 150.0
     var weightUnit: WeightUnit = .kg
 
-    // Q5: Primary Goals (single select)
-    var primaryGoal: String = "" // "get_stronger", "build_muscle", "tone_up"
+    // Q5: Primary Goals (multi-select, min 1)
+    var primaryGoals: [String] = [] // "get_stronger", "build_muscle", "tone_up"
 
     // Q6: Muscle Groups (multi-select, max 3)
     var targetMuscleGroups: [String] = []

@@ -79,8 +79,10 @@ struct LoginView: View {
                     // Log in with Google Button
                     Button(action: handleGoogleSignIn) {
                         HStack(spacing: Spacing.md) {
-                            Image(systemName: "globe")
-                                .font(.system(size: 18, weight: .medium))
+                            Image("google")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 18, height: 18)
                             Text("Log in with Google")
                                 .font(.system(size: 17, weight: .medium))
                         }

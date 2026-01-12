@@ -50,7 +50,7 @@ class DynamicProgramGenerator {
         print("🏋️ Generating dynamic program from questionnaire data...")
         print("   Days per week: \(questionnaireData.trainingDaysPerWeek)")
         print("   Experience (raw): \(questionnaireData.experienceLevel)")
-        print("   Goal: \(questionnaireData.primaryGoal)")
+        print("   Goals: \(questionnaireData.primaryGoals.joined(separator: ", "))")
         print("   📦 Equipment from questionnaire: \(questionnaireData.equipmentAvailable)")
 
         // Map questionnaire data to program parameters
@@ -79,7 +79,7 @@ class DynamicProgramGenerator {
             availableEquipment: availableEquipment,
             userInjuries: questionnaireData.injuries,
             targetMuscles: questionnaireData.targetMuscleGroups,
-            fitnessGoal: questionnaireData.primaryGoal,
+            fitnessGoal: questionnaireData.primaryGoals.first ?? "build_muscle",
             complexityRules: complexityRules,
             daysPerWeek: questionnaireData.trainingDaysPerWeek
         )
@@ -96,7 +96,7 @@ class DynamicProgramGenerator {
                 // Emergency fallback: add basic bodyweight exercises
                 let emergencyExercises = createEmergencyExercises(
                     for: session.dayName,
-                    fitnessGoal: questionnaireData.primaryGoal,
+                    fitnessGoal: questionnaireData.primaryGoals.first ?? "build_muscle",
                     experienceLevel: experienceLevel
                 )
 
@@ -182,7 +182,7 @@ class DynamicProgramGenerator {
         print("🏋️ Generating dynamic program from questionnaire data...")
         print("   Days per week: \(questionnaireData.trainingDaysPerWeek)")
         print("   Experience: \(questionnaireData.experienceLevel)")
-        print("   Goal: \(questionnaireData.primaryGoal)")
+        print("   Goals: \(questionnaireData.primaryGoals.joined(separator: ", "))")
 
         // Map questionnaire data to program parameters
         let experienceLevel = ExperienceLevel.fromQuestionnaire(questionnaireData.experienceLevel)
@@ -205,7 +205,7 @@ class DynamicProgramGenerator {
             availableEquipment: availableEquipment,
             userInjuries: questionnaireData.injuries,
             targetMuscles: questionnaireData.targetMuscleGroups,
-            fitnessGoal: questionnaireData.primaryGoal,
+            fitnessGoal: questionnaireData.primaryGoals.first ?? "build_muscle",
             complexityRules: complexityRules,
             daysPerWeek: questionnaireData.trainingDaysPerWeek
         )
@@ -221,7 +221,7 @@ class DynamicProgramGenerator {
                 // Emergency fallback: add basic bodyweight exercises
                 let emergencyExercises = createEmergencyExercises(
                     for: session.dayName,
-                    fitnessGoal: questionnaireData.primaryGoal,
+                    fitnessGoal: questionnaireData.primaryGoals.first ?? "build_muscle",
                     experienceLevel: experienceLevel
                 )
 
