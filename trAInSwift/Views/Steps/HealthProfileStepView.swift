@@ -9,7 +9,6 @@ import SwiftUI
 import HealthKit
 
 struct HealthProfileStepView: View {
-    @Binding var name: String
     @Binding var dateOfBirth: Date
     @Binding var selectedGender: String
     @Binding var skipHeightWeight: Bool
@@ -102,27 +101,6 @@ struct HealthProfileStepView: View {
                     }
                 }
 
-                // Name Field
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Name")
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.trainTextPrimary)
-
-                    TextField("Enter your name", text: $name)
-                        .font(.trainBody)
-                        .foregroundColor(.trainTextPrimary)
-                        .padding(Spacing.md)
-                        .appCard(cornerRadius: CornerRadius.md)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                        )
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.words)
-                        .onChange(of: name) { _, newValue in
-                            name = sanitizeUsername(newValue)
-                        }
-                }
 
                 // Gender Selection
                 VStack(alignment: .leading, spacing: Spacing.md) {
@@ -255,23 +233,10 @@ struct HealthProfileStepView: View {
         }
     }
 
-    /// Sanitize username to prevent SQL injection and other issues
-    private func sanitizeUsername(_ input: String) -> String {
-        let dangerous = CharacterSet(charactersIn: "';\"\\--/*<>")
-        var sanitized = input.components(separatedBy: dangerous).joined()
-        sanitized = sanitized.replacingOccurrences(of: "  ", with: " ")
-
-        if sanitized.count > 30 {
-            sanitized = String(sanitized.prefix(30))
-        }
-
-        return sanitized
-    }
 }
 
 #Preview {
     HealthProfileStepView(
-        name: .constant(""),
         dateOfBirth: .constant(Calendar.current.date(byAdding: .year, value: -25, to: Date())!),
         selectedGender: .constant(""),
         skipHeightWeight: .constant(false),

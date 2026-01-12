@@ -19,10 +19,10 @@ struct QuestionnaireView: View {
     let onComplete: () -> Void
     var onBack: (() -> Void)?
 
-    // Total steps: Dynamic based on health sync + 2 video interstitials + referral tracking
+    // Total steps: Dynamic based on health sync + 2 video interstitials + referral tracking + separate name step
     var totalSteps: Int {
-        return viewModel.questionnaireData.skipHeightWeight ? 15 : 16
-        // Goal → HealthProfile → Referral → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → Equipment → [Interstitial2] → Muscles → Injuries
+        return viewModel.questionnaireData.skipHeightWeight ? 16 : 17
+        // Goal → Name → HealthProfile → Referral → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → Equipment → [Interstitial2] → Muscles → Injuries
     }
 
     var body: some View {
@@ -121,23 +121,24 @@ struct QuestionnaireView: View {
 
     @ViewBuilder
     private var currentStepView: some View {
-        // New order with conditional height/weight: Goal → HealthProfile → Referral → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        // New order with conditional height/weight: Goal → Name → HealthProfile → Referral → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
 
         switch currentStep {
         case 0: // Goal
             GoalsStepView(selectedGoal: $viewModel.questionnaireData.primaryGoal)
-        case 1: // Health Profile (combined name/age/gender + Apple Health)
+        case 1: // Name
+            NameStepView(name: $viewModel.questionnaireData.name)
+        case 2: // Health Profile (age/gender + Apple Health)
             HealthProfileStepView(
-                name: $viewModel.questionnaireData.name,
                 dateOfBirth: $viewModel.questionnaireData.dateOfBirth,
                 selectedGender: $viewModel.questionnaireData.gender,
                 skipHeightWeight: $viewModel.questionnaireData.skipHeightWeight,
                 healthKitSynced: $viewModel.questionnaireData.healthKitSynced
             )
-        case 2: // Referral tracking
+        case 3: // Referral tracking
             ReferralStepView(selectedReferral: $viewModel.questionnaireData.selectedReferral)
-        case 3: // Height/Weight (conditional)
+        case 4: // Height/Weight (conditional)
             if !skipHeightWeight {
                 HeightWeightStepView(
                     heightCm: $viewModel.questionnaireData.heightCm,
@@ -157,31 +158,31 @@ struct QuestionnaireView: View {
             let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
 
             switch adjustedStep {
-            case 4: // Experience
+            case 5: // Experience
                 ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
-            case 5: // First Video Interstitial (after experience)
+            case 6: // First Video Interstitial (after experience)
                 FirstVideoInterstitialView(onComplete: proceedToNextStep)
-            case 6: // Training Days
+            case 7: // Training Days
                 TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
-            case 7: // Split Selection
+            case 8: // Split Selection
                 SplitSelectionStepView(
                     selectedSplit: $viewModel.questionnaireData.selectedSplit,
                     trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek,
                     experience: $viewModel.questionnaireData.experienceLevel,
                     targetMuscleGroups: $viewModel.questionnaireData.targetMuscleGroups
                 )
-            case 8: // Session Duration
+            case 9: // Session Duration
                 SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
-            case 9: // Equipment
+            case 10: // Equipment
                 EquipmentStepView(
                     selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
                     selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
                 )
-            case 10: // Second Video Interstitial (after equipment)
+            case 11: // Second Video Interstitial (after equipment)
                 SecondVideoInterstitialView(onComplete: proceedToNextStep)
-            case 11: // Muscle Groups
+            case 12: // Muscle Groups
                 MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
-            case 12: // Injuries
+            case 13: // Injuries
                 InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
             default:
                 EmptyView()
@@ -190,21 +191,22 @@ struct QuestionnaireView: View {
     }
 
     private var isCurrentStepValid: Bool {
-        // New order with conditional height/weight: Goal → HealthProfile → Referral → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        // New order with conditional height/weight: Goal → Name → HealthProfile → Referral → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
 
         switch currentStep {
         case 0: // Goal
             return !viewModel.questionnaireData.primaryGoal.isEmpty
-        case 1: // Health Profile (name + age + gender)
+        case 1: // Name
             let sanitizedName = viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines)
-            let nameValid = sanitizedName.count >= 2 && sanitizedName.count <= 30
+            return sanitizedName.count >= 2 && sanitizedName.count <= 30
+        case 2: // Health Profile (age + gender)
             let ageValid = viewModel.questionnaireData.age >= 18
             let genderValid = !viewModel.questionnaireData.gender.isEmpty
-            return nameValid && ageValid && genderValid
-        case 2: // Referral tracking (optional)
+            return ageValid && genderValid
+        case 3: // Referral tracking (optional)
             return true // Referral selection is optional
-        case 3: // Height/Weight (conditional)
+        case 4: // Height/Weight (conditional)
             if skipHeightWeight {
                 // If height/weight is skipped, this should be the experience step
                 return !viewModel.questionnaireData.experienceLevel.isEmpty
@@ -231,24 +233,24 @@ struct QuestionnaireView: View {
             let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
 
             switch adjustedStep {
-            case 4: // Experience
+            case 5: // Experience
                 return !viewModel.questionnaireData.experienceLevel.isEmpty
-            case 5: // First Video Interstitial (always valid)
+            case 6: // First Video Interstitial (always valid)
                 return true
-            case 6: // Training Days
+            case 7: // Training Days
                 return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
-            case 7: // Split Selection
+            case 8: // Split Selection
                 return !viewModel.questionnaireData.selectedSplit.isEmpty
-            case 8: // Session Duration
+            case 9: // Session Duration
                 return !viewModel.questionnaireData.sessionDuration.isEmpty
-            case 9: // Equipment
+            case 10: // Equipment
                 return !viewModel.questionnaireData.equipmentAvailable.isEmpty
-            case 10: // Second Video Interstitial (always valid)
+            case 11: // Second Video Interstitial (always valid)
                 return true
-            case 11: // Muscle Groups (optional, 0-3)
+            case 12: // Muscle Groups (optional, 0-3)
                 let count = viewModel.questionnaireData.targetMuscleGroups.count
                 return count >= 0 && count <= 3
-            case 12: // Injuries (optional)
+            case 13: // Injuries (optional)
                 return true
             default:
                 return true
@@ -262,12 +264,12 @@ struct QuestionnaireView: View {
 
         // Equipment step needs scrolling for expandable categories
         let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
-        if adjustedStep == 9 { // Equipment step (now step 9 due to referral + interstitials)
+        if adjustedStep == 10 { // Equipment step (now step 10 due to name + referral + interstitials)
             return false  // Enable scrolling for equipment
         }
 
-        // Health profile step (step 1) may need scrolling for Apple Health UI
-        if currentStep == 1 {
+        // Health profile step (step 2) may need scrolling for Apple Health UI
+        if currentStep == 2 {
             return false  // Enable scrolling for health profile
         }
 
@@ -279,7 +281,7 @@ struct QuestionnaireView: View {
 
         // Check if leaving equipment step with limited equipment selection
         let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
-        if adjustedStep == 9 { // Equipment step (now step 9 due to referral + interstitials)
+        if adjustedStep == 10 { // Equipment step (now step 10 due to name + referral + interstitials)
             let equipmentCount = viewModel.questionnaireData.equipmentAvailable.count
             if equipmentCount == 1 && !hasSeenEquipmentWarning {
                 // Show warning modal for single equipment selection

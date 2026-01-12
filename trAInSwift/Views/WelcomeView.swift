@@ -16,12 +16,7 @@ struct WelcomeView: View {
     private let screenshots = ["screenshot_1", "screenshot_2", "screenshot_3", "screenshot_4"]
 
     var body: some View {
-        ZStack {
-            // Pure black background
-            Color.black
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
                 // Header with logo and sign in
                 HStack {
                     // App logo
@@ -138,6 +133,7 @@ struct WelcomeView: View {
             // Auto-advance carousel
             startCarouselTimer()
         }
+        .charcoalGradientBackground()
     }
 
     private func getImageWidth(for index: Int) -> CGFloat {
