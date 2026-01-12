@@ -13,6 +13,18 @@ struct QuestionnaireData: Codable {
     var email: String = ""
     var password: String = ""
 
+    // Health sync status (not persisted, just for flow control)
+    enum CodingKeys: String, CodingKey {
+        case name, email, password, gender, dateOfBirth, heightCm, heightFt, heightIn, heightUnit
+        case weightKg, weightLbs, weightUnit, primaryGoal, targetMuscleGroups, experienceLevel
+        case motivations, motivationOther, equipmentAvailable, detailedEquipment, trainingDaysPerWeek
+        case selectedSplit, sessionDuration, injuries
+        // Skip healthKitSynced and skipHeightWeight from encoding/decoding
+    }
+
+    var healthKitSynced: Bool = false
+    var skipHeightWeight: Bool = false
+
     // Q1: Gender
     var gender: String = "" // "male", "female", "other"
 

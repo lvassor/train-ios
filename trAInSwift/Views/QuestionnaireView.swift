@@ -19,8 +19,11 @@ struct QuestionnaireView: View {
     let onComplete: () -> Void
     var onBack: (() -> Void)?
 
-    // Total steps: Goal → Name → Age → Gender → Height → Weight → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
-    let totalSteps = 13
+    // Total steps: Dynamic based on health sync
+    var totalSteps: Int {
+        return viewModel.questionnaireData.skipHeightWeight ? 12 : 13
+        // Goal → HealthProfile → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+    }
 
     var body: some View {
         ZStack {
@@ -118,116 +121,154 @@ struct QuestionnaireView: View {
 
     @ViewBuilder
     private var currentStepView: some View {
-        // New order: Goal → Name → Age → Gender → Height → Weight → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        // New order with conditional height/weight: Goal → HealthProfile → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
+
         switch currentStep {
         case 0: // Goal
             GoalsStepView(selectedGoal: $viewModel.questionnaireData.primaryGoal)
-        case 1: // Name
-            NameStepView(name: $viewModel.questionnaireData.name)
-        case 2: // Age
-            AgeStepView(dateOfBirth: $viewModel.questionnaireData.dateOfBirth)
-        case 3: // Gender
-            GenderStepView(selectedGender: $viewModel.questionnaireData.gender)
-        case 4: // Height
-            HeightStepView(
-                heightCm: $viewModel.questionnaireData.heightCm,
-                heightFt: $viewModel.questionnaireData.heightFt,
-                heightIn: $viewModel.questionnaireData.heightIn,
-                unit: $viewModel.questionnaireData.heightUnit
+        case 1: // Health Profile (combined name/age/gender + Apple Health)
+            HealthProfileStepView(
+                name: $viewModel.questionnaireData.name,
+                dateOfBirth: $viewModel.questionnaireData.dateOfBirth,
+                selectedGender: $viewModel.questionnaireData.gender,
+                skipHeightWeight: $viewModel.questionnaireData.skipHeightWeight,
+                healthKitSynced: $viewModel.questionnaireData.healthKitSynced
             )
-        case 5: // Weight
-            WeightStepView(
-                weightKg: $viewModel.questionnaireData.weightKg,
-                weightLbs: $viewModel.questionnaireData.weightLbs,
-                unit: $viewModel.questionnaireData.weightUnit
-            )
-        case 6: // Experience
-            ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
-        case 7: // Training Days
-            TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
-        case 8: // Split Selection
-            SplitSelectionStepView(
-                selectedSplit: $viewModel.questionnaireData.selectedSplit,
-                trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek,
-                experience: $viewModel.questionnaireData.experienceLevel,
-                targetMuscleGroups: $viewModel.questionnaireData.targetMuscleGroups
-            )
-        case 9: // Session Duration
-            SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
-        case 10: // Equipment
-            EquipmentStepView(
-                selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
-                selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
-            )
-        case 11: // Muscle Groups
-            MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
-        case 12: // Injuries
-            InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+        case 2: // Height/Weight (conditional)
+            if !skipHeightWeight {
+                HeightWeightStepView(
+                    heightCm: $viewModel.questionnaireData.heightCm,
+                    heightFt: $viewModel.questionnaireData.heightFt,
+                    heightIn: $viewModel.questionnaireData.heightIn,
+                    heightUnit: $viewModel.questionnaireData.heightUnit,
+                    weightKg: $viewModel.questionnaireData.weightKg,
+                    weightLbs: $viewModel.questionnaireData.weightLbs,
+                    weightUnit: $viewModel.questionnaireData.weightUnit
+                )
+            } else {
+                // If skipped, this case shouldn't be reached, but show experience as fallback
+                ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
+            }
         default:
-            EmptyView()
+            // Adjust step numbers based on whether height/weight was skipped
+            let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
+
+            switch adjustedStep {
+            case 3: // Experience
+                ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
+            case 4: // Training Days
+                TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
+            case 5: // Split Selection
+                SplitSelectionStepView(
+                    selectedSplit: $viewModel.questionnaireData.selectedSplit,
+                    trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek,
+                    experience: $viewModel.questionnaireData.experienceLevel,
+                    targetMuscleGroups: $viewModel.questionnaireData.targetMuscleGroups
+                )
+            case 6: // Session Duration
+                SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
+            case 7: // Equipment
+                EquipmentStepView(
+                    selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
+                    selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
+                )
+            case 8: // Muscle Groups
+                MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
+            case 9: // Injuries
+                InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+            default:
+                EmptyView()
+            }
         }
     }
 
     private var isCurrentStepValid: Bool {
-        // New order: Goal → Name → Age → Gender → Height → Weight → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        // New order with conditional height/weight: Goal → HealthProfile → [HeightWeight] → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
+
         switch currentStep {
         case 0: // Goal
             return !viewModel.questionnaireData.primaryGoal.isEmpty
-        case 1: // Name
+        case 1: // Health Profile (name + age + gender)
             let sanitizedName = viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines)
-            return sanitizedName.count >= 2 && sanitizedName.count <= 30
-        case 2: // Age
-            return viewModel.questionnaireData.age >= 18
-        case 3: // Gender
-            return !viewModel.questionnaireData.gender.isEmpty
-        case 4: // Height
-            if viewModel.questionnaireData.heightUnit == .cm {
-                return viewModel.questionnaireData.heightCm >= 100 && viewModel.questionnaireData.heightCm <= 250
+            let nameValid = sanitizedName.count >= 2 && sanitizedName.count <= 30
+            let ageValid = viewModel.questionnaireData.age >= 18
+            let genderValid = !viewModel.questionnaireData.gender.isEmpty
+            return nameValid && ageValid && genderValid
+        case 2: // Height/Weight (conditional)
+            if skipHeightWeight {
+                // If height/weight is skipped, this should be the experience step
+                return !viewModel.questionnaireData.experienceLevel.isEmpty
             } else {
-                return viewModel.questionnaireData.heightFt >= 3 && viewModel.questionnaireData.heightFt <= 8
+                // Validate height/weight
+                let heightValid: Bool
+                if viewModel.questionnaireData.heightUnit == .cm {
+                    heightValid = viewModel.questionnaireData.heightCm >= 100 && viewModel.questionnaireData.heightCm <= 250
+                } else {
+                    heightValid = viewModel.questionnaireData.heightFt >= 3 && viewModel.questionnaireData.heightFt <= 8
+                }
+
+                let weightValid: Bool
+                if viewModel.questionnaireData.weightUnit == .kg {
+                    weightValid = viewModel.questionnaireData.weightKg >= 30 && viewModel.questionnaireData.weightKg <= 200
+                } else {
+                    weightValid = viewModel.questionnaireData.weightLbs >= 65 && viewModel.questionnaireData.weightLbs <= 440
+                }
+
+                return heightValid && weightValid
             }
-        case 5: // Weight
-            if viewModel.questionnaireData.weightUnit == .kg {
-                return viewModel.questionnaireData.weightKg >= 30 && viewModel.questionnaireData.weightKg <= 200
-            } else {
-                return viewModel.questionnaireData.weightLbs >= 65 && viewModel.questionnaireData.weightLbs <= 440
-            }
-        case 6: // Experience
-            return !viewModel.questionnaireData.experienceLevel.isEmpty
-        case 7: // Training Days
-            return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
-        case 8: // Split Selection
-            return !viewModel.questionnaireData.selectedSplit.isEmpty
-        case 9: // Session Duration
-            return !viewModel.questionnaireData.sessionDuration.isEmpty
-        case 10: // Equipment
-            return !viewModel.questionnaireData.equipmentAvailable.isEmpty
-        case 11: // Muscle Groups (optional, 0-3)
-            let count = viewModel.questionnaireData.targetMuscleGroups.count
-            return count >= 0 && count <= 3
-        case 12: // Injuries (optional)
-            return true
         default:
-            return true
+            // Adjust step numbers based on whether height/weight was skipped
+            let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
+
+            switch adjustedStep {
+            case 3: // Experience
+                return !viewModel.questionnaireData.experienceLevel.isEmpty
+            case 4: // Training Days
+                return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
+            case 5: // Split Selection
+                return !viewModel.questionnaireData.selectedSplit.isEmpty
+            case 6: // Session Duration
+                return !viewModel.questionnaireData.sessionDuration.isEmpty
+            case 7: // Equipment
+                return !viewModel.questionnaireData.equipmentAvailable.isEmpty
+            case 8: // Muscle Groups (optional, 0-3)
+                let count = viewModel.questionnaireData.targetMuscleGroups.count
+                return count >= 0 && count <= 3
+            case 9: // Injuries (optional)
+                return true
+            default:
+                return true
+            }
         }
     }
 
     // Enable scrolling only for pages that need it (equipment step has expandable content)
     private func shouldDisableScrollForCurrentStep() -> Bool {
-        // Equipment step (step 10) needs scrolling for expandable categories
-        if currentStep == 10 {
+        let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
+        let equipmentStepNumber = skipHeightWeight ? 6 : 7
+
+        // Equipment step needs scrolling for expandable categories
+        let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
+        if adjustedStep == 7 { // Equipment step in adjusted numbering
             return false  // Enable scrolling for equipment
         }
-        // Name step (step 1) should not scroll - simple input
+
+        // Health profile step (step 1) may need scrolling for Apple Health UI
         if currentStep == 1 {
-            return true  // Disable scrolling for name
+            return false  // Enable scrolling for health profile
         }
+
         return true  // All other pages are non-scrollable
     }
 
     private func nextStep() {
+        let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
+
         // Check if leaving equipment step with limited equipment selection
-        if currentStep == 10 {
+        let adjustedStep = skipHeightWeight ? currentStep + 1 : currentStep
+        if adjustedStep == 7 { // Equipment step
             let equipmentCount = viewModel.questionnaireData.equipmentAvailable.count
             if equipmentCount == 1 && !hasSeenEquipmentWarning {
                 // Show warning modal for single equipment selection
