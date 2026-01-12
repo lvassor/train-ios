@@ -9,9 +9,8 @@ import SwiftUI
 
 struct QuestionnaireView: View {
     @EnvironmentObject var viewModel: WorkoutViewModel
-    // 0 = Section 1 cover, 1 = Section 1 questions, 2 = Section 2 cover, 3 = Section 2 questions
-    @State private var currentSection = 0
-    @State private var currentStepInSection = 0 // Step within current section
+    // Simplified flow: single sequence of questions (no sections/covers)
+    @State private var currentStep = 0
     @State private var showingProgramLoading = false
     @State private var showingProgramReady = false
     @State private var showingEquipmentWarning = false
@@ -20,10 +19,8 @@ struct QuestionnaireView: View {
     let onComplete: () -> Void
     var onBack: (() -> Void)?
 
-    // Section 1: Availability (9 questions)
-    let section1TotalSteps = 9
-    // Section 2: About You (5 questions - Name, Age, Gender, Height, Weight)
-    let section2TotalSteps = 5
+    // Total steps: Goal → Name → Age → Gender → Height → Weight → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+    let totalSteps = 13
 
     var body: some View {
         ZStack {
@@ -59,36 +56,24 @@ struct QuestionnaireView: View {
                         }
                         .padding(16)
 
-                        if currentSection == 1 {
-                            QuestionnaireProgressBar(currentStep: currentStepInSection + 1, totalSteps: section1TotalSteps)
-                                .padding(.horizontal, 16)
-                                .padding(.bottom, 16)
-                        } else if currentSection == 3 {
-                            QuestionnaireProgressBar(currentStep: currentStepInSection + 1, totalSteps: section2TotalSteps)
-                                .padding(.horizontal, 16)
-                                .padding(.bottom, 16)
-                        }
+                        QuestionnaireProgressBar(currentStep: currentStep + 1, totalSteps: totalSteps)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 16)
                     }
 
                     // Content + Button in ZStack so content scrolls behind button
                     ZStack(alignment: .bottom) {
                         // Content area - fills available space
-                        if currentSection == 0 || currentSection == 2 {
-                            // Cover pages - no scrolling needed
-                            currentStepView
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        } else {
-                            ScrollView(showsIndicators: false) {
-                                VStack(spacing: 32) {
-                                    currentStepView
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.top, 16)
-                                .padding(.bottom, 100)
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: 32) {
+                                currentStepView
                             }
-                            .scrollDisabled(shouldDisableScrollForCurrentStep())
-                            .edgeFadeMask(topFade: 16, bottomFade: 60)
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
+                            .padding(.bottom, 100)
                         }
+                        .scrollDisabled(shouldDisableScrollForCurrentStep())
+                        .edgeFadeMask(topFade: 16, bottomFade: 60)
 
                         // Continue button floating on top - NO background
                         CustomButton(
@@ -125,7 +110,7 @@ struct QuestionnaireView: View {
     }
 
     private var buttonTitle: String {
-        if currentSection == 3 && currentStepInSection == section2TotalSteps - 1 {
+        if currentStep == totalSteps - 1 {
             return "Generate Your Program"
         }
         return "Continue"
@@ -133,155 +118,108 @@ struct QuestionnaireView: View {
 
     @ViewBuilder
     private var currentStepView: some View {
-        switch currentSection {
-        case 0:
-            // Section 1 Cover Page
-            SectionCoverView(
-                title: "Availability",
-                subtitle: "Let's understand your training preferences and available resources",
-                iconName: "figure.strengthtraining.traditional"
+        // New order: Goal → Name → Age → Gender → Height → Weight → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        switch currentStep {
+        case 0: // Goal
+            GoalsStepView(selectedGoal: $viewModel.questionnaireData.primaryGoal)
+        case 1: // Name
+            NameStepView(name: $viewModel.questionnaireData.name)
+        case 2: // Age
+            AgeStepView(dateOfBirth: $viewModel.questionnaireData.dateOfBirth)
+        case 3: // Gender
+            GenderStepView(selectedGender: $viewModel.questionnaireData.gender)
+        case 4: // Height
+            HeightStepView(
+                heightCm: $viewModel.questionnaireData.heightCm,
+                heightFt: $viewModel.questionnaireData.heightFt,
+                heightIn: $viewModel.questionnaireData.heightIn,
+                unit: $viewModel.questionnaireData.heightUnit
             )
-        case 1:
-            // Section 1 Questions (1-8)
-            switch currentStepInSection {
-            case 0:
-                GoalsStepView(selectedGoal: $viewModel.questionnaireData.primaryGoal)
-            case 1:
-                ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
-            case 2:
-                MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
-            case 3:
-                EquipmentStepView(
-                    selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
-                    selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
-                )
-            case 4:
-                InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
-            case 5:
-                TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
-            case 6:
-                SplitSelectionStepView(
-                    selectedSplit: $viewModel.questionnaireData.selectedSplit,
-                    trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek,
-                    experience: $viewModel.questionnaireData.experienceLevel,
-                    targetMuscleGroups: $viewModel.questionnaireData.targetMuscleGroups
-                )
-            case 7:
-                SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
-            case 8:
-                MotivationStepView(
-                    selectedMotivations: $viewModel.questionnaireData.motivations,
-                    otherText: $viewModel.questionnaireData.motivationOther
-                )
-            default:
-                EmptyView()
-            }
-        case 2:
-            // Section 2 Cover Page
-            SectionCoverView(
-                title: "About You",
-                subtitle: "Help us personalise your training with some basic information",
-                iconName: "person.fill"
+        case 5: // Weight
+            WeightStepView(
+                weightKg: $viewModel.questionnaireData.weightKg,
+                weightLbs: $viewModel.questionnaireData.weightLbs,
+                unit: $viewModel.questionnaireData.weightUnit
             )
-        case 3:
-            // Section 2 Questions (1-5: Name, Age, Gender, Height, Weight)
-            switch currentStepInSection {
-            case 0:
-                NameStepView(name: $viewModel.questionnaireData.name)
-            case 1:
-                AgeStepView(dateOfBirth: $viewModel.questionnaireData.dateOfBirth)
-            case 2:
-                GenderStepView(selectedGender: $viewModel.questionnaireData.gender)
-            case 3:
-                HeightStepView(
-                    heightCm: $viewModel.questionnaireData.heightCm,
-                    heightFt: $viewModel.questionnaireData.heightFt,
-                    heightIn: $viewModel.questionnaireData.heightIn,
-                    unit: $viewModel.questionnaireData.heightUnit
-                )
-            case 4:
-                WeightStepView(
-                    weightKg: $viewModel.questionnaireData.weightKg,
-                    weightLbs: $viewModel.questionnaireData.weightLbs,
-                    unit: $viewModel.questionnaireData.weightUnit
-                )
-            default:
-                EmptyView()
-            }
+        case 6: // Experience
+            ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
+        case 7: // Training Days
+            TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
+        case 8: // Split Selection
+            SplitSelectionStepView(
+                selectedSplit: $viewModel.questionnaireData.selectedSplit,
+                trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek,
+                experience: $viewModel.questionnaireData.experienceLevel,
+                targetMuscleGroups: $viewModel.questionnaireData.targetMuscleGroups
+            )
+        case 9: // Session Duration
+            SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
+        case 10: // Equipment
+            EquipmentStepView(
+                selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
+                selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
+            )
+        case 11: // Muscle Groups
+            MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
+        case 12: // Injuries
+            InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
         default:
             EmptyView()
         }
     }
 
     private var isCurrentStepValid: Bool {
-        // Cover pages are always valid
-        if currentSection == 0 || currentSection == 2 {
+        // New order: Goal → Name → Age → Gender → Height → Weight → Experience → Days → Split → Duration → Equipment → Muscles → Injuries
+        switch currentStep {
+        case 0: // Goal
+            return !viewModel.questionnaireData.primaryGoal.isEmpty
+        case 1: // Name
+            let sanitizedName = viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            return sanitizedName.count >= 2 && sanitizedName.count <= 30
+        case 2: // Age
+            return viewModel.questionnaireData.age >= 18
+        case 3: // Gender
+            return !viewModel.questionnaireData.gender.isEmpty
+        case 4: // Height
+            if viewModel.questionnaireData.heightUnit == .cm {
+                return viewModel.questionnaireData.heightCm >= 100 && viewModel.questionnaireData.heightCm <= 250
+            } else {
+                return viewModel.questionnaireData.heightFt >= 3 && viewModel.questionnaireData.heightFt <= 8
+            }
+        case 5: // Weight
+            if viewModel.questionnaireData.weightUnit == .kg {
+                return viewModel.questionnaireData.weightKg >= 30 && viewModel.questionnaireData.weightKg <= 200
+            } else {
+                return viewModel.questionnaireData.weightLbs >= 65 && viewModel.questionnaireData.weightLbs <= 440
+            }
+        case 6: // Experience
+            return !viewModel.questionnaireData.experienceLevel.isEmpty
+        case 7: // Training Days
+            return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
+        case 8: // Split Selection
+            return !viewModel.questionnaireData.selectedSplit.isEmpty
+        case 9: // Session Duration
+            return !viewModel.questionnaireData.sessionDuration.isEmpty
+        case 10: // Equipment
+            return !viewModel.questionnaireData.equipmentAvailable.isEmpty
+        case 11: // Muscle Groups (optional, 0-3)
+            let count = viewModel.questionnaireData.targetMuscleGroups.count
+            return count >= 0 && count <= 3
+        case 12: // Injuries (optional)
+            return true
+        default:
             return true
         }
-
-        if currentSection == 1 {
-            // Section 1 questions
-            switch currentStepInSection {
-            case 0: // Goals
-                return !viewModel.questionnaireData.primaryGoal.isEmpty
-            case 1: // Experience
-                return !viewModel.questionnaireData.experienceLevel.isEmpty
-            case 2: // Muscle Groups (optional, 0-3)
-                let count = viewModel.questionnaireData.targetMuscleGroups.count
-                return count >= 0 && count <= 3
-            case 3: // Equipment
-                return !viewModel.questionnaireData.equipmentAvailable.isEmpty
-            case 4: // Injuries
-                return true // Injuries are optional
-            case 5: // Training Days
-                return viewModel.questionnaireData.trainingDaysPerWeek >= 1 && viewModel.questionnaireData.trainingDaysPerWeek <= 6
-            case 6: // Split Selection
-                return !viewModel.questionnaireData.selectedSplit.isEmpty
-            case 7: // Session Duration
-                return !viewModel.questionnaireData.sessionDuration.isEmpty
-            case 8: // Motivation (optional - users can proceed without selecting)
-                return true
-            default:
-                return true
-            }
-        } else if currentSection == 3 {
-            // Section 2 questions (Name, Age, Gender, Height, Weight)
-            switch currentStepInSection {
-            case 0: // Name
-                let sanitizedName = viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                return sanitizedName.count >= 2 && sanitizedName.count <= 30
-            case 1: // Age
-                return viewModel.questionnaireData.age >= 18
-            case 2: // Gender
-                return !viewModel.questionnaireData.gender.isEmpty
-            case 3: // Height
-                if viewModel.questionnaireData.heightUnit == .cm {
-                    return viewModel.questionnaireData.heightCm >= 100 && viewModel.questionnaireData.heightCm <= 250
-                } else {
-                    return viewModel.questionnaireData.heightFt >= 3 && viewModel.questionnaireData.heightFt <= 8
-                }
-            case 4: // Weight
-                if viewModel.questionnaireData.weightUnit == .kg {
-                    return viewModel.questionnaireData.weightKg >= 30 && viewModel.questionnaireData.weightKg <= 200
-                } else {
-                    return viewModel.questionnaireData.weightLbs >= 65 && viewModel.questionnaireData.weightLbs <= 440
-                }
-            default:
-                return true
-            }
-        }
-
-        return true
     }
 
     // Enable scrolling only for pages that need it (equipment step has expandable content)
     private func shouldDisableScrollForCurrentStep() -> Bool {
-        // Equipment step (section 1, step 3) needs scrolling for expandable categories
-        if currentSection == 1 && currentStepInSection == 3 {
+        // Equipment step (step 10) needs scrolling for expandable categories
+        if currentStep == 10 {
             return false  // Enable scrolling for equipment
         }
-        // Name step (section 3, step 0) should not scroll - simple input
-        if currentSection == 3 && currentStepInSection == 0 {
+        // Name step (step 1) should not scroll - simple input
+        if currentStep == 1 {
             return true  // Disable scrolling for name
         }
         return true  // All other pages are non-scrollable
@@ -289,7 +227,7 @@ struct QuestionnaireView: View {
 
     private func nextStep() {
         // Check if leaving equipment step with limited equipment selection
-        if currentSection == 1 && currentStepInSection == 3 {
+        if currentStep == 10 {
             let equipmentCount = viewModel.questionnaireData.equipmentAvailable.count
             if equipmentCount == 1 && !hasSeenEquipmentWarning {
                 // Show warning modal for single equipment selection
@@ -307,107 +245,25 @@ struct QuestionnaireView: View {
     }
 
     private func proceedToNextStep() {
-        withAnimation(.easeInOut(duration: 0.15)) {  // Doubled speed (was ~0.35s default, now 0.15s)
-            if currentSection == 0 {
-                // Move from Section 1 cover to first question
-                currentSection = 1
-                currentStepInSection = 0
-            } else if currentSection == 1 {
-                // In Section 1 questions
-                if currentStepInSection < section1TotalSteps - 1 {
-                    currentStepInSection += 1
-                } else {
-                    // Move to Section 2 cover
-                    currentSection = 2
-                    currentStepInSection = 0
-                }
-            } else if currentSection == 2 {
-                // Move from Section 2 cover to first question
-                currentSection = 3
-                currentStepInSection = 0
-            } else if currentSection == 3 {
-                // In Section 2 questions
-                if currentStepInSection < section2TotalSteps - 1 {
-                    currentStepInSection += 1
-                } else {
-                    // Complete questionnaire
-                    showingProgramLoading = true
-                }
+        withAnimation(.easeInOut(duration: 0.15)) {
+            if currentStep < totalSteps - 1 {
+                currentStep += 1
+            } else {
+                // Complete questionnaire
+                showingProgramLoading = true
             }
         }
     }
 
     private func previousStep() {
-        withAnimation(.easeInOut(duration: 0.15)) {  // Doubled speed (was ~0.35s default, now 0.15s)
-            if currentSection == 0 {
-                // On Section 1 cover (Availability), go back to home screen
+        withAnimation(.easeInOut(duration: 0.15)) {
+            if currentStep > 0 {
+                currentStep -= 1
+            } else {
+                // Go back to home screen
                 onBack?()
-            } else if currentSection == 1 {
-                // In Section 1 questions
-                if currentStepInSection > 0 {
-                    currentStepInSection -= 1
-                } else {
-                    // Go back to Section 1 cover
-                    currentSection = 0
-                }
-            } else if currentSection == 3 {
-                // In Section 2 questions
-                if currentStepInSection > 0 {
-                    currentStepInSection -= 1
-                } else {
-                    // Go back to Section 2 cover
-                    currentSection = 2
-                }
-            } else if currentSection == 2 {
-                // On Section 2 cover, go back to last question of Section 1
-                currentSection = 1
-                currentStepInSection = section1TotalSteps - 1
             }
         }
-    }
-}
-
-// MARK: - Section Cover View
-
-struct SectionCoverView: View {
-    let title: String
-    let subtitle: String
-    let iconName: String
-
-    var body: some View {
-        VStack(spacing: Spacing.xl) {
-            Spacer()
-
-            VStack(spacing: Spacing.xl) {
-                // Icon - doubled in size from 48 to 96
-                ZStack {
-                    Circle()
-                        .fill(Color.trainPrimary.opacity(0.1))
-                        .frame(width: 200, height: 200)
-
-                    Image(systemName: iconName)
-                        .font(.system(size: 96))
-                        .foregroundColor(.trainPrimary)
-                }
-
-                // Title - one size larger (from trainTitle 28pt to 34pt)
-                Text(title)
-                    .font(.system(size: 34, weight: .semibold, design: .rounded))
-                    .foregroundColor(.trainTextPrimary)
-                    .multilineTextAlignment(.center)
-
-                // Subtitle - one size larger (from trainBody 16pt to 18pt)
-                Text(subtitle)
-                    .font(.system(size: 18, weight: .regular))
-                    .foregroundColor(.trainTextSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, Spacing.xl)
-            }
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(Spacing.lg)
     }
 }
 
