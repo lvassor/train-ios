@@ -26,6 +26,14 @@ class HealthKitManager: ObservableObject {
     @Published var hasPermission = false
     @Published var healthData: HealthData?
     @Published var permissionDenied = false
+    @Published var isSimulator = false
+
+    init() {
+        // Detect if running in simulator
+        #if targetEnvironment(simulator)
+        isSimulator = true
+        #endif
+    }
 
     // Data types we want to read
     private let readDataTypes: Set<HKObjectType> = {
@@ -63,22 +71,37 @@ class HealthKitManager: ObservableObject {
     /// Request permission to access HealthKit data
     func requestPermission() async -> Bool {
         guard isAvailable else {
+            print("HealthKit not available")
             permissionDenied = true
             return false
+        }
+
+        // Show warning for simulator users
+        if isSimulator {
+            print("⚠️ Running in simulator - HealthKit functionality is limited")
         }
 
         do {
             try await healthStore.requestAuthorization(toShare: writeDataTypes, read: readDataTypes)
 
             // Check if we actually got permission for the data we need
-            let heightPermission = healthStore.authorizationStatus(for: HKObjectType.quantityType(forIdentifier: .height)!)
-            let weightPermission = healthStore.authorizationStatus(for: HKObjectType.quantityType(forIdentifier: .bodyMass)!)
+            guard let heightType = HKObjectType.quantityType(forIdentifier: .height),
+                  let weightType = HKObjectType.quantityType(forIdentifier: .bodyMass) else {
+                print("HealthKit types not available")
+                permissionDenied = true
+                return false
+            }
+
+            let heightPermission = healthStore.authorizationStatus(for: heightType)
+            let weightPermission = healthStore.authorizationStatus(for: weightType)
 
             hasPermission = heightPermission == .sharingAuthorized || weightPermission == .sharingAuthorized
             permissionDenied = heightPermission == .sharingDenied && weightPermission == .sharingDenied
 
-            if hasPermission {
+            if hasPermission && !isSimulator {
                 await fetchHealthData()
+            } else if isSimulator {
+                print("Simulator detected - skipping health data fetch")
             }
 
             return hasPermission
@@ -129,14 +152,6 @@ class HealthKitManager: ObservableObject {
         guard let quantityType = HKQuantityType.quantityType(forIdentifier: identifier) else { return nil }
 
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-        let query = HKSampleQuery(
-            sampleType: quantityType,
-            predicate: nil,
-            limit: 1,
-            sortDescriptors: [sortDescriptor]
-        ) { _, samples, _ in
-            // This closure runs on a background queue
-        }
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(
@@ -160,7 +175,7 @@ class HealthKitManager: ObservableObject {
                 continuation.resume(returning: value)
             }
 
-            healthStore.execute(query)
+            self.healthStore.execute(query)
         }
     }
 
