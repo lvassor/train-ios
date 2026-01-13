@@ -164,7 +164,7 @@ class DynamicProgramGenerator {
         for session in sessions {
             print("   \(session.dayName):")
             for exercise in session.exercises {
-                print("      - \(exercise.exerciseName) (complexity: \(exercise.complexityLevel), isolation: \(exercise.isIsolation), equipment: \(exercise.equipmentType))")
+                print("      - \(exercise.exerciseName) (complexity: \(exercise.complexityLevel), equipment: \(exercise.equipmentType))")
             }
         }
         print("")
@@ -473,13 +473,9 @@ class DynamicProgramGenerator {
             }
         }
 
-        // Sort entire session: compounds first (by complexity descending), then isolations (by complexity descending)
+        // Sort entire session: higher complexity first, then by canonical rating (implied from order)
         sessionExercises.sort { lhs, rhs in
-            // First: compounds before isolations
-            if lhs.isIsolation != rhs.isIsolation {
-                return !lhs.isIsolation  // compounds (false) come before isolations (true)
-            }
-            // Second: higher complexity first
+            // Higher complexity exercises first
             return lhs.complexityLevel > rhs.complexityLevel
         }
 
@@ -538,8 +534,7 @@ class DynamicProgramGenerator {
             restSeconds: rest,
             primaryMuscle: dbExercise.primaryMuscle,
             equipmentType: dbExercise.equipmentName ?? "Unknown",
-            complexityLevel: dbExercise.numericComplexity,
-            isIsolation: dbExercise.isIsolation
+            complexityLevel: dbExercise.numericComplexity
         )
     }
 
@@ -1211,8 +1206,7 @@ class DynamicProgramGenerator {
             restSeconds: 90,
             primaryMuscle: muscle,
             equipmentType: "Bodyweight",
-            complexityLevel: 1,
-            isIsolation: false
+            complexityLevel: 1
         )
     }
 }

@@ -20,8 +20,7 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
     let displayName: String             // User-facing name
     let equipmentCategory: String       // High-level: "Barbells", "Dumbbells", "Cables", etc.
     let equipmentSpecific: String?      // Low-level: "Squat Rack", "Flat Bench", etc.
-    let complexityLevel: String         // "all", "1", "2", "3"
-    let isIsolation: Bool               // Whether exercise is isolation (bypasses complexity rules)
+    let complexityLevel: String         // "all", "1", "2"
     let primaryMuscle: String
     let secondaryMuscle: String?
     let instructions: String?
@@ -37,7 +36,6 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         static let equipmentCategory = Column("equipment_category")
         static let equipmentSpecific = Column("equipment_specific")
         static let complexityLevel = Column("complexity_level")
-        static let isIsolation = Column("is_isolation")
         static let primaryMuscle = Column("primary_muscle")
         static let secondaryMuscle = Column("secondary_muscle")
         static let instructions = Column("instructions")
@@ -54,7 +52,6 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         case equipmentCategory = "equipment_category"
         case equipmentSpecific = "equipment_specific"
         case complexityLevel = "complexity_level"
-        case isIsolation = "is_isolation"
         case primaryMuscle = "primary_muscle"
         case secondaryMuscle = "secondary_muscle"
         case instructions
@@ -81,9 +78,6 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         regressionId = try container.decodeIfPresent(String.self, forKey: .regressionId)
 
         // SQLite stores boolean as integer (0 or 1)
-        let isIsolationInt = try container.decode(Int.self, forKey: .isIsolation)
-        isIsolation = isIsolationInt == 1
-
         let isInProgrammeInt = try container.decode(Int.self, forKey: .isInProgramme)
         isInProgramme = isInProgrammeInt == 1
     }
@@ -97,10 +91,8 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
             return 1
         case "2":
             return 2
-        case "3":
-            return 3
         default:
-            fatalError("Invalid complexity_level: \(complexityLevel). Expected 'all', '1', '2', or '3'")
+            fatalError("Invalid complexity_level: \(complexityLevel). Expected 'all', '1', or '2'")
         }
     }
 
@@ -224,19 +216,19 @@ enum ExperienceLevel: String, Codable, CaseIterable {
 
     /// Complexity rules for exercise selection.
     /// - noExperience: Only "all" and "1" exercises (simplest movements)
-    /// - beginner: Up to "2"
-    /// - intermediate: Up to "3"
-    /// - advanced: All complexity levels including "3"
+    /// - beginner: Only "all" and "1" exercises (simplest movements)
+    /// - intermediate: Up to "2" exercises (all levels including intermediate)
+    /// - advanced: Up to "2" exercises (all levels including intermediate)
     var complexityRules: ExperienceComplexityRules {
         switch self {
         case .noExperience:
             return ExperienceComplexityRules(maxComplexity: 1, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
         case .beginner:
-            return ExperienceComplexityRules(maxComplexity: 2, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
+            return ExperienceComplexityRules(maxComplexity: 1, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
         case .intermediate:
-            return ExperienceComplexityRules(maxComplexity: 3, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
+            return ExperienceComplexityRules(maxComplexity: 2, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
         case .advanced:
-            return ExperienceComplexityRules(maxComplexity: 3, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
+            return ExperienceComplexityRules(maxComplexity: 2, maxComplexity4PerSession: 0, complexity4MustBeFirst: false)
         }
     }
 }

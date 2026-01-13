@@ -19,8 +19,7 @@ Core exercise data with MCV heuristic support.
 | `display_name` | TEXT | NOT NULL | User-facing name (e.g., "Barbell Flat Bench Press") |
 | `equipment_category` | TEXT | NOT NULL | Equipment category (e.g., "Barbells", "Dumbbells") |
 | `equipment_specific` | TEXT | nullable | Specific equipment variant (e.g., "Squat Rack") |
-| `complexity_level` | TEXT | NOT NULL, CHECK('all', '1', '2', '3') | Exercise complexity requirement |
-| `is_isolation` | INTEGER | NOT NULL, DEFAULT 0 | 0 or 1 - whether exercise is isolation |
+| `complexity_level` | TEXT | NOT NULL, CHECK('all', '1', '2') | Exercise complexity requirement |
 | `primary_muscle` | TEXT | NOT NULL | Main muscle group targeted |
 | `secondary_muscle` | TEXT | nullable | Optional secondary muscle |
 | `instructions` | TEXT | nullable | Exercise instructions |
@@ -31,9 +30,8 @@ Core exercise data with MCV heuristic support.
 
 #### Complexity Level Meanings
 - `"all"` = Available to everyone (maps to user level 0)
-- `"1"` = Requires at least beginner level
-- `"2"` = Requires at least intermediate level
-- `"3"` = Requires at least advanced level
+- `"1"` = Requires no experience or beginner level only
+- `"2"` = Requires intermediate or advanced level
 
 #### Canonical Rating
 - 0-100 score used for MCV heuristic ordering

@@ -61,8 +61,7 @@ def create_database():
         display_name TEXT NOT NULL,
         equipment_category TEXT NOT NULL,
         equipment_specific TEXT,
-        complexity_level TEXT NOT NULL CHECK(complexity_level IN ('all', '1', '2', '3')),
-        is_isolation INTEGER NOT NULL DEFAULT 0,
+        complexity_level TEXT NOT NULL CHECK(complexity_level IN ('all', '1', '2')),
         primary_muscle TEXT NOT NULL,
         secondary_muscle TEXT,
         instructions TEXT,
@@ -95,7 +94,6 @@ def create_database():
     cursor.execute('CREATE INDEX idx_exercises_specific ON exercises(equipment_specific)')
     cursor.execute('CREATE INDEX idx_exercises_complexity ON exercises(complexity_level)')
     cursor.execute('CREATE INDEX idx_exercises_muscle ON exercises(primary_muscle)')
-    cursor.execute('CREATE INDEX idx_exercises_isolation ON exercises(is_isolation)')
     cursor.execute('CREATE INDEX idx_exercises_programme ON exercises(is_in_programme)')
     cursor.execute('CREATE INDEX idx_exercises_rating ON exercises(canonical_rating)')
     cursor.execute('CREATE INDEX idx_exercises_progression ON exercises(progression_id)')
@@ -118,11 +116,34 @@ def create_database():
     elif 'programme_inclusion' in df_exercises.columns:
         df_exercises = df_exercises.rename(columns={'programme_inclusion': 'is_in_programme'})
 
-    # Handle new complexity level format (convert old integer to new string format if needed)
+    # Handle new complexity level format (convert Excel format to database format)
     if 'complexity_level' in df_exercises.columns:
-        # Convert old integer complexity to new string format
-        df_exercises['complexity_level'] = df_exercises['complexity_level'].apply(lambda x:
-            'all' if pd.isna(x) or x == 0 else str(int(x)))
+        # Convert Excel complexity values to database string format
+        def normalize_complexity(x):
+            if pd.isna(x):
+                return 'all'
+            if isinstance(x, str):
+                x_clean = x.strip().lower()
+                if x_clean == 'all':
+                    return 'all'
+                elif x_clean == '1':
+                    return '1'
+                elif x_clean == '2':
+                    return '2'
+                else:
+                    raise ValueError(f"Invalid complexity_level value: '{x}'. Expected 'All', '1', or '2'")
+            else:
+                # Numeric value
+                if x == 0 or pd.isna(x):
+                    return 'all'
+                elif x == 1:
+                    return '1'
+                elif x == 2:
+                    return '2'
+                else:
+                    raise ValueError(f"Invalid complexity_level value: {x}. Expected 0, 1, or 2")
+
+        df_exercises['complexity_level'] = df_exercises['complexity_level'].apply(normalize_complexity)
 
     # Ensure new columns exist - no defaults, fail explicitly if missing
     required_columns = ['canonical_rating', 'progression_id', 'regression_id']
@@ -139,9 +160,9 @@ def create_database():
     df_exercises['regression_id'] = df_exercises['regression_id'].apply(
         lambda x: None if pd.isna(x) else x)
 
-    # Ensure correct column names match our schema
+    # Ensure correct column names match our schema (removed is_isolation)
     df_exercises = df_exercises[['exercise_id', 'canonical_name', 'display_name', 'equipment_category',
-                                  'equipment_specific', 'complexity_level', 'is_isolation',
+                                  'equipment_specific', 'complexity_level',
                                   'primary_muscle', 'secondary_muscle', 'instructions', 'is_in_programme',
                                   'canonical_rating', 'progression_id', 'regression_id']]
 
@@ -149,10 +170,10 @@ def create_database():
     for _, row in df_exercises.iterrows():
         cursor.execute('''
             INSERT INTO exercises (exercise_id, canonical_name, display_name, equipment_category,
-                                   equipment_specific, complexity_level, is_isolation, primary_muscle,
+                                   equipment_specific, complexity_level, primary_muscle,
                                    secondary_muscle, instructions, is_in_programme, canonical_rating,
                                    progression_id, regression_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             row['exercise_id'],
             row['canonical_name'],
@@ -160,7 +181,6 @@ def create_database():
             row['equipment_category'],
             row['equipment_specific'] if pd.notna(row['equipment_specific']) else None,
             row['complexity_level'],
-            int(row['is_isolation']),
             row['primary_muscle'],
             row['secondary_muscle'] if pd.notna(row['secondary_muscle']) else None,
             row['instructions'] if pd.notna(row['instructions']) else None,
