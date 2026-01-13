@@ -8,8 +8,11 @@
 import SwiftUI
 
 struct ProgramReadyView: View {
+    @ObservedObject var viewModel = WorkoutViewModel.shared  // Add WorkoutViewModel for safe navigation
     let program: Program
     let onStart: () -> Void
+    let onSignupStart: (() -> Void)?  // Called when signup begins to prevent race conditions
+    let onSignupCancel: (() -> Void)?  // Called when signup is cancelled to reset protection flags
     let selectedMuscleGroups: [String]  // Added for muscle groups display
     @State private var showSignup = false
     @State private var showLoading = false
@@ -26,28 +29,54 @@ struct ProgramReadyView: View {
             // Show different screens based on state
             if showPaywall {
                 PaywallView(onComplete: {
+                    print("🎯 [PROGRAM READY] PaywallView completed")
                     // After paywall, complete the whole flow
                     onStart()
                 })
+                .onAppear {
+                    print("🎯 [PROGRAM READY] VIEW STATE: Showing PaywallView")
+                }
             } else if showLoading {
                 AccountCreationLoadingView(onComplete: {
+                    print("🎯 [PROGRAM READY] AccountCreationLoadingView completed")
                     withAnimation {
                         if skipPaywallForMVP {
                             // MVP: Skip paywall and go straight to dashboard
-                            print("🚀 MVP Mode: Skipping paywall")
+                            print("🎯 [PROGRAM READY] 🚀 MVP Mode: Skipping paywall, calling onStart()")
                             onStart()
                         } else {
                             // Production: Show paywall
+                            print("🎯 [PROGRAM READY] Production mode: Setting showPaywall = true")
                             showPaywall = true
                         }
                     }
                 })
+                .onAppear {
+                    print("🎯 [PROGRAM READY] VIEW STATE: Showing AccountCreationLoadingView")
+                }
             } else if showSignup {
-                PostQuestionnaireSignupView(onSignupSuccess: {
-                    withAnimation {
-                        showLoading = true
+                PostQuestionnaireSignupView(
+                    onSignupSuccess: {
+                        print("🎯 [PROGRAM READY] PostQuestionnaireSignupView onSignupSuccess called")
+                        print("🎯 [PROGRAM READY] 🚀 Signup successful - using safe navigation to complete flow")
+
+                        // Use safe navigation to prevent UIKit transition conflicts
+                        viewModel.safeNavigate {
+                            print("🎯 [PROGRAM READY] 🎯 Executing onStart() via safe navigation")
+                            onStart()
+                        }
+                    },
+                    onSignupCancel: {
+                        print("🎯 [PROGRAM READY] 🚫 Signup cancelled - returning to Program Ready screen")
+                        print("🎯 [PROGRAM READY] 🔄 Resetting signup protection flag via onSignupCancel callback")
+                        showSignup = false
+                        // Reset the protection flag by calling onSignupCancel to clear it
+                        onSignupCancel?()
                     }
-                })
+                )
+                .onAppear {
+                    print("🎯 [PROGRAM READY] VIEW STATE: Showing PostQuestionnaireSignupView")
+                }
             } else {
                 // Original Program Ready View with confetti overlay
                 programReadyContent
@@ -58,6 +87,8 @@ struct ProgramReadyView: View {
                         }
                     }
                     .onAppear {
+                        print("🎯 [PROGRAM READY] VIEW STATE: Showing Program Ready content with confetti")
+                        print("🎯 [PROGRAM READY] Program Ready content appeared, triggering confetti")
                         // Trigger confetti animation when view appears
                         withAnimation {
                             showConfetti = true
@@ -128,7 +159,15 @@ struct ProgramReadyView: View {
                 CustomButton(
                     title: "Start Training Now!",
                     action: {
+                        print("🎯 [PROGRAM READY] 'Start Training Now!' button tapped")
+
+                        // CRITICAL: Call onSignupStart IMMEDIATELY to prevent race conditions
+                        print("🎯 [PROGRAM READY] 🚨 CALLING onSignupStart() to set protection flag BEFORE showing signup sheet")
+                        onSignupStart?()
+                        print("🎯 [PROGRAM READY] ✅ Protection flag set - QuestionnaireView is now immune to state changes")
+
                         withAnimation {
+                            print("🎯 [PROGRAM READY] Setting showSignup = true")
                             showSignup = true
                         }
                     }

@@ -11,6 +11,9 @@ import SwiftUI
 import Combine
 
 class WorkoutViewModel: ObservableObject {
+    // MARK: - Singleton
+    static let shared = WorkoutViewModel()
+
     // MARK: - Published Properties
     @Published var questionnaireData = QuestionnaireData()
     @Published var generatedProgram: Program?
@@ -20,12 +23,35 @@ class WorkoutViewModel: ObservableObject {
     @Published var warningAlertTitle = ""
     @Published var warningAlertMessage = ""
 
+    // Email signup state that persists across view recreations
+    @Published var showEmailSignup = false {
+        didSet {
+            print("📧 [VIEWMODEL] 🚨🚨🚨 showEmailSignup changed from \(oldValue) to \(showEmailSignup)")
+            if !showEmailSignup && oldValue {
+                print("📧 [VIEWMODEL] ❌❌❌ EMAIL SHEET WAS DISMISSED! This should only happen on successful signup or user cancellation")
+                print("📧 [VIEWMODEL] 🕵️ Call stack trace for debugging:")
+                for symbol in Thread.callStackSymbols {
+                    print("📧 [VIEWMODEL] \(symbol)")
+                }
+            }
+        }
+    }
+
+    // Navigation state to prevent overlapping transitions
+    @Published var isNavigationInProgress = false {
+        didSet {
+            print("🚦 [NAVIGATION] isNavigationInProgress changed from \(oldValue) to \(isNavigationInProgress)")
+        }
+    }
+
     // Store warnings for display after program ready screen
     private var pendingWarnings: [ExerciseSelectionWarning] = []
 
     // MARK: - Initialization
-    init() {
-        // Simplified initialization
+    private init() {
+        // Private init to enforce singleton pattern
+        print("🧠 [VIEWMODEL] 🎬 WorkoutViewModel.shared created - instance: \(ObjectIdentifier(self))")
+        print("🧠 [VIEWMODEL] 🔒 This is the ONLY instance that should ever exist!")
     }
 
     // MARK: - Program Generation
@@ -87,5 +113,30 @@ class WorkoutViewModel: ObservableObject {
         showWarningAlert = false
         warningAlertTitle = ""
         warningAlertMessage = ""
+    }
+
+    // MARK: - Navigation Management
+
+    /// Safely execute navigation operations to prevent UIKit conflicts
+    func safeNavigate(operation: @escaping () -> Void) {
+        // Prevent overlapping navigation operations
+        guard !isNavigationInProgress else {
+            print("🚦 [NAVIGATION] ⚠️ Navigation already in progress - skipping operation")
+            return
+        }
+
+        print("🚦 [NAVIGATION] ✅ Starting safe navigation operation")
+        isNavigationInProgress = true
+
+        // Execute on main queue with slight delay to ensure UI stability
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            operation()
+
+            // Reset navigation state after completion
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.isNavigationInProgress = false
+                print("🚦 [NAVIGATION] ✅ Navigation operation completed")
+            }
+        }
     }
 }
