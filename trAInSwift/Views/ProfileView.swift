@@ -148,7 +148,7 @@ struct ProfileView: View {
                     shouldRestartQuestionnaire = false
                 }
             )
-            .environmentObject(WorkoutViewModel())
+            .environmentObject(WorkoutViewModel.shared)
         }
     }
 
@@ -506,7 +506,7 @@ struct ProgramCard: View {
                     shouldRestartQuestionnaire = false
                 }
             )
-            .environmentObject(WorkoutViewModel())
+            .environmentObject(WorkoutViewModel.shared)
         }
     }
 

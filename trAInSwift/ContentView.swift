@@ -10,53 +10,37 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var workoutViewModel = WorkoutViewModel()
+    @ObservedObject private var workoutViewModel = WorkoutViewModel.shared
     @ObservedObject private var authService = AuthService.shared
 
     @State private var showQuestionnaire = false
     @State private var showLogin = false
 
     var body: some View {
-        Group {
-            if authService.isAuthenticated, let user = authService.currentUser {
-                // User is authenticated - show dashboard with program
+        NavigationView {
+            if authService.isAuthenticated {
                 DashboardView()
-            } else {
-                // Not authenticated - show onboarding flow
-                if showLogin {
-                    // Show login screen
-                    LoginView(onBack: {
-                        showLogin = false
-                    })
-                } else if showQuestionnaire {
-                    // Show questionnaire (internally handles: questionnaire → programme ready → signup → loading → REAL paywall)
-                    // NOTE: Program is saved immediately after signup in PostQuestionnaireSignupView
-                    QuestionnaireView(
-                        onComplete: {
-                            // Paywall completed - user and program already saved
-                            // Just refresh the auth state
-                            print("✅ Onboarding flow complete - user authenticated with program")
-                        },
-                        onBack: {
-                            // Go back to welcome screen
-                            showQuestionnaire = false
-                        }
-                    )
                     .environmentObject(workoutViewModel)
-                } else {
-                    // Show welcome screen first
-                    WelcomeView(
-                        onContinue: {
-                            showQuestionnaire = true
-                        },
-                        onLogin: {
-                            showLogin = true
-                        }
-                    )
+            } else {
+                WelcomeView(
+                    onContinue: {
+                        showQuestionnaire = true
+                    },
+                    onLogin: {
+                        showLogin = true
+                    }
+                )
+                .sheet(isPresented: $showQuestionnaire) {
+                    QuestionnaireView(onComplete: {
+                        showQuestionnaire = false
+                    })
+                    .environmentObject(workoutViewModel)
+                }
+                .sheet(isPresented: $showLogin) {
+                    LoginView()
                 }
             }
         }
-        .charcoalGradientBackground()
     }
 
     // DEPRECATED: This function is no longer used
