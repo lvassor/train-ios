@@ -27,10 +27,17 @@ struct ProgramLoadingView: View {
             VStack(spacing: 48) {
                 Spacer()
 
-                // Loading spinner
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .trainPrimary))
-                    .scaleEffect(1.5)
+                // Animated Train logo instead of buffer wheel
+                Image("TrainLogoWithText")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 60)
+                    .scaleEffect(progress == 0 ? 0.8 : 1.0)
+                    .opacity(progress == 0 ? 0.8 : 1.0)
+                    .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: progress)
+                    .onAppear {
+                        print("🎨 [LOADING] Using Train logo instead of buffer wheel")
+                    }
 
                 // Title
                 Text("Building Your Program")
