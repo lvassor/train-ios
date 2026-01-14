@@ -18,6 +18,7 @@ struct ProgramReadyView: View {
     @State private var showLoading = false
     @State private var showPaywall = false
     @State private var showConfetti = false
+    @State private var showPostSignupFlow = false  // New state for steps 18-19
 
     // MARK: - Feature Flags
     // Set to true to skip paywall for MVP/TestFlight
@@ -27,7 +28,18 @@ struct ProgramReadyView: View {
     var body: some View {
         ZStack {
             // Show different screens based on state
-            if showPaywall {
+            if showPostSignupFlow {
+                PostSignupFlowView(
+                    onComplete: {
+                        print("🎯 [PROGRAM READY] PostSignupFlowView completed (steps 18-19)")
+                        print("🎯 [PROGRAM READY] 🚀 All onboarding steps finished - calling onStart()")
+                        onStart()
+                    }
+                )
+                .onAppear {
+                    print("🎯 [PROGRAM READY] VIEW STATE: Showing PostSignupFlowView (steps 18-19)")
+                }
+            } else if showPaywall {
                 PaywallView(onComplete: {
                     print("🎯 [PROGRAM READY] PaywallView completed")
                     // After paywall, complete the whole flow
@@ -58,12 +70,13 @@ struct ProgramReadyView: View {
                 PostQuestionnaireSignupView(
                     onSignupSuccess: {
                         print("🎯 [PROGRAM READY] PostQuestionnaireSignupView onSignupSuccess called")
-                        print("🎯 [PROGRAM READY] 🚀 Signup successful - using safe navigation to complete flow")
+                        print("🎯 [PROGRAM READY] 🚀 Signup successful - proceeding to post-signup flow (steps 18-19)")
 
                         // Use safe navigation to prevent UIKit transition conflicts
                         viewModel.safeNavigate {
-                            print("🎯 [PROGRAM READY] 🎯 Executing onStart() via safe navigation")
-                            onStart()
+                            print("🎯 [PROGRAM READY] 🎯 Showing PostSignupFlowView instead of dashboard")
+                            showSignup = false  // Hide signup screen
+                            showPostSignupFlow = true  // Show steps 18-19
                         }
                     },
                     onSignupCancel: {

@@ -90,9 +90,9 @@ struct PostQuestionnaireSignupView: View {
                         .cornerRadius(CornerRadius.md)
                     }
 
-                    // Continue with Email Button
+                    // Sign up with Email Button
                     Button(action: {
-                        print("📧 [SIGNUP BUTTONS] 🔥🔥🔥 'Continue with Email' button tapped 🔥🔥🔥")
+                        print("📧 [SIGNUP BUTTONS] 🔥🔥🔥 'Sign up with Email' button tapped 🔥🔥🔥")
                         print("📧 [SIGNUP BUTTONS] 🆔 From view instance: \(viewID.uuidString.prefix(8))")
                         print("📧 [SIGNUP BUTTONS] 🧠 ViewModel instance: \(ObjectIdentifier(viewModel))")
                         print("📧 [SIGNUP BUTTONS] 📊 BEFORE: viewModel.showEmailSignup = \(viewModel.showEmailSignup)")
@@ -111,13 +111,17 @@ struct PostQuestionnaireSignupView: View {
                             print("📧 [SIGNUP BUTTONS] 🕵️ 0.5s later check: viewModel.showEmailSignup = \(viewModel.showEmailSignup)")
                         }
                     }) {
-                        Text("Continue with Email")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: ButtonHeight.standard)
-                            .background(Color.trainPrimary)
-                            .cornerRadius(CornerRadius.md)
+                        HStack(spacing: Spacing.md) {
+                            Image(systemName: "envelope.fill")
+                                .font(.system(size: 18, weight: .medium))
+                            Text("Sign up with Email")
+                                .font(.system(size: 17, weight: .medium))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: ButtonHeight.standard)
+                        .background(Color.trainPrimary)
+                        .cornerRadius(CornerRadius.md)
                     }
 
                     // OR Divider
