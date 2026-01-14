@@ -11,8 +11,6 @@ struct WelcomeView: View {
     let onContinue: () -> Void
     let onLogin: () -> Void
 
-    @State private var currentIndex = 0
-
     private let screenshots = ["screenshot_1", "screenshot_2", "screenshot_3", "screenshot_4"]
 
     var body: some View {
@@ -37,15 +35,17 @@ struct WelcomeView: View {
             .padding(.horizontal, 24)
             .padding(.top, 12)
 
-            // Headlines with attributed text
-            VStack(spacing: 8) {
+            Spacer().frame(height: 60)
+
+            // Headlines with attributed text - closer to Gravl styling
+            VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text("Programs Built by ")
-                        .font(.system(size: 32, weight: .bold))
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
                     +
-                    Text("Coaches")
-                        .font(.system(size: 32, weight: .bold))
+                    Text("Coaches.")
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.trainPrimary)
 
                     Spacer()
@@ -53,101 +53,78 @@ struct WelcomeView: View {
 
                 HStack {
                     Text("Tracked by You.")
-                        .font(.system(size: 32, weight: .bold))
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
 
                     Spacer()
                 }
             }
             .padding(.horizontal, 24)
-            .padding(.top, 32)
 
             // Subtitle
-            Text("Designed by two PTs with hundreds of hours of real gym floor experience. Not some algorithm—real coaching, backed by science.")
-                .font(.trainBody)
+            Text("Train uses AI-powered programs created by personal trainers to build personalized workouts based on your goals, experience, and available equipment.")
+                .font(.system(size: 16))
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.leading)
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
 
-            // Screenshot carousel
+            // Screenshot carousel - showing 2 images like Gravl reference
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
+                    LazyHStack(spacing: 16) {
                         ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
                             Image(screenshot)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: getImageWidth(for: index))
+                                .frame(width: UIScreen.main.bounds.width * 0.4)
                                 .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
-                                .scaleEffect(index == currentIndex ? 1.0 : 0.95)
-                                .animation(.easeInOut(duration: 0.3), value: currentIndex)
+                                .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
                                 .id(index)
-                                .onTapGesture {
-                                    withAnimation(.easeInOut(duration: 0.5)) {
-                                        currentIndex = index
-                                    }
-                                }
                         }
                     }
                     .scrollTargetLayout()
                     .padding(.horizontal, 24)
                 }
-                .scrollTargetBehavior(.viewAligned)
-                .onChange(of: currentIndex) { _, newValue in
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        proxy.scrollTo(newValue, anchor: .center)
-                    }
+                .scrollTargetBehavior(.paging)
+                .onAppear {
+                    print("🎠 [WELCOME] Screenshot carousel loaded with \(screenshots.count) images")
                 }
             }
             .padding(.top, 32)
-            .frame(height: 400)
+            .frame(height: 440)
 
             Spacer()
 
             // Bottom section
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 // Get Started button
                 Button(action: onContinue) {
                     Text("Get Started")
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
                         .background(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .clipShape(RoundedRectangle(cornerRadius: 28))
                 }
                 .padding(.horizontal, 24)
+                .onTapGesture {
+                    print("🚀 [WELCOME] Get Started button tapped - navigating to questionnaire")
+                }
 
                 // Caption
-                Text("Train smarter with programs built by real trainers.")
-                    .font(.trainCaption)
+                Text("Join Train to get personalized workouts and hit your goals faster.")
+                    .font(.system(size: 16))
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
             }
-            .padding(.bottom, 40)
+            .padding(.bottom, 50)
         }
         .onAppear {
-            // Auto-advance carousel
-            startCarouselTimer()
+            print("🎯 [WELCOME] WelcomeView appeared - ready for user interaction")
         }
         .charcoalGradientBackground()
-    }
-
-    private func getImageWidth(for index: Int) -> CGFloat {
-        if index == currentIndex {
-            return UIScreen.main.bounds.width * 0.6 // Hero image
-        } else {
-            return UIScreen.main.bounds.width * 0.35 // Partially visible
-        }
-    }
-
-    private func startCarouselTimer() {
-        Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
-            withAnimation(.easeInOut(duration: 0.5)) {
-                currentIndex = (currentIndex + 1) % screenshots.count
-            }
-        }
     }
 }
