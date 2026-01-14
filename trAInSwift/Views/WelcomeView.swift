@@ -69,26 +69,27 @@ struct WelcomeView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
 
-            // Screenshot carousel - showing 2 images like Gravl reference
-            ScrollViewReader { proxy in
+            // Screenshot carousel - swipeable through all 4 screenshots
+            GeometryReader { geometry in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 16) {
+                    HStack(spacing: 20) {
                         ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
                             Image(screenshot)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: UIScreen.main.bounds.width * 0.4)
+                                .frame(width: geometry.size.width * 0.43)  // Shows ~2.3 images at once like Gravl
                                 .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
-                                .id(index)
+                                .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
                         }
                     }
+                    .padding(.horizontal, 20)
                     .scrollTargetLayout()
-                    .padding(.horizontal, 24)
                 }
-                .scrollTargetBehavior(.paging)
+                .scrollTargetBehavior(.viewAligned)
+                .scrollIndicators(.hidden)
                 .onAppear {
-                    print("🎠 [WELCOME] Screenshot carousel loaded with \(screenshots.count) images")
+                    print("🎠 [WELCOME] Swipeable screenshot carousel loaded with \(screenshots.count) images")
+                    print("🎠 [WELCOME] Users can swipe left/right through: \(screenshots.joined(separator: ", "))")
                 }
             }
             .padding(.top, 32)
