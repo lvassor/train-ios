@@ -9,120 +9,103 @@ import SwiftUI
 import AVKit
 import AVFoundation
 
-struct VideoBackgroundView: UIViewRepresentable {
-    let videoName: String
-    let videoExtension: String
+class VideoPlayerView: UIView {
+    private var player: AVQueuePlayer?
+    private var looper: AVPlayerLooper?
 
-    init(videoName: String, videoExtension: String = "mov") {
-        self.videoName = videoName
-        self.videoExtension = videoExtension
+    // This is the key - override layerClass to return AVPlayerLayer
+    override class var layerClass: AnyClass {
+        return AVPlayerLayer.self
     }
 
-    func makeUIView(context: Context) -> UIView {
-        let containerView = UIView()
-        containerView.backgroundColor = .black // Set background to black instead of clear
+    // Cast the layer to AVPlayerLayer for easy access
+    var playerLayer: AVPlayerLayer {
+        return layer as! AVPlayerLayer
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        // Set dark background to prevent white flash
+        backgroundColor = .black
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func setupVideo(named videoName: String, extension videoExtension: String = "mp4") {
+        print("🎥 VideoPlayerView: Setting up video: \(videoName).\(videoExtension)")
 
         guard let videoURL = Bundle.main.url(forResource: videoName, withExtension: videoExtension) else {
             print("❌ Video file not found: \(videoName).\(videoExtension)")
-            print("📁 Bundle path: \(Bundle.main.bundlePath)")
-
-            // Add visual indicator when video fails to load
-            let label = UILabel()
-            label.text = "Video not found: \(videoName).\(videoExtension)"
-            label.textColor = .white
-            label.textAlignment = .center
-            label.numberOfLines = 0
-            label.font = UIFont.systemFont(ofSize: 16)
-            containerView.addSubview(label)
-            label.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                label.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-                label.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-                label.leadingAnchor.constraint(greaterThanOrEqualTo: containerView.leadingAnchor, constant: 20),
-                label.trailingAnchor.constraint(lessThanOrEqualTo: containerView.trailingAnchor, constant: -20)
-            ])
-
-            return containerView
+            return
         }
 
         print("✅ Video file found: \(videoURL.absoluteString)")
 
-        // Create player with the video URL
-        let playerItem = AVPlayerItem(url: videoURL)
-        let player = AVQueuePlayer(playerItem: playerItem)
+        // Create asset and player
+        let asset = AVURLAsset(url: videoURL)
+        let playerItem = AVPlayerItem(asset: asset)
+        player = AVQueuePlayer(playerItem: playerItem)
 
-        // Set up looping
-        let looper = AVPlayerLooper(player: player, templateItem: playerItem)
-
-        // Store looper to prevent deallocation
-        objc_setAssociatedObject(containerView, "looper", looper, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-
-        // Create player layer
-        let playerLayer = AVPlayerLayer(player: player)
-        playerLayer.videoGravity = .resizeAspectFill
-        playerLayer.backgroundColor = UIColor.black.cgColor
-        containerView.layer.addSublayer(playerLayer)
+        guard let player = player else { return }
 
         // Configure player
-        player.isMuted = true // No sound for background video
+        player.isMuted = true
+        player.allowsExternalPlayback = false
+        player.automaticallyWaitsToMinimizeStalling = false
 
-        // Add observer for player item status
-        playerItem.addObserver(context.coordinator, forKeyPath: "status", options: [.new, .initial], context: nil)
+        // Set up looping
+        looper = AVPlayerLooper(player: player, templateItem: playerItem)
 
+        // Configure the player layer for FULL SCREEN edge-to-edge
+        playerLayer.player = player
+        playerLayer.videoGravity = .resizeAspectFill  // Fill and crop, no distortion
+
+        // Black background set in init prevents flash during video load
+
+        // Start playing
         player.play()
-        print("🎬 Started playing video: \(videoName)")
-
-        // Store player for later use
-        objc_setAssociatedObject(containerView, "player", player, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        objc_setAssociatedObject(containerView, "playerLayer", playerLayer, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-
-        return containerView
+        print("▶️ Started playing video: \(videoName)")
     }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
+    func cleanup() {
+        player?.pause()
+        player?.removeAllItems()
+        looper = nil
+        player = nil
+        playerLayer.player = nil
+        print("🧹 VideoPlayerView cleaned up")
+    }
+}
+
+struct VideoBackgroundView: UIViewRepresentable {
+    let videoName: String
+    let videoExtension: String
+
+    init(videoName: String, videoExtension: String = "mp4") {
+        self.videoName = videoName
+        self.videoExtension = videoExtension
     }
 
-    class Coordinator: NSObject {
-        override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-            if keyPath == "status" {
-                if let playerItem = object as? AVPlayerItem {
-                    switch playerItem.status {
-                    case .readyToPlay:
-                        print("✅ Video ready to play")
-                    case .failed:
-                        print("❌ Video failed to load: \(playerItem.error?.localizedDescription ?? "Unknown error")")
-                    case .unknown:
-                        print("⚠️ Video status unknown")
-                    @unknown default:
-                        print("⚠️ Video status unknown default")
-                    }
-                }
-            }
-        }
+    func makeUIView(context: Context) -> VideoPlayerView {
+        let videoView = VideoPlayerView()
+        videoView.setupVideo(named: videoName, extension: videoExtension)
+        return videoView
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {
-        // Update player layer frame when view bounds change
-        if let playerLayer = objc_getAssociatedObject(uiView, "playerLayer") as? AVPlayerLayer {
-            DispatchQueue.main.async {
-                playerLayer.frame = uiView.bounds
-            }
-        }
+    func updateUIView(_ uiView: VideoPlayerView, context: Context) {
+        // Layout will be handled automatically by VideoPlayerView.layoutSubviews
     }
 
-    static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
-        // Clean up player when view is deallocated
-        if let player = objc_getAssociatedObject(uiView, "player") as? AVQueuePlayer {
-            player.pause()
-            player.removeAllItems()
-        }
+    static func dismantleUIView(_ uiView: VideoPlayerView, coordinator: ()) {
+        uiView.cleanup()
     }
 }
 
 // MARK: - Convenient initializers
 extension VideoBackgroundView {
     init(name: String) {
-        self.init(videoName: name, videoExtension: "mov")
+        self.init(videoName: name, videoExtension: "mp4")
     }
 }

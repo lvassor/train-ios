@@ -8,43 +8,89 @@
 import SwiftUI
 
 struct QuestionnaireView: View {
-    @EnvironmentObject var viewModel: WorkoutViewModel
+    @ObservedObject var viewModel = WorkoutViewModel.shared
     // Simplified flow: single sequence of questions (no sections/covers)
     @State private var currentStep = 0
     @State private var showingProgramLoading = false
     @State private var showingProgramReady = false
     @State private var showingEquipmentWarning = false
     @State private var hasSeenEquipmentWarning = false
+    @State private var isSignupInProgress = false  // Safeguard to prevent state conflicts during signup
 
     let onComplete: () -> Void
-    var onBack: (() -> Void)?
+    var onBack: (() -> Void)? = nil
 
-    // Total steps: Dynamic based on health sync + 2 video interstitials + separate name step (referral moved to end, not counted in progress)
+    // Total steps: Main questionnaire flow (referral moved to post-signup)
     var totalSteps: Int {
-        return viewModel.questionnaireData.skipHeightWeight ? 15 : 16
-        // Goal → Name → HealthProfile → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → Equipment → [Interstitial2] → Muscles → Injuries → Referral (not counted)
+        return 13  // Steps 0-12: Goal → Name → HealthProfile → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → Equipment → [Interstitial2] → Muscles → Injuries
+        // Referral tracking happens after signup in the post-questionnaire flow
     }
 
     var body: some View {
         ZStack {
-            if showingProgramReady, let program = viewModel.generatedProgram {
+            if (showingProgramReady || isSignupInProgress), let program = viewModel.generatedProgram {
                 ProgramReadyView(
                     program: program,
                     onStart: {
+                        print("📝 [QUESTIONNAIRE] ProgramReadyView onStart called - completing questionnaire")
                         viewModel.completeQuestionnaire()
                         onComplete()
                     },
+                    onSignupStart: {
+                        print("📝 [QUESTIONNAIRE] 🚨🚨🚨 SIGNUP STARTING - Setting isSignupInProgress = true to prevent race conditions 🚨🚨🚨")
+                        isSignupInProgress = true
+                        print("📝 [QUESTIONNAIRE] ✅ isSignupInProgress flag is now: \(isSignupInProgress)")
+                        print("📝 [QUESTIONNAIRE] 🛡️ QuestionnaireView is now PROTECTED from state changes during signup")
+                    },
+                    onSignupCancel: {
+                        print("📝 [QUESTIONNAIRE] 🚫 SIGNUP CANCELLED - Resetting isSignupInProgress = false to remove protection")
+                        isSignupInProgress = false
+                        print("📝 [QUESTIONNAIRE] ✅ isSignupInProgress flag is now: \(isSignupInProgress)")
+                        print("📝 [QUESTIONNAIRE] 🔓 QuestionnaireView protection removed - normal operation restored")
+                    },
                     selectedMuscleGroups: viewModel.questionnaireData.targetMuscleGroups
                 )
+                .onAppear {
+                    print("📝 [QUESTIONNAIRE] VIEW STATE: Showing ProgramReadyView (showingProgramReady: \(showingProgramReady), isSignupInProgress: \(isSignupInProgress))")
+                }
             } else if showingProgramLoading {
-                ProgramLoadingView(onComplete: {
-                    // Generate program when loading completes
-                    viewModel.generateProgram()
+                if isSignupInProgress {
+                    // This is the key fix - we DON'T show ProgramLoadingView during signup
+                    EmptyView()
+                        .onAppear {
+                            print("📝 [QUESTIONNAIRE] 🛡️🛡️🛡️ showingProgramLoading=true BUT isSignupInProgress=true - BLOCKING ProgramLoadingView! 🛡️🛡️🛡️")
+                            print("📝 [QUESTIONNAIRE] 🚨 This prevents the race condition bug from happening!")
+                        }
+                } else {
+                    ProgramLoadingView(onComplete: {
+                        print("📝 [QUESTIONNAIRE] ProgramLoadingView completed")
 
-                    withAnimation {
+                        // Guard against race conditions during signup
+                        guard !isSignupInProgress else {
+                            print("📝 [QUESTIONNAIRE] 🛡️🛡️🛡️ RACE CONDITION BLOCKED! Signup in progress - ignoring ProgramLoadingView completion 🛡️🛡️🛡️")
+                            print("📝 [QUESTIONNAIRE] 🚨 This would have caused the bug - program regeneration prevented!")
+                            return
+                        }
+
+                        // Only generate program if not already generated
+                        if viewModel.generatedProgram == nil {
+                            print("📝 [QUESTIONNAIRE] Generating program...")
+                            viewModel.generateProgram()
+                        } else {
+                            print("📝 [QUESTIONNAIRE] Program already exists")
+                        }
+
+                        // Removed animation for instant transition
+                        print("📝 [QUESTIONNAIRE] Setting showingProgramReady = true")
                         showingProgramReady = true
+                    })
+                    .onAppear {
+                        print("📝 [QUESTIONNAIRE] VIEW STATE: Showing ProgramLoadingView")
                     }
-                })
+                }
+            } else if isVideoInterstitialStep {
+                // Video interstitials rendered at ROOT level - full screen
+                currentStepView
             } else {
                 VStack(spacing: 0) {
                     // Back button and progress bar at top
@@ -113,7 +159,7 @@ struct QuestionnaireView: View {
     }
 
     private var buttonTitle: String {
-        if currentStep == 13 { // Referral step (final step)
+        if currentStep == 12 { // Injuries step (final step)
             return "Generate Your Program"
         }
         return "Continue"
@@ -155,11 +201,21 @@ struct QuestionnaireView: View {
             if !skipHeightWeight {
                 ExperienceStepView(experience: $viewModel.questionnaireData.experienceLevel)
             } else {
-                FirstVideoInterstitialView(onComplete: proceedToNextStep)
+                FirstVideoInterstitialView(
+                    onComplete: proceedToNextStep,
+                    onBack: previousStep,
+                    currentStep: currentStep + 1,
+                    totalSteps: totalSteps
+                )
             }
         case 5: // First Video Interstitial OR Training Days
             if !skipHeightWeight {
-                FirstVideoInterstitialView(onComplete: proceedToNextStep)
+                FirstVideoInterstitialView(
+                    onComplete: proceedToNextStep,
+                    onBack: previousStep,
+                    currentStep: currentStep + 1,
+                    totalSteps: totalSteps
+                )
             } else {
                 TrainingDaysStepView(trainingDays: $viewModel.questionnaireData.trainingDaysPerWeek, experienceLevel: $viewModel.questionnaireData.experienceLevel)
             }
@@ -201,11 +257,21 @@ struct QuestionnaireView: View {
                     selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
                 )
             } else {
-                SecondVideoInterstitialView(onComplete: proceedToNextStep)
+                SecondVideoInterstitialView(
+                    onComplete: proceedToNextStep,
+                    onBack: previousStep,
+                    currentStep: currentStep + 1,
+                    totalSteps: totalSteps
+                )
             }
         case 10: // Second Video Interstitial OR Muscle Groups
             if !skipHeightWeight {
-                SecondVideoInterstitialView(onComplete: proceedToNextStep)
+                SecondVideoInterstitialView(
+                    onComplete: proceedToNextStep,
+                    onBack: previousStep,
+                    currentStep: currentStep + 1,
+                    totalSteps: totalSteps
+                )
             } else {
                 MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
             }
@@ -215,10 +281,8 @@ struct QuestionnaireView: View {
             } else {
                 InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
             }
-        case 12: // Injuries (final counted step)
+        case 12: // Injuries (final step)
             InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
-        case 13: // Referral tracking (final step, not counted in progress)
-            ReferralStepView(selectedReferral: $viewModel.questionnaireData.selectedReferral)
         default:
             EmptyView()
         }
@@ -308,10 +372,8 @@ struct QuestionnaireView: View {
             } else {
                 return true // Injuries optional
             }
-        case 12: // Injuries (final counted step)
+        case 12: // Injuries (final step)
             return true // Injuries optional
-        case 13: // Referral tracking (optional)
-            return true // Referral selection is optional
         default:
             return true
         }
@@ -356,31 +418,45 @@ struct QuestionnaireView: View {
     }
 
     private func proceedToNextStep() {
-        withAnimation(.easeInOut(duration: 0.15)) {
-            if currentStep < totalSteps - 1 {
-                // Continue through regular questionnaire steps
-                currentStep += 1
-            } else if currentStep == totalSteps - 1 {
-                // After last counted step (injuries), go to referral step
-                currentStep = 13 // Referral step
-            } else {
-                // After referral step (13), complete questionnaire
-                showingProgramLoading = true
-            }
+        print("📝 [QUESTIONNAIRE] proceedToNextStep called, currentStep: \(currentStep), isSignupInProgress: \(isSignupInProgress)")
+
+        // Guard against race conditions during signup
+        guard !isSignupInProgress else {
+            print("📝 [QUESTIONNAIRE] 🛡️🛡️🛡️ RACE CONDITION BLOCKED! Signup in progress - ignoring proceedToNextStep 🛡️🛡️🛡️")
+            print("📝 [QUESTIONNAIRE] 🚨 This would have caused the bug - navigation prevented during signup!")
+            return
+        }
+
+        // Removed withAnimation for instant, smooth transitions especially for video interstitials
+        if currentStep == 12 {
+            print("📝 [QUESTIONNAIRE] Final step reached (12) - triggering program loading")
+            // After injuries step (12), complete questionnaire and show program loading
+            // The flow should be: Injuries → Loading → Program Ready → Signup → Notifications → Referral → Dashboard
+            showingProgramLoading = true
+        } else {
+            print("📝 [QUESTIONNAIRE] Moving to next step: \(currentStep + 1)")
+            // Continue through regular questionnaire steps (0-11)
+            currentStep += 1
         }
     }
 
     private func previousStep() {
-        withAnimation(.easeInOut(duration: 0.15)) {
-            if currentStep == 13 {
-                // From referral step, go back to last counted step (injuries)
-                currentStep = totalSteps - 1
-            } else if currentStep > 0 {
-                currentStep -= 1
-            } else {
-                // Go back to home screen
-                onBack?()
-            }
+        // Removed withAnimation for instant, smooth transitions
+        if currentStep > 0 {
+            currentStep -= 1
+        } else {
+            // Go back to home screen
+            onBack?()
+        }
+    }
+
+    // Check if current step is a video interstitial
+    private var isVideoInterstitialStep: Bool {
+        let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
+        if !skipHeightWeight {
+            return currentStep == 5 || currentStep == 10  // First and Second interstitial
+        } else {
+            return currentStep == 4 || currentStep == 9
         }
     }
 }

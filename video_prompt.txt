@@ -1,0 +1,13 @@
+You're looking at the codebase for my fitness app. a critical bug is that 
+      videos are not rendering in our onboarding sequence. this is absolutely 
+      crucial to the user experience and needs fixing. we have two mp4 files for 
+      this. we tried implementing a test view for these but it keeps returning 
+      nothing. analyse the attached images, you'll see our test view and the end 
+      state target. it cannot be this difficult to run a video in a swift app. 
+      apps all over the app store do this. our competitor has done it and they 
+      likely used the exact 
+        same software as us to edit and output the video. i'm tired of going round
+       in circles - consult online swift documentation if you have to but put this
+       issue to bed. note that the test view is over and 
+      above the interstitial videos in the actual onboarding sequence. i'd recommend analysing these images and then just restarting this 
+  feature from the beginning with the mp4 files.

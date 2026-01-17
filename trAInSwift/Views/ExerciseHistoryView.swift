@@ -82,7 +82,7 @@ struct ExerciseHistoryView: View {
                                 .foregroundColor(.trainTextSecondary)
 
                             if let best = bestSet {
-                                Text("\(Int(best.weight)) kg • \(best.reps) reps")
+                                Text("\(best.weight, specifier: "%.1f") kg • \(best.reps) reps")
                                     .font(.trainTitle)
                                     .foregroundColor(.trainTextPrimary)
                             } else {
@@ -337,7 +337,7 @@ struct HistoryEntryCard: View {
                             .font(.trainBody)
                             .foregroundColor(.trainTextSecondary)
 
-                        Text("\(Int(set.weight)) kg • \(set.reps) reps")
+                        Text("\(set.weight, specifier: "%.1f") kg • \(set.reps) reps")
                             .font(.trainBody)
                             .foregroundColor(.trainTextPrimary)
 

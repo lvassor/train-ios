@@ -61,6 +61,7 @@ class GoogleSignInService: NSObject, ObservableObject {
         // TODO: Implement when GoogleSignIn SDK is added
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.isSigningIn = false
+            // For now, show an informative error that won't break the navigation flow
             completion(.failure(GoogleSignInError.notImplemented))
         }
 

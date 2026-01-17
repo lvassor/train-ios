@@ -77,7 +77,7 @@ struct HeightWeightStepView: View {
                 VStack(spacing: Spacing.md) {
                     // Display current value
                     if heightUnit == .cm {
-                        Text("\(Int(heightCm)) cm")
+                        Text("\(heightCm, specifier: "%.1f") cm")
                             .font(.trainMediumNumber)
                             .foregroundColor(.trainPrimary)
                             .frame(maxWidth: .infinity)
@@ -183,7 +183,7 @@ struct HeightWeightStepView: View {
                             weightLbs = newValue * 2.20462
                         }
                     } else {
-                        Text("\(Int(weightLbs)) lbs")
+                        Text("\(weightLbs, specifier: "%.1f") lbs")
                             .font(.trainMediumNumber)
                             .foregroundColor(.trainPrimary)
                             .frame(maxWidth: .infinity)

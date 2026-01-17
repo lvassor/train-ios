@@ -12,6 +12,7 @@ import ActivityKit
 struct WorkoutOverviewView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var authService = AuthService.shared
+    @ObservedObject private var workoutState = WorkoutStateManager.shared
 
     let weekNumber: Int
     let sessionIndex: Int
@@ -246,6 +247,9 @@ struct WorkoutOverviewView: View {
         }
         .confirmationDialog("Cancel Workout", isPresented: $showCancelConfirmation, titleVisibility: .visible) {
             Button("Discard Workout", role: .destructive) {
+                // Cancel workout in global state manager
+                workoutState.cancelWorkout()
+
                 // End Live Activity when workout is cancelled
                 if #available(iOS 16.1, *) {
                     liveActivityManager.endWorkoutActivity()
@@ -257,15 +261,34 @@ struct WorkoutOverviewView: View {
             Text("Are you sure you want to cancel this workout? Your progress will not be saved.")
         }
         .onAppear {
-            // Only resume timer if workout was already started
-            if workoutStarted {
-                resumeTimer()
-            }
             initializeSessionExercises()
             initializeLoggedExercises()
+
+            // Check if this is a continuing workout
+            if let activeWorkout = workoutState.activeWorkout,
+               activeWorkout.sessionIndex == sessionIndex {
+                // Restore workout state - calculate elapsed time immediately to prevent 00:00 flash
+                workoutStarted = true
+                startTime = activeWorkout.startTime
+                elapsedTime = Date().timeIntervalSince(activeWorkout.startTime)  // Set immediately
+                completedExercises = activeWorkout.completedExercises
+                loggedExercises = activeWorkout.loggedExercises
+                resumeTimer()
+                AppLogger.logWorkout("Resumed active workout: \(activeWorkout.sessionName) - elapsed: \(elapsedTimeFormatted)")
+            } else if workoutStarted {
+                // Only resume timer if workout was already started (old behavior)
+                resumeTimer()
+            }
         }
         .onDisappear {
             stopTimers()
+            // Update global workout state when leaving the view
+            if workoutStarted && workoutState.isWorkoutActive {
+                workoutState.updateWorkoutProgress(
+                    completedExercises: completedExercises,
+                    loggedExercises: loggedExercises
+                )
+            }
         }
     }
 
@@ -293,6 +316,16 @@ struct WorkoutOverviewView: View {
         if !workoutStarted {
             startTimer()
             startLiveActivity()
+
+            // Register workout in global state manager
+            if let session = session {
+                workoutState.startWorkout(
+                    sessionName: session.dayName,
+                    weekNumber: weekNumber,
+                    sessionIndex: sessionIndex,
+                    totalExercises: sessionExercises.count
+                )
+            }
         } else if timer == nil {
             // Timer was invalidated but workout was started - resume it
             resumeTimer()
@@ -458,6 +491,9 @@ struct WorkoutOverviewView: View {
         )
 
         authService.completeCurrentSession()
+
+        // Complete workout in global state manager
+        workoutState.completeWorkout()
 
         // End Live Activity when workout is saved
         if #available(iOS 16.1, *) {

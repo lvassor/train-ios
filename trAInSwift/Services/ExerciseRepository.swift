@@ -181,22 +181,12 @@ class ExerciseRepository {
     }
 
     /// Calculate score for an exercise based on business rules
+    /// Uses canonical_rating (0-100) as primary scoring mechanism
     private func calculateScore(for exercise: DBExercise, experienceLevel: ExperienceLevel) -> Int {
-        if exercise.isIsolation {
-            // Isolation scoring based on experience level
-            switch experienceLevel {
-            case .advanced:
-                return 10
-            case .intermediate:
-                return 6
-            case .beginner, .noExperience:
-                return 5  // Equal to complexity-1 compounds for beginners
-            }
-        } else {
-            // Compound scoring based on complexity - heavily favor high complexity
-            // Use canonical_rating directly instead of complexity-based scoring
-            return exercise.canonicalRating
-        }
+        // Use canonical_rating directly as the scoring mechanism
+        // Higher canonical_rating = more important/compound exercises get higher scores
+        // This replaces the old isolation vs compound distinction
+        return exercise.canonicalRating
     }
 
     /// Weighted random selection - higher scores have higher probability

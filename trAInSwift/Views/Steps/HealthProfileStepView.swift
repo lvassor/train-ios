@@ -55,13 +55,21 @@ struct HealthProfileStepView: View {
                                 .foregroundColor(.red)
                                 .font(.title3)
 
-                            Text("Sync with Apple Health")
-                                .font(.trainBodyMedium)
-                                .foregroundColor(.white)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Sync with Apple Health")
+                                    .font(.trainBodyMedium)
+                                    .foregroundColor(.white)
+
+                                if healthKitManager.isSimulator {
+                                    Text("(Limited in simulator)")
+                                        .font(.trainCaption)
+                                        .foregroundColor(.trainTextSecondary)
+                                }
+                            }
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.md)
-                        .background(Color.trainHover)
+                        .background(healthKitManager.isSimulator ? Color.trainTextSecondary.opacity(0.3) : Color.trainHover)
                         .appCard(cornerRadius: CornerRadius.md)
                     }
                     .buttonStyle(ScaleButtonStyle())
