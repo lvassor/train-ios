@@ -3,7 +3,7 @@
 //  trAInSwift
 //
 //  Main app coordinator managing full app flow
-//  FLOW: isAuthenticated = false → Welcome → Questionnaire → Account → REAL Paywall → Dashboard
+//  FLOW: Launch Animation → Welcome → Questionnaire → Account → REAL Paywall → Dashboard
 //        isAuthenticated = true → Dashboard (with hardcoded program)
 //
 
@@ -14,18 +14,35 @@ struct ContentView: View {
     @ObservedObject private var authService = AuthService.shared
 
     @State private var showLogin = false
+    @State private var isSplashing = true
 
     var body: some View {
-        NavigationView {
-            if authService.isAuthenticated {
-                DashboardView()
-                    .environmentObject(workoutViewModel)
+        ZStack {
+            if isSplashing {
+                LaunchScreenView()
+                    .transition(.opacity)
+                    .zIndex(1)
             } else {
-                OnboardingFlowView()
-                    .environmentObject(workoutViewModel)
-                    .sheet(isPresented: $showLogin) {
-                        LoginView()
+                NavigationView {
+                    if authService.isAuthenticated {
+                        DashboardView()
+                            .environmentObject(workoutViewModel)
+                    } else {
+                        OnboardingFlowView()
+                            .environmentObject(workoutViewModel)
+                            .sheet(isPresented: $showLogin) {
+                                LoginView()
+                            }
                     }
+                }
+                .zIndex(0)
+            }
+        }
+        .task {
+            // Wait for exact animation duration (3.5 seconds) then fade to main app
+            try? await Task.sleep(for: .seconds(3.5))
+            withAnimation(.easeInOut(duration: 0.5)) {
+                isSplashing = false
             }
         }
     }
