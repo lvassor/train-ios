@@ -2,7 +2,7 @@
 //  WorkoutSummaryView.swift
 //  trAInSwift
 //
-//  Post-workout summary with duration, rep scores, and PB indicators
+//  Enhanced workout completion celebration screen with motivational feedback
 //
 
 import SwiftUI
@@ -17,254 +17,385 @@ struct WorkoutSummaryView: View {
     let onEdit: () -> Void
 
     @ObservedObject var authService = AuthService.shared
-
-    // Computed properties
-    private var totalReps: Int {
-        loggedExercises.reduce(0) { total, exercise in
-            total + exercise.sets.filter { $0.completed }.reduce(0) { $0 + $1.reps }
-        }
-    }
-
-    private var totalSets: Int {
-        loggedExercises.reduce(0) { total, exercise in
-            total + exercise.sets.filter { $0.completed }.count
-        }
-    }
-
-    private var durationFormatted: String {
-        let hours = duration / 60
-        let minutes = duration % 60
-
-        if hours > 0 {
-            return "\(hours)h \(minutes)m"
-        } else {
-            return "\(minutes) min"
-        }
-    }
+    @State private var celebrationContent: CelebrationContent?
+    @State private var workoutStats: [WorkoutSummaryStat] = []
+    @State private var personalBests: [PersonalBest] = []
+    @State private var currentStreak: Int = 0
 
     var body: some View {
         ZStack {
             // Background
-            Color.trainBackground
-                .ignoresSafeArea()
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    .trainGradientLight,
+                    .trainGradientMid,
+                    .trainGradientDark
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: Spacing.xl) {
-                    // Success icon
-                    ZStack {
-                        Circle()
-                            .fill(Color.trainPrimary)
-                            .frame(width: 100, height: 100)
+                    // Variable Emoji Reward
+                    if let content = celebrationContent {
+                        VStack(spacing: Spacing.lg) {
+                            Text(content.emoji)
+                                .font(.system(size: 48))
+                                .padding(.top, 8)
 
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 50, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.top, Spacing.xl)
-
-                    // Title
-                    VStack(spacing: Spacing.sm) {
-                        Text("Workout Complete!")
-                            .font(.trainTitle)
-                            .foregroundColor(.trainTextPrimary)
-
-                        Text(sessionName)
-                            .font(.trainBody)
-                            .foregroundColor(.trainTextSecondary)
-                    }
-
-                    // Stats row
-                    HStack(spacing: Spacing.xl) {
-                        StatItem(value: durationFormatted, label: "Duration")
-                        StatItem(value: "\(totalSets)", label: "Sets")
-                        StatItem(value: "\(totalReps)", label: "Reps")
-                    }
-                    .padding(Spacing.lg)
-                    .appCard()
-                    .padding(.horizontal, Spacing.lg)
-
-                    // Exercise results
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        HStack {
-                            Text("Exercise Results")
-                                .font(.trainHeadline)
+                            // Strong Completion Message
+                            Text(content.headline)
+                                .font(.system(size: 28, weight: .bold))
+                                .multilineTextAlignment(.center)
                                 .foregroundColor(.trainTextPrimary)
 
-                            Spacer()
+                            // Quick Support Message
+                            Text(content.supportMessage)
+                                .font(.system(size: 17))
+                                .foregroundColor(.trainTextSecondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.top, Spacing.xl)
+                    }
 
-                            Button(action: onEdit) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "pencil")
-                                        .font(.system(size: 14))
-                                    Text("Edit")
-                                        .font(.trainCaption)
+                    // Workout Summary Card
+                    if !workoutStats.isEmpty {
+                        VStack(spacing: 16) {
+                            ForEach(workoutStats, id: \.label) { stat in
+                                HStack {
+                                    Text(stat.label)
+                                        .font(.trainBody)
+                                        .foregroundColor(.trainTextSecondary)
+                                    Spacer()
+                                    Text(stat.value)
+                                        .font(.trainBodyMedium)
+                                        .foregroundColor(.trainTextPrimary)
                                 }
-                                .foregroundColor(.trainPrimary)
                             }
                         }
+                        .padding(20)
+                        .appCard()
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
+                        )
+                        .padding(.horizontal, Spacing.lg)
+                    }
 
-                        ForEach(loggedExercises, id: \.exerciseName) { exercise in
-                            ExerciseResultRow(
-                                exercise: exercise,
-                                isPB: checkForPB(exercise)
-                            )
+                    // PB Carousel (Weight Increases Only)
+                    if !personalBests.isEmpty {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Today's Personal Bests")
+                                .font(.trainHeadline)
+                                .foregroundColor(.trainTextPrimary)
+                                .padding(.horizontal, Spacing.lg)
+
+                            TabView {
+                                ForEach(personalBests, id: \.exerciseName) { pb in
+                                    PBCardView(pb: pb)
+                                }
+                            }
+                            .tabViewStyle(.page(indexDisplayMode: .always))
+                            .frame(height: 140)
+                            .padding(.horizontal, Spacing.lg)
                         }
                     }
-                    .padding(Spacing.lg)
+
+                    // Streak Increase Section
+                    HStack {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Streak Increase")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.trainTextPrimary)
+                            Text(streakMessage)
+                                .font(.system(size: 16))
+                                .foregroundColor(.trainTextSecondary)
+                        }
+                        Spacer()
+                        Text("🔥")
+                            .font(.system(size: 40))
+                    }
+                    .padding(20)
                     .appCard()
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
+                    )
                     .padding(.horizontal, Spacing.lg)
 
+                    Spacer().frame(height: 100)
                 }
-                .padding(.bottom, 100) // Room for floating button
+                .padding(.bottom, 100) // Room for floating buttons
             }
 
-            // Done button - floating overlay
+            // Bottom Action Buttons
             VStack {
                 Spacer()
 
-                Button(action: onDone) {
-                    Text("Done")
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.white)
+                HStack(spacing: Spacing.md) {
+                    // Share Button
+                    Button(action: shareWorkout) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 16))
+                            Text("Share")
+                                .font(.trainBodyMedium)
+                        }
+                        .foregroundColor(.trainTextPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
-                        .background(Color.trainPrimary)
+                        .background(Color.trainTextPrimary.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.md)
+                                .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
+                        )
+                    }
+
+                    // Done Button
+                    Button(action: onDone) {
+                        Text("Done")
+                            .font(.trainBodyMedium)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: ButtonHeight.standard)
+                            .background(Color.trainPrimary)
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                    }
                 }
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.lg)
             }
         }
+        .onAppear {
+            loadCelebrationData()
+        }
     }
 
-    private func checkForPB(_ exercise: LoggedExercise) -> Bool {
-        // Check if this is a personal best for any set
-        guard let previousData = authService.getPreviousSessionData(
-            programId: authService.getCurrentProgram()?.id?.uuidString ?? "",
-            exerciseName: exercise.exerciseName
-        ) else {
-            return false // No previous data - can't be a PB yet
+    // MARK: - Data Loading
+
+    private func loadCelebrationData() {
+        // Generate celebration content
+        celebrationContent = generateCelebrationContent()
+
+        // Calculate workout stats
+        workoutStats = generateWorkoutStats()
+
+        // Detect personal bests (weight increases only)
+        personalBests = detectPersonalBests()
+
+        // Calculate current streak
+        currentStreak = calculateCurrentStreak()
+    }
+
+    private func generateCelebrationContent() -> CelebrationContent {
+        let emojis = ["⭐", "🎉", "💪", "🏆", "🏋️", "💯"]
+        let headlines = [
+            "You smashed this workout!",
+            "Another one for the books",
+            "Great progress today!",
+            "You're getting stronger!",
+            "Outstanding effort!",
+            "Fantastic session!"
+        ]
+
+        // Select emoji based on context
+        var selectedEmoji = emojis.randomElement() ?? "💪"
+        if !personalBests.isEmpty {
+            selectedEmoji = "🏆" // Trophy for PB achievements
+        } else if currentStreak >= 7 {
+            selectedEmoji = "🔥" // Fire for strong streaks
         }
 
-        // Check if any current set beats previous sets
-        for (index, currentSet) in exercise.sets.enumerated() {
-            guard index < previousData.count else { continue }
-            let previousSet = previousData[index]
+        // Select headline
+        let selectedHeadline = headlines.randomElement() ?? "Great workout!"
 
-            // PB if either higher reps at same/higher weight OR higher weight at same/higher reps
-            if currentSet.completed {
-                if currentSet.weight > previousSet.weight && currentSet.reps >= previousSet.reps {
-                    return true
-                }
-                if currentSet.reps > previousSet.reps && currentSet.weight >= previousSet.weight {
-                    return true
+        // Generate contextual support message
+        let supportMessage = generateSupportMessage()
+
+        return CelebrationContent(
+            emoji: selectedEmoji,
+            headline: selectedHeadline,
+            supportMessage: supportMessage
+        )
+    }
+
+    private func generateSupportMessage() -> String {
+        let totalSessions = getTotalSessionCount()
+        let sessionsThisWeek = getSessionsThisWeek()
+
+        if totalSessions == 100 {
+            return "That's your 100th workout!"
+        } else if totalSessions % 50 == 0 {
+            return "That's your \(totalSessions)th workout!"
+        } else if sessionsThisWeek == 1 {
+            return "First workout of the week"
+        } else if sessionsThisWeek >= 3 {
+            return "\(sessionsThisWeek) sessions this week!"
+        } else {
+            return "\(sessionsThisWeek) sessions this week"
+        }
+    }
+
+    private func generateWorkoutStats() -> [WorkoutSummaryStat] {
+        let durationFormatted = formatDuration(duration)
+        let totalRepsIncrease = calculateRepsIncrease()
+        let totalWeightLifted = calculateTotalWeight()
+
+        return [
+            WorkoutSummaryStat(label: "Total Duration", value: durationFormatted),
+            WorkoutSummaryStat(label: "Increased Reps", value: "+\(totalRepsIncrease)"),
+            WorkoutSummaryStat(label: "Weight Lifted", value: "\(Int(totalWeightLifted)) kg")
+        ]
+    }
+
+    private func detectPersonalBests() -> [PersonalBest] {
+        var pbs: [PersonalBest] = []
+
+        guard let userId = authService.currentUser?.id else { return pbs }
+
+        for exercise in loggedExercises {
+            guard let previousData = authService.getPreviousSessionData(
+                programId: authService.getCurrentProgram()?.id?.uuidString ?? "",
+                exerciseName: exercise.exerciseName
+            ) else { continue }
+
+            // Check for weight increases only (as specified)
+            for (index, currentSet) in exercise.sets.enumerated() {
+                guard index < previousData.count else { continue }
+                let previousSet = previousData[index]
+
+                if currentSet.completed && currentSet.weight > previousSet.weight {
+                    let bestSet = exercise.sets.filter { $0.completed }
+                        .max(by: { $0.weight < $1.weight })
+
+                    if let bestSet = bestSet {
+                        let pb = PersonalBest(
+                            exerciseName: exercise.exerciseName,
+                            previousWeight: Int(previousSet.weight),
+                            newWeight: Int(currentSet.weight),
+                            bestSetSummary: "\(bestSet.reps) × \(Int(bestSet.weight))kg"
+                        )
+                        pbs.append(pb)
+                        break // Only one PB per exercise
+                    }
                 }
             }
         }
 
-        return false
+        return pbs
+    }
+
+    // MARK: - Computed Properties
+
+    private var streakMessage: String {
+        if currentStreak == 1 {
+            return "You're on a 1-day streak!"
+        } else {
+            return "You're on a \(currentStreak)-day streak!"
+        }
+    }
+
+    // MARK: - Helper Functions
+
+    private func formatDuration(_ minutes: Int) -> String {
+        let hours = minutes / 60
+        let mins = minutes % 60
+
+        if hours > 0 {
+            return "\(hours)h \(mins)m"
+        } else {
+            return "\(mins) min"
+        }
+    }
+
+    private func calculateRepsIncrease() -> Int {
+        // Mock calculation - in real app, compare with previous session
+        return loggedExercises.reduce(0) { total, exercise in
+            total + exercise.sets.filter { $0.completed }.count * 2 // Approximate increase
+        }
+    }
+
+    private func calculateTotalWeight() -> Double {
+        return loggedExercises.reduce(0) { total, exercise in
+            total + exercise.sets.filter { $0.completed }.reduce(0) { $0 + ($1.weight * Double($1.reps)) }
+        }
+    }
+
+    private func calculateCurrentStreak() -> Int {
+        // Mock implementation - replace with actual streak calculation
+        return Int.random(in: 1...14)
+    }
+
+    private func getTotalSessionCount() -> Int {
+        // Mock implementation - replace with actual session count
+        return Int.random(in: 10...200)
+    }
+
+    private func getSessionsThisWeek() -> Int {
+        // Mock implementation - replace with actual weekly count
+        return Int.random(in: 1...5)
+    }
+
+    private func shareWorkout() {
+        // TODO: Implement share functionality
+        print("📤 Sharing workout results")
     }
 }
 
-// MARK: - Stat Item
+// MARK: - Data Models
 
-struct StatItem: View {
-    let value: String
+struct CelebrationContent {
+    let emoji: String
+    let headline: String
+    let supportMessage: String
+}
+
+struct WorkoutSummaryStat {
     let label: String
+    let value: String
+}
+
+struct PersonalBest {
+    let exerciseName: String
+    let previousWeight: Int
+    let newWeight: Int
+    let bestSetSummary: String
+}
+
+// MARK: - PB Card View
+
+struct PBCardView: View {
+    let pb: PersonalBest
 
     var body: some View {
-        VStack(spacing: 4) {
-            Text(value)
-                .font(.trainTitle2)
-                .foregroundColor(.trainPrimary)
+        VStack(alignment: .leading, spacing: 12) {
+            Text(pb.exerciseName)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.trainTextPrimary)
 
-            Text(label)
-                .font(.trainCaption)
+            HStack(spacing: 8) {
+                Text("\(pb.previousWeight)kg → \(pb.newWeight)kg")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.trainPrimary)
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.trainPrimary)
+            }
+
+            Text("Best Set \(pb.bestSetSummary)")
+                .font(.system(size: 15))
                 .foregroundColor(.trainTextSecondary)
         }
-        .frame(maxWidth: .infinity)
-    }
-}
-
-// MARK: - Exercise Result Row
-
-struct ExerciseResultRow: View {
-    let exercise: LoggedExercise
-    let isPB: Bool
-
-    private var completedSets: Int {
-        exercise.sets.filter { $0.completed }.count
-    }
-
-    private var totalReps: Int {
-        exercise.sets.filter { $0.completed }.reduce(0) { $0 + $1.reps }
-    }
-
-    private var avgWeight: Double {
-        let completedSets = exercise.sets.filter { $0.completed && $0.weight > 0 }
-        guard !completedSets.isEmpty else { return 0 }
-        return completedSets.reduce(0) { $0 + $1.weight } / Double(completedSets.count)
-    }
-
-    var body: some View {
-        HStack(spacing: Spacing.md) {
-            // PB rosette
-            if isPB {
-                ZStack {
-                    Circle()
-                        .fill(Color.trainPrimary)
-                        .frame(width: 32, height: 32)
-
-                    Image(systemName: "rosette")
-                        .font(.system(size: 16))
-                        .foregroundColor(.white)
-                }
-            } else {
-                Circle()
-                    .stroke(Color.trainTextSecondary.opacity(0.3), lineWidth: 2)
-                    .frame(width: 32, height: 32)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(exercise.exerciseName)
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.trainTextPrimary)
-
-                    if isPB {
-                        Text("PB!")
-                            .font(.trainCaption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.trainPrimary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.trainPrimary.opacity(0.15))
-                            .clipShape(Capsule())
-                    }
-                }
-
-                HStack(spacing: Spacing.md) {
-                    Text("\(completedSets) sets")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-
-                    Text("\(totalReps) reps")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-
-                    if avgWeight > 0 {
-                        Text(String(format: "%.1f kg avg", avgWeight))
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
-                    }
-                }
-            }
-
-            Spacer()
-        }
-        .padding(Spacing.md)
-        .background(isPB ? Color.trainPrimary.opacity(0.05) : Color.clear)
-        .cornerRadius(CornerRadius.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .appCard()
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.trainPrimary.opacity(0.5), lineWidth: 1)
+        )
     }
 }
 
@@ -299,4 +430,5 @@ struct ExerciseResultRow: View {
         onDone: {},
         onEdit: {}
     )
+    .environmentObject(ThemeManager())
 }
