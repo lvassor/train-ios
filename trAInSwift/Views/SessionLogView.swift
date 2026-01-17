@@ -319,7 +319,7 @@ struct ExerciseLogCard: View {
                             .font(.trainBody)
                             .foregroundColor(.trainTextSecondary)
 
-                        Text("\(Int(set.weight))kg • \(set.reps) reps")
+                        Text("\(set.weight, specifier: "%.1f")kg • \(set.reps) reps")
                             .font(.trainBody)
                             .foregroundColor(.trainTextPrimary)
 

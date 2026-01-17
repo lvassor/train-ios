@@ -94,7 +94,7 @@ struct ExerciseLoggerView: View {
                     onBack: onCancel
                 )
 
-                // Tab toggle with native segmented picker
+                // Tab toggle with native segmented picker - ensure it stays functional
                 Picker("View", selection: $selectedTab) {
                     ForEach(LoggerTabOption.allCases, id: \.self) { tab in
                         Label(tab.rawValue, systemImage: tab.icon)
@@ -105,6 +105,7 @@ struct ExerciseLoggerView: View {
                 .frame(width: 280)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.md)
+                .zIndex(10) // Ensure toolbar stays above content
                 .onChange(of: selectedTab) { _, newTab in
                     if newTab == .demo || newTab == .history {
                         loadExerciseDetails()
@@ -115,7 +116,7 @@ struct ExerciseLoggerView: View {
                 if selectedTab == .logger {
                     ScrollView {
                         VStack(spacing: Spacing.lg) {
-                            // Exercise info
+                            // Exercise info - only show on Logger tab
                             ExerciseLoggerInfoCard(exercise: exercise)
                                 .padding(.horizontal, Spacing.lg)
                                 .padding(.top, Spacing.md)
@@ -136,7 +137,7 @@ struct ExerciseLoggerView: View {
                     }
                     .scrollDismissesKeyboard(.interactively)
                 } else if selectedTab == .demo {
-                    // Demo view
+                    // Demo view - no overlapping title
                     if let dbExercise = selectedDBExercise {
                         ExerciseDemoTab(exercise: dbExercise)
                     } else {
@@ -146,10 +147,11 @@ struct ExerciseLoggerView: View {
                         }
                         .frame(maxHeight: .infinity)
                     }
-                } else {
-                    // History view
+                } else if selectedTab == .history {
+                    // History view - no overlapping title, ensure proper layout
                     if let dbExercise = selectedDBExercise {
                         ExerciseHistoryView(exercise: dbExercise)
+                            .padding(.top, Spacing.sm) // Add small top padding to prevent overlap
                     } else {
                         VStack {
                             ProgressView("Loading exercise...")

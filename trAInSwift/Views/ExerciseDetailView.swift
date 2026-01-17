@@ -43,7 +43,7 @@ struct ExerciseDetailView: View {
                             }
                             .padding(.horizontal, Spacing.md)
                             .padding(.vertical, 10)
-                            .background(selectedTab == .logger ? Color.trainPrimary.opacity(0.15) : Color.clear)
+                            .background(selectedTab == .logger ? Color.white.opacity(0.2) : Color.clear)
                             .clipShape(Capsule())
                         }
                     }
@@ -63,7 +63,7 @@ struct ExerciseDetailView: View {
                         }
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, 10)
-                        .background(selectedTab == .demo ? Color.trainPrimary.opacity(0.15) : Color.clear)
+                        .background(selectedTab == .demo ? Color.white.opacity(0.2) : Color.clear)
                         .clipShape(Capsule())
                     }
 
@@ -82,12 +82,12 @@ struct ExerciseDetailView: View {
                         }
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, 10)
-                        .background(selectedTab == .history ? Color.trainPrimary.opacity(0.15) : Color.clear)
+                        .background(selectedTab == .history ? Color.white.opacity(0.2) : Color.clear)
                         .clipShape(Capsule())
                     }
                 }
                 .padding(4)
-                .background(Color.white.opacity(0.08))
+                .background(.ultraThinMaterial) // Proper glass effect instead of white opacity
                 .clipShape(Capsule())
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.md)

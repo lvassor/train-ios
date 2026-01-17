@@ -13,7 +13,6 @@ struct ContentView: View {
     @ObservedObject private var workoutViewModel = WorkoutViewModel.shared
     @ObservedObject private var authService = AuthService.shared
 
-    @State private var showQuestionnaire = false
     @State private var showLogin = false
 
     var body: some View {
@@ -22,23 +21,11 @@ struct ContentView: View {
                 DashboardView()
                     .environmentObject(workoutViewModel)
             } else {
-                WelcomeView(
-                    onContinue: {
-                        showQuestionnaire = true
-                    },
-                    onLogin: {
-                        showLogin = true
-                    }
-                )
-                .sheet(isPresented: $showQuestionnaire) {
-                    QuestionnaireView(onComplete: {
-                        showQuestionnaire = false
-                    })
+                OnboardingFlowView()
                     .environmentObject(workoutViewModel)
-                }
-                .sheet(isPresented: $showLogin) {
-                    LoginView()
-                }
+                    .sheet(isPresented: $showLogin) {
+                        LoginView()
+                    }
             }
         }
     }

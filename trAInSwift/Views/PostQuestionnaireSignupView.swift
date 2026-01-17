@@ -281,8 +281,9 @@ struct PostQuestionnaireSignupView: View {
 
             case .failure(let error):
                 if error == .cancelled {
-                    print("🍎 [APPLE SIGNIN] 🚫 User cancelled Apple Sign In - calling onSignupCancel()")
-                    onSignupCancel?()
+                    print("🍎 [APPLE SIGNIN] 🚫 User cancelled Apple Sign In - staying on signup options page")
+                    // Don't call onSignupCancel() - user should stay on signup options page
+                    // This fixes the navigation issue where cancelled Apple signin went to wrong page
                 } else {
                     print("🍎 [APPLE SIGNIN] ❌ Error: \(error.localizedDescription)")
                     errorMessage = error.localizedDescription
@@ -324,8 +325,9 @@ struct PostQuestionnaireSignupView: View {
 
             case .failure(let error):
                 if error == .cancelled {
-                    print("🔍 [GOOGLE SIGNUP] 🚫 User cancelled Google Sign Up - calling onSignupCancel()")
-                    onSignupCancel?()
+                    print("🔍 [GOOGLE SIGNUP] 🚫 User cancelled Google Sign Up - staying on signup options page")
+                    // Don't call onSignupCancel() - user should stay on signup options page
+                    // This matches the behavior of email signup cancellation
                 } else {
                     print("🔍 [GOOGLE SIGNUP] ❌ Error: \(error.localizedDescription)")
                     errorMessage = error.localizedDescription

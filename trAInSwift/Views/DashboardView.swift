@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import Combine
 
 struct DashboardView: View {
     var body: some View {
@@ -63,6 +64,9 @@ struct DashboardContent: View {
                         }
                         .padding(.horizontal, Spacing.lg)
                         .padding(.top, Spacing.md)
+
+                        // Active workout timer display
+                        ActiveWorkoutTimerView()
 
                         if let program = userProgram {
                             // Weekly Calendar (now at top with session counter)
@@ -577,21 +581,65 @@ struct SessionActionButton: View {
     let sessionIndex: Int
     let isCompleted: Bool
     let hasBeenCompletedThisWeek: Bool
+    @ObservedObject private var workoutState = WorkoutStateManager.shared
+
+    private var isActiveWorkout: Bool {
+        guard let activeWorkout = workoutState.activeWorkout else { return false }
+        return activeWorkout.sessionIndex == sessionIndex
+    }
+
+    private var buttonText: String {
+        if isActiveWorkout {
+            return "Continue Workout"
+        } else {
+            return "Start Workout"
+        }
+    }
+
+    private var buttonColor: Color {
+        if isActiveWorkout {
+            return Color.orange // Different color for continue workout
+        } else {
+            return Color.trainPrimary
+        }
+    }
 
     var body: some View {
         VStack(spacing: Spacing.sm) {
-            // Always show Start Workout button (now allows 4th session even when 3/3 completed)
+            // Active workout indicator (if there's an active workout but it's a different session)
+            if workoutState.isWorkoutActive && !isActiveWorkout {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "timer")
+                        .font(.system(size: 12))
+                        .foregroundColor(.orange)
+                    Text("Active workout: \(workoutState.activeWorkout?.sessionName ?? "")")
+                        .font(.trainCaption)
+                        .foregroundColor(.orange)
+                }
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
+                .background(Color.orange.opacity(0.1))
+                .clipShape(Capsule())
+            }
+
+            // Start/Continue Workout button
             NavigationLink(destination: WorkoutOverviewView(
                 weekNumber: Int(userProgram.currentWeek),
                 sessionIndex: sessionIndex
             )) {
-                Text("Start Workout")
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, Spacing.md)
-                    .background(Color.trainPrimary)
-                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                HStack {
+                    if isActiveWorkout {
+                        Image(systemName: "play.circle.fill")
+                            .font(.system(size: 18))
+                    }
+                    Text(buttonText)
+                        .font(.trainBodyMedium)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.md)
+                .background(buttonColor)
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
             }
 
             // Show View Completed Workout button below Start button if session has been completed this week
@@ -625,32 +673,47 @@ struct ExerciseListView: View {
     private let orangeAccent = Color.trainPrimary
     private let warmSecondary = Color.trainTextSecondary
 
+    // Dynamic row height to better fit content and spacing
+    private let exerciseRowHeight: CGFloat = 65
+
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            // Vertical timeline line
+            // Vertical timeline line - fixed to match exercise count exactly
             VStack(spacing: 0) {
                 ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, _ in
                     VStack(spacing: 0) {
+                        // Top spacer to center the node vertically with exercise title
+                        Spacer()
+                            .frame(height: (exerciseRowHeight - 13) / 2)
+
                         // Timeline node (solid orange circle)
                         Circle()
                             .fill(orangeAccent)
                             .frame(width: 13, height: 13)
 
+                        // Bottom spacer
+                        Spacer()
+                            .frame(height: (exerciseRowHeight - 13) / 2)
+
                         // Connecting line (don't show after last item)
                         if index < session.exercises.count - 1 {
                             Rectangle()
                                 .fill(timelineColor)
-                                .frame(width: 2, height: 44)
+                                .frame(width: 3, height: 8)  // Restored original connector line thickness
                         }
                     }
                 }
             }
             .padding(.trailing, 16)
 
-            // Exercise information - aligned to match circle tops
+            // Exercise information - title center aligned with node center
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(session.exercises) { exercise in
-                    VStack(alignment: .leading, spacing: 4) {
+                ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, exercise in
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Top spacer to position title center with node center
+                        Spacer()
+                            .frame(height: (exerciseRowHeight - 21) / 2) // 21 is approximate title height
+
                         HStack(alignment: .center) {
                             Text(exercise.exerciseName)
                                 .font(.system(size: 17, weight: .semibold))
@@ -662,12 +725,25 @@ struct ExerciseListView: View {
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(warmSecondary)
                         }
+                        .frame(height: 21) // Fixed height for title row
 
+                        // Subtitle positioned directly below title
                         Text("\(exercise.sets) × \(exercise.repRange) reps")
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(warmSecondary)
+                            .padding(.top, 2)
+
+                        // Bottom spacer to fill remaining height
+                        Spacer()
+                            .frame(minHeight: 0)
                     }
-                    .frame(height: 70, alignment: .top)
+                    .frame(height: exerciseRowHeight) // Total row height constraint
+
+                    // Add spacing between exercises except for last one
+                    if index < session.exercises.count - 1 {
+                        Spacer()
+                            .frame(height: 8)
+                    }
                 }
             }
         }
@@ -1075,6 +1151,90 @@ struct BottomNavItem: View {
             }
             .frame(maxWidth: .infinity)
         }
+    }
+}
+
+// MARK: - Active Workout Timer View
+
+struct ActiveWorkoutTimerView: View {
+    @ObservedObject private var workoutState = WorkoutStateManager.shared
+    @State private var currentTime = Date()
+    @State private var timer: Timer?
+
+    private var elapsedTimeFormatted: String {
+        guard let activeWorkout = workoutState.activeWorkout else { return "00:00" }
+        let elapsed = currentTime.timeIntervalSince(activeWorkout.startTime)
+        let hours = Int(elapsed) / 3600
+        let minutes = (Int(elapsed) % 3600) / 60
+        let seconds = Int(elapsed) % 60
+
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            return String(format: "%02d:%02d", minutes, seconds)
+        }
+    }
+
+    var body: some View {
+        if workoutState.shouldShowContinueButton {
+            HStack(spacing: Spacing.md) {
+                // Active workout indicator
+                HStack(spacing: Spacing.xs) {
+                    // Pulsing red dot to indicate active workout
+                    Circle()
+                        .fill(.red)
+                        .frame(width: 8, height: 8)
+                        .scaleEffect(1.2)
+                        .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: currentTime)
+
+                    Text("ACTIVE WORKOUT")
+                        .font(.trainCaption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.red)
+                }
+
+                Spacer()
+
+                // Live timer
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "timer")
+                        .font(.system(size: 14))
+                        .foregroundColor(.trainTextSecondary)
+
+                    Text(elapsedTimeFormatted)
+                        .font(.trainBodyMedium)
+                        .fontWeight(.medium)
+                        .foregroundColor(.trainTextPrimary)
+                        .monospacedDigit() // Ensures consistent width
+                }
+            }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.md)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.lg))
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
+                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+            )
+            .padding(.horizontal, Spacing.lg)
+            .onAppear {
+                startTimer()
+            }
+            .onDisappear {
+                stopTimer()
+            }
+        }
+    }
+
+    private func startTimer() {
+        timer?.invalidate() // Clear any existing timer
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            currentTime = Date()
+        }
+    }
+
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
     }
 }
 

@@ -74,6 +74,14 @@ private struct InterstitialScreen: View {
 
     var body: some View {
         ZStack {
+            // Fallback gradient background to prevent flash during video load
+            LinearGradient(
+                colors: [Color.black, Color(red: 0.1, green: 0.1, blue: 0.2)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea(.all)
+
             // Video background - now truly full screen
             GeometryReader { geo in
                 VideoBackgroundView(name: videoName)

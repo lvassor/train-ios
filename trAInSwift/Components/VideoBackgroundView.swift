@@ -25,6 +25,8 @@ class VideoPlayerView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        // Set dark background to prevent white flash
+        backgroundColor = .black
     }
 
     required init?(coder: NSCoder) {
@@ -42,7 +44,7 @@ class VideoPlayerView: UIView {
         print("✅ Video file found: \(videoURL.absoluteString)")
 
         // Create asset and player
-        let asset = AVAsset(url: videoURL)
+        let asset = AVURLAsset(url: videoURL)
         let playerItem = AVPlayerItem(asset: asset)
         player = AVQueuePlayer(playerItem: playerItem)
 
@@ -59,6 +61,8 @@ class VideoPlayerView: UIView {
         // Configure the player layer for FULL SCREEN edge-to-edge
         playerLayer.player = player
         playerLayer.videoGravity = .resizeAspectFill  // Fill and crop, no distortion
+
+        // Black background set in init prevents flash during video load
 
         // Start playing
         player.play()

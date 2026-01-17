@@ -43,26 +43,42 @@ struct ReferralStepView: View {
             ], spacing: Spacing.md) {
                 ForEach(referralOptions, id: \.id) { option in
                     Button(action: { selectedReferral = option.id }) {
-                        VStack(spacing: Spacing.sm) {
+                        VStack(spacing: Spacing.md) {
+                            // Enhanced icon container with better visual hierarchy
                             ZStack {
                                 Circle()
-                                    .fill(selectedReferral == option.id ? Color.white.opacity(0.3) : Color.trainHover)
-                                    .frame(width: 48, height: 48)
+                                    .fill(selectedReferral == option.id ? Color.trainPrimary : Color.trainHover)
+                                    .frame(width: 56, height: 56)
+                                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
 
                                 Image(systemName: option.icon)
-                                    .font(.title2)
+                                    .font(.system(size: 24, weight: .medium))
                                     .foregroundColor(selectedReferral == option.id ? .white : .trainPrimary)
                             }
 
                             Text(option.title)
-                                .font(.trainBody)
-                                .foregroundColor(selectedReferral == option.id ? .white : .trainTextPrimary)
+                                .font(.trainBodyMedium)
+                                .foregroundColor(selectedReferral == option.id ? .trainPrimary : .trainTextPrimary)
                                 .multilineTextAlignment(.center)
                                 .lineLimit(2)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.lg)
-                        .background(selectedReferral == option.id ? Color.trainPrimary : .clear)
+                        .background(
+                            selectedReferral == option.id
+                                ? Color.trainPrimary.opacity(0.05)
+                                : Color.clear
+                        )
+                        .overlay(
+                            // Border highlight for selected state
+                            RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous)
+                                .stroke(
+                                    selectedReferral == option.id
+                                        ? Color.trainPrimary.opacity(0.3)
+                                        : Color.clear,
+                                    lineWidth: 2
+                                )
+                        )
                         .appCard()
                     }
                     .buttonStyle(ScaleButtonStyle())

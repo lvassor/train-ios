@@ -498,15 +498,15 @@ struct ProgramCard: View {
             Text("This will create a new program while keeping your current one available to switch back to.")
         }
         .fullScreenCover(isPresented: $shouldRestartQuestionnaire) {
-            QuestionnaireView(
-                onComplete: {
-                    shouldRestartQuestionnaire = false
-                },
-                onBack: {
-                    shouldRestartQuestionnaire = false
+            OnboardingFlowView()
+                .environmentObject(WorkoutViewModel.shared)
+                .onAppear {
+                    print("🔄 [PROFILE] Starting retake questionnaire with full onboarding flow")
                 }
-            )
-            .environmentObject(WorkoutViewModel.shared)
+                .onDisappear {
+                    shouldRestartQuestionnaire = false
+                    print("🔄 [PROFILE] Retake questionnaire flow completed")
+                }
         }
     }
 

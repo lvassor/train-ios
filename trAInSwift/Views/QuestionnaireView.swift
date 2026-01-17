@@ -18,7 +18,7 @@ struct QuestionnaireView: View {
     @State private var isSignupInProgress = false  // Safeguard to prevent state conflicts during signup
 
     let onComplete: () -> Void
-    var onBack: (() -> Void)?
+    var onBack: (() -> Void)? = nil
 
     // Total steps: Main questionnaire flow (referral moved to post-signup)
     var totalSteps: Int {
