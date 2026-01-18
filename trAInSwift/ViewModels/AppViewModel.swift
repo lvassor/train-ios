@@ -22,8 +22,7 @@ class AppViewModel: ObservableObject {
     private let programGenerator = ProgramGenerator()
 
     init() {
-        // Load exercise database on init
-        _ = ExerciseDatabaseService.shared
+        // Database is now loaded directly via GRDB models
     }
 
     // MARK: - Questionnaire Completion

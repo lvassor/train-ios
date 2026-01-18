@@ -193,14 +193,12 @@ struct PostQuestionnaireSignupView: View {
             EmailSignupSheet(
                 onSignupSuccess: {
                     print("📧 [EMAIL SHEET] ✅✅✅ EMAIL SIGNUP SUCCESS! User completed signup form ✅✅✅")
-                    print("📧 [EMAIL SHEET] 🚀 Using safe navigation to prevent UIKit conflicts")
+                    print("📧 [EMAIL SHEET] 🚀 Dismissing sheet and calling onSignupSuccess directly")
                     viewModel.showEmailSignup = false  // Dismiss the sheet
 
-                    // Use safe navigation to prevent UIKit transition conflicts
-                    viewModel.safeNavigate {
-                        print("📧 [EMAIL SHEET] 🎯 Executing onSignupSuccess() via safe navigation")
-                        onSignupSuccess()
-                    }
+                    // Direct callback without safeNavigate to avoid conflicts
+                    print("📧 [EMAIL SHEET] 🎯 Executing onSignupSuccess() directly")
+                    onSignupSuccess()
                 },
                 questionnaireData: viewModel.questionnaireData,
                 generatedProgram: viewModel.generatedProgram
@@ -274,10 +272,8 @@ struct PostQuestionnaireSignupView: View {
                     print("🍎 [APPLE SIGNIN] ✅ Program saved to database after Apple Sign In")
                 }
 
-                print("🍎 [APPLE SIGNIN] 🚀 Using safe navigation for onSignupSuccess()")
-                viewModel.safeNavigate {
-                    onSignupSuccess()
-                }
+                print("🍎 [APPLE SIGNIN] 🚀 Calling onSignupSuccess() directly")
+                onSignupSuccess()
 
             case .failure(let error):
                 if error == .cancelled {
@@ -318,10 +314,8 @@ struct PostQuestionnaireSignupView: View {
                     print("🔍 [GOOGLE SIGNUP] ✅ Program saved to database after Google Sign Up")
                 }
 
-                print("🔍 [GOOGLE SIGNUP] 🚀 Using safe navigation for onSignupSuccess()")
-                viewModel.safeNavigate {
-                    onSignupSuccess()
-                }
+                print("🔍 [GOOGLE SIGNUP] 🚀 Calling onSignupSuccess() directly")
+                onSignupSuccess()
 
             case .failure(let error):
                 if error == .cancelled {

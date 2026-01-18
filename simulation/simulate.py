@@ -8,7 +8,13 @@ Usage:
 
 import argparse
 import csv
+import json
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import pandas as pd
 import random
+import seaborn as sns
 import sqlite3
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
@@ -20,25 +26,135 @@ from templates import get_session_templates
 from report import generate_summary_report, print_sample_results
 
 
-# Constants - MUST match Swift mapEquipmentFromQuestionnaire() exactly
-# Swift maps: dumbbells->Dumbbells, barbells->Barbells, cable_machines->Cables,
-#             kettlebells->Kettlebells, pin_loaded->Pin-Loaded Machines,
-#             plate_loaded->Plate-Loaded Machines, bodyweight/other->Other
-EXPERIENCE_LEVELS = ['NO_EXPERIENCE', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED']
-EQUIPMENT_OPTIONS = ['Barbells', 'Dumbbells', 'Kettlebells', 'Cables', 'Pin-Loaded Machines', 'Plate-Loaded Machines', 'Other']
+def load_constants():
+    """Load constants from constants.json file"""
+    # Look for constants.json in multiple locations
+    possible_paths = [
+        'constants.json',  # Current directory
+        '../constants.json',  # Parent directory
+        os.path.join('..', '..', 'constants.json'),  # Grandparent (if in simulation subdir)
+    ]
+
+    for path in possible_paths:
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                return json.load(f)
+
+    # Fallback to hardcoded constants if file not found
+    print("⚠️  Warning: constants.json not found, using fallback constants")
+    return {
+        'equipment_categories': ['Bodyweight', 'Barbells', 'Dumbbells', 'Kettlebells', 'Cables', 'Pin-Loaded Machines', 'Plate-Loaded Machines', 'Other'],
+        'experience_levels': ['NO_EXPERIENCE', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED']
+    }
+
+# Load constants from JSON (replaces hardcoded constants)
+constants = load_constants()
+EXPERIENCE_LEVELS = constants['experience_levels']
+EQUIPMENT_OPTIONS = constants['equipment_categories']
 DAYS_OPTIONS = [1, 2, 3, 4, 5, 6]
 DURATION_OPTIONS = ['30-45 min', '45-60 min', '60-90 min']
 GOAL_OPTIONS = ['Muscle Growth', 'Strength', 'General Fitness']
 
+print(f"✅ Loaded simulation constants from JSON")
+print(f"   Equipment: {EQUIPMENT_OPTIONS}")
+print(f"   Experience: {EXPERIENCE_LEVELS}")
+
+
+def create_analysis_plots(results_df: pd.DataFrame, output_dir: str = "."):
+    """Create heatmap visualizations for equipment vs days analysis"""
+
+    # Add equipment count column
+    results_df['equipment_count'] = results_df['equipment_list'].str.count(',') + 1
+    results_df.loc[results_df['equipment_list'].str.strip() == '[]', 'equipment_count'] = 0
+
+    # Add failure flag
+    results_df['failed'] = (results_df['status'] != 'SUCCESS').astype(int)
+
+    # Create pivot tables for heatmaps
+    failure_pivot = results_df.groupby(['equipment_count', 'days_per_week'])['failed'].agg(['mean', 'count']).reset_index()
+    failure_pivot['failure_rate'] = failure_pivot['mean'] * 100
+
+    # Only show combinations with at least 2 users for reliability
+    failure_pivot = failure_pivot[failure_pivot['count'] >= 2]
+
+    # Create heatmap data
+    heatmap_failure = failure_pivot.pivot(index='equipment_count', columns='days_per_week', values='failure_rate')
+    heatmap_count = failure_pivot.pivot(index='equipment_count', columns='days_per_week', values='count')
+
+    # Plot 1: Failure Rate Heatmap
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(heatmap_failure,
+                annot=True,
+                fmt='.1f',
+                cmap='Reds',
+                cbar_kws={'label': 'Failure Rate (%)'},
+                vmin=0,
+                vmax=100)
+    plt.title('Program Generation Failure Rate by Equipment Count vs Training Days', fontsize=14, fontweight='bold')
+    plt.xlabel('Training Days per Week', fontsize=12)
+    plt.ylabel('Number of Equipment Types Available', fontsize=12)
+    plt.tight_layout()
+    plt.savefig(f'{output_dir}/failure_rate_heatmap.png', dpi=300, bbox_inches='tight')
+    plt.close()
+
+    # Plot 2: Sample Count Heatmap (to show data reliability)
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(heatmap_count,
+                annot=True,
+                fmt='d',
+                cmap='Blues',
+                cbar_kws={'label': 'Number of Users'})
+    plt.title('Sample Size by Equipment Count vs Training Days', fontsize=14, fontweight='bold')
+    plt.xlabel('Training Days per Week', fontsize=12)
+    plt.ylabel('Number of Equipment Types Available', fontsize=12)
+    plt.tight_layout()
+    plt.savefig(f'{output_dir}/sample_count_heatmap.png', dpi=300, bbox_inches='tight')
+    plt.close()
+
+    # Plot 3: Average Program Day Size (for successful programs only)
+    successful_programs = results_df[results_df['status'] == 'SUCCESS'].copy()
+    if len(successful_programs) > 0:
+        # Count total exercises (split by comma and count)
+        successful_programs['total_exercises'] = successful_programs['exercises_selected'].str.split(', ').str.len()
+        # Calculate average exercises per day (total exercises / days per week)
+        successful_programs['avg_exercises_per_day'] = successful_programs['total_exercises'] / successful_programs['days_per_week']
+
+        day_size_pivot = successful_programs.groupby(['equipment_count', 'days_per_week'])['avg_exercises_per_day'].agg(['mean', 'count']).reset_index()
+        day_size_pivot = day_size_pivot[day_size_pivot['count'] >= 2]  # At least 2 successful cases
+
+        heatmap_day_size = day_size_pivot.pivot(index='equipment_count', columns='days_per_week', values='mean')
+
+        plt.figure(figsize=(12, 8))
+        sns.heatmap(heatmap_day_size,
+                    annot=True,
+                    fmt='.1f',
+                    cmap='viridis',
+                    cbar_kws={'label': 'Avg Exercises per Day'})
+        plt.title('Average Program Day Size (Exercises per Day) for Successful Programs', fontsize=14, fontweight='bold')
+        plt.xlabel('Training Days per Week', fontsize=12)
+        plt.ylabel('Number of Equipment Types Available', fontsize=12)
+        plt.tight_layout()
+        plt.savefig(f'{output_dir}/program_day_size_heatmap.png', dpi=300, bbox_inches='tight')
+        plt.close()
+
+    # Print worst combinations
+    print("\n🚨 WORST EQUIPMENT-DAYS COMBINATIONS:")
+    worst_combinations = failure_pivot.nlargest(10, 'failure_rate')
+    for _, row in worst_combinations.iterrows():
+        print(f"  {int(row['equipment_count'])} equipment types, {int(row['days_per_week'])} days/week: "
+              f"{row['failure_rate']:.1f}% failure rate ({int(row['count'])} users)")
+
+    return failure_pivot, successful_programs
+
 
 def load_exercises_from_db(db_path: str) -> List[Exercise]:
-    """Load all exercises from the SQLite database"""
+    """Load all exercises from the SQLite database (updated for new schema)"""
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT exercise_id, canonical_name, display_name, equipment_category,
-               equipment_specific, complexity_level, is_isolation, primary_muscle,
+               equipment_specific, complexity_level, canonical_rating, primary_muscle,
                secondary_muscle, is_in_programme
         FROM exercises
         WHERE is_in_programme = 1
@@ -46,14 +162,27 @@ def load_exercises_from_db(db_path: str) -> List[Exercise]:
 
     exercises = []
     for row in cursor.fetchall():
+        # Convert complexity_level from TEXT to INT
+        complexity_text = row[5]
+        if complexity_text == "all":
+            complexity_int = 0
+        elif complexity_text == "1":
+            complexity_int = 1
+        elif complexity_text == "2":
+            complexity_int = 2
+        else:
+            complexity_int = 0  # Default fallback
+
+        canonical_rating = row[6]
+
         exercises.append(Exercise(
             exercise_id=row[0],
             canonical_name=row[1],
             display_name=row[2],
             equipment_category=row[3],
             equipment_specific=row[4],
-            complexity_level=row[5],
-            is_isolation=bool(row[6]),
+            complexity_level=complexity_int,
+            canonical_rating=canonical_rating,
             primary_muscle=row[7],
             secondary_muscle=row[8],
             is_in_programme=bool(row[9])
@@ -63,26 +192,33 @@ def load_exercises_from_db(db_path: str) -> List[Exercise]:
     return exercises
 
 
-def load_complexity_rules(db_path: str) -> Dict[str, Dict[str, Any]]:
-    """Load experience complexity rules from database"""
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT experience_level, max_complexity, max_complexity_4_per_session, complexity_4_must_be_first
-        FROM user_experience_complexity
-    """)
-
-    rules = {}
-    for row in cursor.fetchall():
-        rules[row[0]] = {
-            'max_complexity': row[1],
-            'max_complexity_4_per_session': row[2],
-            'complexity_4_must_be_first': bool(row[3])
+def get_complexity_rules(experience_level: str) -> Dict[str, Any]:
+    """Get experience complexity rules (hardcoded to match Swift ExperienceLevel.complexityRules)"""
+    # Mirror Swift ExperienceLevel enum complexity rules exactly
+    rules_map = {
+        'NO_EXPERIENCE': {
+            'max_complexity': 1,  # Only "all" and "1" exercises
+            'max_complexity_4_per_session': 0,  # No complexity-4 support
+            'complexity_4_must_be_first': False
+        },
+        'BEGINNER': {
+            'max_complexity': 1,  # Only "all" and "1" exercises
+            'max_complexity_4_per_session': 0,  # No complexity-4 support
+            'complexity_4_must_be_first': False
+        },
+        'INTERMEDIATE': {
+            'max_complexity': 2,  # Up to "2" exercises (all levels)
+            'max_complexity_4_per_session': 0,  # No complexity-4 support
+            'complexity_4_must_be_first': False
+        },
+        'ADVANCED': {
+            'max_complexity': 2,  # Up to "2" exercises (all levels)
+            'max_complexity_4_per_session': 0,  # No complexity-4 support
+            'complexity_4_must_be_first': False
         }
+    }
 
-    conn.close()
-    return rules
+    return rules_map.get(experience_level, rules_map['NO_EXPERIENCE'])
 
 
 def get_available_muscles(exercises: List[Exercise]) -> List[str]:
@@ -133,8 +269,7 @@ def generate_random_user_profile(available_muscles: List[str]) -> Dict[str, Any]
 def run_simulation(
     simulation_id: int,
     user_profile: Dict[str, Any],
-    all_exercises: List[Exercise],
-    complexity_rules: Dict[str, Dict[str, Any]]
+    all_exercises: List[Exercise]
 ) -> Dict[str, Any]:
     """
     Run a single programme generation simulation.
@@ -145,9 +280,11 @@ def run_simulation(
     days_per_week = user_profile['days_per_week']
     session_duration = user_profile['session_duration']
 
-    # Get complexity rules for this user
-    max_complexity = get_max_complexity(experience_level, complexity_rules)
-    max_c4_per_session, c4_must_be_first = get_complexity_4_rules(experience_level, complexity_rules)
+    # Get complexity rules for this user (hardcoded to match Swift)
+    complexity_rules = get_complexity_rules(experience_level)
+    max_complexity = complexity_rules['max_complexity']
+    max_c4_per_session = complexity_rules['max_complexity_4_per_session']
+    c4_must_be_first = complexity_rules['complexity_4_must_be_first']
 
     # Get session templates
     templates = get_session_templates(days_per_week, session_duration)
@@ -283,7 +420,7 @@ def main():
 
     # Load data
     all_exercises = load_exercises_from_db(str(db_path))
-    complexity_rules = load_complexity_rules(str(db_path))
+    # Complexity rules are now hardcoded to match Swift (removed database dependency)
     available_muscles = get_available_muscles(all_exercises)
 
     print(f"Loaded {len(all_exercises)} exercises")
@@ -295,7 +432,7 @@ def main():
     results = []
     for i in range(args.runs):
         user_profile = generate_random_user_profile(available_muscles)
-        result = run_simulation(i + 1, user_profile, all_exercises, complexity_rules)
+        result = run_simulation(i + 1, user_profile, all_exercises)
         results.append(result)
 
         if args.verbose and (i + 1) % 100 == 0:
@@ -313,6 +450,12 @@ def main():
     # Print sample results
     if args.verbose:
         print_sample_results(results)
+
+    # Generate analysis plots
+    print("\n📊 Generating analysis plots...")
+    results_df = pd.DataFrame(results)
+    failure_pivot, successful_programs = create_analysis_plots(results_df, output_dir=".")
+    print("✅ Plots saved to current directory")
 
     return 0
 

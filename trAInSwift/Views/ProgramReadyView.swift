@@ -72,12 +72,10 @@ struct ProgramReadyView: View {
                         print("🎯 [PROGRAM READY] PostQuestionnaireSignupView onSignupSuccess called")
                         print("🎯 [PROGRAM READY] 🚀 Signup successful - proceeding to post-signup flow (steps 18-19)")
 
-                        // Use safe navigation to prevent UIKit transition conflicts
-                        viewModel.safeNavigate {
-                            print("🎯 [PROGRAM READY] 🎯 Showing PostSignupFlowView instead of dashboard")
-                            showSignup = false  // Hide signup screen
-                            showPostSignupFlow = true  // Show steps 18-19
-                        }
+                        // Direct navigation without safeNavigate to avoid conflicts
+                        print("🎯 [PROGRAM READY] 🎯 Directly transitioning to PostSignupFlowView")
+                        showSignup = false  // Hide signup screen immediately
+                        showPostSignupFlow = true  // Show steps 18-19 immediately
                     },
                     onSignupCancel: {
                         print("🎯 [PROGRAM READY] 🚫 Signup cancelled - returning to Program Ready screen")

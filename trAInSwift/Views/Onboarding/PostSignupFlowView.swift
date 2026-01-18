@@ -37,6 +37,12 @@ struct PostSignupFlowView: View {
                     onComplete: {
                         print("🔄 [POST-SIGNUP] Step 19 (Referral) completed, finishing onboarding flow")
                         onComplete()
+                    },
+                    onBack: {
+                        print("⬅️ [POST-SIGNUP] Back from referral step, returning to notifications")
+                        withAnimation {
+                            currentStep = .notifications
+                        }
                     }
                 )
                 .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))

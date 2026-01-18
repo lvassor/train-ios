@@ -27,16 +27,13 @@ struct ProgramLoadingView: View {
             VStack(spacing: 48) {
                 Spacer()
 
-                // Animated Train logo instead of buffer wheel
+                // Static Train logo at 2x size - no pulse animation
                 Image("TrainLogoWithText")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(height: 60)
-                    .scaleEffect(progress == 0 ? 0.8 : 1.0)
-                    .opacity(progress == 0 ? 0.8 : 1.0)
-                    .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: progress)
+                    .frame(height: 120) // 2x larger than original 60pt
                     .onAppear {
-                        print("🎨 [LOADING] Using Train logo instead of buffer wheel")
+                        print("🎯 [PROGRAM_LOADING] Static Train logo loaded (2x size, no animation)")
                     }
 
                 // Title

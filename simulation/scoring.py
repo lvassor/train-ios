@@ -3,23 +3,33 @@ scoring.py - Exercise scoring logic mirroring Swift implementation
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import random
 
 
 @dataclass
 class Exercise:
-    """Represents an exercise from the database"""
+    """Represents an exercise from the database (updated for new schema)"""
     exercise_id: str
     canonical_name: str
     display_name: str
     equipment_category: str
     equipment_specific: Optional[str]
-    complexity_level: int
-    is_isolation: bool
+    complexity_level: int  # Converted from TEXT ("all"=0, "1"=1, "2"=2)
+    canonical_rating: int  # 0-100 score for MCV heuristic (replaces is_isolation)
     primary_muscle: str
     secondary_muscle: Optional[str]
     is_in_programme: bool
+
+    @property
+    def is_isolation(self) -> bool:
+        """Derived property: exercises with rating < 40 are typically isolation"""
+        return self.canonical_rating < 40
+
+    @property
+    def is_compound(self) -> bool:
+        """Derived property: exercises with rating >= 40 are typically compound"""
+        return self.canonical_rating >= 40
 
 
 @dataclass
@@ -45,18 +55,9 @@ def calculate_score(exercise: Exercise, experience_level: str) -> int:
         - Intermediate: 6
         - Beginner/No Experience: 4
     """
-    if exercise.is_isolation:
-        # Isolation scoring based on experience level
-        if experience_level == 'ADVANCED':
-            return 8
-        elif experience_level == 'INTERMEDIATE':
-            return 6
-        else:  # BEGINNER, NO_EXPERIENCE
-            return 4
-    else:
-        # Compound scoring based on complexity
-        complexity_scores = {4: 20, 3: 15, 2: 10, 1: 5}
-        return complexity_scores.get(exercise.complexity_level, 5)
+    # Use canonical_rating directly as the scoring mechanism (matching Swift)
+    # Higher canonical_rating = more important/compound exercises get higher scores
+    return exercise.canonical_rating
 
 
 def weighted_random_select(candidates: List[ScoredExercise]) -> Optional[ScoredExercise]:
@@ -80,6 +81,49 @@ def weighted_random_select(candidates: List[ScoredExercise]) -> Optional[ScoredE
             return candidate
 
     return candidates[-1]
+
+
+def mcv_select_exercises(
+    candidates: List[ScoredExercise],
+    count: int,
+    excluded_canonical_names: set = None,
+    excluded_display_names: set = None,
+    allow_display_name_repeats: bool = False
+) -> Tuple[List[ScoredExercise], bool]:
+    """
+    MCV Heuristic selection matching Swift implementation exactly.
+
+    Returns (selected_exercises, was_relaxed)
+    """
+    excluded_canonical_names = excluded_canonical_names or set()
+    excluded_display_names = excluded_display_names or set()
+
+    # Hard constraints: filter by canonical names (within session)
+    available_pool = [c for c in candidates if c.exercise.canonical_name not in excluded_canonical_names]
+
+    # Soft constraint: filter by display names (across programme) unless relaxed
+    if not allow_display_name_repeats:
+        available_pool = [c for c in available_pool if c.exercise.display_name not in excluded_display_names]
+
+    # Sort by canonical_rating (descending) with tie-breaker by display_name (ascending) for determinism
+    sorted_pool = sorted(available_pool, key=lambda c: (-c.exercise.canonical_rating, c.exercise.display_name))
+
+    selected_exercises = []
+    used_canonical_names = set()
+    relaxation_used = allow_display_name_repeats and excluded_display_names
+
+    for candidate in sorted_pool:
+        if len(selected_exercises) >= count:
+            break
+
+        # Skip if canonical name already used in this selection
+        if candidate.exercise.canonical_name in used_canonical_names:
+            continue
+
+        selected_exercises.append(candidate)
+        used_canonical_names.add(candidate.exercise.canonical_name)
+
+    return selected_exercises, relaxation_used
 
 
 def score_and_select_exercises(

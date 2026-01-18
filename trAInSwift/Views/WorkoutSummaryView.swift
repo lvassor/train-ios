@@ -341,7 +341,6 @@ struct WorkoutSummaryView: View {
 
     private func shareWorkout() {
         // TODO: Implement share functionality
-        print("📤 Sharing workout results")
     }
 }
 

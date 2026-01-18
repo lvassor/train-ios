@@ -32,60 +32,49 @@ struct QuestionnaireView: View {
                 ProgramReadyView(
                     program: program,
                     onStart: {
-                        print("📝 [QUESTIONNAIRE] ProgramReadyView onStart called - completing questionnaire")
                         viewModel.completeQuestionnaire()
                         onComplete()
                     },
                     onSignupStart: {
-                        print("📝 [QUESTIONNAIRE] 🚨🚨🚨 SIGNUP STARTING - Setting isSignupInProgress = true to prevent race conditions 🚨🚨🚨")
+                        print("🔄 [SIGNUP] Starting signup process - protecting questionnaire state")
                         isSignupInProgress = true
-                        print("📝 [QUESTIONNAIRE] ✅ isSignupInProgress flag is now: \(isSignupInProgress)")
-                        print("📝 [QUESTIONNAIRE] 🛡️ QuestionnaireView is now PROTECTED from state changes during signup")
                     },
                     onSignupCancel: {
-                        print("📝 [QUESTIONNAIRE] 🚫 SIGNUP CANCELLED - Resetting isSignupInProgress = false to remove protection")
+                        print("🚫 [SIGNUP] Signup cancelled - restoring questionnaire state")
                         isSignupInProgress = false
-                        print("📝 [QUESTIONNAIRE] ✅ isSignupInProgress flag is now: \(isSignupInProgress)")
-                        print("📝 [QUESTIONNAIRE] 🔓 QuestionnaireView protection removed - normal operation restored")
                     },
                     selectedMuscleGroups: viewModel.questionnaireData.targetMuscleGroups
                 )
                 .onAppear {
-                    print("📝 [QUESTIONNAIRE] VIEW STATE: Showing ProgramReadyView (showingProgramReady: \(showingProgramReady), isSignupInProgress: \(isSignupInProgress))")
                 }
             } else if showingProgramLoading {
                 if isSignupInProgress {
                     // This is the key fix - we DON'T show ProgramLoadingView during signup
                     EmptyView()
                         .onAppear {
-                            print("📝 [QUESTIONNAIRE] 🛡️🛡️🛡️ showingProgramLoading=true BUT isSignupInProgress=true - BLOCKING ProgramLoadingView! 🛡️🛡️🛡️")
-                            print("📝 [QUESTIONNAIRE] 🚨 This prevents the race condition bug from happening!")
+                            print("🛡️ [RACE_PROTECTION] Blocking ProgramLoadingView during signup")
                         }
                 } else {
                     ProgramLoadingView(onComplete: {
-                        print("📝 [QUESTIONNAIRE] ProgramLoadingView completed")
 
                         // Guard against race conditions during signup
                         guard !isSignupInProgress else {
-                            print("📝 [QUESTIONNAIRE] 🛡️🛡️🛡️ RACE CONDITION BLOCKED! Signup in progress - ignoring ProgramLoadingView completion 🛡️🛡️🛡️")
-                            print("📝 [QUESTIONNAIRE] 🚨 This would have caused the bug - program regeneration prevented!")
+                            print("🛡️ [RACE_PROTECTION] Ignoring ProgramLoadingView completion during signup")
                             return
                         }
 
                         // Only generate program if not already generated
                         if viewModel.generatedProgram == nil {
-                            print("📝 [QUESTIONNAIRE] Generating program...")
+                            print("🎯 [PROGRAM] Generating workout program...")
                             viewModel.generateProgram()
                         } else {
-                            print("📝 [QUESTIONNAIRE] Program already exists")
+                            print("🎯 [PROGRAM] Using existing workout program")
                         }
 
                         // Removed animation for instant transition
-                        print("📝 [QUESTIONNAIRE] Setting showingProgramReady = true")
                         showingProgramReady = true
                     })
                     .onAppear {
-                        print("📝 [QUESTIONNAIRE] VIEW STATE: Showing ProgramLoadingView")
                     }
                 }
             } else if isVideoInterstitialStep {
@@ -402,10 +391,22 @@ struct QuestionnaireView: View {
         // Check if leaving equipment step with limited equipment selection
         if (!skipHeightWeight && currentStep == 9) || (skipHeightWeight && currentStep == 8) {
             let equipmentCount = viewModel.questionnaireData.equipmentAvailable.count
-            if equipmentCount == 1 && !hasSeenEquipmentWarning {
-                // Show warning modal for single equipment selection
+            let equipmentList = viewModel.questionnaireData.equipmentAvailable
+
+            print("🔧 [EQUIPMENT DEBUG] Equipment validation triggered")
+            print("🔧 [EQUIPMENT DEBUG] Equipment count: \(equipmentCount)")
+            print("🔧 [EQUIPMENT DEBUG] Equipment list: \(equipmentList)")
+            print("🔧 [EQUIPMENT DEBUG] hasSeenEquipmentWarning: \(hasSeenEquipmentWarning)")
+            print("🔧 [EQUIPMENT DEBUG] skipHeightWeight: \(skipHeightWeight)")
+            print("🔧 [EQUIPMENT DEBUG] currentStep: \(currentStep)")
+
+            if equipmentCount <= 2 && !hasSeenEquipmentWarning {
+                print("🔧 [EQUIPMENT DEBUG] ⚠️ TRIGGERING EQUIPMENT WARNING - User has \(equipmentCount) pieces of equipment")
+                // Show warning modal for limited equipment selection (2 or fewer pieces)
                 showingEquipmentWarning = true
                 return
+            } else {
+                print("🔧 [EQUIPMENT DEBUG] ✅ Equipment validation passed - User has \(equipmentCount) pieces of equipment")
             }
         }
 
@@ -413,28 +414,28 @@ struct QuestionnaireView: View {
     }
 
     private func proceedFromEquipmentStep() {
-        // Called after user dismisses the equipment warning
+        print("🔧 [EQUIPMENT DEBUG] User dismissed equipment warning - proceeding with limited equipment")
+        hasSeenEquipmentWarning = true
         proceedToNextStep()
     }
 
     private func proceedToNextStep() {
-        print("📝 [QUESTIONNAIRE] proceedToNextStep called, currentStep: \(currentStep), isSignupInProgress: \(isSignupInProgress)")
+        print("📋 [NAVIGATION] Step \(currentStep) → \(currentStep + 1), signup: \(isSignupInProgress)")
 
         // Guard against race conditions during signup
         guard !isSignupInProgress else {
-            print("📝 [QUESTIONNAIRE] 🛡️🛡️🛡️ RACE CONDITION BLOCKED! Signup in progress - ignoring proceedToNextStep 🛡️🛡️🛡️")
-            print("📝 [QUESTIONNAIRE] 🚨 This would have caused the bug - navigation prevented during signup!")
+            print("🛡️ [RACE_PROTECTION] Navigation blocked during signup")
             return
         }
 
         // Removed withAnimation for instant, smooth transitions especially for video interstitials
         if currentStep == 12 {
-            print("📝 [QUESTIONNAIRE] Final step reached (12) - triggering program loading")
+            print("🏁 [NAVIGATION] Final step reached - starting program generation")
             // After injuries step (12), complete questionnaire and show program loading
             // The flow should be: Injuries → Loading → Program Ready → Signup → Notifications → Referral → Dashboard
             showingProgramLoading = true
         } else {
-            print("📝 [QUESTIONNAIRE] Moving to next step: \(currentStep + 1)")
+            print("➡️ [NAVIGATION] Advancing to step \(currentStep + 1)")
             // Continue through regular questionnaire steps (0-11)
             currentStep += 1
         }

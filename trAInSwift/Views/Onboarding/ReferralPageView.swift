@@ -9,8 +9,14 @@ import SwiftUI
 
 struct ReferralPageView: View {
     let onComplete: () -> Void
+    let onBack: (() -> Void)?
 
     @State private var selectedReferralSource: String = ""
+
+    init(onComplete: @escaping () -> Void, onBack: (() -> Void)? = nil) {
+        self.onComplete = onComplete
+        self.onBack = onBack
+    }
 
     private let referralSources = [
         "Friend or Family",
@@ -31,8 +37,30 @@ struct ReferralPageView: View {
 
             ScrollView {
                 VStack(spacing: 32) {
-                    Spacer()
-                        .frame(height: 60)
+                    // Back button if onBack is provided
+                    if let onBack = onBack {
+                        HStack {
+                            Button(action: {
+                                print("⬅️ [REFERRAL] Back button tapped")
+                                onBack()
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "chevron.left")
+                                        .font(.title3)
+                                        .foregroundColor(.trainTextPrimary)
+                                    Text("Back")
+                                        .font(.trainBody)
+                                        .foregroundColor(.trainTextPrimary)
+                                }
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 16)
+                    } else {
+                        Spacer()
+                            .frame(height: 60)
+                    }
 
                     // Header
                     VStack(spacing: 16) {

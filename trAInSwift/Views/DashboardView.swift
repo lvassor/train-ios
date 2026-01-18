@@ -48,32 +48,24 @@ struct DashboardContent: View {
                 ScrollView {
                     Color.clear.frame(height: 0)
                     VStack(spacing: Spacing.lg) {
-                        // Header
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Hey, \(getUserFirstName())")
-                                    .font(.trainHeadline)
-                                    .foregroundColor(.trainTextPrimary)
-
-                                Text("You're killing it this week! 💪")
-                                    .font(.trainBody)
-                                    .foregroundColor(.trainTextSecondary)
-                            }
-
-                            Spacer()
-                        }
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.top, Spacing.md)
+                        // Top Header (Fixed)
+                        TopHeaderView()
+                            .padding(.horizontal, Spacing.lg)
+                            .padding(.top, Spacing.md)
 
                         // Active workout timer display
                         ActiveWorkoutTimerView()
 
                         if let program = userProgram {
-                            // Weekly Calendar (now at top with session counter)
+                            // Carousel Section (replaces static greeting)
+                            DashboardCarouselView(userProgram: program)
+                                .padding(.horizontal, Spacing.lg)
+
+                            // Weekly Calendar (the properly styled one)
                             WeeklyCalendarView(userProgram: program)
                                 .padding(.horizontal, Spacing.lg)
 
-                            // Your Weekly Sessions (now directly below calendar)
+                            // Split Selector and Sessions
                             WeeklySessionsSection(userProgram: program)
                                 .padding(.horizontal, Spacing.lg)
                         } else {
@@ -1235,6 +1227,83 @@ struct ActiveWorkoutTimerView: View {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
+    }
+}
+
+// MARK: - Top Header View
+
+struct TopHeaderView: View {
+    @ObservedObject var authService = AuthService.shared
+    @State private var currentStreak: Int = 0
+
+    var body: some View {
+        HStack {
+            // Streak indicator
+            HStack(spacing: 4) {
+                Text("🔥")
+                    .font(.system(size: 16))
+                Text("\(currentStreak)")
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+            }
+
+            Spacer()
+
+            // App logo
+            Image("TrainLogoWithText")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 72)
+
+            Spacer()
+
+            // QR Scanner icon
+            Button(action: {
+                // TODO: Implement QR scanner
+                print("QR scanner tapped")
+            }) {
+                Image(systemName: "qrcode.viewfinder")
+                    .font(.system(size: 20))
+                    .foregroundColor(.trainTextPrimary)
+            }
+        }
+        .onAppear {
+            currentStreak = calculateStreak()
+        }
+    }
+
+    private func calculateStreak() -> Int {
+        guard let userId = authService.currentUser?.id else { return 0 }
+
+        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "userId == %@", userId as CVarArg
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "completedAt", ascending: false)]
+
+        do {
+            let sessions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
+
+            var streak = 0
+            var currentDate = Calendar.current.startOfDay(for: Date())
+
+            for session in sessions {
+                guard let sessionDate = session.completedAt else { continue }
+                let normalizedSessionDate = Calendar.current.startOfDay(for: sessionDate)
+
+                if Calendar.current.isDate(normalizedSessionDate, inSameDayAs: currentDate) {
+                    streak += 1
+                    currentDate = Calendar.current.date(byAdding: .day, value: -1, to: currentDate) ?? currentDate
+                } else if normalizedSessionDate < currentDate {
+                    break
+                }
+            }
+
+            return streak
+        } catch {
+            AppLogger.logDatabase("Failed to calculate streak: \(error)", level: .error)
+            return 0
+        }
     }
 }
 

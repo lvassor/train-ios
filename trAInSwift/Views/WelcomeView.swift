@@ -2,7 +2,7 @@
 //  WelcomeView.swift
 //  trAInSwift
 //
-//  Enhanced welcome screen with screenshot carousel
+//  Enhanced welcome screen with Cover Flow carousel and updated branding
 //
 
 import SwiftUI
@@ -12,140 +12,166 @@ struct WelcomeView: View {
     let onLogin: () -> Void
 
     private let screenshots = ["screenshot_1", "screenshot_2", "screenshot_3", "screenshot_4"]
+    @State private var currentIndex: Int = 0
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header with logo and sign in
-            HStack {
-                // App logo
-                Image("TrainLogoWithText")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 40)
+        ZStack(alignment: .bottom) {
+            // Content area with ScrollView that scrolls behind the floating button
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    // Header with centered logo and sign in
+                    VStack(spacing: 16) {
+                        HStack {
+                            Spacer()
 
-                Spacer()
-
-                // Sign In button
-                Button(action: onLogin) {
-                    Text("Sign In")
-                        .font(.trainBody)
-                        .foregroundColor(.white)
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 12)
-
-            Spacer().frame(height: 60)
-
-            // Headlines with attributed text - closer to Gravl styling
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text("Programs Built by ")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-                    +
-                    Text("Coaches.")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.trainPrimary)
-
-                    Spacer()
-                }
-
-                HStack {
-                    Text("Tracked by You.")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-
-                    Spacer()
-                }
-            }
-            .padding(.horizontal, 24)
-
-            // Subtitle
-            Text("Train uses AI-powered programs created by personal trainers to build personalized workouts based on your goals, experience, and available equipment.")
-                .font(.system(size: 16))
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.leading)
-                .padding(.horizontal, 24)
-                .padding(.top, 16)
-
-            // Screenshot carousel - swipeable through all 4 screenshots - enhanced for visibility
-            Group {
-                if #available(iOS 17.0, *) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 20) {
-                            ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
-                                Image(screenshot)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: UIScreen.main.bounds.width * 0.43)  // Shows ~2.3 images at once
-                                    .frame(height: 400) // Fixed height for consistency
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                            // Sign In button
+                            Button(action: onLogin) {
+                                Text("Sign In")
+                                    .font(.trainBody)
+                                    .foregroundColor(.white)
                             }
                         }
-                        .padding(.horizontal, 20)
-                        .scrollTargetLayout()
+                        .padding(.horizontal, 24)
+                        .padding(.top, 12)
+
+                        // Centered larger logo (3x original size)
+                        Image("TrainLogoWithText")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: 120) // 3x larger than original 40pt
                     }
-                    .scrollTargetBehavior(.viewAligned)
-                    .scrollIndicators(.hidden)
-                } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 20) {
-                            ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
-                                Image(screenshot)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: UIScreen.main.bounds.width * 0.43)  // Shows ~2.3 images at once
-                                    .frame(height: 400) // Fixed height for consistency
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
-                            }
+
+                    Spacer().frame(height: 20)
+
+                    // Updated headlines with brand messaging
+                    VStack(alignment: .center, spacing: 4) {
+                        HStack {
+                            Text("Expert Programs")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.trainPrimary) // Brand orange highlighting
+                            +
+                            Text(". Built Around You.")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
                         }
-                        .padding(.horizontal, 20)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
-                    .scrollIndicators(.hidden)
+                    .padding(.horizontal, 24)
+
+                    // Updated subtitle with proper line breaking
+                    Text("Train uses programming and training principles from professional personal trainers to help you master weight lifting and hit your goals.")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 16)
+
+                    // Cover Flow carousel with center stage scaling - reduced to 75% size
+                    Group {
+                        if #available(iOS 17.0, *) {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 4) {
+                                    ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
+                                        GeometryReader { geometry in
+                                            let midX = geometry.frame(in: .global).midX
+                                            let screenWidth = UIScreen.main.bounds.width
+                                            let centerX = screenWidth / 2
+                                            let distance = abs(midX - centerX)
+                                            let maxDistance = screenWidth * 0.4
+
+                                            let scale = max(0.8, 1.2 - (distance / maxDistance) * 0.4)
+                                            let opacity = max(0.6, 1.0 - (distance / maxDistance) * 0.4)
+
+                                            Image(screenshot)
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                                .scaleEffect(scale)
+                                                .opacity(opacity)
+                                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: scale)
+                                        }
+                                        .frame(width: UIScreen.main.bounds.width * 0.45, height: 300) // Reduced from 60% to 45%
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                                .scrollTargetLayout()
+                            }
+                            .scrollTargetBehavior(.viewAligned)
+                            .scrollIndicators(.hidden)
+                        } else {
+                            // Fallback for iOS 16 and earlier
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 4) {
+                                    ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
+                                        Image(screenshot)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: UIScreen.main.bounds.width * 0.45)
+                                            .frame(height: 300) // Reduced from 60% to 45%
+                                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                                            .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                            .scaleEffect(index == currentIndex ? 1.2 : 0.8)
+                                            .opacity(index == currentIndex ? 1.0 : 0.6)
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                            }
+                            .scrollIndicators(.hidden)
+                        }
+                    }
+                    .frame(height: 330) // 75% of 440 = 330
+                    .padding(.top, 32)
+                    .onAppear {
+                        // Carousel initialized with Cover Flow effect
+                    }
+
+                    // Updated caption moved above the carousel for better layout
+                    Text("Join Train to get personalized workouts and hit your goals faster.")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 32)
+
+                    // Add bottom padding so content scrolls behind the floating button
+                    Spacer()
+                        .frame(height: 150) // Space for floating button area
                 }
             }
-            .frame(height: 440)
-            .padding(.top, 32)
-            .onAppear {
-                print("🎠 [WELCOME] Swipeable screenshot carousel loaded with \(screenshots.count) images")
-                print("🎠 [WELCOME] Users can swipe left/right through: \(screenshots.joined(separator: ", "))")
-                print("🎠 [WELCOME] WelcomeView appeared - carousel should be visible")
-            }
+            .scrollDisabled(false)
+            .edgeFadeMask(topFade: 16, bottomFade: 60) // Visual gradients like questionnaire screens
 
-            Spacer()
-
-            // Bottom section
+            // Floating CTA button at bottom - matches questionnaire pattern
             VStack(spacing: 16) {
-                // Get Started button
+                // Get Started button - floating and fixed in Z-plane
                 Button(action: onContinue) {
                     Text("Get Started")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.black)
+                        .foregroundColor(.white) // White text for high contrast
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
-                        .background(.white)
+                        .background(Color.trainPrimary) // Brand orange background
                         .clipShape(RoundedRectangle(cornerRadius: 28))
                 }
                 .padding(.horizontal, 24)
-                .onTapGesture {
-                    print("🚀 [WELCOME] Get Started button tapped - navigating to questionnaire")
-                }
-
-                // Caption
-                Text("Join Train to get personalized workouts and hit your goals faster.")
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
             }
             .padding(.bottom, 50)
         }
-        .onAppear {
-            print("🎯 [WELCOME] WelcomeView appeared - ready for user interaction")
-        }
         .charcoalGradientBackground()
     }
+}
+
+#Preview {
+    WelcomeView(
+        onContinue: {
+            print("Continue tapped")
+        },
+        onLogin: {
+            print("Login tapped")
+        }
+    )
 }

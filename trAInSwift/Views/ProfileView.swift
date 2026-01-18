@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var themeManager: ThemeManager
@@ -492,6 +493,8 @@ struct ProgramCard: View {
             Button("Retake Quiz") {
                 // Navigate to questionnaire while keeping current program as inactive
                 shouldRestartQuestionnaire = true
+                // Trigger splash screen when retaking questionnaire
+                NotificationCenter.default.post(name: .resetToSplash, object: nil, userInfo: nil)
             }
             Button("Cancel", role: .cancel) {}
         } message: {

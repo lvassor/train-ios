@@ -1,0 +1,129 @@
+{
+  "equipment_mappings": {
+    "bodyweight": "Bodyweight",
+    "barbells": "Barbells",
+    "dumbbells": "Dumbbells",
+    "kettlebells": "Kettlebells",
+    "cable_machines": "Cables",
+    "pin_loaded": "Pin-Loaded Machines",
+    "plate_loaded": "Plate-Loaded Machines",
+    "other": "Other"
+  },
+  "equipment_categories": [
+    "Bodyweight",
+    "Barbells",
+    "Dumbbells",
+    "Kettlebells",
+    "Cables",
+    "Pin-Loaded Machines",
+    "Plate-Loaded Machines",
+    "Other"
+  ],
+  "experience_levels": [
+    "NO_EXPERIENCE",
+    "BEGINNER",
+    "INTERMEDIATE",
+    "ADVANCED"
+  ],
+  "experience_level_mappings": {
+    "no_experience": "NO_EXPERIENCE",
+    "beginner": "BEGINNER",
+    "intermediate": "INTERMEDIATE",
+    "advanced": "ADVANCED",
+    "0_months": "NO_EXPERIENCE",
+    "0_6_months": "BEGINNER",
+    "6_months_2_years": "INTERMEDIATE",
+    "2_plus_years": "ADVANCED"
+  },
+  "complexity_levels": [
+    "all",
+    "1",
+    "2"
+  ],
+  "injury_types": [
+    "Back",
+    "Biceps",
+    "Calves",
+    "Chest",
+    "Core",
+    "Forearms",
+    "Glutes",
+    "Hamstrings",
+    "Quads",
+    "Shoulders",
+    "Traps",
+    "Triceps"
+  ],
+  "video_config": {
+    "bunny_base_url": "https://vz-f673c4c2-345.b-cdn.net/",
+    "media_types": ["vid", "img"],
+    "supported_formats": [".mp4", ".png", ".jpg"],
+    "fallback_video": "placeholder.mp4",
+    "fallback_image": "placeholder.png"
+  },
+  "database_schema": {
+    "exercises_table": {
+      "primary_key": "exercise_id",
+      "required_columns": [
+        "exercise_id",
+        "canonical_name",
+        "display_name",
+        "equipment_category",
+        "complexity_level",
+        "primary_muscle",
+        "is_in_programme",
+        "canonical_rating"
+      ],
+      "optional_columns": [
+        "equipment_specific",
+        "secondary_muscle",
+        "instructions",
+        "progression_id",
+        "regression_id"
+      ]
+    },
+    "exercise_videos_table": {
+      "primary_key": "id",
+      "foreign_key": "exercise_id",
+      "columns": [
+        "id",
+        "exercise_id",
+        "supplier_id",
+        "media_type",
+        "filename",
+        "bunny_url",
+        "note"
+      ]
+    },
+    "exercise_contraindications_table": {
+      "primary_key": "id",
+      "columns": [
+        "id",
+        "canonical_name",
+        "injury_type"
+      ],
+      "unique_constraint": ["canonical_name", "injury_type"]
+    }
+  },
+  "questionnaire_ui_labels": {
+    "equipment": {
+      "bodyweight": "Bodyweight",
+      "barbells": "Barbells & Bars",
+      "dumbbells": "Dumbbells",
+      "kettlebells": "Kettlebells",
+      "cable_machines": "Cable Machines",
+      "pin_loaded": "Pin-Loaded Machines",
+      "plate_loaded": "Plate-Loaded Machines",
+      "other": "Other Equipment"
+    },
+    "experience": {
+      "no_experience": "Just Starting Out",
+      "beginner": "Finding My Feet",
+      "intermediate": "Getting Comfortable",
+      "advanced": "Confident & Consistent"
+    }
+  },
+  "version": "2.0.0",
+  "last_updated": "2025-01-18",
+  "description": "Centralized constants for TrAIn database generation and cross-platform consistency"
+}

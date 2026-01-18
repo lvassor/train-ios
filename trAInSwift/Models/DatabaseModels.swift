@@ -138,6 +138,55 @@ struct DBExerciseContraindication: Codable, FetchableRecord, TableRecord {
     }
 }
 
+// MARK: - Exercise Video Model
+
+struct DBExerciseVideo: Codable, FetchableRecord, TableRecord, Identifiable {
+    static let databaseTableName = "exercise_videos"
+
+    let id: Int
+    let exerciseId: String
+    let supplierId: String?
+    let mediaType: String              // "vid" or "img"
+    let filename: String
+    let bunnyUrl: String              // Full bunny.net URL
+    let note: String?
+
+    enum Columns {
+        static let id = Column("id")
+        static let exerciseId = Column("exercise_id")
+        static let supplierId = Column("supplier_id")
+        static let mediaType = Column("media_type")
+        static let filename = Column("filename")
+        static let bunnyUrl = Column("bunny_url")
+        static let note = Column("note")
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case exerciseId = "exercise_id"
+        case supplierId = "supplier_id"
+        case mediaType = "media_type"
+        case filename
+        case bunnyUrl = "bunny_url"
+        case note
+    }
+
+    /// Check if this is a video file
+    var isVideo: Bool {
+        return mediaType == "vid"
+    }
+
+    /// Check if this is an image file
+    var isImage: Bool {
+        return mediaType == "img"
+    }
+
+    /// Get file extension from filename
+    var fileExtension: String? {
+        return URL(string: filename)?.pathExtension
+    }
+}
+
 // MARK: - Experience Complexity Rules (Hardcoded)
 
 /// Complexity rules for exercise selection based on experience level.
@@ -284,6 +333,8 @@ extension ExerciseDatabaseFilter {
 
         for item in questionnaireEquipment {
             switch item {
+            case "bodyweight":
+                dbEquipment.append("Bodyweight")
             case "dumbbells":
                 dbEquipment.append("Dumbbells")
             case "barbells":
@@ -296,7 +347,7 @@ extension ExerciseDatabaseFilter {
                 dbEquipment.append("Pin-Loaded Machines")
             case "plate_loaded":
                 dbEquipment.append("Plate-Loaded Machines")
-            case "bodyweight", "other":
+            case "other":
                 dbEquipment.append("Other")
             default:
                 break
@@ -305,7 +356,7 @@ extension ExerciseDatabaseFilter {
 
         // If no equipment selected, allow all types
         if dbEquipment.isEmpty {
-            dbEquipment = ["Barbells", "Dumbbells", "Cables", "Kettlebells", "Pin-Loaded Machines", "Plate-Loaded Machines", "Other"]
+            dbEquipment = ["Bodyweight", "Barbells", "Dumbbells", "Cables", "Kettlebells", "Pin-Loaded Machines", "Plate-Loaded Machines", "Other"]
         }
 
         return dbEquipment
@@ -341,6 +392,15 @@ enum InjuryType: String, CaseIterable, Codable {
 struct EquipmentHierarchy {
     /// Equipment categories that have expandable specific items
     static let expandableCategories: [String: [String]] = [
+        "bodyweight": [
+            "Flat Bench",
+            "Squat Rack",
+            "Pull-Up Bar",
+            "Dip Station",
+            "Roman Chair",
+            "Plyometric Box",
+            "Ab Wheel"
+        ],
         "barbells": [
             "Squat Rack",
             "Flat Bench Press",
@@ -380,4 +440,7 @@ struct EquipmentHierarchy {
 
     /// Categories that don't expand (no equipment_specific breakdown)
     static let simpleCategories = ["dumbbells", "kettlebells"]
+
+    /// Note: "bodyweight" has been added as a new equipment category
+    /// and appears in expandableCategories due to equipment_specific items
 }

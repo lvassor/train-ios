@@ -11,6 +11,7 @@ import Foundation
 import Combine
 import CoreData
 
+
 class AuthService: ObservableObject {
     static let shared = AuthService()
 
@@ -292,6 +293,8 @@ class AuthService: ObservableObject {
     func logout() {
         googleSignIn.signOut()
         clearSession()
+        // Trigger splash screen when logging out
+        NotificationCenter.default.post(name: .resetToSplash, object: nil, userInfo: nil)
     }
 
     // MARK: - Validation Helpers
