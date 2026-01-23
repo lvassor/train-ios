@@ -34,6 +34,16 @@ struct DayProgress: Identifiable {
     let weekdayLetter: String
     let isCompleted: Bool
     let isToday: Bool
+    let workoutLetter: String? // Session abbreviation (P, Pu, L, etc.)
+    let date: Date // For expanded view navigation
+
+    init(weekdayLetter: String, isCompleted: Bool, isToday: Bool, workoutLetter: String? = nil, date: Date = Date()) {
+        self.weekdayLetter = weekdayLetter
+        self.isCompleted = isCompleted
+        self.isToday = isToday
+        self.workoutLetter = workoutLetter
+        self.date = date
+    }
 }
 
 struct LearningRecommendationData {
@@ -54,19 +64,19 @@ struct EngagementPromptData {
 struct CarouselCardView: View {
     let item: CarouselItem
     let userProgram: WorkoutProgram
+    @Binding var isCalendarExpanded: Bool
 
     var body: some View {
         Group {
             switch item.type {
             case .weeklyProgress(let data):
-                WeeklyProgressCard(data: data, userProgram: userProgram)
+                WeeklyProgressCard(data: data, userProgram: userProgram, isExpanded: $isCalendarExpanded)
             case .learningRecommendation(let data):
                 LearningRecommendationCard(data: data)
             case .engagementPrompt(let data):
                 EngagementPromptCard(data: data)
             }
         }
-        .frame(height: 120)
         .appCard()
     }
 }
@@ -104,7 +114,7 @@ struct CarouselCardView: View {
         AppGradient.background
             .ignoresSafeArea()
 
-        CarouselCardView(item: progressItem, userProgram: workoutProgram)
+        CarouselCardView(item: progressItem, userProgram: workoutProgram, isCalendarExpanded: .constant(false))
             .padding()
     }
 }

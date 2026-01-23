@@ -12,15 +12,60 @@ struct DashboardCarouselView: View {
     let userProgram: WorkoutProgram
 
     @State private var carouselItems: [CarouselItem] = []
+    @State private var currentPage = 0
+    @State private var isCalendarExpanded = false
+
+    // Heights for collapsed vs expanded states
+    private let collapsedHeight: CGFloat = 140
+    private let expandedHeight: CGFloat = 420
 
     var body: some View {
-        TabView {
-            ForEach(carouselItems) { item in
-                CarouselCardView(item: item, userProgram: userProgram)
+        VStack(spacing: 16) {
+            // Carousel - when expanded, show only the current card without TabView swiping
+            if isCalendarExpanded {
+                // Expanded: show current card directly without carousel behavior
+                if currentPage < carouselItems.count {
+                    CarouselCardView(
+                        item: carouselItems[currentPage],
+                        userProgram: userProgram,
+                        isCalendarExpanded: $isCalendarExpanded
+                    )
+                }
+            } else {
+                // Collapsed: normal carousel with swiping
+                TabView(selection: $currentPage) {
+                    ForEach(Array(carouselItems.enumerated()), id: \.element.id) { index, item in
+                        CarouselCardView(
+                            item: item,
+                            userProgram: userProgram,
+                            isCalendarExpanded: $isCalendarExpanded
+                        )
+                        .padding(.horizontal, 4) // Prevent edge clipping of rounded corners
+                        .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
             }
         }
-        .tabViewStyle(.page(indexDisplayMode: .always))
-        .frame(height: 160)
+        .frame(height: isCalendarExpanded ? expandedHeight : collapsedHeight)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isCalendarExpanded)
+        // Page indicators - outside the card, hidden when expanded
+        .overlay(alignment: .bottom) {
+            if carouselItems.count > 1 && !isCalendarExpanded {
+                HStack(spacing: 8) {
+                    ForEach(0..<carouselItems.count, id: \.self) { index in
+                        Circle()
+                            .fill(index == currentPage ? Color.trainTextSecondary : Color.clear)
+                            .frame(width: 10, height: 10)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.trainTextPrimary.opacity(0.5), lineWidth: index == currentPage ? 0 : 1)
+                            )
+                    }
+                }
+                .offset(y: 24) // Position below the card
+            }
+        }
         .onAppear {
             generateCarouselItems()
         }
@@ -173,16 +218,60 @@ struct DashboardCarouselView: View {
             guard let date = calendar.date(byAdding: .day, value: i, to: monday) else { continue }
 
             let isToday = calendar.isDateInToday(date)
-            let isCompleted = hasWorkoutOnDate(date)
+            let workoutLetter = getWorkoutLetter(for: date)
+            let isCompleted = workoutLetter != nil
 
             days.append(DayProgress(
                 weekdayLetter: weekdayLetters[i],
                 isCompleted: isCompleted,
-                isToday: isToday
+                isToday: isToday,
+                workoutLetter: workoutLetter,
+                date: date
             ))
         }
 
         return days
+    }
+
+    private func getWorkoutLetter(for date: Date) -> String? {
+        guard let userId = AuthService.shared.currentUser?.id else { return nil }
+
+        let calendar = Calendar.current
+        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+        fetchRequest.predicate = NSPredicate(
+            format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
+            userId as CVarArg,
+            startOfDay as NSDate,
+            endOfDay as NSDate
+        )
+        fetchRequest.fetchLimit = 1
+
+        do {
+            let sessions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
+            if let session = sessions.first,
+               let sessionName = session.sessionName {
+                return getAbbreviation(for: sessionName)
+            }
+        } catch {
+            AppLogger.logDatabase("Failed to fetch workout for date: \(error)", level: .error)
+        }
+
+        return nil
+    }
+
+    private func getAbbreviation(for sessionType: String) -> String {
+        switch sessionType.lowercased() {
+        case "push": return "P"
+        case "pull": return "Pu"
+        case "legs": return "L"
+        case "upper", "upper body": return "U"
+        case "lower", "lower body": return "Lo"
+        case "full body": return "FB"
+        default: return String(sessionType.prefix(1)).uppercased()
+        }
     }
 
     private func hasWorkoutOnDate(_ date: Date) -> Bool {

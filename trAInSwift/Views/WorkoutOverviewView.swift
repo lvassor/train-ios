@@ -8,6 +8,7 @@
 
 import SwiftUI
 import ActivityKit
+import UniformTypeIdentifiers
 
 struct WorkoutOverviewView: View {
     @Environment(\.dismiss) var dismiss
@@ -49,6 +50,8 @@ struct WorkoutOverviewView: View {
     @State private var showInjuryWarning: String? = nil
     @State private var exerciseToSwap: ProgramExercise? = nil
     @State private var sessionExercises: [ProgramExercise] = [] // Mutable copy for swapping
+    @State private var isEditing = false  // Edit mode for reordering, swap, remove
+    @State private var exerciseToRemove: ProgramExercise? = nil  // For remove confirmation
 
     // Live Activity Manager
     @ObservedObject private var liveActivityManager = WorkoutLiveActivityManager.shared
@@ -95,11 +98,13 @@ struct WorkoutOverviewView: View {
             } else if let validSession = session {
                 ZStack {
                     VStack(spacing: 0) {
-                        // Header with timer and cancel
+                        // Header with Edit/Done pill button (timer commented out per design)
                         WorkoutOverviewHeader(
                             sessionName: validSession.dayName,
                             elapsedTime: elapsedTimeFormatted,
-                            onCancel: { showCancelConfirmation = true }
+                            isEditing: isEditing,
+                            onCancel: { showCancelConfirmation = true },
+                            onEditToggle: { isEditing.toggle() }
                         )
 
                         ScrollView {
@@ -116,28 +121,28 @@ struct WorkoutOverviewView: View {
                                     .padding(.top, Spacing.md)
                                 }
 
-                                // Exercise list - uses mutable sessionExercises for swapping
-                                VStack(spacing: Spacing.md) {
-                                    ForEach(Array(sessionExercises.enumerated()), id: \.element.id) { index, exercise in
-                                        ExerciseOverviewCard(
-                                            exercise: exercise,
-                                            isCompleted: completedExercises.contains(exercise.id),
-                                            contraindicatedInjury: getContraindicatedInjury(for: exercise),
-                                            onTap: {
-                                                startWorkoutTimerIfNeeded()  // Start timer on first exercise tap
-                                                selectedExerciseIndex = index
-                                            },
-                                            onWarningTap: {
-                                                if let warning = checkInjuryWarning(for: exercise) {
-                                                    showInjuryWarning = warning
-                                                }
-                                            },
-                                            onSwap: {
-                                                exerciseToSwap = exercise
-                                            }
-                                        )
+                                // Workout section with vertical connector line
+                                WorkoutExerciseList(
+                                    exercises: $sessionExercises,
+                                    completedExercises: completedExercises,
+                                    isEditing: isEditing,
+                                    getContraindicatedInjury: getContraindicatedInjury,
+                                    onExerciseTap: { index in
+                                        startWorkoutTimerIfNeeded()
+                                        selectedExerciseIndex = index
+                                    },
+                                    onWarningTap: { exercise in
+                                        if let warning = checkInjuryWarning(for: exercise) {
+                                            showInjuryWarning = warning
+                                        }
+                                    },
+                                    onSwap: { exercise in
+                                        exerciseToSwap = exercise
+                                    },
+                                    onRemove: { exercise in
+                                        exerciseToRemove = exercise
                                     }
-                                }
+                                )
                                 .padding(.horizontal, Spacing.lg)
                             }
                             .padding(.bottom, 90) // Space for floating button
@@ -260,6 +265,28 @@ struct WorkoutOverviewView: View {
             Button("Continue Workout", role: .cancel) {}
         } message: {
             Text("Are you sure you want to cancel this workout? Your progress will not be saved.")
+        }
+        .confirmationDialog(
+            "Remove Exercise?",
+            isPresented: Binding(
+                get: { exerciseToRemove != nil },
+                set: { if !$0 { exerciseToRemove = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Remove Permanently", role: .destructive) {
+                if let exercise = exerciseToRemove {
+                    removeExercise(exercise)
+                }
+                exerciseToRemove = nil
+            }
+            Button("Cancel", role: .cancel) {
+                exerciseToRemove = nil
+            }
+        } message: {
+            if let exercise = exerciseToRemove {
+                Text("This will permanently remove \"\(exercise.exerciseName)\" from your programme.\n\nIf you only want to skip it today, complete the sets with empty values instead.")
+            }
         }
         .onAppear {
             initializeSessionExercises()
@@ -398,6 +425,15 @@ struct WorkoutOverviewView: View {
         sessionExercises = validSession.exercises
     }
 
+    private func removeExercise(_ exercise: ProgramExercise) {
+        // Remove from session exercises
+        sessionExercises.removeAll { $0.id == exercise.id }
+        // Also remove from logged exercises if present
+        loggedExercises.removeValue(forKey: exercise.id)
+        // Remove from completed if it was marked
+        completedExercises.remove(exercise.id)
+    }
+
     private func initializeLoggedExercises() {
         for exercise in sessionExercises {
             loggedExercises[exercise.id] = LoggedExercise(
@@ -503,43 +539,53 @@ struct WorkoutOverviewView: View {
     }
 }
 
-// MARK: - Header Component
+// MARK: - Header Component (Figma Redesign)
 
 struct WorkoutOverviewHeader: View {
     let sessionName: String
-    let elapsedTime: String
+    let elapsedTime: String  // Kept for reference but not displayed per design
+    let isEditing: Bool
     let onCancel: () -> Void
+    let onEditToggle: () -> Void
 
     var body: some View {
         HStack {
+            // Back button
             Button(action: onCancel) {
-                Image(systemName: "xmark")
-                    .font(.title3)
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 20))
                     .foregroundColor(.trainTextPrimary)
             }
+            .frame(width: 24, height: 24)
 
             Spacer()
 
-            VStack(spacing: 4) {
-                Text(sessionName)
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.trainTextPrimary)
-            }
+            // Title
+            Text(sessionName)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.trainTextPrimary)
 
             Spacer()
 
-            // Timer display
-            Text(elapsedTime)
-                .font(.trainBodyMedium)
-                .foregroundColor(.trainPrimary)
-                .monospacedDigit()
+            // Edit/Done pill button (Apple-style)
+            Button(action: onEditToggle) {
+                Text(isEditing ? "Done" : "Edit")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(isEditing ? .trainPrimary : .trainTextPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .stroke(isEditing ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
+                    )
+            }
         }
-        .padding(Spacing.lg)
-        .appCard()
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
     }
 }
 
-// MARK: - Warm Up Card
+// MARK: - Warm Up Card (Figma Redesign)
 
 struct WarmUpCard: View {
     let timeRemaining: String
@@ -551,31 +597,41 @@ struct WarmUpCard: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // Section title
             Text("Suggested Warm-Up")
-                .font(.trainCaption)
+                .font(.system(size: 14, weight: .light))
                 .foregroundColor(.trainTextSecondary)
-                .padding(.leading, 4)
+                .padding(.top, 8)
 
-            // Warm up card - matches exercise card style
+            // Warm up card - Figma style with thumbnail
             Button(action: onBegin) {
-                HStack(spacing: Spacing.md) {
-                    // Video placeholder icon
-                    ZStack {
+                HStack(spacing: 16) {
+                    // Thumbnail with play button
+                    ZStack(alignment: .bottomLeading) {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
-                            .frame(width: 56, height: 56)
+                            .fill(Color.trainTextSecondary.opacity(0.2))
+                            .frame(width: 80, height: 64)
+                            .overlay {
+                                Image(systemName: "figure.strengthtraining.traditional")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.trainTextSecondary.opacity(0.5))
+                            }
 
+                        // Play button
                         Image(systemName: "play.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(.trainTextSecondary.opacity(0.5))
+                            .font(.system(size: 10))
+                            .foregroundColor(.white)
+                            .padding(6)
+                            .background(Color.black.opacity(0.6))
+                            .clipShape(Circle())
+                            .offset(x: 4, y: -4)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Upper body mobility")
-                            .font(.trainBodyMedium)
+                        Text("Upper Body Mobility")
+                            .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.trainTextPrimary)
 
-                        Text("5 min")
-                            .font(.trainCaption)
+                        Text("X exercises • X minutes")
+                            .font(.system(size: 14, weight: .light))
                             .foregroundColor(.trainTextSecondary)
                     }
 
@@ -584,102 +640,390 @@ struct WarmUpCard: View {
                     // Skip button
                     Button(action: onSkip) {
                         Text("Skip")
-                            .font(.trainCaption)
+                            .font(.system(size: 14, weight: .light))
                             .foregroundColor(.trainTextSecondary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.trainTextSecondary.opacity(0.1))
+                            .clipShape(Capsule())
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
-                .padding(Spacing.md)
-                .appCard()
+                .padding(16)
+                .background(Color.trainSurface)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 1)
             }
             .buttonStyle(ScaleButtonStyle())
         }
     }
 }
 
-// MARK: - Exercise Overview Card
+// MARK: - Workout Exercise List (with vertical connector line behind cards)
+
+struct WorkoutExerciseList: View {
+    @Binding var exercises: [ProgramExercise]
+    let completedExercises: Set<String>
+    let isEditing: Bool
+    let getContraindicatedInjury: (ProgramExercise) -> String?
+    let onExerciseTap: (Int) -> Void
+    let onWarningTap: (ProgramExercise) -> Void
+    let onSwap: (ProgramExercise) -> Void
+    let onRemove: (ProgramExercise) -> Void
+
+    // Drag state
+    @State private var draggingExercise: ProgramExercise?
+    @State private var draggedOverExercise: ProgramExercise?
+
+    // Thumbnail width is 80, padding is 16, so center of thumbnail is at 16 + 40 = 56
+    private let lineXOffset: CGFloat = 56
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            // Section title
+            Text("Workout")
+                .font(.system(size: 14, weight: .light))
+                .foregroundColor(.trainTextSecondary)
+                .padding(.top, 8)
+
+            // Exercise cards with vertical line behind
+            ZStack(alignment: .leading) {
+                // Vertical connector line - hidden when editing
+                if !isEditing {
+                    Rectangle()
+                        .fill(Color.trainTextSecondary.opacity(0.2))
+                        .frame(width: 2)
+                        .padding(.leading, lineXOffset - 1)
+                        .padding(.top, 48)
+                        .padding(.bottom, 48)
+                }
+
+                // Exercise cards
+                VStack(spacing: 12) {
+                    ForEach(Array(exercises.enumerated()), id: \.element.id) { index, exercise in
+                        exerciseCardView(for: exercise, at: index)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func exerciseCardView(for exercise: ProgramExercise, at index: Int) -> some View {
+        let isDragging = draggingExercise?.id == exercise.id
+        let isDraggedOver = draggedOverExercise?.id == exercise.id
+
+        let card = ExerciseOverviewCard(
+            exercise: exercise,
+            isCompleted: completedExercises.contains(exercise.id),
+            isEditing: isEditing,
+            contraindicatedInjury: getContraindicatedInjury(exercise),
+            onTap: {
+                if !isEditing {
+                    onExerciseTap(index)
+                }
+            },
+            onWarningTap: {
+                onWarningTap(exercise)
+            },
+            onSwap: {
+                onSwap(exercise)
+            },
+            onRemove: {
+                onRemove(exercise)
+            }
+        )
+
+        if isEditing {
+            // Edit mode: apply drag/drop modifiers
+            card
+                .scaleEffect(isDragging ? 1.05 : 1.0)
+                .shadow(
+                    color: isDragging ? .black.opacity(0.3) : .black.opacity(0.1),
+                    radius: isDragging ? 10 : 0,
+                    x: 0,
+                    y: isDragging ? 5 : 1
+                )
+                .opacity(isDragging ? 0.9 : 1.0)
+                .zIndex(isDragging ? 100 : 0)
+                .background(
+                    isDraggedOver && !isDragging ?
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.trainPrimary, lineWidth: 2)
+                            .padding(-4)
+                        : nil
+                )
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isDragging)
+                .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isDraggedOver)
+                .onDrag {
+                    self.draggingExercise = exercise
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                    impactFeedback.impactOccurred()
+                    return NSItemProvider(object: exercise.id as NSString)
+                }
+                .onDrop(of: [.text], delegate: ExerciseDropDelegate(
+                    exercise: exercise,
+                    exercises: $exercises,
+                    draggingExercise: $draggingExercise,
+                    draggedOverExercise: $draggedOverExercise,
+                    isEditing: isEditing
+                ))
+        } else {
+            // Normal mode: no drag/drop, just the card
+            card
+        }
+    }
+}
+
+// MARK: - Exercise Drop Delegate
+
+struct ExerciseDropDelegate: DropDelegate {
+    let exercise: ProgramExercise
+    @Binding var exercises: [ProgramExercise]
+    @Binding var draggingExercise: ProgramExercise?
+    @Binding var draggedOverExercise: ProgramExercise?
+    let isEditing: Bool
+
+    func dropEntered(info: DropInfo) {
+        guard isEditing,
+              let dragging = draggingExercise,
+              dragging.id != exercise.id else { return }
+
+        draggedOverExercise = exercise
+
+        // Haptic feedback when entering a new drop target
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+
+        // Find indices and perform swap with animation
+        guard let fromIndex = exercises.firstIndex(where: { $0.id == dragging.id }),
+              let toIndex = exercises.firstIndex(where: { $0.id == exercise.id }) else { return }
+
+        if fromIndex != toIndex {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                exercises.move(fromOffsets: IndexSet(integer: fromIndex), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
+            }
+        }
+    }
+
+    func dropExited(info: DropInfo) {
+        if draggedOverExercise?.id == exercise.id {
+            draggedOverExercise = nil
+        }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        return DropProposal(operation: isEditing ? .move : .cancel)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        // Haptic feedback on drop
+        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+        impactFeedback.impactOccurred()
+
+        draggingExercise = nil
+        draggedOverExercise = nil
+        return true
+    }
+}
+
+// MARK: - Exercise Overview Card (Figma Redesign - Full Width)
 
 struct ExerciseOverviewCard: View {
     let exercise: ProgramExercise
     let isCompleted: Bool
+    let isEditing: Bool
     var contraindicatedInjury: String? = nil
     let onTap: () -> Void
     var onWarningTap: (() -> Void)? = nil
     let onSwap: () -> Void
+    let onRemove: () -> Void
+
+    // Drag state for visual feedback
+    @State private var isDragHandlePressed = false
+
+    // Get media info for this exercise
+    private var media: ExerciseMedia? {
+        ExerciseMediaMapping.media(for: exercise.exerciseId)
+    }
+
+    // Get thumbnail URL - video thumbnail or static image
+    private var thumbnailURL: URL? {
+        guard let media = media else { return nil }
+
+        if media.mediaType == .video, let guid = media.guid {
+            // Bunny Stream auto-generated thumbnail
+            return BunnyConfig.videoThumbnailURL(for: guid)
+        } else if media.mediaType == .image, let filename = media.imageFilename {
+            // Static image from CDN
+            return BunnyConfig.imageURL(for: filename)
+        }
+        return nil
+    }
+
+    private var hasVideo: Bool {
+        guard let media = media else { return false }
+        return media.mediaType == .video && media.guid != nil
+    }
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(alignment: .center, spacing: Spacing.md) {
-                // Completion indicator
-                ZStack {
-                    Circle()
-                        .stroke(isCompleted ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3), lineWidth: 2)
-                        .frame(width: 24, height: 24)
+        VStack(spacing: 0) {
+            // Drag handle - only visible in edit mode
+            if isEditing {
+                dragHandle
+            }
 
-                    if isCompleted {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.trainPrimary)
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: Spacing.xs) {
-                        Text(exercise.exerciseName)
-                            .font(.trainBodyMedium)
-                            .foregroundColor(isCompleted ? .trainTextSecondary : .trainTextPrimary)
-                            .strikethrough(isCompleted)
-
-                        // Contraindication warning icon
-                        if contraindicatedInjury != nil {
-                            Button(action: { onWarningTap?() }) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.orange)
+            Button(action: onTap) {
+                HStack(spacing: 16) {
+                    // Thumbnail with play button - fixed 80x64 dimensions
+                    ZStack(alignment: .bottomLeading) {
+                        if let url = thumbnailURL {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 80, height: 64)
+                                        .clipped()
+                                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                case .failure, .empty:
+                                    thumbnailPlaceholder
+                                @unknown default:
+                                    thumbnailPlaceholder
+                                }
                             }
-                            .buttonStyle(PlainButtonStyle())
+                        } else {
+                            thumbnailPlaceholder
+                        }
+
+                        // Play button (only for videos)
+                        if hasVideo {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.white)
+                                .padding(6)
+                                .background(Color.black.opacity(0.6))
+                                .clipShape(Circle())
+                                .offset(x: 4, y: -4)
                         }
                     }
+                    .frame(width: 80, height: 64)
 
-                    HStack(spacing: Spacing.sm) {
-                        Text("\(exercise.sets) × \(exercise.repRange)")
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 4) {
+                            Text(exercise.exerciseName)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(isCompleted ? .trainTextSecondary : .trainTextPrimary)
+                                .strikethrough(isCompleted)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
 
-                        // Equipment badge
-                        Text(exercise.equipmentType)
-                            .font(.trainCaption)
+                            // Warning icon
+                            if contraindicatedInjury != nil {
+                                Button(action: { onWarningTap?() }) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.orange)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                        }
+
+                        Text("\(exercise.sets) sets • \(exercise.repRange) reps")
+                            .font(.system(size: 14, weight: .light))
                             .foregroundColor(.trainTextSecondary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
-                            .background(Color.trainTextSecondary.opacity(0.1))
-                            .clipShape(Capsule())
                     }
+
+                    Spacer()
+
+                    // Muscle highlight (replaces swap icon in normal mode)
+                    CompactMuscleHighlight(
+                        primaryMuscle: exercise.primaryMuscle,
+                        secondaryMuscle: nil
+                    )
+                    .frame(width: 48, height: 50)
                 }
-
-                Spacer()
-
-                // Swap button
-                Button(action: onSwap) {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 16))
-                        .foregroundColor(.trainTextSecondary)
-                }
-                .buttonStyle(PlainButtonStyle())
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14))
-                    .foregroundColor(.trainTextSecondary)
+                .padding(16)
+                .padding(.top, isEditing ? 0 : 0) // No extra padding needed, drag handle has its own
             }
-            .padding(Spacing.md)
-            .background(
-                contraindicatedInjury != nil
-                    ? Color.gray.opacity(0.15)
-                    : (isCompleted ? Color.trainPrimary.opacity(0.05) : Color.clear)
-            )
-            .appCard()
+            .buttonStyle(ScaleButtonStyle())
+            .disabled(isEditing) // Disable tap when editing
+
+            // Swap and Remove buttons - only visible in edit mode
+            if isEditing {
+                editActionButtons
+            }
         }
-        .buttonStyle(ScaleButtonStyle())
+        .background(
+            contraindicatedInjury != nil
+                ? Color.gray.opacity(0.15)
+                : (isEditing ? Color.trainPrimary.opacity(0.08) : Color.trainSurface)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.1), radius: 0, x: 0, y: 1)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(isEditing ? Color.trainPrimary.opacity(0.3) : Color.clear, lineWidth: 1)
+        )
+    }
+
+    // MARK: - Drag Handle (Double Line Indicator)
+
+    private var dragHandle: some View {
+        // Double horizontal line drag indicator - centered
+        VStack(spacing: 3) {
+            RoundedRectangle(cornerRadius: 1)
+                .fill(isDragHandlePressed ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.4))
+                .frame(width: 36, height: 3)
+            RoundedRectangle(cornerRadius: 1)
+                .fill(isDragHandlePressed ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.4))
+                .frame(width: 36, height: 3)
+        }
+        .scaleEffect(isDragHandlePressed ? 1.1 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isDragHandlePressed)
+        .padding(.vertical, 8)
+    }
+
+    // MARK: - Edit Action Buttons
+
+    private var editActionButtons: some View {
+        HStack(spacing: 12) {
+            // Swap button
+            Button(action: onSwap) {
+                Text("Swap")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.trainTextPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color.trainPrimary.opacity(0.15))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+
+            // Remove button
+            Button(action: onRemove) {
+                Text("Remove")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.red.opacity(0.8))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color.red.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
+    }
+
+    private var thumbnailPlaceholder: some View {
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(Color.trainTextSecondary.opacity(0.2))
+            .frame(width: 80, height: 64)
+            .overlay {
+                Image(systemName: "photo")
+                    .font(.system(size: 20))
+                    .foregroundColor(.trainTextSecondary.opacity(0.5))
+            }
     }
 }
 
