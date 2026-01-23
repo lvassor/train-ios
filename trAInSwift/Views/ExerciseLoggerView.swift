@@ -28,12 +28,14 @@ enum LoggerTabOption: String, CaseIterable, Hashable {
 
 struct ExerciseLoggerView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
 
     let exercise: ProgramExercise
     let exerciseIndex: Int
     let totalExercises: Int
     let weekNumber: Int
     let sessionIndex: Int
+    let sessionName: String  // e.g., "Full Body", "Push", "Pull", "Legs"
     @Binding var loggedExercise: LoggedExercise
     let onComplete: (LoggedExercise) -> Void
     let onCancel: () -> Void
@@ -86,43 +88,33 @@ struct ExerciseLoggerView: View {
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                // Header
+                // Header - new simplified design
                 ExerciseLoggerHeader(
-                    exerciseName: exercise.exerciseName,
+                    sessionName: sessionName,
                     exerciseNumber: exerciseIndex + 1,
                     totalExercises: totalExercises,
                     onBack: onCancel
                 )
 
-                // Tab toggle with native segmented picker - ensure it stays functional
-                Picker("View", selection: $selectedTab) {
-                    ForEach(LoggerTabOption.allCases, id: \.self) { tab in
-                        Label(tab.rawValue, systemImage: tab.icon)
-                            .tag(tab)
+                // Tab selector - full width with custom styling
+                LoggerTabSelector(selectedTab: $selectedTab)
+                    .padding(.top, Spacing.md)
+                    .onChange(of: selectedTab) { _, newTab in
+                        if newTab == .demo || newTab == .history {
+                            loadExerciseDetails()
+                        }
                     }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 280)
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.md)
-                .zIndex(10) // Ensure toolbar stays above content
-                .onChange(of: selectedTab) { _, newTab in
-                    if newTab == .demo || newTab == .history {
-                        loadExerciseDetails()
-                    }
-                }
 
                 // Content
                 if selectedTab == .logger {
                     ScrollView {
                         VStack(spacing: Spacing.lg) {
-                            // Exercise info - only show on Logger tab
-                            ExerciseLoggerInfoCard(exercise: exercise)
-                                .padding(.horizontal, Spacing.lg)
-                                .padding(.top, Spacing.md)
+                            // Exercise info - centered text layout (no container)
+                            ExerciseLoggerInfoSection(exercise: exercise)
+                                .padding(.top, Spacing.lg)
 
-                            // Set logging
-                            SetLoggingSection(
+                            // Set logging - redesigned with warm-up suggestion
+                            SetLoggingCard(
                                 exercise: exercise,
                                 loggedExercise: $loggedExercise,
                                 weightUnit: $weightUnit,
@@ -132,7 +124,7 @@ struct ExerciseLoggerView: View {
                             )
                             .padding(.horizontal, Spacing.lg)
 
-                            Spacer().frame(height: 100)
+                            Spacer().frame(height: 120)
                         }
                     }
                     .scrollDismissesKeyboard(.interactively)
@@ -161,19 +153,29 @@ struct ExerciseLoggerView: View {
                     }
                 }
 
-                // Submit Exercise button
-                VStack {
+                // Complete Exercise button with gradient fade behind
+                ZStack(alignment: .bottom) {
+                    // Gradient fade for scrollable content
+                    LinearGradient(
+                        colors: [.clear, Color.trainGradientMid.opacity(0.8), Color.trainGradientMid],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 100)
+                    .allowsHitTesting(false)
+
                     Button(action: submitExercise) {
-                        Text("Submit Exercise")
-                            .font(.trainBodyMedium)
-                            .foregroundColor(.white)
+                        Text("Complete Exercise")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(colorScheme == .dark ? .black : .white)
                             .frame(maxWidth: .infinity)
-                            .frame(height: ButtonHeight.standard)
+                            .frame(height: 56)
                             .background(atLeastOneSetCompleted ? Color.trainPrimary : Color.trainDisabled)
-                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     }
                     .disabled(!atLeastOneSetCompleted)
-                    .padding(Spacing.lg)
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 20)
                 }
             }
 
@@ -275,44 +277,125 @@ struct ExerciseLoggerView: View {
     }
 }
 
-// MARK: - Header
+// MARK: - Header (Redesigned)
 
 struct ExerciseLoggerHeader: View {
-    let exerciseName: String
+    let sessionName: String  // e.g., "Full Body", "Push", "Pull"
     let exerciseNumber: Int
     let totalExercises: Int
     let onBack: () -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Button(action: onBack) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text("Back")
-                            .font(.trainBody)
-                    }
+        HStack {
+            // Back button (just chevron)
+            Button(action: onBack) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundColor(.trainTextPrimary)
-                }
-
-                Spacer()
-
-                Text("Exercise \(exerciseNumber)/\(totalExercises)")
-                    .font(.trainCaption)
-                    .foregroundColor(.trainTextSecondary)
             }
-            .padding(Spacing.lg)
 
-            // Progress bar
-            ProgressView(value: Double(exerciseNumber), total: Double(totalExercises))
-                .tint(Color.trainPrimary)
+            Spacer()
+
+            // Session name centered
+            Text(sessionName)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.trainTextPrimary)
+
+            Spacer()
+
+            // Exercise counter (e.g., "1/5")
+            Text("\(exerciseNumber)/\(totalExercises)")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.trainTextPrimary)
         }
-        .appCard()
+        .padding(.horizontal, 18)
+        .padding(.top, 12)
     }
 }
 
-// MARK: - Info Card
+// MARK: - Tab Selector (Full Width with Custom Styling)
+
+struct LoggerTabSelector: View {
+    @Binding var selectedTab: LoggerTabOption
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        ZStack {
+            // Background pill
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(colorScheme == .dark
+                    ? Color.white.opacity(0.1)
+                    : Color(hex: "E2E3E4"))
+                .frame(height: 40)
+
+            HStack(spacing: 0) {
+                ForEach(LoggerTabOption.allCases, id: \.self) { tab in
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedTab = tab
+                        }
+                    }) {
+                        Text(tab.rawValue)
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundColor(.trainTextPrimary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .background(
+                                selectedTab == tab ?
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(colorScheme == .dark
+                                            ? Color.white.opacity(0.15)
+                                            : Color.white)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                .stroke(colorScheme == .dark
+                                                    ? Color.white.opacity(0.3)
+                                                    : Color.black.opacity(0.47), lineWidth: 1)
+                                        )
+                                : nil
+                            )
+                    }
+                }
+            }
+        }
+        .frame(height: 40)
+        .padding(.horizontal, 18)
+    }
+}
+
+// MARK: - Exercise Info Section (Centered, No Container)
+
+struct ExerciseLoggerInfoSection: View {
+    let exercise: ProgramExercise
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        VStack(spacing: 4) {
+            // Exercise name
+            Text(exercise.exerciseName)
+                .font(.system(size: 20, weight: .medium))
+                .foregroundColor(.trainTextPrimary)
+                .multilineTextAlignment(.center)
+
+            // Target sets and reps
+            Text("Target: \(exercise.sets) sets • \(exercise.repRange) reps")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.trainTextPrimary)
+
+            // Equipment tag
+            Text(exercise.equipmentType)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 6)
+                .background(Color.gray)
+                .clipShape(Capsule())
+                .padding(.top, 4)
+        }
+    }
+}
+
+// MARK: - Legacy Info Card (kept for backward compatibility)
 
 struct ExerciseLoggerInfoCard: View {
     let exercise: ProgramExercise
@@ -356,7 +439,228 @@ struct ExerciseLoggerInfoCard: View {
     }
 }
 
-// MARK: - Set Logging Section
+// MARK: - Set Logging Card (Redesigned with Warm-up Suggestion)
+
+struct SetLoggingCard: View {
+    let exercise: ProgramExercise
+    @Binding var loggedExercise: LoggedExercise
+    @Binding var weightUnit: ExerciseLoggerView.WeightUnit
+    @ObservedObject var restTimerController: RestTimerController
+    @ObservedObject var liveActivityManager: WorkoutLiveActivityManager
+    let onSetCompleted: () -> Void
+    @Environment(\.colorScheme) var colorScheme
+
+    // Calculate progressive overload rep difference
+    private var totalRepsDifference: Int? {
+        let completedSets = loggedExercise.sets.filter { $0.completed && $0.reps > 0 }
+        guard !completedSets.isEmpty else { return nil }
+        // This would compare to previous session - for now show if any reps logged
+        let totalReps = completedSets.reduce(0) { $0 + $1.reps }
+        return totalReps > 0 ? totalReps : nil
+    }
+
+    // Calculate suggested warm-up weight (50-70% of expected working weight)
+    private var suggestedWarmupWeight: Double {
+        // Use first set's weight if available, otherwise estimate
+        if let firstSetWeight = loggedExercise.sets.first?.weight, firstSetWeight > 0 {
+            return firstSetWeight * 0.6  // 60% of working weight
+        }
+        return 20.0  // Default placeholder
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Inline rest timer (appears at top when active)
+            InlineRestTimer(
+                totalSeconds: restTimerController.restSeconds,
+                isActive: $restTimerController.isActive
+            )
+
+            // Warm-up suggestion header with rep counter
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Suggested warm-up set")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(.trainTextSecondary)
+                        .opacity(0.8)
+                    Text("\(Int(suggestedWarmupWeight)) \(weightUnit.rawValue) (50-70%) • 10 reps")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.trainTextPrimary)
+                        .opacity(0.8)
+                }
+
+                Spacer()
+
+                // Progressive overload indicator (green +X)
+                if let diff = totalRepsDifference, diff > 0 {
+                    Text("+ \(diff)")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hex: "4DCA73"))
+                }
+            }
+            .padding(.bottom, 8)
+
+            // Set rows (no headers - simplified design)
+            ForEach(0..<loggedExercise.sets.count, id: \.self) { setIndex in
+                SimplifiedSetRow(
+                    setNumber: setIndex + 1,
+                    set: bindingForSet(setIndex),
+                    weightUnit: weightUnit,
+                    onComplete: {
+                        if exercise.restSeconds > 0 {
+                            restTimerController.triggerRest(seconds: exercise.restSeconds)
+                            if #available(iOS 16.1, *) {
+                                liveActivityManager.startRestTimer(seconds: exercise.restSeconds, elapsedTime: 0)
+                            }
+                        }
+                        onSetCompleted()
+                    }
+                )
+            }
+
+            // Add Set button (dashed border)
+            Button(action: addSet) {
+                Text("Add Set")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.trainTextPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .frame(height: 40)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(style: StrokeStyle(lineWidth: 1, dash: [5]))
+                            .foregroundColor(colorScheme == .dark ? .white.opacity(0.5) : .black)
+                    )
+            }
+        }
+        .padding(24)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+        )
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: restTimerController.isActive)
+    }
+
+    private func bindingForSet(_ index: Int) -> Binding<LoggedSet> {
+        Binding(
+            get: { loggedExercise.sets[index] },
+            set: { loggedExercise.sets[index] = $0 }
+        )
+    }
+
+    private func addSet() {
+        loggedExercise.sets.append(LoggedSet())
+    }
+}
+
+// MARK: - Simplified Set Row (No Headers)
+
+struct SimplifiedSetRow: View {
+    let setNumber: Int
+    @Binding var set: LoggedSet
+    let weightUnit: ExerciseLoggerView.WeightUnit
+    let onComplete: () -> Void
+    @Environment(\.colorScheme) var colorScheme
+
+    @State private var repsText: String = ""
+    @State private var weightText: String = ""
+    @FocusState private var isRepsFieldFocused: Bool
+    @FocusState private var isWeightFieldFocused: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Set number
+            Text("\(setNumber)")
+                .font(.system(size: 20, weight: .regular))
+                .foregroundColor(.trainTextPrimary)
+                .frame(width: 20)
+
+            // Weight input
+            TextField(weightUnit.rawValue, text: $weightText)
+                .keyboardType(.decimalPad)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(weightText.isEmpty ? .trainTextSecondary.opacity(0.4) : .trainTextPrimary)
+                .multilineTextAlignment(.center)
+                .frame(width: 98, height: 35)
+                .focused($isWeightFieldFocused)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(colorScheme == .dark ? Color.white.opacity(0.5) : Color.black, lineWidth: 1)
+                )
+                .onChange(of: weightText) { _, newValue in
+                    if let weight = Double(newValue) {
+                        set.weight = weightUnit == .kg ? weight : weight / 2.20462
+                    }
+                }
+
+            // Reps input
+            TextField("reps", text: $repsText)
+                .keyboardType(.numberPad)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(repsText.isEmpty ? .trainTextSecondary.opacity(0.4) : .trainTextPrimary)
+                .multilineTextAlignment(.center)
+                .frame(width: 98, height: 35)
+                .focused($isRepsFieldFocused)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(colorScheme == .dark ? Color.white.opacity(0.5) : Color.black, lineWidth: 1)
+                )
+                .onChange(of: repsText) { _, newValue in
+                    if let reps = Int(newValue) {
+                        set.reps = reps
+                    }
+                }
+
+            Spacer()
+
+            // Checkmark circle
+            Button(action: toggleCompletion) {
+                Circle()
+                    .fill(set.completed ? Color.trainPrimary : Color.gray.opacity(0.4))
+                    .frame(width: 30, height: 30)
+                    .overlay(
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                    )
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    isRepsFieldFocused = false
+                    isWeightFieldFocused = false
+                }
+                .foregroundColor(.trainPrimary)
+            }
+        }
+        .onAppear {
+            if set.reps > 0 { repsText = "\(set.reps)" }
+            if set.weight > 0 {
+                let displayWeight = weightUnit == .kg ? set.weight : set.weight * 2.20462
+                weightText = String(format: "%.1f", displayWeight)
+            }
+        }
+        .onChange(of: weightUnit) { _, newUnit in
+            if set.weight > 0 {
+                let displayWeight = newUnit == .kg ? set.weight : set.weight * 2.20462
+                weightText = String(format: "%.1f", displayWeight)
+            }
+        }
+    }
+
+    private func toggleCompletion() {
+        let wasCompleted = set.completed
+        set.completed.toggle()
+
+        if !wasCompleted && set.completed {
+            onComplete()
+        }
+    }
+}
+
+// MARK: - Legacy Set Logging Section (kept for backward compatibility)
 
 struct SetLoggingSection: View {
     let exercise: ProgramExercise
@@ -801,175 +1105,265 @@ struct FeedbackModalOverlay: View {
     }
 }
 
-// MARK: - Exercise Demo Tab
+// MARK: - Exercise Demo Tab (Redesigned)
 
 struct ExerciseDemoTab: View {
     let exercise: DBExercise
+    @Environment(\.colorScheme) var colorScheme
+
+    // Get the list of equipment items from the exercise
+    private var equipmentItems: [String] {
+        // Parse equipment from category and specific fields
+        var items: [String] = []
+        if !exercise.equipmentCategory.isEmpty {
+            items.append(exercise.equipmentCategory)
+        }
+        if let specific = exercise.equipmentSpecific, !specific.isEmpty {
+            // Split by comma if multiple items
+            let specificItems = specific.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }
+            items.append(contentsOf: specificItems)
+        }
+        return items.isEmpty ? ["Equipment"] : items
+    }
+
+    // Get active muscle groups
+    private var muscleGroups: [String] {
+        var groups: [String] = [exercise.primaryMuscle]
+        if let secondary = exercise.secondaryMuscle {
+            groups.append(secondary)
+        }
+        return groups
+    }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.lg) {
-                // Exercise title
-                Text(exercise.displayName)
-                    .font(.trainTitle2)
-                    .foregroundColor(.trainTextPrimary)
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.top, Spacing.md)
-
-                // Video/Image Demo Player
-                ExerciseMediaPlayer(exerciseId: exercise.exerciseId)
-                    .padding(.horizontal, Spacing.lg)
-
-                // Muscles & Equipment cards (side by side)
-                HStack(alignment: .top, spacing: Spacing.sm) {
-                    // Muscles card (left)
-                    VStack(alignment: .leading, spacing: Spacing.sm) {
-                        Text("Muscles")
-                            .font(.trainHeadline)
-                            .foregroundColor(.trainTextPrimary)
-
-                        HStack(spacing: Spacing.xs) {
-                            // Primary muscle
-                            Text(exercise.primaryMuscle)
-                                .font(.trainCaption)
-                                .foregroundColor(.trainPrimary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.trainPrimary.opacity(0.1))
-                                .clipShape(Capsule())
-
-                            // Secondary muscle (if any)
-                            if let secondary = exercise.secondaryMuscle {
-                                Text(secondary)
-                                    .font(.trainCaption)
-                                    .foregroundColor(.trainTextSecondary)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.trainTextSecondary.opacity(0.1))
-                                    .clipShape(Capsule())
-                            }
-                        }
-                    }
-                    .padding(Spacing.md)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .appCard()
-
-                    // Equipment card (right)
-                    VStack(alignment: .leading, spacing: Spacing.sm) {
-                        Text("Equipment")
-                            .font(.trainHeadline)
-                            .foregroundColor(.trainTextPrimary)
-
-                        HStack(spacing: Spacing.xs) {
-                            Image(systemName: "dumbbell")
-                                .font(.caption)
-                            Text(exercise.equipmentCategory)
-                                .font(.trainCaption)
-                        }
-                        .foregroundColor(.trainTextSecondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.trainTextSecondary.opacity(0.1))
-                        .clipShape(Capsule())
-                    }
-                    .padding(Spacing.md)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .appCard()
-                }
-                .padding(.horizontal, Spacing.lg)
-
-                // Instructions
-                if let instructions = exercise.instructions, !instructions.isEmpty {
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        Text("How to Perform")
-                            .font(.trainHeadline)
-                            .foregroundColor(.trainTextPrimary)
-
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
-                            ForEach(Array(exercise.instructionSteps.enumerated()), id: \.offset) { index, step in
-                                HStack(alignment: .top, spacing: Spacing.md) {
-                                    // Step number circle
-                                    Text("\(index + 1)")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .frame(width: 24, height: 24)
-                                        .background(Color.trainPrimary)
-                                        .clipShape(Circle())
-
-                                    // Instruction text - remove "Step X:" prefix if present
-                                    let cleanedStep = cleanStepText(step)
-                                    Text(cleanedStep)
-                                        .font(.trainBody)
-                                        .foregroundColor(.trainTextSecondary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                            }
-                        }
-                    }
-                    .padding(Spacing.md)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .appCard()
-                    .padding(.horizontal, Spacing.lg)
-                } else {
-                    // Placeholder when no instructions
-                    VStack(spacing: Spacing.md) {
-                        Image(systemName: "text.justify.leading")
-                            .font(.system(size: 32))
-                            .foregroundColor(.trainTextSecondary.opacity(0.5))
-
-                        Text("Instructions coming soon")
-                            .font(.trainBody)
-                            .foregroundColor(.trainTextSecondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(Spacing.xl)
-                    .appCard()
-                    .padding(.horizontal, Spacing.lg)
-                }
-
-                // Complexity indicator
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Exercise Complexity")
-                        .font(.trainHeadline)
+            VStack(spacing: 0) {
+                // Exercise Info (same as Logger tab - centered, no container)
+                VStack(spacing: 4) {
+                    Text(exercise.displayName)
+                        .font(.system(size: 20, weight: .medium))
                         .foregroundColor(.trainTextPrimary)
+                        .multilineTextAlignment(.center)
 
-                    HStack(spacing: Spacing.xs) {
-                        ForEach(1...4, id: \.self) { level in
-                            Circle()
-                                .fill(level <= exercise.numericComplexity ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3))
-                                .frame(width: 12, height: 12)
-                        }
-
-                        Text(complexityLabel)
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
-                            .padding(.leading, Spacing.sm)
-                    }
+                    // Equipment tag
+                    Text(exercise.equipmentCategory)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 6)
+                        .background(Color.gray)
+                        .clipShape(Capsule())
+                        .padding(.top, 4)
                 }
-                .padding(Spacing.md)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .appCard()
-                .padding(.horizontal, Spacing.lg)
+                .padding(.top, 20)
 
-                Spacer().frame(height: 100)
+                // Video Player Card
+                DemoVideoPlayerCard(exerciseId: exercise.exerciseId)
+                    .padding(.horizontal, 18)
+                    .padding(.top, 24)
+
+                // Equipment Section - horizontal row of placeholder tiles
+                DemoInfoSection(
+                    title: "Equipment",
+                    items: equipmentItems,
+                    sectionType: .equipment
+                )
+                .padding(.top, 24)
+
+                // Active Muscle Groups Section - with body diagrams
+                DemoMuscleGroupsSection(
+                    title: "Active Muscle Groups",
+                    muscleGroups: muscleGroups
+                )
+                .padding(.top, 16)
+
+                // Instructions Card
+                DemoInstructionsCard(instructions: exercise.instructionSteps)
+                    .padding(.horizontal, 18)
+                    .padding(.top, 16)
+                    .padding(.bottom, 100)
             }
         }
-        .edgeFadeMask(topFade: 12, bottomFade: 50)
+    }
+}
+
+// MARK: - Demo Video Player Card
+
+struct DemoVideoPlayerCard: View {
+    let exerciseId: String
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        ZStack {
+            // Use existing ExerciseMediaPlayer
+            ExerciseMediaPlayer(exerciseId: exerciseId)
+                .frame(height: 192)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+                )
+        }
+    }
+}
+
+// MARK: - Demo Info Section (Equipment)
+
+enum DemoSectionType {
+    case equipment
+    case muscles
+}
+
+struct DemoInfoSection: View {
+    let title: String
+    let items: [String]
+    let sectionType: DemoSectionType
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.trainTextPrimary)
+                .padding(.horizontal, 50)
+
+            HStack(spacing: 35) {
+                ForEach(items.prefix(4), id: \.self) { item in
+                    DemoPlaceholderTile(label: item, iconName: equipmentIcon(for: item))
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
     }
 
-    private var complexityLabel: String {
-        switch exercise.numericComplexity {
-        case 0: return "Available to All"
-        case 1: return "Beginner Friendly"
-        case 2: return "Some Experience"
-        case 3: return "Intermediate"
-        default: return "Standard"
+    private func equipmentIcon(for item: String) -> String {
+        let lowercased = item.lowercased()
+        if lowercased.contains("barbell") { return "figure.strengthtraining.traditional" }
+        if lowercased.contains("dumbbell") { return "dumbbell.fill" }
+        if lowercased.contains("cable") { return "cable.coaxial" }
+        if lowercased.contains("machine") { return "gearshape.fill" }
+        if lowercased.contains("bench") { return "bed.double.fill" }
+        if lowercased.contains("plate") { return "circle.fill" }
+        if lowercased.contains("bodyweight") { return "figure.stand" }
+        return "photo"
+    }
+}
+
+// MARK: - Demo Placeholder Tile
+
+struct DemoPlaceholderTile: View {
+    let label: String
+    let iconName: String
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        VStack(spacing: 4) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(colorScheme == .dark ? Color.white.opacity(0.1) : Color.white)
+                    .frame(width: 70, height: 70)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.2) : Color.black.opacity(0.1), lineWidth: 1)
+                    )
+
+                Image(systemName: iconName)
+                    .font(.system(size: 24))
+                    .foregroundColor(.trainTextPrimary)
+            }
+
+            Text(label)
+                .font(.system(size: 12, weight: .regular))
+                .foregroundColor(.trainTextSecondary)
+                .lineLimit(1)
         }
+    }
+}
+
+// MARK: - Demo Muscle Groups Section (with Body Diagrams)
+
+struct DemoMuscleGroupsSection: View {
+    let title: String
+    let muscleGroups: [String]
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.trainTextPrimary)
+                .padding(.horizontal, 50)
+
+            HStack(spacing: Spacing.lg) {
+                ForEach(muscleGroups.prefix(3), id: \.self) { muscleGroup in
+                    VStack(spacing: Spacing.sm) {
+                        StaticMuscleView(
+                            muscleGroup: muscleGroup,
+                            gender: .male,  // Default to male, could be made configurable
+                            size: 90,
+                            useUniformBaseColor: true
+                        )
+                        .frame(width: 90, height: 90)
+
+                        Text(muscleGroup)
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+// MARK: - Demo Instructions Card
+
+struct DemoInstructionsCard: View {
+    let instructions: [String]
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Instructions")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.trainTextPrimary)
+
+            if instructions.isEmpty {
+                Text("Instructions coming soon")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.trainTextSecondary)
+                    .opacity(0.8)
+                    .padding(.top, 4)
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(Array(instructions.enumerated()), id: \.offset) { index, instruction in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("\(index + 1).")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(.trainTextPrimary)
+                                .opacity(0.8)
+                            Text(cleanStepText(instruction))
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(.trainTextPrimary)
+                                .opacity(0.8)
+                        }
+                    }
+                }
+                .padding(.top, 4)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+        )
     }
 
     // Clean up step text by removing "Step X:" prefix
     private func cleanStepText(_ step: String) -> String {
-        // Remove "Step 1:", "Step 2:", etc. prefixes
         let pattern = "^Step\\s*\\d+\\s*:\\s*"
         if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
             let range = NSRange(step.startIndex..., in: step)
@@ -977,7 +1371,6 @@ struct ExerciseDemoTab: View {
         }
         return step
     }
-
 }
 
 // MARK: - Preview
@@ -998,6 +1391,7 @@ struct ExerciseDemoTab: View {
             totalExercises: 5,
             weekNumber: 1,
             sessionIndex: 0,
+            sessionName: "Full Body",
             loggedExercise: .constant(LoggedExercise(
                 exerciseName: "Bench Press",
                 sets: [LoggedSet(), LoggedSet(), LoggedSet()],

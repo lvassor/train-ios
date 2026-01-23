@@ -2,7 +2,7 @@
 //  ExerciseHistoryView.swift
 //  trAInSwift
 //
-//  Exercise-specific history with progress tracking and charts
+//  Exercise-specific history with progress tracking and charts (Redesigned)
 //
 
 import SwiftUI
@@ -10,6 +10,7 @@ import Charts
 
 struct ExerciseHistoryView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     let exercise: DBExercise
     @State private var historyEntries: [WorkoutHistoryEntry] = []
     @State private var bestSet: ExerciseSet?
@@ -72,162 +73,62 @@ struct ExerciseHistoryView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                VStack(spacing: Spacing.lg) {
-                    // Summary cards
-                    HStack(spacing: Spacing.md) {
-                        // Best Set card
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
-                            Text("Best Set")
-                                .font(.trainBodyMedium)
-                                .foregroundColor(.trainTextSecondary)
-
-                            if let best = bestSet {
-                                Text("\(best.weight, specifier: "%.1f") kg • \(best.reps) reps")
-                                    .font(.trainTitle)
-                                    .foregroundColor(.trainTextPrimary)
-                            } else {
-                                Text("--")
-                                    .font(.trainTitle)
-                                    .foregroundColor(.trainTextSecondary)
-                            }
-                        }
-                        .padding(Spacing.md)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.white)
-                        .cornerRadius(15)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.trainBorder, lineWidth: 1)
-                        )
-
-                        // Start Weight card
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
-                            Text("Start Weight")
-                                .font(.trainBodyMedium)
-                                .foregroundColor(.trainTextSecondary)
-
-                            if startWeight > 0 {
-                                Text("\(Int(startWeight)) kg")
-                                    .font(.trainTitle)
-                                    .foregroundColor(.trainTextPrimary)
-                            } else {
-                                Text("--")
-                                    .font(.trainTitle)
-                                    .foregroundColor(.trainTextSecondary)
-                            }
-                        }
-                        .padding(Spacing.md)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .appCard()
-                        .cornerRadius(15)
-                    }
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.top, Spacing.md)
-
-                    // Progress chart
-                    if !historyEntries.isEmpty {
-                        VStack(alignment: .leading, spacing: Spacing.md) {
-                            // Chart header with toggle
-                            HStack {
-                                Text("Progress")
-                                    .font(.trainBodyMedium)
-                                    .foregroundColor(.trainTextPrimary)
-
-                                Spacer()
-
-                                // Metric toggle
-                                HStack(spacing: 0) {
-                                    ForEach(ChartMetric.allCases, id: \.self) { metric in
-                                        Button(action: { selectedMetric = metric }) {
-                                            HStack(spacing: 4) {
-                                                Image(systemName: metric.icon)
-                                                    .font(.caption)
-                                                Text(metric.rawValue)
-                                                    .font(.trainCaption)
-                                            }
-                                            .fontWeight(.medium)
-                                            .foregroundColor(selectedMetric == metric ? .white : .trainTextSecondary)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                            .background(selectedMetric == metric ? Color.trainPrimary : Color.clear)
-                                        }
-                                    }
-                                }
-                                .glassCompactCard(cornerRadius: CornerRadius.sm)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
-                                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                                )
-                            }
-                            .padding(.horizontal, Spacing.lg)
-
-                            Chart(historyEntries) { entry in
-                                let yValue = selectedMetric == .totalVolume ? entry.totalVolume : entry.maxWeight
-
-                                LineMark(
-                                    x: .value("Date", entry.date),
-                                    y: .value(selectedMetric.rawValue, yValue)
-                                )
-                                .foregroundStyle(Color.trainPrimary)
-                                .interpolationMethod(.catmullRom)
-
-                                AreaMark(
-                                    x: .value("Date", entry.date),
-                                    y: .value(selectedMetric.rawValue, yValue)
-                                )
-                                .foregroundStyle(Color.trainPrimary.opacity(0.1))
-                                .interpolationMethod(.catmullRom)
-                            }
-                            .frame(height: 200)
-                            .padding(.horizontal, Spacing.lg)
-                            .animation(.easeInOut(duration: 0.3), value: selectedMetric)
-                        }
-                        .padding(.vertical, Spacing.md)
-                        .appCard()
-                        .cornerRadius(15)
-                        .padding(.horizontal, Spacing.lg)
-                    }
-
-                    // History entries
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        Text("History")
-                            .font(.trainBodyMedium)
+                VStack(spacing: 0) {
+                    // Exercise Info Header (same as Logger/Demo - centered, no container)
+                    VStack(spacing: 4) {
+                        Text(exercise.displayName)
+                            .font(.system(size: 20, weight: .medium))
                             .foregroundColor(.trainTextPrimary)
-                            .padding(.horizontal, Spacing.lg)
+                            .multilineTextAlignment(.center)
 
-                        if historyEntries.isEmpty {
-                            VStack(spacing: Spacing.md) {
-                                Image(systemName: "calendar.badge.exclamationmark")
-                                    .font(.system(size: 48))
-                                    .foregroundColor(.trainTextSecondary)
+                        // Equipment tag
+                        Text(exercise.equipmentCategory)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 6)
+                            .background(Color.gray)
+                            .clipShape(Capsule())
+                            .padding(.top, 4)
+                    }
+                    .padding(.top, 20)
 
-                                Text("No history yet")
-                                    .font(.trainBody)
-                                    .foregroundColor(.trainTextSecondary)
+                    // Stats Cards - side by side with border stroke
+                    HStack(spacing: 20) {
+                        HistoryStatCard(
+                            title: "Best Set",
+                            value: bestSet != nil ? "\(Int(bestSet!.weight)) kg • \(bestSet!.reps) reps" : "--"
+                        )
+                        HistoryStatCard(
+                            title: "Start Weight",
+                            value: startWeight > 0 ? "\(Int(startWeight)) kg" : "--"
+                        )
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 16)
 
-                                Text("Complete your first set!")
-                                    .font(.trainCaption)
-                                    .foregroundColor(.trainTextSecondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Spacing.xl)
-                        } else {
-                            VStack(spacing: Spacing.md) {
-                                ForEach(historyEntries) { entry in
-                                    HistoryEntryCard(entry: entry)
-                                }
-                            }
-                            .padding(.horizontal, Spacing.lg)
-                        }
+                    // Progress Chart - simplified with area gradient
+                    if !historyEntries.isEmpty {
+                        HistoryProgressChart(
+                            entries: historyEntries,
+                            selectedMetric: selectedMetric
+                        )
+                        .frame(height: 180)
+                        .padding(.top, 8)
                     }
 
-                    Spacer()
-                        .frame(height: Spacing.lg)
+                    // History Entries
+                    VStack(spacing: 20) {
+                        ForEach(historyEntries) { entry in
+                            HistorySessionCard(entry: entry)
+                        }
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 24)
+                    .padding(.bottom, 100)
                 }
             }
         }
-        .navigationTitle(exercise.displayName)
-        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             loadHistory()
         }
@@ -309,7 +210,130 @@ struct ExerciseHistoryView: View {
     }
 }
 
-// MARK: - History Entry Card
+// MARK: - History Stat Card (Redesigned)
+
+struct HistoryStatCard: View {
+    let title: String
+    let value: String
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(title)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.trainTextSecondary)
+            Text(value)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.trainTextPrimary)
+        }
+        .frame(width: 160, height: 60)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - History Progress Chart (Redesigned)
+
+struct HistoryProgressChart: View {
+    let entries: [ExerciseHistoryView.WorkoutHistoryEntry]
+    let selectedMetric: ExerciseHistoryView.ChartMetric
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        Chart(entries) { entry in
+            let yValue = selectedMetric == .totalVolume ? entry.totalVolume : entry.maxWeight
+
+            // Area fill with gradient
+            AreaMark(
+                x: .value("Date", entry.date),
+                y: .value(selectedMetric.rawValue, yValue)
+            )
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [
+                        (colorScheme == .dark ? Color.white : Color.gray).opacity(0.3),
+                        (colorScheme == .dark ? Color.white : Color.gray).opacity(0.1)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .interpolationMethod(.catmullRom)
+
+            // Line on top
+            LineMark(
+                x: .value("Date", entry.date),
+                y: .value(selectedMetric.rawValue, yValue)
+            )
+            .foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
+            .lineStyle(StrokeStyle(lineWidth: 2))
+            .interpolationMethod(.catmullRom)
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .padding(.horizontal, 18)
+    }
+}
+
+// MARK: - History Session Card (Redesigned)
+
+struct HistorySessionCard: View {
+    let entry: ExerciseHistoryView.WorkoutHistoryEntry
+    @Environment(\.colorScheme) var colorScheme
+
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yy"
+        return formatter.string(from: entry.date)
+    }
+
+    private var dayOfWeek: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: entry.date)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Header with date and badge
+            HStack {
+                HStack(spacing: 0) {
+                    Text(formattedDate)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.trainTextPrimary)
+                    Text(" - \(dayOfWeek)")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(.trainTextSecondary)
+                }
+                Spacer()
+                if entry.hadProgression {
+                    Image(systemName: "medal")
+                        .font(.system(size: 28))
+                        .foregroundColor(colorScheme == .dark ? Color.trainPrimary : Color.gray.opacity(0.6))
+                }
+            }
+
+            // Set details
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(Array(entry.sets.enumerated()), id: \.element.id) { index, set in
+                    Text("Set \(index + 1): \(Int(set.weight)) kg • \(set.reps) reps")
+                        .font(.system(size: 16, weight: index == 0 ? .medium : .regular))
+                        .foregroundColor(.trainTextPrimary)
+                }
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Legacy History Entry Card (kept for backward compatibility)
 
 struct HistoryEntryCard: View {
     let entry: ExerciseHistoryView.WorkoutHistoryEntry

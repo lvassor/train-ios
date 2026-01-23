@@ -215,6 +215,7 @@ struct WorkoutOverviewView: View {
                     totalExercises: sessionExercises.count,
                     weekNumber: weekNumber,
                     sessionIndex: sessionIndex,
+                    sessionName: session?.dayName ?? "Workout",
                     loggedExercise: bindingForExercise(exercise),
                     onComplete: { logged in
                         completedExercises.insert(exercise.id)
