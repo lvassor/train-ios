@@ -9,32 +9,52 @@ import SwiftUI
 
 struct LearningRecommendationCard: View {
     let data: LearningRecommendationData
+    @State private var showVideoPlayer = false
 
     var body: some View {
         HStack(spacing: Spacing.md) {
-            // Video thumbnail with play overlay
-            ZStack {
-                AsyncImage(url: data.thumbnailURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Rectangle()
-                        .fill(Color.trainGradientEdge.opacity(0.3))
+            // Video thumbnail with play overlay - tappable to play video
+            // Video thumbnail with play overlay - matches exercise card dimensions (80x64, 8pt radius)
+            ZStack(alignment: .bottomLeading) {
+                AsyncImage(url: data.thumbnailURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 64)
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    case .failure:
+                        thumbnailPlaceholder
+                    case .empty:
+                        thumbnailPlaceholder
+                            .overlay {
+                                ProgressView()
+                                    .tint(.trainTextSecondary)
+                                    .scaleEffect(0.7)
+                            }
+                    @unknown default:
+                        thumbnailPlaceholder
+                    }
                 }
 
-                // Play button overlay
-                Circle()
-                    .fill(Color.black.opacity(0.6))
-                    .frame(width: 32, height: 32)
-                    .overlay(
+                // Play button overlay (bottom-left, matching exercise cards)
+                if data.videoGuid != nil {
+                    Button(action: {
+                        showVideoPlayer = true
+                    }) {
                         Image(systemName: "play.fill")
-                            .font(.system(size: 14))
+                            .font(.system(size: 10))
                             .foregroundColor(.white)
-                    )
+                            .padding(6)
+                            .background(Color.black.opacity(0.6))
+                            .clipShape(Circle())
+                    }
+                    .offset(x: 4, y: -4)
+                }
             }
-            .frame(width: 80, height: 80)
-            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
+            .frame(width: 80, height: 64)
 
             // Content
             VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -45,87 +65,47 @@ struct LearningRecommendationCard: View {
                 Text(data.title)
                     .font(.trainBodyMedium)
                     .foregroundColor(.trainTextPrimary)
-                    .lineLimit(2)
+                    .lineLimit(1)
 
                 Text(data.description)
-                    .font(.trainCaption)
+                    .font(.system(size: 12, weight: .regular))
                     .foregroundColor(.trainTextSecondary)
                     .lineLimit(2)
-
-                Spacer()
-
-                // Muscle group highlights
-                if let muscleGroup = extractMuscleGroup(from: data.title) {
-                    HStack(spacing: Spacing.xs) {
-                        StaticMuscleView(
-                            muscleGroup: muscleGroup,
-                            gender: .male,
-                            size: 24,
-                            useUniformBaseColor: true
-                        )
-                        .frame(width: 24, height: 24)
-
-                        Text(muscleGroup)
-                            .font(.trainCaption)
-                            .foregroundColor(.trainPrimary)
-                    }
-                } else {
-                    // Fallback play button
-                    HStack(spacing: Spacing.xs) {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(.trainPrimary)
-
-                        Text("Watch")
-                            .font(.trainCaption)
-                            .foregroundColor(.trainPrimary)
-                    }
-                }
             }
 
             Spacer()
         }
         .padding(Spacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            // TODO: Navigate to video player
-            print("Tapped learning recommendation: \(data.title)")
+        .fullScreenCover(isPresented: $showVideoPlayer) {
+            if let guid = data.videoGuid {
+                FullscreenVideoPlayer(videoGuid: guid)
+            }
         }
     }
 
-    private func extractMuscleGroup(from title: String) -> String? {
-        let lowercaseTitle = title.lowercased()
-
-        if lowercaseTitle.contains("chest") {
-            return "Chest"
-        } else if lowercaseTitle.contains("shoulder") {
-            return "Shoulders"
-        } else if lowercaseTitle.contains("bicep") {
-            return "Biceps"
-        } else if lowercaseTitle.contains("tricep") {
-            return "Triceps"
-        } else if lowercaseTitle.contains("quad") {
-            return "Quads"
-        } else if lowercaseTitle.contains("glute") {
-            return "Glutes"
-        } else if lowercaseTitle.contains("back") {
-            return "Back"
-        } else if lowercaseTitle.contains("calves") {
-            return "Calves"
-        }
-        return nil
+    private var thumbnailPlaceholder: some View {
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(Color.gray.opacity(0.3))
+            .frame(width: 80, height: 64)
+            .overlay {
+                Image(systemName: "photo")
+                    .font(.system(size: 20))
+                    .foregroundColor(.trainTextSecondary.opacity(0.5))
+            }
     }
 }
 
 // MARK: - Preview
 
 #Preview {
+    let sampleGuid = "60ef27d7-5909-429a-a2c1-305cca4eaaf3"
     let sampleData = LearningRecommendationData(
-        title: "Barbell Setup",
-        description: "Learn proper barbell positioning and safety",
-        videoGuid: "sample-guid",
-        thumbnailURL: BunnyConfig.videoThumbnailURL(for: "sample-guid")
+        title: "Learn Barbell Bench Press",
+        description: "Master proper form and technique for this key exercise",
+        exerciseId: "EX007",
+        videoGuid: sampleGuid,
+        thumbnailURL: BunnyConfig.videoThumbnailURL(for: sampleGuid)
     )
 
     return ZStack {

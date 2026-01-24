@@ -87,8 +87,12 @@ struct ExerciseLoggerView: View {
 
     var body: some View {
         ZStack {
+            // Background gradient
+            AppGradient.background
+                .ignoresSafeArea()
+
             VStack(spacing: 0) {
-                // Header - new simplified design
+                // Header - new simplified design (respects top safe area)
                 ExerciseLoggerHeader(
                     sessionName: sessionName,
                     exerciseNumber: exerciseIndex + 1,
@@ -105,54 +109,58 @@ struct ExerciseLoggerView: View {
                         }
                     }
 
-                // Content
-                if selectedTab == .logger {
-                    ScrollView {
-                        VStack(spacing: Spacing.lg) {
-                            // Exercise info - centered text layout (no container)
-                            ExerciseLoggerInfoSection(exercise: exercise)
-                                .padding(.top, Spacing.lg)
+                // Content - fills remaining space
+                Group {
+                    if selectedTab == .logger {
+                        ScrollView {
+                            VStack(spacing: Spacing.lg) {
+                                // Exercise info - centered text layout (no container)
+                                ExerciseLoggerInfoSection(exercise: exercise)
+                                    .padding(.top, Spacing.lg)
 
-                            // Set logging - redesigned with warm-up suggestion
-                            SetLoggingCard(
-                                exercise: exercise,
-                                loggedExercise: $loggedExercise,
-                                weightUnit: $weightUnit,
-                                restTimerController: restTimerController,
-                                liveActivityManager: liveActivityManager,
-                                onSetCompleted: updateLiveActivityProgress
-                            )
-                            .padding(.horizontal, Spacing.lg)
+                                // Set logging - redesigned with warm-up suggestion
+                                SetLoggingCard(
+                                    exercise: exercise,
+                                    loggedExercise: $loggedExercise,
+                                    weightUnit: $weightUnit,
+                                    restTimerController: restTimerController,
+                                    liveActivityManager: liveActivityManager,
+                                    onSetCompleted: updateLiveActivityProgress
+                                )
+                                .padding(.horizontal, Spacing.lg)
 
-                            Spacer().frame(height: 120)
+                                Spacer().frame(height: 120)
+                            }
                         }
-                    }
-                    .scrollDismissesKeyboard(.interactively)
-                } else if selectedTab == .demo {
-                    // Demo view - no overlapping title
-                    if let dbExercise = selectedDBExercise {
-                        ExerciseDemoTab(exercise: dbExercise)
-                    } else {
-                        VStack {
-                            ProgressView("Loading exercise...")
-                                .foregroundColor(.trainTextPrimary)
+                        .scrollDismissesKeyboard(.interactively)
+                    } else if selectedTab == .demo {
+                        // Demo view - no overlapping title
+                        if let dbExercise = selectedDBExercise {
+                            ExerciseDemoTab(exercise: dbExercise)
+                        } else {
+                            VStack {
+                                ProgressView("Loading exercise...")
+                                    .foregroundColor(.trainTextPrimary)
+                            }
+                            .frame(maxHeight: .infinity)
                         }
-                        .frame(maxHeight: .infinity)
-                    }
-                } else if selectedTab == .history {
-                    // History view - no overlapping title, ensure proper layout
-                    if let dbExercise = selectedDBExercise {
-                        ExerciseHistoryView(exercise: dbExercise)
-                            .padding(.top, Spacing.sm) // Add small top padding to prevent overlap
-                    } else {
-                        VStack {
-                            ProgressView("Loading exercise...")
-                                .foregroundColor(.trainTextPrimary)
+                    } else if selectedTab == .history {
+                        // History view - no overlapping title, ensure proper layout
+                        if let dbExercise = selectedDBExercise {
+                            ExerciseHistoryView(exercise: dbExercise)
+                                .padding(.top, Spacing.sm)
+                        } else {
+                            VStack {
+                                ProgressView("Loading exercise...")
+                                    .foregroundColor(.trainTextPrimary)
+                            }
+                            .frame(maxHeight: .infinity)
                         }
-                        .frame(maxHeight: .infinity)
                     }
                 }
-
+                .frame(maxHeight: .infinity)
+            }
+            .safeAreaInset(edge: .bottom) {
                 // Complete Exercise button with gradient fade behind
                 ZStack(alignment: .bottom) {
                     // Gradient fade for scrollable content
@@ -175,7 +183,7 @@ struct ExerciseLoggerView: View {
                     }
                     .disabled(!atLeastOneSetCompleted)
                     .padding(.horizontal, 18)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 8)
                 }
             }
 
@@ -202,7 +210,6 @@ struct ExerciseLoggerView: View {
                 .animation(.easeInOut(duration: 0.2), value: showFeedbackNotification)
             }
         }
-        .charcoalGradientBackground()
         .navigationBarBackButtonHidden(true)
     }
 
@@ -625,16 +632,6 @@ struct SimplifiedSetRow: View {
                     )
             }
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") {
-                    isRepsFieldFocused = false
-                    isWeightFieldFocused = false
-                }
-                .foregroundColor(.trainPrimary)
-            }
-        }
         .onAppear {
             if set.reps > 0 { repsText = "\(set.reps)" }
             if set.weight > 0 {
@@ -869,16 +866,6 @@ struct SetInputRow: View {
         .padding(Spacing.sm)
         .background(set.completed ? Color.trainPrimary.opacity(0.05) : Color.trainBackground)
         .cornerRadius(CornerRadius.sm)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") {
-                    isRepsFieldFocused = false
-                    isWeightFieldFocused = false
-                }
-                .foregroundColor(.trainPrimary)
-            }
-        }
         .onAppear {
             if set.reps > 0 { repsText = "\(set.reps)" }
             if set.weight > 0 {

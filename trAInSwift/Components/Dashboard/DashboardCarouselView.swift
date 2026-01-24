@@ -16,7 +16,7 @@ struct DashboardCarouselView: View {
     @State private var isCalendarExpanded = false
 
     // Heights for collapsed vs expanded states
-    private let collapsedHeight: CGFloat = 140
+    private let collapsedHeight: CGFloat = 148  // Increased to prevent TabView clipping the card border
     private let expandedHeight: CGFloat = 420
 
     var body: some View {
@@ -30,6 +30,8 @@ struct DashboardCarouselView: View {
                         userProgram: userProgram,
                         isCalendarExpanded: $isCalendarExpanded
                     )
+                    .padding(.horizontal, 4) // Prevent edge clipping of rounded corners
+                    .padding(.vertical, 2) // Prevent top/bottom border clipping
                 }
             } else {
                 // Collapsed: normal carousel with swiping
@@ -41,6 +43,7 @@ struct DashboardCarouselView: View {
                             isCalendarExpanded: $isCalendarExpanded
                         )
                         .padding(.horizontal, 4) // Prevent edge clipping of rounded corners
+                        .padding(.vertical, 2) // Prevent top/bottom border clipping
                         .tag(index)
                     }
                 }
@@ -110,49 +113,39 @@ struct DashboardCarouselView: View {
     }
 
     private func createLearningRecommendationData() -> LearningRecommendationData? {
-        // Get current program's first exercise for learning recommendation
-        guard let program = userProgram.getProgram(),
-              let firstSession = program.sessions.first,
-              let firstExercise = firstSession.exercises.first else {
-            return nil
+        // Collect all exercises from the user's program
+        guard let program = userProgram.getProgram() else { return nil }
+
+        let allExercises = program.sessions.flatMap { $0.exercises }
+        guard let randomExercise = allExercises.randomElement() else { return nil }
+
+        // Generate learning content based on the randomly selected exercise
+        let title = randomExercise.exerciseName
+        let description = "Master proper form and technique for this key exercise"
+
+        // Look up the actual video GUID from ExerciseMediaMapping using exerciseId
+        let videoGuid: String?
+        if let media = ExerciseMediaMapping.mapping[randomExercise.exerciseId],
+           media.mediaType == .video {
+            videoGuid = media.guid
+        } else {
+            videoGuid = nil
         }
 
-        // Generate learning content based on exercise
-        let title = "Learn \(firstExercise.exerciseName)"
-        let description = "Master proper form and technique for this exercise"
-
-        // Use sample video GUIDs based on common exercise types
-        let videoGuid = getVideoGuidForExercise(firstExercise.exerciseName)
-        let thumbnailURL = BunnyConfig.videoThumbnailURL(for: videoGuid)
+        let thumbnailURL: URL?
+        if let guid = videoGuid {
+            thumbnailURL = BunnyConfig.videoThumbnailURL(for: guid)
+        } else {
+            thumbnailURL = nil
+        }
 
         return LearningRecommendationData(
             title: title,
             description: description,
+            exerciseId: randomExercise.exerciseId,
             videoGuid: videoGuid,
             thumbnailURL: thumbnailURL
         )
-    }
-
-    private func getVideoGuidForExercise(_ exerciseName: String) -> String {
-        // Map exercise names to video GUIDs from bunny library
-        let lowercaseName = exerciseName.lowercased()
-
-        if lowercaseName.contains("squat") {
-            return "5ebb1352-dddb-41ef-9822-df5ddbca3450" // Cable Squat
-        } else if lowercaseName.contains("push") || lowercaseName.contains("chest") {
-            return "3c450656-f47f-4821-9bf6-be90b6e64c1e" // Incline Plyo Push-up
-        } else if lowercaseName.contains("press") && lowercaseName.contains("shoulder") {
-            return "dbc2bc30-cd2b-463a-a341-df34e33f4069" // Kettlebell Double Strict Press
-        } else if lowercaseName.contains("curl") || lowercaseName.contains("bicep") {
-            return "60ef27d7-5909-429a-a2c1-305cca4eaaf3" // Cable Biceps Curl
-        } else if lowercaseName.contains("lunge") {
-            return "f847fd56-7b94-45ef-b61f-be1dbdc3afa5" // Dumbbell Reverse Lunge
-        } else if lowercaseName.contains("extension") || lowercaseName.contains("tricep") {
-            return "5cfa4700-8e22-4cff-b3f8-c802f066ca59" // Dumbbell Lying Triceps Extension
-        } else {
-            // Default to a general exercise video
-            return "47b5bb17-0de2-45f7-a8c7-9849ce354520" // Sled 45 degrees Deep Leg Press
-        }
     }
 
     private func createEngagementPromptData() -> EngagementPromptData? {

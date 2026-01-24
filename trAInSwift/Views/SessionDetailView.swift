@@ -142,7 +142,7 @@ struct SessionDetailView: View {
         }
         .sheet(item: $selectedDBExercise) { exercise in
             NavigationStack {
-                ExerciseDetailView(exercise: exercise, showLoggerTab: true)
+                ExerciseDemoHistoryView(exercise: exercise)
             }
         }
     }

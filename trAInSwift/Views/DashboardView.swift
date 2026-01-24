@@ -48,21 +48,15 @@ struct DashboardContent: View {
                 ScrollView {
                     Color.clear.frame(height: 0)
                     VStack(spacing: Spacing.lg) {
-                        // Top Header (Fixed)
+                        // Top Header (Fixed) - padding included in TopHeaderView per Figma
                         TopHeaderView()
-                            .padding(.horizontal, Spacing.lg)
-                            .padding(.top, Spacing.md)
 
                         // Active workout timer display
                         ActiveWorkoutTimerView()
 
                         if let program = userProgram {
-                            // Carousel Section (replaces static greeting)
+                            // Carousel Section (contains expandable weekly progress calendar)
                             DashboardCarouselView(userProgram: program)
-                                .padding(.horizontal, Spacing.lg)
-
-                            // Weekly Calendar (the properly styled one)
-                            WeeklyCalendarView(userProgram: program)
                                 .padding(.horizontal, Spacing.lg)
 
                             // Split Selector and Sessions
@@ -475,7 +469,7 @@ struct WeeklySessionsSection: View {
     }
 }
 
-// MARK: - Horizontal Day Buttons Row
+// MARK: - Horizontal Day Buttons Row (Figma Redesign - Pill Style)
 
 struct HorizontalDayButtonsRow: View {
     let sessions: [ProgramSession]
@@ -488,7 +482,7 @@ struct HorizontalDayButtonsRow: View {
             let totalWidth = geometry.size.width
             let buttonCount = sessions.count
             let collapsedButtonWidth: CGFloat = 44
-            let spacing: CGFloat = Spacing.sm
+            let spacing: CGFloat = 10
             let totalSpacing = spacing * CGFloat(buttonCount - 1)
             let totalCollapsedWidth = collapsedButtonWidth * CGFloat(buttonCount - 1)
             let expandedButtonWidth = totalWidth - totalCollapsedWidth - totalSpacing
@@ -497,33 +491,31 @@ struct HorizontalDayButtonsRow: View {
                 ForEach(Array(sessions.enumerated()), id: \.offset) { index, _ in
                     let isSelected = index == selectedIndex
                     let isCompleted = isSessionCompleted(sessionIndex: index)
+                    let displayText = isSelected ? sessionNames[index].fullName : sessionNames[index].abbreviation
 
                     Button(action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             selectedIndex = index
                         }
                     }) {
-                        Text(isSelected ? sessionNames[index].fullName : sessionNames[index].abbreviation)
-                            .font(.trainBodyMedium)
-                            .foregroundColor(isSelected ? .white : (isCompleted ? .trainPrimary : .trainTextPrimary))
+                        Text(displayText)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(isSelected ? .trainBackground : (isCompleted ? .trainPrimary : .trainTextPrimary))
                             .lineLimit(1)
                             .frame(width: isSelected ? expandedButtonWidth : collapsedButtonWidth)
                             .frame(height: 44)
                             .background(
-                                isSelected ? Color.trainPrimary :
-                                    (isCompleted ? Color.trainPrimary.opacity(0.15) : Color.clear)
+                                isSelected ? AnyShapeStyle(Color.trainTextSecondary) :
+                                    (isCompleted ? AnyShapeStyle(Color.trainPrimary.opacity(0.15)) : AnyShapeStyle(.ultraThinMaterial))
                             )
-                            .appCard()
-                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                    .stroke(isCompleted && !isSelected ? Color.trainPrimary.opacity(0.3) : .clear, lineWidth: 1)
-                            )
-                            .shadow(
-                                color: isSelected ? Color.trainPrimary.opacity(0.3) : .black.opacity(0.06),
-                                radius: isSelected ? 12 : 6,
-                                x: 0,
-                                y: isSelected ? 4 : 2
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(
+                                        isSelected ? Color.clear :
+                                            (isCompleted ? Color.trainPrimary.opacity(0.3) : Color.trainTextSecondary.opacity(0.3)),
+                                        lineWidth: 1
+                                    )
                             )
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -566,7 +558,7 @@ struct HorizontalDayButtonsRow: View {
     }
 }
 
-// MARK: - Session Action Button
+// MARK: - Session Action Button (Figma Redesign)
 
 struct SessionActionButton: View {
     let userProgram: WorkoutProgram
@@ -588,14 +580,6 @@ struct SessionActionButton: View {
         }
     }
 
-    private var buttonColor: Color {
-        if isActiveWorkout {
-            return Color.orange // Different color for continue workout
-        } else {
-            return Color.trainPrimary
-        }
-    }
-
     var body: some View {
         VStack(spacing: Spacing.sm) {
             // Active workout indicator (if there's an active workout but it's a different session)
@@ -614,7 +598,7 @@ struct SessionActionButton: View {
                 .clipShape(Capsule())
             }
 
-            // Start/Continue Workout button
+            // Start/Continue Workout button - orange accent color per Figma
             NavigationLink(destination: WorkoutOverviewView(
                 weekNumber: Int(userProgram.currentWeek),
                 sessionIndex: sessionIndex
@@ -625,13 +609,13 @@ struct SessionActionButton: View {
                             .font(.system(size: 18))
                     }
                     Text(buttonText)
-                        .font(.trainBodyMedium)
+                        .font(.system(size: 18, weight: .medium))
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.md)
-                .background(buttonColor)
-                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                .padding(.vertical, 16)
+                .background(Color.trainPrimary)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
 
             // Show View Completed Workout button below Start button if session has been completed this week
@@ -644,102 +628,81 @@ struct SessionActionButton: View {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 18))
                         Text("View Completed Workout")
-                            .font(.trainBodyMedium)
+                            .font(.system(size: 16, weight: .light))
                     }
                     .foregroundColor(.trainPrimary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, Spacing.md)
+                    .padding(.vertical, 14)
                     .background(Color.trainPrimary.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
             }
         }
     }
 }
 
-// MARK: - Exercise List View (Vertical Timeline Format)
+// MARK: - Exercise List View (Figma Redesign - Card Format with Video Thumbnails and Connector Line)
 
 struct ExerciseListView: View {
     let session: ProgramSession
-    private let timelineColor = Color.gray.opacity(0.3)  // Light grey connector line per requirements
-    private let orangeAccent = Color.trainPrimary
-    private let warmSecondary = Color.trainTextSecondary
 
-    // Dynamic row height to better fit content and spacing
-    private let exerciseRowHeight: CGFloat = 65
+    // Navigation state for exercise detail
+    @State private var selectedExercise: DBExercise?
+    @State private var showExerciseDetail = false
+
+    // Thumbnail width is 80, padding is 16, so center of thumbnail is at 16 + 40 = 56
+    private let lineXOffset: CGFloat = 56
 
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
-            // Vertical timeline line - fixed to match exercise count exactly
-            VStack(spacing: 0) {
-                ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, _ in
-                    VStack(spacing: 0) {
-                        // Top spacer to center the node vertically with exercise title
-                        Spacer()
-                            .frame(height: (exerciseRowHeight - 13) / 2)
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            // Section title
+            Text("Workout")
+                .font(.system(size: 14, weight: .light))
+                .foregroundColor(.trainTextSecondary)
+                .padding(.top, 8)
 
-                        // Timeline node (solid orange circle)
-                        Circle()
-                            .fill(orangeAccent)
-                            .frame(width: 13, height: 13)
+            // Exercise cards with vertical line behind
+            ZStack(alignment: .leading) {
+                // Vertical connector line - positioned at center of thumbnails
+                Rectangle()
+                    .fill(Color.trainTextSecondary.opacity(0.2))
+                    .frame(width: 2)
+                    .padding(.leading, lineXOffset - 1) // Center the 2pt line at the thumbnail center
+                    .padding(.top, 48) // Start partway down the first card
+                    .padding(.bottom, 48) // End partway up the last card
 
-                        // Bottom spacer
-                        Spacer()
-                            .frame(height: (exerciseRowHeight - 13) / 2)
-
-                        // Connecting line (don't show after last item)
-                        if index < session.exercises.count - 1 {
-                            Rectangle()
-                                .fill(timelineColor)
-                                .frame(width: 3, height: 8)  // Restored original connector line thickness
-                        }
-                    }
-                }
-            }
-            .padding(.trailing, 16)
-
-            // Exercise information - title center aligned with node center
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, exercise in
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Top spacer to position title center with node center
-                        Spacer()
-                            .frame(height: (exerciseRowHeight - 21) / 2) // 21 is approximate title height
-
-                        HStack(alignment: .center) {
-                            Text(exercise.exerciseName)
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundColor(.white)
-
-                            Spacer()
-
-                            Text("\(exercise.sets) sets")
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundColor(warmSecondary)
-                        }
-                        .frame(height: 21) // Fixed height for title row
-
-                        // Subtitle positioned directly below title
-                        Text("\(exercise.sets) × \(exercise.repRange) reps")
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundColor(warmSecondary)
-                            .padding(.top, 2)
-
-                        // Bottom spacer to fill remaining height
-                        Spacer()
-                            .frame(minHeight: 0)
-                    }
-                    .frame(height: exerciseRowHeight) // Total row height constraint
-
-                    // Add spacing between exercises except for last one
-                    if index < session.exercises.count - 1 {
-                        Spacer()
-                            .frame(height: 8)
+                // Exercise cards
+                VStack(spacing: 12) {
+                    ForEach(session.exercises, id: \.id) { exercise in
+                        DashboardExerciseCardDarkMode(
+                            exercise: exercise,
+                            onTap: {
+                                navigateToExerciseDetail(exercise)
+                            },
+                            onVideoTap: {
+                                navigateToExerciseDetail(exercise)
+                            }
+                        )
                     }
                 }
             }
         }
-        .padding(.vertical, 8)
+        .navigationDestination(isPresented: $showExerciseDetail) {
+            if let exercise = selectedExercise {
+                ExerciseDemoHistoryView(exercise: exercise)
+            }
+        }
+    }
+
+    private func navigateToExerciseDetail(_ exercise: ProgramExercise) {
+        do {
+            if let dbExercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: exercise.exerciseId) {
+                selectedExercise = dbExercise
+                showExerciseDetail = true
+            }
+        } catch {
+            print("Error fetching exercise: \(error)")
+        }
     }
 }
 
@@ -1172,9 +1135,9 @@ struct ActiveWorkoutTimerView: View {
             HStack(spacing: Spacing.md) {
                 // Active workout indicator
                 HStack(spacing: Spacing.xs) {
-                    // Pulsing red dot to indicate active workout
+                    // Pulsing dot to indicate active workout
                     Circle()
-                        .fill(.red)
+                        .fill(Color.trainTextSecondary)
                         .frame(width: 8, height: 8)
                         .scaleEffect(1.2)
                         .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: currentTime)
@@ -1182,7 +1145,7 @@ struct ActiveWorkoutTimerView: View {
                     Text("ACTIVE WORKOUT")
                         .font(.trainCaption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.red)
+                        .foregroundColor(.trainTextSecondary)
                 }
 
                 Spacer()
@@ -1205,7 +1168,7 @@ struct ActiveWorkoutTimerView: View {
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.lg))
             .overlay(
                 RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                    .stroke(Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
             )
             .padding(.horizontal, Spacing.lg)
             .onAppear {
@@ -1238,18 +1201,18 @@ struct TopHeaderView: View {
 
     var body: some View {
         HStack {
-            // Streak indicator
+            // Streak indicator - Figma style
             HStack(spacing: 4) {
                 Text("🔥")
                     .font(.system(size: 16))
                 Text("\(currentStreak)")
-                    .font(.trainBodyMedium)
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.trainTextPrimary)
             }
 
             Spacer()
 
-            // App logo
+            // App logo - centered
             Image("TrainLogoWithText")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -1257,16 +1220,18 @@ struct TopHeaderView: View {
 
             Spacer()
 
-            // QR Scanner icon
+            // Settings icon (replaces QR scanner per Figma)
             Button(action: {
-                // TODO: Implement QR scanner
-                print("QR scanner tapped")
+                // TODO: Implement settings navigation
+                print("Settings tapped")
             }) {
-                Image(systemName: "qrcode.viewfinder")
-                    .font(.system(size: 20))
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 24))
                     .foregroundColor(.trainTextPrimary)
             }
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
         .onAppear {
             currentStreak = calculateStreak()
         }

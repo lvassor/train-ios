@@ -242,24 +242,49 @@ struct TrainLogoAHoleShape: Shape {
 // MARK: - Shared path building functions
 
 private func addAllLetters(to path: inout Path, includeAHole: Bool) {
-    // Letter "t" at translate(1.223071,173.24574)
+    // Letter "t" at translate(1.223071,173.24574) - Merged single outer path
     let tX: CGFloat = 1.223071
     let tY: CGFloat = 173.24574
-    path.move(to: CGPoint(x: tX + 37.25, y: tY + 0.0))
-    path.addCurve(to: CGPoint(x: tX + 20.4375, y: tY + -6.125), control1: CGPoint(x: tX + 30.082031, y: tY + 0.0), control2: CGPoint(x: tX + 24.476562, y: tY + -2.039062))
-    path.addCurve(to: CGPoint(x: tX + 14.390625, y: tY + -22.71875), control1: CGPoint(x: tX + 16.40625, y: tY + -10.21875), control2: CGPoint(x: tX + 14.390625, y: tY + -15.75))
+    // Start at top-left of crossbar, trace outer contour clockwise
+    path.move(to: CGPoint(x: tX + 1.671875, y: tY + -77.6875))
+    // Top of crossbar to where stem goes up
+    path.addLine(to: CGPoint(x: tX + 14.390625, y: tY + -77.6875))
+    // Up the left side of the stem
     path.addLine(to: CGPoint(x: tX + 14.390625, y: tY + -96.609375))
+    // Across the top of the stem
     path.addLine(to: CGPoint(x: tX + 38.015625, y: tY + -96.609375))
+    // Down the right side of stem to crossbar top
+    path.addLine(to: CGPoint(x: tX + 38.015625, y: tY + -77.6875))
+    // Crossbar top-right corner
+    path.addLine(to: CGPoint(x: tX + 59.359375, y: tY + -77.6875))
+    // Down right side of crossbar
+    path.addLine(to: CGPoint(x: tX + 59.359375, y: tY + -58.453125))
+    // Left along crossbar bottom to stem
+    path.addLine(to: CGPoint(x: tX + 38.015625, y: tY + -58.453125))
+    // Down the right side of stem with curves at bottom
     path.addLine(to: CGPoint(x: tX + 38.015625, y: tY + -24.078125))
-    path.addCurve(to: CGPoint(x: tX + 39.296875, y: tY + -20.96875), control1: CGPoint(x: tX + 38.015625, y: tY + -22.867188), control2: CGPoint(x: tX + 38.441406, y: tY + -21.832031))
-    path.addCurve(to: CGPoint(x: tX + 42.40625, y: tY + -19.6875), control1: CGPoint(x: tX + 40.148438, y: tY + -20.113281), control2: CGPoint(x: tX + 41.1875, y: tY + -19.6875))
+    path.addCurve(to: CGPoint(x: tX + 39.296875, y: tY + -20.96875),
+                  control1: CGPoint(x: tX + 38.015625, y: tY + -22.867188),
+                  control2: CGPoint(x: tX + 38.441406, y: tY + -21.832031))
+    path.addCurve(to: CGPoint(x: tX + 42.40625, y: tY + -19.6875),
+                  control1: CGPoint(x: tX + 40.148438, y: tY + -20.113281),
+                  control2: CGPoint(x: tX + 41.1875, y: tY + -19.6875))
+    // Across the serif
     path.addLine(to: CGPoint(x: tX + 59.359375, y: tY + -19.6875))
     path.addLine(to: CGPoint(x: tX + 59.359375, y: tY + 0.0))
-    path.closeSubpath()
-    path.move(to: CGPoint(x: tX + 1.671875, y: tY + -58.453125))
-    path.addLine(to: CGPoint(x: tX + 1.671875, y: tY + -77.6875))
-    path.addLine(to: CGPoint(x: tX + 59.359375, y: tY + -77.6875))
-    path.addLine(to: CGPoint(x: tX + 59.359375, y: tY + -58.453125))
+    // Bottom edge with curves
+    path.addLine(to: CGPoint(x: tX + 37.25, y: tY + 0.0))
+    path.addCurve(to: CGPoint(x: tX + 20.4375, y: tY + -6.125),
+                  control1: CGPoint(x: tX + 30.082031, y: tY + 0.0),
+                  control2: CGPoint(x: tX + 24.476562, y: tY + -2.039062))
+    path.addCurve(to: CGPoint(x: tX + 14.390625, y: tY + -22.71875),
+                  control1: CGPoint(x: tX + 16.40625, y: tY + -10.21875),
+                  control2: CGPoint(x: tX + 14.390625, y: tY + -15.75))
+    // Up left side of stem to crossbar bottom
+    path.addLine(to: CGPoint(x: tX + 14.390625, y: tY + -58.453125))
+    // Crossbar bottom-left
+    path.addLine(to: CGPoint(x: tX + 1.671875, y: tY + -58.453125))
+    // Close back to start
     path.closeSubpath()
 
     // Letter "r" at translate(58.61144,173.24574)

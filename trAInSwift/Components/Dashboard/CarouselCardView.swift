@@ -49,6 +49,7 @@ struct DayProgress: Identifiable {
 struct LearningRecommendationData {
     let title: String
     let description: String
+    let exerciseId: String
     let videoGuid: String?
     let thumbnailURL: URL?
 }

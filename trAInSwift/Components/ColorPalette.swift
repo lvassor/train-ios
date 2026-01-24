@@ -289,4 +289,5 @@ extension Color {
     static let trainDisabled = Color.trainDisabled(theme: .orange)
     static let trainMutedFill = Color.trainDisabled(theme: .orange)  // Legacy alias
     static let trainTimelineLine = Color.trainTimelineLine(theme: .orange)
+    static let trainSurface = Color.trainSurface(theme: .orange)
 }

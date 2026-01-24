@@ -192,7 +192,7 @@ struct ExerciseLibraryContent: View {
                 ScrollView {
                     LazyVStack(spacing: Spacing.md) {
                         ForEach(filteredExercises) { exercise in
-                            NavigationLink(destination: ExerciseDetailView(exercise: exercise, showLoggerTab: false)) {
+                            NavigationLink(destination: ExerciseDemoHistoryView(exercise: exercise)) {
                                 ExerciseRowCard(exercise: exercise)
                             }
                         }

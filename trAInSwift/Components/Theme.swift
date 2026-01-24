@@ -84,8 +84,8 @@ struct Spacing {
 // Apple glassmorphic design system - continuous curves
 struct CornerRadius {
     static let sm: CGFloat = 12       // Small elements
-    static let md: CGFloat = 20       // Standard cards and buttons
-    static let lg: CGFloat = 20       // Large cards - unified to 20pt
+    static let md: CGFloat = 16       // Standard cards and buttons
+    static let lg: CGFloat = 16       // Large cards - unified to 16pt
     static let xl: CGFloat = 40       // Main container/screen (from Figma)
 
     // Continuous corner style for Apple aesthetic
@@ -236,19 +236,14 @@ extension View {
     }
 
     /// Neutral frosted glass card for Train Dark Mode
-    /// Pure frosted appearance with no color tint - clean minimal aesthetic
-    func warmGlassCard(cornerRadius: CGFloat = 20) -> some View {
+    /// Uses ultraThinMaterial for consistent blur across all card elements
+    func warmGlassCard(cornerRadius: CGFloat = 16) -> some View {
         self
-            .background(
-                Color.white.opacity(0.05)  // Subtle white overlay only, no tint
-                    .background(.ultraThinMaterial)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(Color.white.opacity(0.1), lineWidth: 1)  // Subtle border
+                    .strokeBorder(Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
     }
 
     /// Premium glassmorphic card with thin material (more opacity)

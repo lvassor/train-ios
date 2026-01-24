@@ -11,8 +11,8 @@ struct EngagementPromptCard: View {
     let data: EngagementPromptData
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            // Main content
+        HStack(spacing: Spacing.md) {
+            // Content
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(data.title)
                     .font(.trainBodyMedium)
@@ -27,13 +27,9 @@ struct EngagementPromptCard: View {
             Spacer()
 
             // Action indicator
-            HStack {
-                Spacer()
-
-                Image(systemName: "arrow.right.circle.fill")
-                    .font(.system(size: 20))
-                    .foregroundColor(.trainPrimary)
-            }
+            Image(systemName: "arrow.right.circle.fill")
+                .font(.system(size: 20))
+                .foregroundColor(.trainPrimary)
         }
         .padding(Spacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
