@@ -27,13 +27,13 @@ struct ProgramLoadingView: View {
             VStack(spacing: 48) {
                 Spacer()
 
-                // Static Train logo at 2x size - no pulse animation
+                // Static Train logo (cropped SVG)
                 Image("TrainLogoWithText")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(height: 120) // 2x larger than original 60pt
+                    .frame(height: 80)
                     .onAppear {
-                        print("🎯 [PROGRAM_LOADING] Static Train logo loaded (2x size, no animation)")
+                        print("🎯 [PROGRAM_LOADING] Static Train logo loaded")
                     }
 
                 // Title

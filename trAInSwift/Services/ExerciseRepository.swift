@@ -33,6 +33,7 @@ enum ExerciseSelectionWarning: Equatable {
     case equipmentLimitedSelection(muscle: String)
     case lowFillRate(fillRate: Double)
     case exerciseRepeats
+    case attachmentWarning
 
     var message: String {
         switch self {
@@ -46,11 +47,18 @@ enum ExerciseSelectionWarning: Equatable {
             return "Programme only \(String(format: "%.1f", fillRate))% filled due to equipment limitations."
         case .exerciseRepeats:
             return "Some exercises repeated due to limited equipment variety."
+        case .attachmentWarning:
+            return "You've selected Cable Machines but no cable attachments. This limits available cable exercises."
         }
     }
 
     var title: String {
-        return "Exercise Selection Notice"
+        switch self {
+        case .attachmentWarning:
+            return "Cable Attachments"
+        default:
+            return "Exercise Selection Notice"
+        }
     }
 }
 
@@ -78,6 +86,7 @@ class ExerciseRepository {
     func buildUserPool(
         primaryMuscle: String?,
         availableEquipment: [String],
+        availableAttachments: [String] = [],
         experienceLevel: ExperienceLevel,
         userInjuries: [String],
         excludedExerciseIds: Set<String>
@@ -90,14 +99,16 @@ class ExerciseRepository {
 
         print("🏊 Building user pool for \(primaryMuscle ?? "all muscles")")
         print("   Equipment: \(availableEquipment)")
+        print("   Attachments: \(availableAttachments)")
         print("   Max complexity: \(maxComplexity)")
         print("   User injuries (for UI only, not filtering): \(userInjuries)")
 
-        // Stage 1: Filter by equipment AND complexity (from DB)
+        // Stage 1: Filter by equipment, attachments, AND complexity (from DB)
         // NOTE: Injuries are NOT used for filtering - exercises with injury contraindications
         // are still included but will show a warning icon in the UI
         let filter = ExerciseDatabaseFilter(
             equipmentCategories: availableEquipment,
+            attachmentSpecific: availableAttachments,
             maxComplexity: maxComplexity,
             primaryMuscle: primaryMuscle,
             excludeInjuries: [], // Never filter by injuries - they're for UI warnings only
@@ -262,6 +273,7 @@ class ExerciseRepository {
         primaryMuscle: String? = nil,
         experienceLevel: ExperienceLevel,
         availableEquipment: [String],
+        availableAttachments: [String] = [],
         userInjuries: [String],
         excludedExerciseIds: Set<String>,
         excludedDisplayNames: Set<String> = [],
@@ -276,6 +288,7 @@ class ExerciseRepository {
         let (pool, _, poolWarnings) = try buildUserPool(
             primaryMuscle: primaryMuscle,
             availableEquipment: availableEquipment,
+            availableAttachments: availableAttachments,
             experienceLevel: experienceLevel,
             userInjuries: userInjuries,
             excludedExerciseIds: excludedExerciseIds

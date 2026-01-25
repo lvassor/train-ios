@@ -77,7 +77,10 @@ class WorkoutViewModel: ObservableObject {
     }
 
     // MARK: - Questionnaire Completion
-    func completeQuestionnaire() {
+
+    /// Completes the questionnaire and saves program. Returns true if there are warnings to show.
+    /// If true is returned, the caller should NOT proceed to dashboard until user dismisses warning.
+    func completeQuestionnaire() -> Bool {
         // Save to current user
         if let program = generatedProgram, AuthService.shared.currentUser != nil {
             AuthService.shared.updateQuestionnaireData(questionnaireData)
@@ -88,9 +91,18 @@ class WorkoutViewModel: ObservableObject {
             // Show any pending warnings after saving
             if !pendingWarnings.isEmpty {
                 showWarnings(pendingWarnings)
-                pendingWarnings = []
+                // Don't clear warnings yet - they'll be cleared when user proceeds
+                print("⚠️ [VIEWMODEL] Showing \(pendingWarnings.count) warnings - waiting for user decision")
+                return true  // Caller should wait for user to choose Amend or Proceed
             }
         }
+        return false  // No warnings, can proceed immediately
+    }
+
+    /// Called when user chooses "Proceed Anyway" after seeing warnings
+    func proceedAfterWarning() {
+        print("✅ [VIEWMODEL] User chose to proceed despite warnings")
+        pendingWarnings = []
     }
 
     // MARK: - Warning Display

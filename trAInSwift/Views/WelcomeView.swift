@@ -13,6 +13,10 @@ struct WelcomeView: View {
 
     private let screenshots = ["screenshot_1", "screenshot_2", "screenshot_3", "screenshot_4"]
     @State private var currentIndex: Int = 0
+    @State private var viewDidAppear = false
+
+    /// Unique ID for this instance to track in logs
+    private let instanceId = UUID().uuidString.prefix(8)
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -34,11 +38,11 @@ struct WelcomeView: View {
                         .padding(.horizontal, 24)
                         .padding(.top, 12)
 
-                        // Centered larger logo (3x original size)
+                        // Centered larger logo (cropped SVG)
                         Image("TrainLogoWithText")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(height: 120) // 3x larger than original 40pt
+                            .frame(height: 80)
                     }
 
                     Spacer().frame(height: 20)
@@ -124,9 +128,6 @@ struct WelcomeView: View {
                     }
                     .frame(height: 330) // 75% of 440 = 330
                     .padding(.top, 32)
-                    .onAppear {
-                        // Carousel initialized with Cover Flow effect
-                    }
 
                     // Updated caption moved above the carousel for better layout
                     Text("Join Train to get personalized workouts and hit your goals faster.")
@@ -162,7 +163,34 @@ struct WelcomeView: View {
             .padding(.bottom, 50)
         }
         .charcoalGradientBackground()
+        .onAppear {
+            welcomeDebugLog("VIEW", "WelcomeView.onAppear", [
+                "instanceId": String(instanceId),
+                "viewDidAppear": "\(viewDidAppear)",
+                "screenshotsCount": "\(screenshots.count)",
+                "status": "✅ WELCOME CAROUSEL IS RENDERING"
+            ])
+            viewDidAppear = true
+        }
+        .onDisappear {
+            welcomeDebugLog("VIEW", "WelcomeView.onDisappear", [
+                "instanceId": String(instanceId),
+                "reason": "User tapped Get Started or navigated away"
+            ])
+        }
     }
+}
+
+// MARK: - Debug Logging Helper
+
+private func welcomeDebugLog(_ category: String, _ action: String, _ params: [String: String] = [:]) {
+    let timestamp = Date().formatted(date: .omitted, time: .standard)
+    var message = "🔍 [WELCOME-\(category)] \(action)"
+    if !params.isEmpty {
+        let paramString = params.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: " | ")
+        message += " | \(paramString)"
+    }
+    print("[\(timestamp)] \(message)")
 }
 
 #Preview {

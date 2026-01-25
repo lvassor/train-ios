@@ -20,7 +20,7 @@ struct QuestionnaireData: Codable {
     enum CodingKeys: String, CodingKey {
         case name, email, password, selectedReferral, gender, dateOfBirth, heightCm, heightFt, heightIn, heightUnit
         case weightKg, weightLbs, weightUnit, primaryGoals, targetMuscleGroups, experienceLevel
-        case motivations, motivationOther, equipmentAvailable, detailedEquipment, trainingDaysPerWeek
+        case motivations, motivationOther, trainingPlace, equipmentAvailable, detailedEquipment, trainingDaysPerWeek
         case selectedSplit, sessionDuration, injuries
         // Skip healthKitSynced and skipHeightWeight from encoding/decoding
     }
@@ -63,7 +63,10 @@ struct QuestionnaireData: Codable {
     var motivations: [String] = []
     var motivationOther: String = ""
 
-    // Q9: Equipment (multi-select) - default to all selected
+    // Q9: Training Place (where do you exercise?)
+    var trainingPlace: String = "large_gym" // "large_gym", "small_gym", "garage_gym"
+
+    // Q10: Equipment (multi-select) - default to all selected
     var equipmentAvailable: [String] = [
         "barbells", "dumbbells", "kettlebells", "cable_machines", "pin_loaded", "plate_loaded", "other"
     ]
@@ -72,13 +75,14 @@ struct QuestionnaireData: Codable {
         "cable_machines": ["Single Adjustable Cable Machine", "Dual Cable Machine", "Lat Pull Down Machine", "Cable Row Machine"],
         "pin_loaded": ["Leg Press Machine", "Leg Extension Machine", "Lying Leg Curl Machine", "Seated Leg Curl Machine", "Standing Calf Raise Machine", "Seated Calf Raise Machine", "Hip Abduction Machine", "Hip Adduction Machine", "Assisted Pull-Up/Dip Machine"],
         "plate_loaded": ["Leg Press Machine", "Hack Squat Machine", "Leg Extension Machine", "Lying Leg Curl Machine", "Seated Leg Curl Machine", "Standing Calf Raise Machine", "Seated Calf Raise Machine", "Glute Kickback Machine"],
-        "other": ["Ab Wheel", "Dip Station", "Flat Bench", "Pull-Up Bar", "Roman Chair"]
+        "other": ["Ab Wheel", "Dip Station", "Flat Bench", "Pull-Up Bar", "Roman Chair"],
+        "attachments": ["Straight Bar", "Rope", "D-Handles", "EZ-Bar Cable"]  // Default cable attachments selected
     ]  // Category -> specific items (e.g., "barbells" -> ["Squat Rack", "Flat Bench"])
 
-    // Q10: Training Frequency
+    // Q11: Training Frequency
     var trainingDaysPerWeek: Int = 3
 
-    // Q11: Split Selection
+    // Q12: Split Selection
     var selectedSplit: String = "" // Selected split name (e.g., "Upper Lower", "Push Pull Legs", etc.)
 
     // Additional fields for program generation

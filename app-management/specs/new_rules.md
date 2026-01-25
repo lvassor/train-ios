@@ -6,6 +6,7 @@
 2. [Workout Logger - Rep Counter](#2-workout-logger---rep-counter)
 3. [Questionnaire - Split Selection](#3-questionnaire---split-selection)
 4. [Programme Generation](#4-programme-generation)
+5. [App Warnings & Modal Overlays](#5-app-warnings--modal-overlays)
 
 ---
 
@@ -255,8 +256,116 @@ In descending order of canonical rating.
 
 ---
 
-**Document Version**: 4.2<br>
+---
+
+## 5. App Warnings & Modal Overlays
+
+This section documents all warning modals and confirmation dialogs presented to users throughout the app.
+
+### 5.1 Questionnaire Warnings
+
+#### Limited Equipment Warning (Pre-Generation)
+**Trigger Point:** Equipment Step → User clicks "Continue" with ≤2 equipment categories selected
+**Title:** "Limited Equipment"
+**Message:** "Selecting only one equipment type may limit your exercise variety and program effectiveness. For the best results, we recommend adding at least one more equipment category."
+**Actions:**
+- **"Add More Equipment"** (Cancel) → Returns to equipment selection step
+- **"Continue Anyway"** (Destructive) → Proceeds to next questionnaire step
+
+#### Program Generation Warning (Post-Generation)
+**Trigger Point:** Program Ready → User clicks "Start Training Now!" → After program is saved
+**Title:** "Program Generation Notice" (dynamic)
+**Message:** Dynamic message based on exercise selection warnings (e.g., repeated exercises due to limited equipment)
+**Actions:**
+- **"Amend Equipment"** → Navigates back to equipment selection step (resets program generation state)
+- **"Proceed Anyway"** (Destructive) → Continues to dashboard with current program
+
+### 5.2 Profile & Account Warnings
+
+#### Log Out Confirmation
+**Trigger Point:** Profile View → User taps "Log Out" button
+**Title:** "Log Out"
+**Message:** "Are you sure you want to log out?"
+**Actions:**
+- **"Log Out"** (Destructive) → Logs user out and returns to login screen
+- **"Cancel"** (Cancel) → Dismisses dialog, stays on profile
+
+#### Retake Quiz Confirmation
+**Trigger Point:** Profile View → User taps "Retake Quiz" button
+**Title:** "Retake Quiz"
+**Message:** "Would you like to save your current program? You can switch back to it later in 'Switch Programs'."
+**Actions:**
+- **"Save & Retake"** → Saves current program as inactive, resets questionnaire data, opens questionnaire flow
+- **"Discard & Retake"** (Destructive) → Deletes current program, resets questionnaire data, opens questionnaire flow
+- **"Cancel"** (Cancel) → Dismisses dialog, stays on profile
+
+**Program Storage Behavior:**
+- When "Save & Retake" is chosen, old programs are **preserved** (stored as inactive)
+- When "Discard & Retake" is chosen, current program is **deleted** before creating new one
+- Maximum of **2 programs** stored per user
+- If user already has 2 programs, the oldest is deleted when creating a 3rd
+- Previous programs can be viewed and reactivated via "Switch Programs" in account settings
+
+#### Switch Program Confirmation
+**Trigger Point:** Account Settings → Switch Programs → User taps on a previous program
+**Title:** "Switch Program"
+**Message:** "Switch to '{program name}'? Your current program will be saved and you can switch back later."
+**Actions:**
+- **"Switch Program"** → Activates the selected program, deactivates current program, dismisses sheet
+- **"Cancel"** (Cancel) → Dismisses dialog, stays on program selector
+
+#### Delete Account Confirmation
+**Trigger Point:** Account Settings → User taps "Delete Account" button
+**Title:** "Delete Account"
+**Message:** "This will permanently delete your account, workout history, and all associated data. This action cannot be undone."
+**Actions:**
+- **"Delete Account"** (Destructive) → Deletes user profile, all programs, workout sessions, and keychain credentials; navigates to splash screen
+- **"Cancel"** (Cancel) → Dismisses dialog, stays on settings
+
+### 5.3 Workout Session Warnings
+
+#### Cancel Workout Confirmation
+**Trigger Point:** Workout Overview → User taps "Cancel Workout" / back navigation during active workout
+**Title:** "Cancel Workout"
+**Message:** "Are you sure you want to cancel this workout? Your progress will be lost."
+**Actions:**
+- **"Discard Workout"** (Destructive) → Cancels workout, ends Live Activity, returns to dashboard
+- **"Continue Workout"** (Cancel) → Dismisses dialog, continues workout
+
+#### Remove Exercise Confirmation
+**Trigger Point:** Workout Overview → User swipe-deletes an exercise or taps delete
+**Title:** "Remove Exercise?"
+**Message:** "This will remove {exercise name} from today's workout."
+**Actions:**
+- **"Remove Permanently"** (Destructive) → Removes exercise from session
+- **"Cancel"** (Cancel) → Dismisses dialog, keeps exercise
+
+### 5.4 Session Edit Warnings
+
+#### Discard Changes Confirmation
+**Trigger Point:** Session Edit View → User taps back/dismiss with unsaved changes
+**Title:** "Discard Changes"
+**Message:** "You have unsaved changes. Are you sure you want to discard them?"
+**Actions:**
+- **"Discard Changes"** (Destructive) → Dismisses without saving
+- **"Keep Editing"** (Cancel) → Returns to edit view
+
+### 5.5 Authentication Error Displays
+
+These are inline error messages (not modal dialogs) shown on authentication screens:
+
+| Screen | Error Conditions | Display |
+|--------|------------------|---------|
+| Login | Invalid credentials, network error | Red text below form: "{error message}" |
+| Signup | Invalid email, password too short, email exists | Red text below form: "{error message}" |
+| Password Reset Request | Invalid email format, email not found | Red text below form: "{error message}" |
+| Password Reset Code | Invalid/expired code | Red text below code field: "{error message}" |
+| Password Reset New Password | Passwords don't match, too short | Red text below form: "{error message}" |
+
+---
+
+**Document Version**: 4.3<br>
 **Created**: December 5, 2025<br>
-**Updated**: January 10, 2026<br>
+**Updated**: January 25, 2026<br>
 **Authors**: Luke Vassor & Brody Bastiman<br>
 **Applies to**: trAIn iOS (Swift)

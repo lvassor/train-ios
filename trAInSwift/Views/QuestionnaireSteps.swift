@@ -634,6 +634,12 @@ struct GoalsStepView: View {
 // MARK: - Q6: Muscle Groups
 struct MuscleGroupsStepView: View {
     @Binding var selectedGroups: [String]
+    var gender: String = "Male"
+
+    /// Convert gender string to MuscleSelector.BodyGender
+    private var bodyGender: MuscleSelector.BodyGender {
+        gender.lowercased() == "female" ? .female : .male
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
@@ -651,10 +657,10 @@ struct MuscleGroupsStepView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Interactive body diagram - fixed size for consistent layout
-            CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3)
+            // Interactive body diagram - uses gender from questionnaire, larger height after removing toggle
+            CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3, gender: bodyGender)
                 .frame(maxWidth: .infinity)
-                .frame(height: 400)
+                .frame(height: 440)
 
             // Selected muscles pills (only shown when selections exist)
             if !selectedGroups.isEmpty {
@@ -813,12 +819,337 @@ struct MotivationStepView: View {
     }
 }
 
-// MARK: - Q9: Equipment
+// MARK: - Q9: Training Place (Where do you exercise?)
+struct TrainingPlaceStepView: View {
+    @Binding var selectedTrainingPlace: String
+
+    let trainingPlaces = [
+        ("large_gym", "Large Gym", "Full commercial gym with all equipment", "building.2.fill"),
+        ("small_gym", "Small Gym", "Smaller gym with essential equipment", "dumbbell.fill"),
+        ("garage_gym", "Garage Gym", "Home/garage gym with basic equipment", "house.fill")
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
+                Text("Where do you exercise?")
+                    .font(.trainTitle2)
+                    .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
+
+                Text("This helps us pre-select appropriate equipment")
+                    .font(.trainSubtitle)
+                    .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+
+            VStack(spacing: Spacing.md) {
+                ForEach(trainingPlaces, id: \.0) { value, title, subtitle, iconName in
+                    Button(action: { selectedTrainingPlace = value }) {
+                        HStack(spacing: Spacing.md) {
+                            ZStack {
+                                Circle()
+                                    .fill(selectedTrainingPlace == value ? Color.white.opacity(0.3) : Color.trainHover)
+                                    .frame(width: 48, height: 48)
+
+                                Image(systemName: iconName)
+                                    .font(.title2)
+                                    .foregroundColor(selectedTrainingPlace == value ? .white : .trainPrimary)
+                            }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(title)
+                                    .font(.trainBodyMedium)
+                                    .foregroundColor(selectedTrainingPlace == value ? .white : .trainTextPrimary)
+
+                                Text(subtitle)
+                                    .font(.trainCaption)
+                                    .foregroundColor(selectedTrainingPlace == value ? .white.opacity(0.8) : .trainTextSecondary)
+                            }
+
+                            Spacer()
+
+                            if selectedTrainingPlace == value {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        .padding(Spacing.md)
+                        .frame(maxWidth: .infinity)
+                        .background(selectedTrainingPlace == value ? Color.trainPrimary : .clear)
+                        .appCard()
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                }
+            }
+
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Q10: Equipment
+
+// MARK: - Equipment Card Component
+/// Individual equipment item card with thumbnail placeholder and circular selection indicator
+struct EquipmentCard: View {
+    let equipmentName: String
+    let isSelected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: Spacing.md) {
+                // Thumbnail placeholder (64x64)
+                ZStack {
+                    RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
+                        .fill(Color.trainPrimary.opacity(0.1))
+                        .frame(width: 64, height: 64)
+
+                    Image(systemName: equipmentIcon)
+                        .font(.system(size: 24))
+                        .foregroundColor(.trainPrimary.opacity(0.6))
+                }
+
+                // Equipment name
+                Text(equipmentName)
+                    .font(.trainBody)
+                    .foregroundColor(.trainTextPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                Spacer()
+
+                // Circular selection indicator (24pt diameter)
+                // Trailing padding matches vertical spacing from tick to card edge
+                ZStack {
+                    Circle()
+                        .stroke(isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.4), lineWidth: 2)
+                        .frame(width: 24, height: 24)
+
+                    if isSelected {
+                        Circle()
+                            .fill(Color.trainPrimary)
+                            .frame(width: 24, height: 24)
+
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .padding(.leading, Spacing.sm)
+            .padding(.trailing, 28) // Matches vertical spacing: (80 - 24) / 2
+            .padding(.vertical, Spacing.sm)
+            .frame(height: 80)
+            .appCard(cornerRadius: CornerRadius.md)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+
+    /// Icon based on equipment name
+    private var equipmentIcon: String {
+        let name = equipmentName.lowercased()
+        if name.contains("rack") || name.contains("bench press") {
+            return "figure.strengthtraining.traditional"
+        } else if name.contains("cable") || name.contains("pull") || name.contains("row") {
+            return "cable.connector"
+        } else if name.contains("leg") || name.contains("calf") || name.contains("hip") {
+            return "figure.walk"
+        } else if name.contains("bar") || name.contains("rope") || name.contains("handle") || name.contains("strap") {
+            return "lasso"
+        } else if name.contains("wheel") || name.contains("dip") || name.contains("roman") {
+            return "figure.core.training"
+        } else if name.contains("band") {
+            return "arrow.left.arrow.right"
+        } else if name.contains("belt") {
+            return "circle.dashed"
+        } else {
+            return "dumbbell.fill"
+        }
+    }
+}
+
+// MARK: - Equipment Group Section Component
+/// Category heading with max 2 equipment cards and "See more..." link
+struct EquipmentGroupSection: View {
+    let categoryKey: String
+    let title: String
+    let allItems: [String]
+    let selectedItems: Set<String>
+    let onToggleItem: (String) -> Void
+    let onSeeMore: () -> Void
+
+    /// Items to display in the preview (max 2)
+    private var previewItems: [String] {
+        Array(allItems.prefix(2))
+    }
+
+    /// Whether there are more items beyond the preview
+    private var hasMoreItems: Bool {
+        allItems.count > 2
+    }
+
+    /// Count of additional items not shown in preview
+    private var moreItemsCount: Int {
+        max(0, allItems.count - 2)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            // Category heading
+            Text(title)
+                .font(.trainHeadline)
+                .foregroundColor(.trainTextPrimary)
+                .padding(.leading, Spacing.xs)
+
+            // Equipment cards (max 2)
+            VStack(spacing: Spacing.sm) {
+                ForEach(previewItems, id: \.self) { item in
+                    EquipmentCard(
+                        equipmentName: item,
+                        isSelected: selectedItems.contains(item),
+                        onToggle: { onToggleItem(item) }
+                    )
+                }
+            }
+
+            // "See more..." link if there are additional items
+            if hasMoreItems {
+                Button(action: onSeeMore) {
+                    HStack(spacing: Spacing.xs) {
+                        Text("See more...")
+                            .font(.trainBody)
+                            .foregroundColor(.trainPrimary)
+
+                        Text("(\(moreItemsCount) more)")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.trainPrimary)
+                    }
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Equipment Category Sheet Component
+/// Full-height sheet showing all equipment items for a category
+struct EquipmentCategorySheet: View {
+    let title: String
+    let items: [String]
+    let selectedItems: Set<String>
+    let onToggleItem: (String) -> Void
+    let onDone: () -> Void
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                LazyVStack(spacing: Spacing.sm) {
+                    ForEach(items, id: \.self) { item in
+                        EquipmentCard(
+                            equipmentName: item,
+                            isSelected: selectedItems.contains(item),
+                            onToggle: { onToggleItem(item) }
+                        )
+                    }
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.top, Spacing.md)
+                .padding(.bottom, Spacing.xxl)
+            }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        onDone()
+                    }
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainPrimary)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Simple Equipment Toggle Card (for categories without sub-items)
+/// Simple toggle card for categories like Dumbbells/Kettlebells that don't have sub-items
+struct SimpleEquipmentToggleCard: View {
+    let title: String
+    let isSelected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: Spacing.md) {
+                // Icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
+                        .fill(Color.trainPrimary.opacity(0.1))
+                        .frame(width: 64, height: 64)
+
+                    Image(systemName: iconName)
+                        .font(.system(size: 24))
+                        .foregroundColor(.trainPrimary.opacity(0.6))
+                }
+
+                // Title
+                Text(title)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+
+                Spacer()
+
+                // Selection indicator
+                // Trailing padding matches vertical spacing from tick to card edge
+                ZStack {
+                    Circle()
+                        .stroke(isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.4), lineWidth: 2)
+                        .frame(width: 24, height: 24)
+
+                    if isSelected {
+                        Circle()
+                            .fill(Color.trainPrimary)
+                            .frame(width: 24, height: 24)
+
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .padding(.leading, Spacing.sm)
+            .padding(.trailing, 28) // Matches vertical spacing: (80 - 24) / 2
+            .padding(.vertical, Spacing.sm)
+            .frame(height: 80)
+            .appCard(cornerRadius: CornerRadius.md)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+
+    private var iconName: String {
+        switch title.lowercased() {
+        case "dumbbells": return "dumbbell.fill"
+        case "kettlebells": return "figure.strengthtraining.functional"
+        default: return "dumbbell.fill"
+        }
+    }
+}
+
 struct EquipmentStepView: View {
     @Binding var selectedEquipment: [String]
     @Binding var selectedDetailedEquipment: [String: Set<String>]  // Category -> selected items
-    @State private var showingEquipmentInfo: String?
-    @State private var expandedCategories: Set<String> = []
+    @State private var showingCategorySheet: (key: String, title: String, items: [String])?
 
     // All equipment categories with sub-items - ordered as specified
     // Order: Barbells, Dumbbells, Kettlebells, Cable Machines, Pin-Loaded, Plate-Loaded, Other
@@ -866,72 +1197,89 @@ struct EquipmentStepView: View {
             "Flat Bench",
             "Pull-Up Bar",
             "Roman Chair"
+        ]),
+        ("attachments", "Attachments", [
+            "Straight Bar",
+            "Rope",
+            "D-Handles",
+            "EZ-Bar",
+            "EZ-Bar Cable",
+            "Ankle Strap",
+            "Resistance Band",
+            "Weight Belt"
         ])
     ]
 
     var body: some View {
-        ZStack {
-            VStack(alignment: .leading, spacing: Spacing.lg) {
-                VStack(alignment: .center, spacing: Spacing.sm) {
-                    Text("What equipment do you have available?")
-                        .font(.trainTitle2)
-                        .foregroundColor(.trainTextPrimary)
-                        .multilineTextAlignment(.center)
+        VStack(alignment: .leading, spacing: Spacing.lg) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
+                Text("What equipment do you have available?")
+                    .font(.trainTitle2)
+                    .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
 
-                    Text("Select all that apply")
-                        .font(.trainSubtitle)
-                        .foregroundColor(.trainTextSecondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
+                Text("Pre-selected based on your gym type")
+                    .font(.trainSubtitle)
+                    .foregroundColor(.trainTextSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
 
-                VStack(spacing: Spacing.md) {
-                    ForEach(equipmentCategories, id: \.0) { categoryKey, title, subItems in
-                        ExpandableEquipmentCard(
+            // Equipment sections
+            VStack(spacing: Spacing.lg) {
+                ForEach(equipmentCategories, id: \.0) { categoryKey, title, subItems in
+                    if subItems.isEmpty {
+                        // Simple toggle for categories without sub-items (Dumbbells, Kettlebells)
+                        SimpleEquipmentToggleCard(
+                            title: title,
+                            isSelected: selectedEquipment.contains(categoryKey),
+                            onToggle: { toggleCategory(categoryKey) }
+                        )
+                    } else {
+                        // Group section with equipment cards for categories with sub-items
+                        EquipmentGroupSection(
                             categoryKey: categoryKey,
                             title: title,
-                            subItems: subItems,
-                            isSelected: selectedEquipment.contains(categoryKey),
-                            isExpanded: expandedCategories.contains(categoryKey),
-                            selectedSubItems: selectedDetailedEquipment[categoryKey] ?? Set<String>(),
-                            onToggleCategory: { toggleEquipment(categoryKey, subItems: subItems) },
-                            onToggleExpand: { toggleExpand(categoryKey) },
-                            onToggleSubItem: { subItem in toggleSubItem(category: categoryKey, subItem: subItem, allSubItems: subItems) }
+                            allItems: subItems,
+                            selectedItems: selectedDetailedEquipment[categoryKey] ?? Set<String>(),
+                            onToggleItem: { item in toggleSubItem(category: categoryKey, subItem: item, allSubItems: subItems) },
+                            onSeeMore: { showingCategorySheet = (categoryKey, title, subItems) }
                         )
                     }
                 }
             }
-
-            // Equipment Info Modal
-            if let equipmentType = showingEquipmentInfo {
-                EquipmentInfoModal(
-                    equipmentType: equipmentType,
-                    onDismiss: { showingEquipmentInfo = nil }
-                )
-            }
+        }
+        .sheet(item: Binding(
+            get: { showingCategorySheet.map { SheetData(key: $0.key, title: $0.title, items: $0.items) } },
+            set: { _ in showingCategorySheet = nil }
+        )) { sheetData in
+            EquipmentCategorySheet(
+                title: sheetData.title,
+                items: sheetData.items,
+                selectedItems: selectedDetailedEquipment[sheetData.key] ?? Set<String>(),
+                onToggleItem: { item in
+                    toggleSubItem(category: sheetData.key, subItem: item, allSubItems: sheetData.items)
+                },
+                onDone: { showingCategorySheet = nil }
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
     }
 
-    private func toggleEquipment(_ item: String, subItems: [String]) {
-        if selectedEquipment.contains(item) {
-            // Deselect: remove parent and all children
-            selectedEquipment.removeAll { $0 == item }
-            selectedDetailedEquipment[item] = nil
-            expandedCategories.remove(item)
-        } else {
-            // Select: add parent and select all children
-            selectedEquipment.append(item)
-            if !subItems.isEmpty {
-                selectedDetailedEquipment[item] = Set(subItems)
-            }
-        }
+    /// Helper struct to make sheet data Identifiable
+    private struct SheetData: Identifiable {
+        let key: String
+        let title: String
+        let items: [String]
+        var id: String { key }
     }
 
-    private func toggleExpand(_ item: String) {
-        if expandedCategories.contains(item) {
-            expandedCategories.remove(item)
+    private func toggleCategory(_ categoryKey: String) {
+        if selectedEquipment.contains(categoryKey) {
+            selectedEquipment.removeAll { $0 == categoryKey }
         } else {
-            expandedCategories.insert(item)
+            selectedEquipment.append(categoryKey)
         }
     }
 
@@ -954,100 +1302,6 @@ struct EquipmentStepView: View {
     }
 }
 
-// MARK: - Expandable Equipment Card
-
-struct ExpandableEquipmentCard: View {
-    let categoryKey: String
-    let title: String
-    let subItems: [String]
-    let isSelected: Bool
-    let isExpanded: Bool
-    let selectedSubItems: Set<String>
-    let onToggleCategory: () -> Void
-    let onToggleExpand: () -> Void
-    let onToggleSubItem: (String) -> Void
-
-    // Check if all children are selected (full selection) vs partial
-    private var isFullySelected: Bool {
-        subItems.isEmpty || selectedSubItems.count == subItems.count
-    }
-
-    // Parent has partial selection (some but not all children)
-    private var isPartiallySelected: Bool {
-        !selectedSubItems.isEmpty && selectedSubItems.count < subItems.count
-    }
-
-    // Parent background: accent (trainPrimary) if fully selected, orange tint if partially selected
-    private var parentBackgroundColor: Color {
-        if isSelected && isFullySelected {
-            return Color.trainPrimary  // Full accent color when all selected
-        } else if isPartiallySelected {
-            return Color.orange.opacity(0.3)  // Orange tint when partial
-        }
-        return Color.clear
-    }
-
-    // Text color changes when fully selected
-    private var parentTextColor: Color {
-        (isSelected && isFullySelected) ? .white : .trainTextPrimary
-    }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            // Main category row - entire row toggles selection, chevron expands
-            HStack {
-                Text(title)
-                    .font(.trainBodyMedium)
-                    .foregroundColor(parentTextColor)
-
-                Spacer()
-
-                // Expand/collapse chevron (only show if has sub-items)
-                if !subItems.isEmpty {
-                    Button(action: onToggleExpand) {
-                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor((isSelected && isFullySelected) ? .white.opacity(0.7) : .trainTextSecondary)
-                            .frame(width: 30, height: 30)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-            }
-            .padding(Spacing.md)
-            .background(parentBackgroundColor)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                onToggleCategory()
-            }
-
-            // Expandable sub-items (orange tint when selected)
-            if isExpanded && !subItems.isEmpty {
-                VStack(spacing: 0) {
-                    ForEach(subItems, id: \.self) { subItem in
-                        let isSubItemSelected = selectedSubItems.contains(subItem)
-
-                        Button(action: { onToggleSubItem(subItem) }) {
-                            HStack {
-                                Text(subItem)
-                                    .font(.trainBody)
-                                    .foregroundColor(isSubItemSelected ? .trainTextPrimary : .trainTextSecondary)
-
-                                Spacer()
-                            }
-                            .padding(.horizontal, Spacing.lg)
-                            .padding(.vertical, Spacing.sm)
-                            .background(isSubItemSelected ? Color.orange.opacity(0.15) : .clear)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                }
-                .padding(.bottom, Spacing.xs)
-            }
-        }
-        .appCard(cornerRadius: CornerRadius.md)
-        .animation(.easeInOut(duration: 0.2), value: isExpanded)
-    }
-}
 
 // MARK: - Equipment Info Modal
 

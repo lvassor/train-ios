@@ -61,6 +61,15 @@ struct WorkoutOverviewView: View {
         completedExercises.count >= 1
     }
 
+    /// Get user's gender from questionnaire data for muscle highlight
+    private var userGender: MuscleSelector.BodyGender {
+        guard let user = authService.currentUser,
+              let questionnaireData = user.getQuestionnaireData() else {
+            return .male
+        }
+        return questionnaireData.gender.lowercased() == "female" ? .female : .male
+    }
+
     private var elapsedTimeFormatted: String {
         let hours = Int(elapsedTime) / 3600
         let minutes = (Int(elapsedTime) % 3600) / 60
@@ -81,6 +90,10 @@ struct WorkoutOverviewView: View {
 
     var body: some View {
         ZStack {
+            // Background gradient - ignores safe area
+            AppGradient.background
+                .ignoresSafeArea()
+
             if session == nil {
                 // Error state
                 VStack(spacing: Spacing.lg) {
@@ -96,63 +109,71 @@ struct WorkoutOverviewView: View {
                 }
                 .padding(Spacing.xl)
             } else if let validSession = session {
-                ZStack {
-                    VStack(spacing: 0) {
-                        // Header with Edit/Done pill button (timer commented out per design)
-                        WorkoutOverviewHeader(
-                            sessionName: validSession.dayName,
-                            elapsedTime: elapsedTimeFormatted,
-                            isEditing: isEditing,
-                            onCancel: { showCancelConfirmation = true },
-                            onEditToggle: { isEditing.toggle() }
-                        )
+                VStack(spacing: 0) {
+                    // Header with Edit/Done pill button (timer commented out per design)
+                    WorkoutOverviewHeader(
+                        sessionName: validSession.dayName,
+                        elapsedTime: elapsedTimeFormatted,
+                        isEditing: isEditing,
+                        onCancel: { showCancelConfirmation = true },
+                        onEditToggle: { isEditing.toggle() }
+                    )
 
-                        ScrollView {
-                            VStack(spacing: Spacing.lg) {
-                                // Warm-up section
-                                if !warmUpComplete {
-                                    WarmUpCard(
-                                        timeRemaining: warmUpTimeFormatted,
-                                        isStarted: warmUpStarted,
-                                        onBegin: startWarmUp,
-                                        onSkip: skipWarmUp
-                                    )
-                                    .padding(.horizontal, Spacing.lg)
-                                    .padding(.top, Spacing.md)
-                                }
-
-                                // Workout section with vertical connector line
-                                WorkoutExerciseList(
-                                    exercises: $sessionExercises,
-                                    completedExercises: completedExercises,
-                                    isEditing: isEditing,
-                                    getContraindicatedInjury: getContraindicatedInjury,
-                                    onExerciseTap: { index in
-                                        startWorkoutTimerIfNeeded()
-                                        selectedExerciseIndex = index
-                                    },
-                                    onWarningTap: { exercise in
-                                        if let warning = checkInjuryWarning(for: exercise) {
-                                            showInjuryWarning = warning
-                                        }
-                                    },
-                                    onSwap: { exercise in
-                                        exerciseToSwap = exercise
-                                    },
-                                    onRemove: { exercise in
-                                        exerciseToRemove = exercise
-                                    }
+                    ScrollView {
+                        VStack(spacing: Spacing.lg) {
+                            // Warm-up section
+                            if !warmUpComplete {
+                                WarmUpCard(
+                                    timeRemaining: warmUpTimeFormatted,
+                                    isStarted: warmUpStarted,
+                                    onBegin: startWarmUp,
+                                    onSkip: skipWarmUp
                                 )
                                 .padding(.horizontal, Spacing.lg)
+                                .padding(.top, Spacing.md)
                             }
-                            .padding(.bottom, 90) // Space for floating button
-                        }
-                        .scrollContentBackground(.hidden)
-                    }
 
-                    // Complete Workout button - floating overlay at bottom
-                    VStack {
-                        Spacer()
+                            // Workout section with vertical connector line
+                            WorkoutExerciseList(
+                                exercises: $sessionExercises,
+                                completedExercises: completedExercises,
+                                isEditing: isEditing,
+                                getContraindicatedInjury: getContraindicatedInjury,
+                                onExerciseTap: { index in
+                                    startWorkoutTimerIfNeeded()
+                                    selectedExerciseIndex = index
+                                },
+                                onWarningTap: { exercise in
+                                    if let warning = checkInjuryWarning(for: exercise) {
+                                        showInjuryWarning = warning
+                                    }
+                                },
+                                onSwap: { exercise in
+                                    exerciseToSwap = exercise
+                                },
+                                onRemove: { exercise in
+                                    exerciseToRemove = exercise
+                                },
+                                gender: userGender
+                            )
+                            .padding(.horizontal, Spacing.lg)
+                        }
+                        .padding(.bottom, 20) // Small padding for scroll content
+                    }
+                    .scrollContentBackground(.hidden)
+                }
+                .safeAreaInset(edge: .bottom) {
+                    // Complete Workout button with gradient fade
+                    ZStack(alignment: .bottom) {
+                        // Gradient fade for scrollable content
+                        LinearGradient(
+                            colors: [.clear, Color.trainGradientMid.opacity(0.8), Color.trainGradientMid],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 100)
+                        .allowsHitTesting(false)
+
                         Button(action: { showCompletionView = true }) {
                             Text("Complete Workout")
                                 .font(.trainBodyMedium)
@@ -164,7 +185,7 @@ struct WorkoutOverviewView: View {
                         }
                         .disabled(!canCompleteWorkout)
                         .padding(.horizontal, Spacing.lg)
-                        .padding(.bottom, Spacing.lg)
+                        .padding(.bottom, Spacing.md)
                     }
                 }
             }
@@ -209,7 +230,6 @@ struct WorkoutOverviewView: View {
                 )
             }
         }
-        .charcoalGradientBackground()
         .navigationBarBackButtonHidden(true)
         .navigationDestination(item: $selectedExerciseIndex) { index in
             if index < sessionExercises.count {
@@ -670,6 +690,7 @@ struct WorkoutExerciseList: View {
     let onWarningTap: (ProgramExercise) -> Void
     let onSwap: (ProgramExercise) -> Void
     let onRemove: (ProgramExercise) -> Void
+    var gender: MuscleSelector.BodyGender = .male
 
     // Drag state
     @State private var draggingExercise: ProgramExercise?
@@ -731,7 +752,8 @@ struct WorkoutExerciseList: View {
             },
             onRemove: {
                 onRemove(exercise)
-            }
+            },
+            gender: gender
         )
 
         if isEditing {
@@ -838,6 +860,7 @@ struct ExerciseOverviewCard: View {
     var onWarningTap: (() -> Void)? = nil
     let onSwap: () -> Void
     let onRemove: () -> Void
+    var gender: MuscleSelector.BodyGender = .male
 
     // Drag state for visual feedback
     @State private var isDragHandlePressed = false
@@ -940,9 +963,10 @@ struct ExerciseOverviewCard: View {
                     // Muscle highlight (replaces swap icon in normal mode)
                     CompactMuscleHighlight(
                         primaryMuscle: exercise.primaryMuscle,
-                        secondaryMuscle: nil
+                        secondaryMuscle: nil,
+                        gender: gender
                     )
-                    .frame(width: 48, height: 50)
+                    .frame(height: 64)
                 }
                 .padding(16)
                 .padding(.top, isEditing ? 0 : 0) // No extra padding needed, drag handle has its own

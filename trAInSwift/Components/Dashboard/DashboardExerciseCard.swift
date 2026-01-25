@@ -12,10 +12,21 @@ import SwiftUI
 
 struct DashboardExerciseCard: View {
     let exercise: ProgramExercise
+    var secondaryMuscle: String? = nil
     var onTap: () -> Void = {}
     var onVideoTap: () -> Void = {}
 
     @State private var showVideoPlayer = false
+    @ObservedObject private var authService = AuthService.shared
+
+    /// Get user's gender from questionnaire data
+    private var userGender: MuscleSelector.BodyGender {
+        guard let user = authService.currentUser,
+              let questionnaireData = user.getQuestionnaireData() else {
+            return .male
+        }
+        return questionnaireData.gender.lowercased() == "female" ? .female : .male
+    }
 
     // Get media info for this exercise
     private var media: ExerciseMedia? {
@@ -108,12 +119,13 @@ struct DashboardExerciseCard: View {
 
                 Spacer()
 
-                // Muscle visualization
+                // Muscle visualization - matches thumbnail height (64pt)
                 CompactMuscleHighlight(
                     primaryMuscle: exercise.primaryMuscle,
-                    secondaryMuscle: nil // Could add secondary muscle support later
+                    secondaryMuscle: secondaryMuscle,
+                    gender: userGender
                 )
-                .frame(width: 48, height: 50)
+                .frame(height: 64)
             }
             .padding(16)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -145,67 +157,118 @@ struct DashboardExerciseCard: View {
 
 // MARK: - Compact Muscle Highlight (for exercise cards)
 
+/// A compact, non-interactive body diagram that highlights primary/secondary muscles
+/// Uses the same rendering approach as StaticMuscleView - no cropping, proper aspect ratio
 struct CompactMuscleHighlight: View {
     let primaryMuscle: String
     var secondaryMuscle: String?
+    var gender: MuscleSelector.BodyGender = .male
 
-    // Standard canvas dimensions
+    // Standard canvas dimensions for aspect ratio (matching transformed data viewBox)
     private let svgWidth: CGFloat = 650
     private let svgHeight: CGFloat = 1450
+
+    /// Determines body side based on primary muscle location
+    private var bodySide: MuscleSelector.BodySide {
+        guard let primarySlug = muscleNameToSlug(primaryMuscle) else {
+            return .front
+        }
+
+        switch primarySlug {
+        // Back muscles
+        case .upperback, .lowerback, .trapezius, .gluteal, .hamstring, .calves:
+            return .back
+        // Triceps are more visible from back
+        case .triceps:
+            return .back
+        // Front muscles
+        case .chest, .abs, .biceps, .quadriceps, .deltoids, .obliques, .forearm:
+            return .front
+        default:
+            return .front
+        }
+    }
+
+    /// Get the appropriate body parts data based on gender and side
+    private var bodyParts: [MusclePart] {
+        switch (gender, bodySide) {
+        case (.male, .front):
+            return BodyDataProvider.maleFront
+        case (.male, .back):
+            return BodyDataProvider.maleBack
+        case (.female, .front):
+            return BodyDataProvider.femaleFront
+        case (.female, .back):
+            return BodyDataProvider.femaleBack
+        }
+    }
 
     var body: some View {
         GeometryReader { geometry in
             let scale = min(geometry.size.width / svgWidth, geometry.size.height / svgHeight)
 
             ZStack {
-                // Front view body with highlighted muscles
-                ForEach(BodyDataProvider.maleFront, id: \.slug) { part in
-                    let isHighlighted = shouldHighlight(part.slug)
-
-                    MusclePathView(
-                        paths: part.paths.allPaths,
-                        fillColor: getFillColor(for: part, isHighlighted: isHighlighted),
-                        isSelected: isHighlighted,
-                        onTap: {}
-                    )
-                    .allowsHitTesting(false)
-                }
+                bodyDiagram
+                    .frame(width: svgWidth, height: svgHeight)
+                    .scaleEffect(scale, anchor: .center)
+                    .frame(width: geometry.size.width, height: geometry.size.height)
             }
-            .frame(width: svgWidth, height: svgHeight)
-            .scaleEffect(scale, anchor: .center)
             .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+        .aspectRatio(svgWidth / svgHeight, contentMode: .fit)
+    }
+
+    @ViewBuilder
+    private var bodyDiagram: some View {
+        ZStack {
+            ForEach(bodyParts, id: \.slug) { part in
+                let highlightType = getHighlightType(for: part.slug)
+
+                StaticMusclePathView(
+                    paths: part.paths.allPaths,
+                    fillColor: getFillColor(for: part, highlightType: highlightType),
+                    isHighlighted: highlightType != .none
+                )
+            }
         }
     }
 
-    private func shouldHighlight(_ slug: MuscleSlug) -> Bool {
-        // Map primary muscle name to slug
+    private enum HighlightType {
+        case primary
+        case secondary
+        case none
+    }
+
+    private func getHighlightType(for slug: MuscleSlug) -> HighlightType {
+        // Check primary muscle
         let primarySlug = muscleNameToSlug(primaryMuscle)
-        if slug == primarySlug { return true }
+        if slug == primarySlug { return .primary }
 
         // Check secondary muscle if provided
         if let secondary = secondaryMuscle {
             let secondarySlug = muscleNameToSlug(secondary)
-            if slug == secondarySlug { return true }
+            if slug == secondarySlug { return .secondary }
         }
 
-        return false
+        return .none
     }
 
     private func muscleNameToSlug(_ name: String) -> MuscleSlug? {
         let lowercased = name.lowercased()
 
-        // Direct mappings
+        // Direct mappings from database muscle names to MuscleSlug
+        // Database values: Adductors, Back, Biceps, Calves, Chest, Core, Forearms, Glutes, Hamstrings, Quads, Rear Delts, Shoulders, Traps, Triceps
         if lowercased.contains("chest") || lowercased.contains("pectorals") { return .chest }
-        if lowercased.contains("shoulder") || lowercased.contains("deltoid") { return .deltoids }
+        if lowercased.contains("shoulder") || lowercased.contains("deltoid") || lowercased == "rear delts" { return .deltoids }
         if lowercased.contains("bicep") { return .biceps }
         if lowercased.contains("tricep") { return .triceps }
-        if lowercased.contains("quad") { return .quadriceps }
+        if lowercased.contains("quad") || lowercased == "adductors" { return .quadriceps }
         if lowercased.contains("hamstring") { return .hamstring }
         if lowercased.contains("glute") { return .gluteal }
         if lowercased.contains("calf") || lowercased.contains("calves") { return .calves }
-        if lowercased.contains("abs") || lowercased.contains("abdominal") { return .abs }
+        if lowercased.contains("abs") || lowercased.contains("abdominal") || lowercased == "core" { return .abs }
         if lowercased.contains("oblique") { return .obliques }
-        if lowercased.contains("lat") || lowercased.contains("upper back") { return .upperback }
+        if lowercased.contains("lat") || lowercased.contains("upper back") || lowercased == "back" { return .upperback }
         if lowercased.contains("lower back") || lowercased.contains("erector") { return .lowerback }
         if lowercased.contains("trap") { return .trapezius }
         if lowercased.contains("forearm") { return .forearm }
@@ -213,12 +276,14 @@ struct CompactMuscleHighlight: View {
         return nil
     }
 
-    private func getFillColor(for part: MusclePart, isHighlighted: Bool) -> Color {
-        if isHighlighted {
+    private func getFillColor(for part: MusclePart, highlightType: HighlightType) -> Color {
+        switch highlightType {
+        case .primary, .secondary:
             return Color.trainPrimary
+        case .none:
+            // Non-highlighted parts use uniform grey matching Demo tab style
+            return Color(hex: "#8a8a8a") ?? .gray
         }
-        // Non-highlighted parts use uniform grey matching Demo tab style
-        return Color(hex: "#8a8a8a") ?? .gray
     }
 }
 
@@ -226,10 +291,21 @@ struct CompactMuscleHighlight: View {
 
 struct DashboardExerciseCardDarkMode: View {
     let exercise: ProgramExercise
+    var secondaryMuscle: String? = nil
     var onTap: () -> Void = {}
     var onVideoTap: () -> Void = {}
 
     @State private var showVideoPlayer = false
+    @ObservedObject private var authService = AuthService.shared
+
+    /// Get user's gender from questionnaire data
+    private var userGender: MuscleSelector.BodyGender {
+        guard let user = authService.currentUser,
+              let questionnaireData = user.getQuestionnaireData() else {
+            return .male
+        }
+        return questionnaireData.gender.lowercased() == "female" ? .female : .male
+    }
 
     // Get media info for this exercise
     private var media: ExerciseMedia? {
@@ -322,12 +398,13 @@ struct DashboardExerciseCardDarkMode: View {
 
                 Spacer()
 
-                // Muscle visualization
+                // Muscle visualization - matches thumbnail height (64pt)
                 CompactMuscleHighlight(
                     primaryMuscle: exercise.primaryMuscle,
-                    secondaryMuscle: nil
+                    secondaryMuscle: secondaryMuscle,
+                    gender: userGender
                 )
-                .frame(width: 48, height: 50)
+                .frame(height: 64)
             }
             .padding(16)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))

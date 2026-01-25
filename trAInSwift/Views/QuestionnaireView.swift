@@ -20,9 +20,12 @@ struct QuestionnaireView: View {
     let onComplete: () -> Void
     var onBack: (() -> Void)? = nil
 
+    /// Unique ID for this instance to track in logs
+    private let instanceId = UUID().uuidString.prefix(8)
+
     // Total steps: Main questionnaire flow (referral moved to post-signup)
     var totalSteps: Int {
-        return 13  // Steps 0-12: Goal → Name → HealthProfile → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → Equipment → [Interstitial2] → Muscles → Injuries
+        return 14  // Steps 0-13: Goal → Name → HealthProfile → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → TrainingPlace → Equipment → [Interstitial2] → Muscles → Injuries
         // Referral tracking happens after signup in the post-questionnaire flow
     }
 
@@ -32,49 +35,91 @@ struct QuestionnaireView: View {
                 ProgramReadyView(
                     program: program,
                     onStart: {
-                        viewModel.completeQuestionnaire()
-                        onComplete()
+                        questionnaireDebugLog("READY", "ProgramReadyView.onStart", [
+                            "instanceId": String(instanceId),
+                            "action": "Completing questionnaire"
+                        ])
+                        let hasWarnings = viewModel.completeQuestionnaire()
+                        if hasWarnings {
+                            questionnaireDebugLog("READY", "warnings.shown", [
+                                "instanceId": String(instanceId),
+                                "action": "Waiting for user decision on warnings"
+                            ])
+                            // Don't call onComplete() - wait for user to choose Amend or Proceed
+                        } else {
+                            questionnaireDebugLog("READY", "noWarnings.proceeding", [
+                                "instanceId": String(instanceId),
+                                "action": "No warnings - proceeding to dashboard"
+                            ])
+                            onComplete()
+                        }
                     },
                     onSignupStart: {
-                        print("🔄 [SIGNUP] Starting signup process - protecting questionnaire state")
+                        questionnaireDebugLog("SIGNUP", "signupProcess.started", [
+                            "instanceId": String(instanceId),
+                            "previousIsSignupInProgress": "\(isSignupInProgress)"
+                        ])
                         isSignupInProgress = true
+                        // Clear any pending warnings - user proceeding to signup means they accept the program
+                        viewModel.proceedAfterWarning()
                     },
                     onSignupCancel: {
-                        print("🚫 [SIGNUP] Signup cancelled - restoring questionnaire state")
+                        questionnaireDebugLog("SIGNUP", "signupProcess.cancelled", [
+                            "instanceId": String(instanceId)
+                        ])
                         isSignupInProgress = false
                     },
                     selectedMuscleGroups: viewModel.questionnaireData.targetMuscleGroups
                 )
                 .onAppear {
+                    questionnaireDebugLog("READY", "ProgramReadyView.onAppear", [
+                        "instanceId": String(instanceId),
+                        "programType": program.type.rawValue
+                    ])
                 }
             } else if showingProgramLoading {
                 if isSignupInProgress {
                     // This is the key fix - we DON'T show ProgramLoadingView during signup
                     EmptyView()
                         .onAppear {
-                            print("🛡️ [RACE_PROTECTION] Blocking ProgramLoadingView during signup")
+                            questionnaireDebugLog("LOADING", "ProgramLoadingView.blocked", [
+                                "instanceId": String(instanceId),
+                                "reason": "isSignupInProgress = true"
+                            ])
                         }
                 } else {
                     ProgramLoadingView(onComplete: {
 
                         // Guard against race conditions during signup
                         guard !isSignupInProgress else {
-                            print("🛡️ [RACE_PROTECTION] Ignoring ProgramLoadingView completion during signup")
+                            questionnaireDebugLog("LOADING", "ProgramLoadingView.completion.blocked", [
+                                "instanceId": String(instanceId),
+                                "reason": "isSignupInProgress = true"
+                            ])
                             return
                         }
 
                         // Only generate program if not already generated
                         if viewModel.generatedProgram == nil {
-                            print("🎯 [PROGRAM] Generating workout program...")
+                            questionnaireDebugLog("PROGRAM", "generateProgram.starting", [
+                                "instanceId": String(instanceId)
+                            ])
                             viewModel.generateProgram()
                         } else {
-                            print("🎯 [PROGRAM] Using existing workout program")
+                            questionnaireDebugLog("PROGRAM", "generateProgram.skipped", [
+                                "instanceId": String(instanceId),
+                                "reason": "Program already exists"
+                            ])
                         }
 
                         // Removed animation for instant transition
                         showingProgramReady = true
                     })
                     .onAppear {
+                        questionnaireDebugLog("LOADING", "ProgramLoadingView.onAppear", [
+                            "instanceId": String(instanceId),
+                            "currentStep": "\(currentStep)"
+                        ])
                     }
                 }
             } else if isVideoInterstitialStep {
@@ -126,9 +171,36 @@ struct QuestionnaireView: View {
             }
         }
         .charcoalGradientBackground()
+        .onAppear {
+            questionnaireDebugLog("VIEW", "QuestionnaireView.onAppear", [
+                "instanceId": String(instanceId),
+                "currentStep": "\(currentStep)",
+                "stepName": stepName(for: currentStep),
+                "showingProgramLoading": "\(showingProgramLoading)",
+                "showingProgramReady": "\(showingProgramReady)",
+                "isSignupInProgress": "\(isSignupInProgress)",
+                "status": "✅ QUESTIONNAIRE IS VISIBLE (Step 0 = Goal)"
+            ])
+        }
         .alert(viewModel.warningAlertTitle, isPresented: $viewModel.showWarningAlert) {
-            Button("OK", role: .cancel) {
+            Button("Amend Equipment") {
+                questionnaireDebugLog("WARNING", "amendEquipment.selected", [
+                    "instanceId": String(instanceId),
+                    "action": "Navigating back to equipment step"
+                ])
                 viewModel.dismissWarningAlert()
+                // Navigate back to equipment step
+                navigateToEquipmentStep()
+            }
+            Button("Proceed Anyway", role: .destructive) {
+                questionnaireDebugLog("WARNING", "proceedAnyway.selected", [
+                    "instanceId": String(instanceId),
+                    "action": "Completing questionnaire with limited exercises"
+                ])
+                viewModel.dismissWarningAlert()
+                // Complete the questionnaire and go to dashboard
+                viewModel.proceedAfterWarning()
+                onComplete()
             }
         } message: {
             Text(viewModel.warningAlertMessage)
@@ -148,7 +220,7 @@ struct QuestionnaireView: View {
     }
 
     private var buttonTitle: String {
-        if currentStep == 12 { // Injuries step (final step)
+        if currentStep == 13 { // Injuries step (final step)
             return "Generate Your Program"
         }
         return "Continue"
@@ -230,16 +302,22 @@ struct QuestionnaireView: View {
             } else {
                 SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
             }
-        case 8: // Session Duration OR Equipment
+        case 8: // Session Duration OR Training Place
             if !skipHeightWeight {
                 SessionDurationStepView(sessionDuration: $viewModel.questionnaireData.sessionDuration)
             } else {
+                TrainingPlaceStepView(selectedTrainingPlace: $viewModel.questionnaireData.trainingPlace)
+            }
+        case 9: // Training Place OR Equipment
+            if !skipHeightWeight {
+                TrainingPlaceStepView(selectedTrainingPlace: $viewModel.questionnaireData.trainingPlace)
+            } else {
                 EquipmentStepView(
                     selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
                     selectedDetailedEquipment: $viewModel.questionnaireData.detailedEquipment
                 )
             }
-        case 9: // Equipment OR Second Video Interstitial
+        case 10: // Equipment OR Second Video Interstitial
             if !skipHeightWeight {
                 EquipmentStepView(
                     selectedEquipment: $viewModel.questionnaireData.equipmentAvailable,
@@ -253,7 +331,7 @@ struct QuestionnaireView: View {
                     totalSteps: totalSteps
                 )
             }
-        case 10: // Second Video Interstitial OR Muscle Groups
+        case 11: // Second Video Interstitial OR Muscle Groups
             if !skipHeightWeight {
                 SecondVideoInterstitialView(
                     onComplete: proceedToNextStep,
@@ -262,15 +340,15 @@ struct QuestionnaireView: View {
                     totalSteps: totalSteps
                 )
             } else {
-                MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
+                MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups, gender: viewModel.questionnaireData.gender)
             }
-        case 11: // Muscle Groups OR Injuries
+        case 12: // Muscle Groups OR Injuries
             if !skipHeightWeight {
-                MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups)
+                MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups, gender: viewModel.questionnaireData.gender)
             } else {
                 InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
             }
-        case 12: // Injuries (final step)
+        case 13: // Injuries (final step)
             InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
         default:
             EmptyView()
@@ -335,33 +413,39 @@ struct QuestionnaireView: View {
             } else {
                 return !viewModel.questionnaireData.sessionDuration.isEmpty
             }
-        case 8: // Session Duration OR Equipment
+        case 8: // Session Duration OR Training Place
             if !skipHeightWeight {
                 return !viewModel.questionnaireData.sessionDuration.isEmpty
             } else {
+                return !viewModel.questionnaireData.trainingPlace.isEmpty
+            }
+        case 9: // Training Place OR Equipment
+            if !skipHeightWeight {
+                return !viewModel.questionnaireData.trainingPlace.isEmpty
+            } else {
                 return !viewModel.questionnaireData.equipmentAvailable.isEmpty
             }
-        case 9: // Equipment OR Second Video Interstitial
+        case 10: // Equipment OR Second Video Interstitial
             if !skipHeightWeight {
                 return !viewModel.questionnaireData.equipmentAvailable.isEmpty
             } else {
                 return true // Video interstitial always valid
             }
-        case 10: // Second Video Interstitial OR Muscle Groups
+        case 11: // Second Video Interstitial OR Muscle Groups
             if !skipHeightWeight {
                 return true // Video interstitial always valid
             } else {
                 let count = viewModel.questionnaireData.targetMuscleGroups.count
                 return count >= 0 && count <= 3
             }
-        case 11: // Muscle Groups OR Injuries
+        case 12: // Muscle Groups OR Injuries
             if !skipHeightWeight {
                 let count = viewModel.questionnaireData.targetMuscleGroups.count
                 return count >= 0 && count <= 3
             } else {
                 return true // Injuries optional
             }
-        case 12: // Injuries (final step)
+        case 13: // Injuries (final step)
             return true // Injuries optional
         default:
             return true
@@ -373,7 +457,7 @@ struct QuestionnaireView: View {
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
 
         // Equipment step needs scrolling for expandable categories
-        if (!skipHeightWeight && currentStep == 9) || (skipHeightWeight && currentStep == 8) {
+        if (!skipHeightWeight && currentStep == 10) || (skipHeightWeight && currentStep == 9) {
             return false  // Enable scrolling for equipment
         }
 
@@ -388,25 +472,37 @@ struct QuestionnaireView: View {
     private func nextStep() {
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
 
-        // Check if leaving equipment step with limited equipment selection
+        questionnaireDebugLog("NAV", "nextStep.called", [
+            "instanceId": String(instanceId),
+            "currentStep": "\(currentStep)",
+            "skipHeightWeight": "\(skipHeightWeight)",
+            "stepName": stepName(for: currentStep)
+        ])
+
+        // Apply gym type preset when leaving Training Place step (before entering Equipment step)
         if (!skipHeightWeight && currentStep == 9) || (skipHeightWeight && currentStep == 8) {
+            applyGymTypePreset()
+        }
+
+        // Check if leaving equipment step with limited equipment selection
+        if (!skipHeightWeight && currentStep == 10) || (skipHeightWeight && currentStep == 9) {
             let equipmentCount = viewModel.questionnaireData.equipmentAvailable.count
             let equipmentList = viewModel.questionnaireData.equipmentAvailable
 
-            print("🔧 [EQUIPMENT DEBUG] Equipment validation triggered")
-            print("🔧 [EQUIPMENT DEBUG] Equipment count: \(equipmentCount)")
-            print("🔧 [EQUIPMENT DEBUG] Equipment list: \(equipmentList)")
-            print("🔧 [EQUIPMENT DEBUG] hasSeenEquipmentWarning: \(hasSeenEquipmentWarning)")
-            print("🔧 [EQUIPMENT DEBUG] skipHeightWeight: \(skipHeightWeight)")
-            print("🔧 [EQUIPMENT DEBUG] currentStep: \(currentStep)")
+            questionnaireDebugLog("EQUIPMENT", "validation.triggered", [
+                "instanceId": String(instanceId),
+                "equipmentCount": "\(equipmentCount)",
+                "equipmentList": "\(equipmentList)",
+                "hasSeenWarning": "\(hasSeenEquipmentWarning)"
+            ])
 
             if equipmentCount <= 2 && !hasSeenEquipmentWarning {
-                print("🔧 [EQUIPMENT DEBUG] ⚠️ TRIGGERING EQUIPMENT WARNING - User has \(equipmentCount) pieces of equipment")
-                // Show warning modal for limited equipment selection (2 or fewer pieces)
+                questionnaireDebugLog("EQUIPMENT", "warning.showing", [
+                    "instanceId": String(instanceId),
+                    "equipmentCount": "\(equipmentCount)"
+                ])
                 showingEquipmentWarning = true
                 return
-            } else {
-                print("🔧 [EQUIPMENT DEBUG] ✅ Equipment validation passed - User has \(equipmentCount) pieces of equipment")
             }
         }
 
@@ -414,31 +510,58 @@ struct QuestionnaireView: View {
     }
 
     private func proceedFromEquipmentStep() {
-        print("🔧 [EQUIPMENT DEBUG] User dismissed equipment warning - proceeding with limited equipment")
+        questionnaireDebugLog("EQUIPMENT", "warning.dismissed", [
+            "instanceId": String(instanceId),
+            "action": "Proceeding with limited equipment"
+        ])
         hasSeenEquipmentWarning = true
         proceedToNextStep()
     }
 
     private func proceedToNextStep() {
-        print("📋 [NAVIGATION] Step \(currentStep) → \(currentStep + 1), signup: \(isSignupInProgress)")
+        questionnaireDebugLog("NAV", "proceedToNextStep", [
+            "instanceId": String(instanceId),
+            "fromStep": "\(currentStep)",
+            "toStep": currentStep == 13 ? "LOADING" : "\(currentStep + 1)",
+            "isSignupInProgress": "\(isSignupInProgress)"
+        ])
 
         // Guard against race conditions during signup
         guard !isSignupInProgress else {
-            print("🛡️ [RACE_PROTECTION] Navigation blocked during signup")
+            questionnaireDebugLog("NAV", "proceedToNextStep.blocked", [
+                "instanceId": String(instanceId),
+                "reason": "isSignupInProgress = true"
+            ])
             return
         }
 
         // Removed withAnimation for instant, smooth transitions especially for video interstitials
-        if currentStep == 12 {
-            print("🏁 [NAVIGATION] Final step reached - starting program generation")
-            // After injuries step (12), complete questionnaire and show program loading
-            // The flow should be: Injuries → Loading → Program Ready → Signup → Notifications → Referral → Dashboard
+        if currentStep == 13 {
+            questionnaireDebugLog("NAV", "finalStep.reached", [
+                "instanceId": String(instanceId),
+                "action": "Starting program loading"
+            ])
             showingProgramLoading = true
         } else {
-            print("➡️ [NAVIGATION] Advancing to step \(currentStep + 1)")
-            // Continue through regular questionnaire steps (0-11)
             currentStep += 1
+            questionnaireDebugLog("NAV", "step.advanced", [
+                "instanceId": String(instanceId),
+                "newStep": "\(currentStep)",
+                "stepName": stepName(for: currentStep)
+            ])
         }
+    }
+
+    /// Get human-readable step name for debugging
+    private func stepName(for step: Int) -> String {
+        let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
+        let names: [String]
+        if skipHeightWeight {
+            names = ["Goal", "Name", "HealthProfile", "Experience", "Interstitial1", "Days", "Split", "Duration", "TrainingPlace", "Equipment", "Interstitial2", "Muscles", "Injuries", "FINAL"]
+        } else {
+            names = ["Goal", "Name", "HealthProfile", "HeightWeight", "Experience", "Interstitial1", "Days", "Split", "Duration", "TrainingPlace", "Equipment", "Interstitial2", "Muscles", "Injuries"]
+        }
+        return step < names.count ? names[step] : "Unknown(\(step))"
     }
 
     private func previousStep() {
@@ -455,10 +578,90 @@ struct QuestionnaireView: View {
     private var isVideoInterstitialStep: Bool {
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
         if !skipHeightWeight {
-            return currentStep == 5 || currentStep == 10  // First and Second interstitial
+            return currentStep == 5 || currentStep == 11  // First and Second interstitial
         } else {
-            return currentStep == 4 || currentStep == 9
+            return currentStep == 4 || currentStep == 10
         }
     }
+
+    /// Apply gym type preset to pre-select equipment based on training place
+    private func applyGymTypePreset() {
+        let gymType = viewModel.questionnaireData.trainingPlace
+        guard !gymType.isEmpty else {
+            questionnaireDebugLog("PRESET", "applyGymTypePreset.skipped", [
+                "instanceId": String(instanceId),
+                "reason": "No training place selected"
+            ])
+            return
+        }
+
+        guard let preset = ConstantsManager.shared.getEquipmentForGymType(gymType) else {
+            questionnaireDebugLog("PRESET", "applyGymTypePreset.failed", [
+                "instanceId": String(instanceId),
+                "gymType": gymType,
+                "reason": "Unknown gym type"
+            ])
+            return
+        }
+
+        questionnaireDebugLog("PRESET", "applyGymTypePreset.applying", [
+            "instanceId": String(instanceId),
+            "gymType": gymType,
+            "categories": "\(preset.categories.count)",
+            "attachments": "\(preset.attachments.count)"
+        ])
+
+        // Update equipment categories
+        viewModel.questionnaireData.equipmentAvailable = preset.categories
+
+        // Update detailed equipment (specific items)
+        viewModel.questionnaireData.detailedEquipment = preset.specific
+
+        // Update attachments if present
+        if !preset.attachments.isEmpty {
+            viewModel.questionnaireData.detailedEquipment["attachments"] = preset.attachments
+        }
+
+        questionnaireDebugLog("PRESET", "applyGymTypePreset.complete", [
+            "instanceId": String(instanceId),
+            "equipmentCount": "\(viewModel.questionnaireData.equipmentAvailable.count)"
+        ])
+    }
+
+    /// Navigate back to equipment step from warning modal
+    private func navigateToEquipmentStep() {
+        let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
+        let equipmentStep = skipHeightWeight ? 9 : 10
+
+        questionnaireDebugLog("NAV", "navigateToEquipmentStep", [
+            "instanceId": String(instanceId),
+            "fromStep": "\(currentStep)",
+            "toStep": "\(equipmentStep)",
+            "skipHeightWeight": "\(skipHeightWeight)"
+        ])
+
+        // Reset program generation state
+        showingProgramLoading = false
+        showingProgramReady = false
+        isSignupInProgress = false
+
+        // Reset warning seen flag so they can proceed after adding equipment
+        hasSeenEquipmentWarning = false
+
+        // Navigate to equipment step
+        currentStep = equipmentStep
+    }
+}
+
+// MARK: - Debug Logging Helper
+
+private func questionnaireDebugLog(_ category: String, _ action: String, _ params: [String: String] = [:]) {
+    let timestamp = Date().formatted(date: .omitted, time: .standard)
+    var message = "🔍 [QUESTIONNAIRE-\(category)] \(action)"
+    if !params.isEmpty {
+        let paramString = params.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: " | ")
+        message += " | \(paramString)"
+    }
+    print("[\(timestamp)] \(message)")
 }
 

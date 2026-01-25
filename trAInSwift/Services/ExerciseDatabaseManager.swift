@@ -127,6 +127,16 @@ class ExerciseDatabaseManager {
                 )
             }
 
+            // Filter by attachments (Rope, D-Handles, Straight Bar, etc.)
+            if !filter.attachmentSpecific.isEmpty {
+                // Include exercises where attachment_specific is in the list OR attachment_specific is NULL
+                // Exercises without attachments always pass through
+                query = query.filter(
+                    filter.attachmentSpecific.contains(Column("attachment_specific")) ||
+                    Column("attachment_specific") == nil
+                )
+            }
+
             // Filter by max complexity
             query = query.filter(Column("complexity_level") <= filter.maxComplexity)
 

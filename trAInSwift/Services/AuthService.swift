@@ -17,6 +17,8 @@ class AuthService: ObservableObject {
 
     @Published var currentUser: UserProfile?
     @Published var isAuthenticated: Bool = false
+    /// Tracks the currently active program's ID - changes trigger UI refresh
+    @Published private(set) var currentProgramId: UUID?
 
     private let keychain = KeychainService.shared
     private let appleSignIn = AppleSignInService.shared
@@ -40,6 +42,8 @@ class AuthService: ObservableObject {
             if let user = UserProfile.fetch(byId: userId, context: context) {
                 currentUser = user
                 isAuthenticated = true
+                // Also load current program ID
+                currentProgramId = getCurrentProgram()?.id
                 AppLogger.logAuth("Session restored for user")
             }
         }
@@ -297,6 +301,81 @@ class AuthService: ObservableObject {
         NotificationCenter.default.post(name: .resetToSplash, object: nil, userInfo: nil)
     }
 
+    /// Permanently deletes the user's account and all associated data
+    func deleteAccount() {
+        guard let user = currentUser else {
+            AppLogger.logAuth("Cannot delete account: no current user", level: .error)
+            return
+        }
+
+        let email = user.email ?? ""
+        let userId = user.id
+
+        // Delete keychain credentials
+        if !email.isEmpty {
+            do {
+                try keychain.deletePassword(for: email)
+                AppLogger.logAuth("Deleted keychain password for user")
+            } catch {
+                AppLogger.logAuth("Failed to delete keychain password: \(error)", level: .warning)
+            }
+
+            // Delete Apple identifier if exists
+            if user.isAppleUser {
+                do {
+                    try keychain.deleteAppleUserIdentifier(for: email)
+                    AppLogger.logAuth("Deleted Apple user identifier")
+                } catch {
+                    AppLogger.logAuth("Failed to delete Apple identifier: \(error)", level: .warning)
+                }
+            }
+
+            // Delete Google identifier if exists
+            if user.isGoogleUser {
+                do {
+                    try keychain.deleteGoogleUserIdentifier(for: email)
+                    AppLogger.logAuth("Deleted Google user identifier")
+                } catch {
+                    AppLogger.logAuth("Failed to delete Google identifier: \(error)", level: .warning)
+                }
+            }
+        }
+
+        // Delete all workout sessions for this user
+        if let userId = userId {
+            let sessions = CDWorkoutSession.fetchAll(forUserId: userId, context: context)
+            for session in sessions {
+                context.delete(session)
+            }
+            AppLogger.logAuth("Deleted \(sessions.count) workout sessions")
+
+            // Delete all workout programs for this user
+            let programs = WorkoutProgram.fetchAll(forUserId: userId, context: context)
+            for program in programs {
+                context.delete(program)
+            }
+            AppLogger.logAuth("Deleted \(programs.count) workout programs")
+        }
+
+        // Delete the user profile
+        context.delete(user)
+
+        // Save context
+        do {
+            try context.save()
+            AppLogger.logAuth("User account deleted successfully")
+        } catch {
+            AppLogger.logAuth("Failed to save context after deletion: \(error)", level: .error)
+        }
+
+        // Sign out of Google if applicable
+        googleSignIn.signOut()
+
+        // Clear session and navigate to splash
+        clearSession()
+        NotificationCenter.default.post(name: .resetToSplash, object: nil, userInfo: nil)
+    }
+
     // MARK: - Validation Helpers
 
     private func isValidEmail(_ email: String) -> Bool {
@@ -349,8 +428,10 @@ class AuthService: ObservableObject {
         }
 
         // Create new WorkoutProgram in Core Data
-        _ = WorkoutProgram.create(userId: userId, program: program, context: context)
+        let newProgram = WorkoutProgram.create(userId: userId, program: program, context: context)
         saveSession()
+        // Update published program ID to trigger UI refresh
+        currentProgramId = newProgram.id
         AppLogger.logProgram("Program updated successfully")
     }
 
@@ -372,6 +453,8 @@ class AuthService: ObservableObject {
     func activateProgram(_ program: WorkoutProgram) {
         program.activate(context: context)
         saveSession()
+        // Update published program ID to trigger UI refresh
+        currentProgramId = program.id
         AppLogger.logProgram("Switched to program: \(program.name ?? "Unknown")")
     }
 

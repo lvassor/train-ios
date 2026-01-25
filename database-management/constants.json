@@ -19,6 +19,32 @@
     "Plate-Loaded Machines",
     "Other"
   ],
+  "attachment_mappings": {
+    "straight_bar": "Straight Bar",
+    "rope": "Rope",
+    "d_handles": "D-Handles",
+    "ez_bar": "EZ-Bar",
+    "ez_bar_cable": "EZ-Bar Cable",
+    "ankle_strap": "Ankle Strap",
+    "resistance_band": "Resistance Band",
+    "weight_belt": "Weight Belt"
+  },
+  "attachment_categories": [
+    "Straight Bar",
+    "Rope",
+    "D-Handles",
+    "EZ-Bar",
+    "EZ-Bar Cable",
+    "Ankle Strap",
+    "Resistance Band",
+    "Weight Belt"
+  ],
+  "cable_attachments": [
+    "Straight Bar",
+    "Rope",
+    "D-Handles",
+    "EZ-Bar Cable"
+  ],
   "experience_levels": [
     "NO_EXPERIENCE",
     "BEGINNER",
@@ -76,6 +102,7 @@
       ],
       "optional_columns": [
         "equipment_specific",
+        "attachment_specific",
         "secondary_muscle",
         "instructions",
         "progression_id",
@@ -116,6 +143,16 @@
       "plate_loaded": "Plate-Loaded Machines",
       "other": "Other Equipment"
     },
+    "attachments": {
+      "straight_bar": "Straight Bar",
+      "rope": "Rope Attachment",
+      "d_handles": "D-Handles",
+      "ez_bar": "EZ-Bar",
+      "ez_bar_cable": "EZ-Bar Cable Attachment",
+      "ankle_strap": "Ankle Strap",
+      "resistance_band": "Resistance Band",
+      "weight_belt": "Weight/Dip Belt"
+    },
     "experience": {
       "no_experience": "Just Starting Out",
       "beginner": "Finding My Feet",
@@ -123,7 +160,7 @@
       "advanced": "Confident & Consistent"
     }
   },
-  "version": "2.0.0",
-  "last_updated": "2025-01-18",
+  "version": "3.0.0",
+  "last_updated": "2026-01-24",
   "description": "Centralized constants for TrAIn database generation and cross-platform consistency"
 }

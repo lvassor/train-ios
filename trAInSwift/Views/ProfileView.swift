@@ -6,13 +6,14 @@
 //
 
 import SwiftUI
-
+import CoreData
 
 struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var authService = AuthService.shared
     @State private var showLogoutConfirmation = false
+    @State private var showDeleteAccountConfirmation = false
     @State private var shouldRestartQuestionnaire = false
     @State private var showEditProfile = false
     @State private var showProgramSelector = false
@@ -32,15 +33,9 @@ struct ProfileView: View {
                                         .foregroundColor(.trainPrimary(theme: themeManager.activeTheme))
                                 )
 
-                            Text(authService.currentUser?.name ?? authService.currentUser?.email ?? "")
+                            Text(authService.currentUser?.name ?? "User")
                                 .font(.trainHeadline)
                                 .foregroundColor(.trainTextPrimary(theme: themeManager.activeTheme))
-
-                            if let name = authService.currentUser?.name, !name.isEmpty {
-                                Text(authService.currentUser?.email ?? "")
-                                    .font(.trainBody)
-                                    .foregroundColor(.trainTextSecondary(theme: themeManager.activeTheme))
-                            }
 
                             if let user = authService.currentUser {
                                 Text("Member since \(formatDate(user.createdAt ?? Date()))")
@@ -102,7 +97,9 @@ struct ProfileView: View {
                                 icon: "trash",
                                 title: "Delete Account",
                                 isDestructive: true,
-                                action: {}
+                                action: {
+                                    showDeleteAccountConfirmation = true
+                                }
                             )
                         }
                         .appCard()
@@ -133,6 +130,15 @@ struct ProfileView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Are you sure you want to log out?")
+        }
+        .confirmationDialog("Delete Account", isPresented: $showDeleteAccountConfirmation, titleVisibility: .visible) {
+            Button("Delete Account", role: .destructive) {
+                authService.deleteAccount()
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will permanently delete your account, workout history, and all associated data. This action cannot be undone.")
         }
         .sheet(isPresented: $showEditProfile) {
             EditProfileView()
@@ -476,6 +482,9 @@ struct ProgramCard: View {
             }
 
             Button(action: {
+                retakeDebugLog("RETAKE", "button.tapped", [
+                    "action": "Showing confirmation dialog"
+                ])
                 showRetakeConfirmation = true
             }) {
                 Text("Retake Quiz")
@@ -490,27 +499,73 @@ struct ProgramCard: View {
         .padding(Spacing.md)
         .appCard()
         .confirmationDialog("Retake Quiz", isPresented: $showRetakeConfirmation, titleVisibility: .visible) {
-            Button("Retake Quiz") {
-                // Navigate to questionnaire while keeping current program as inactive
+            Button("Save & Retake") {
+                retakeDebugLog("RETAKE", "confirmation.saveAndRetake", [
+                    "action": "Saving current program and starting retake flow"
+                ])
+
+                // Current program will be automatically saved as inactive when new one is created
+                // Reset questionnaire data for fresh start
+                WorkoutViewModel.shared.questionnaireData = QuestionnaireData()
+                retakeDebugLog("RETAKE", "questionnaireData.reset", [
+                    "action": "QuestionnaireData cleared for fresh start"
+                ])
+
                 shouldRestartQuestionnaire = true
-                // Trigger splash screen when retaking questionnaire
-                NotificationCenter.default.post(name: .resetToSplash, object: nil, userInfo: nil)
+                retakeDebugLog("RETAKE", "fullScreenCover.triggering", [
+                    "shouldRestartQuestionnaire": "\(shouldRestartQuestionnaire)"
+                ])
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Discard & Retake", role: .destructive) {
+                retakeDebugLog("RETAKE", "confirmation.discardAndRetake", [
+                    "action": "Discarding current program and starting retake flow"
+                ])
+
+                // Delete the current program before creating new one
+                if let currentProgram = authService.getCurrentProgram() {
+                    let context = PersistenceController.shared.container.viewContext
+                    context.delete(currentProgram)
+                    try? context.save()
+                    retakeDebugLog("RETAKE", "currentProgram.deleted", [:])
+                }
+
+                // Reset questionnaire data for fresh start
+                WorkoutViewModel.shared.questionnaireData = QuestionnaireData()
+                shouldRestartQuestionnaire = true
+            }
+            Button("Cancel", role: .cancel) {
+                retakeDebugLog("RETAKE", "confirmation.cancelled", [:])
+            }
         } message: {
-            Text("This will create a new program while keeping your current one available to switch back to.")
+            Text("Would you like to save your current program? You can switch back to it later in 'Switch Programs'.")
         }
         .fullScreenCover(isPresented: $shouldRestartQuestionnaire) {
-            OnboardingFlowView()
+            OnboardingFlowView(isRetake: true)
                 .environmentObject(WorkoutViewModel.shared)
                 .onAppear {
-                    print("🔄 [PROFILE] Starting retake questionnaire with full onboarding flow")
+                    retakeDebugLog("RETAKE", "OnboardingFlowView.onAppear", [
+                        "status": "✅ RETAKE FLOW STARTED - Skipping WelcomeView (isRetake=true)",
+                        "isAuthenticated": "\(AuthService.shared.isAuthenticated)"
+                    ])
                 }
                 .onDisappear {
+                    retakeDebugLog("RETAKE", "OnboardingFlowView.onDisappear", [
+                        "action": "Retake flow completed or dismissed"
+                    ])
                     shouldRestartQuestionnaire = false
-                    print("🔄 [PROFILE] Retake questionnaire flow completed")
                 }
         }
+    }
+
+    /// Debug logging for retake questionnaire flow
+    private func retakeDebugLog(_ category: String, _ action: String, _ params: [String: String]) {
+        let timestamp = Date().formatted(date: .omitted, time: .standard)
+        var message = "🔍 [PROFILE-\(category)] \(action)"
+        if !params.isEmpty {
+            let paramString = params.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: " | ")
+            message += " | \(paramString)"
+        }
+        print("[\(timestamp)] \(message)")
     }
 
     private func getPriorityMuscleGroups() -> [String] {
@@ -559,6 +614,8 @@ struct ProgramCard: View {
 struct ProgramSelectorView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var authService = AuthService.shared
+    @State private var showSwitchConfirmation = false
+    @State private var programToSwitch: WorkoutProgram?
 
     var body: some View {
         NavigationView {
@@ -586,12 +643,30 @@ struct ProgramSelectorView: View {
 
                             ForEach(inactivePrograms, id: \.id) { program in
                                 ProgramSelectionCard(program: program, isActive: false) {
-                                    authService.activateProgram(program)
-                                    dismiss()
+                                    programToSwitch = program
+                                    showSwitchConfirmation = true
                                 }
                             }
                         }
                         .padding(.horizontal, Spacing.lg)
+                    } else {
+                        // No previous programs message
+                        VStack(spacing: Spacing.md) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.system(size: 40))
+                                .foregroundColor(.trainTextSecondary.opacity(0.5))
+
+                            Text("No Previous Programs")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(.trainTextSecondary)
+
+                            Text("When you retake the quiz and save your current program, it will appear here.")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainTextSecondary.opacity(0.8))
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal, Spacing.xl)
+                        .padding(.top, Spacing.xl)
                     }
 
                     Spacer()
@@ -607,6 +682,23 @@ struct ProgramSelectorView: View {
                         dismiss()
                     }
                     .foregroundColor(.trainPrimary)
+                }
+            }
+            .confirmationDialog("Switch Program", isPresented: $showSwitchConfirmation, titleVisibility: .visible) {
+                Button("Switch Program") {
+                    if let program = programToSwitch {
+                        authService.activateProgram(program)
+                        dismiss()
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    programToSwitch = nil
+                }
+            } message: {
+                if let program = programToSwitch {
+                    Text("Switch to '\(program.name ?? "Previous Program")'? Your current program will be saved and you can switch back later.")
+                } else {
+                    Text("Switch to this program?")
                 }
             }
         }
@@ -711,16 +803,16 @@ struct ThemeToggleRow: View {
 
             Spacer()
 
-            // Theme Picker
+            // Theme Picker with sun/moon icons
             Picker("Theme", selection: Binding(
                 get: { themeManager.currentMode },
                 set: { themeManager.setTheme($0) }
             )) {
-                Text("Dark").tag(AppThemeMode.dark)
-                Text("Light").tag(AppThemeMode.light)
+                Image(systemName: "moon.fill").tag(AppThemeMode.dark)
+                Image(systemName: "sun.max.fill").tag(AppThemeMode.light)
             }
             .pickerStyle(SegmentedPickerStyle())
-            .frame(width: 120)
+            .frame(width: 100)
         }
         .padding(Spacing.md)
     }

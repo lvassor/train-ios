@@ -18,17 +18,22 @@ struct ReferralPageView: View {
         self.onBack = onBack
     }
 
-    private let referralSources = [
-        "Friend or Family",
-        "Social Media",
-        "Search Engine",
-        "App Store",
-        "Advertisement",
-        "Fitness Blog/Website",
-        "Gym/Trainer Recommendation",
-        "Podcast",
-        "Other"
+    private let referralOptions = [
+        ReferralOption(id: "tiktok", title: "TikTok", icon: "play.rectangle.fill"),
+        ReferralOption(id: "instagram", title: "Instagram", icon: "camera"),
+        ReferralOption(id: "chatgpt", title: "ChatGPT", icon: "message"),
+        ReferralOption(id: "google", title: "Google", icon: "magnifyingglass"),
+        ReferralOption(id: "friend", title: "Friend", icon: "person.2"),
+        ReferralOption(id: "influencer", title: "Influencer", icon: "star"),
+        ReferralOption(id: "app_store", title: "App Store", icon: "square.stack.3d.down.right"),
+        ReferralOption(id: "other", title: "Other", icon: "ellipsis")
     ]
+
+    private struct ReferralOption: Identifiable {
+        let id: String
+        let title: String
+        let icon: String
+    }
 
     var body: some View {
         ZStack {
@@ -37,124 +42,145 @@ struct ReferralPageView: View {
 
             ScrollView {
                 VStack(spacing: 32) {
-                    // Back button if onBack is provided
-                    if let onBack = onBack {
-                        HStack {
-                            Button(action: {
-                                print("⬅️ [REFERRAL] Back button tapped")
-                                onBack()
-                            }) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "chevron.left")
-                                        .font(.title3)
-                                        .foregroundColor(.trainTextPrimary)
-                                    Text("Back")
-                                        .font(.trainBody)
-                                        .foregroundColor(.trainTextPrimary)
-                                }
-                            }
-                            Spacer()
-                        }
-                        .padding(.horizontal, 24)
-                        .padding(.top, 16)
-                    } else {
-                        Spacer()
-                            .frame(height: 60)
-                    }
-
-                    // Header
-                    VStack(spacing: 16) {
-                        Text("How did you hear about us?")
-                            .font(.trainTitle)
-                            .foregroundColor(.trainTextPrimary)
-                            .multilineTextAlignment(.center)
-
-                        Text("Help us understand how people discover Train so we can reach more fitness enthusiasts.")
-                            .font(.trainBody)
-                            .foregroundColor(.trainTextSecondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                    }
-
-                    // Referral sources
-                    VStack(spacing: 12) {
-                        ForEach(referralSources, id: \.self) { source in
-                            Button(action: {
-                                selectedReferralSource = source
-                                print("📊 [REFERRAL] Selected referral source: \(source)")
-                            }) {
-                                HStack {
-                                    Text(source)
-                                        .font(.trainBody)
-                                        .foregroundColor(.trainTextPrimary)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                                    if selectedReferralSource == source {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.trainPrimary)
-                                            .font(.title3)
-                                    } else {
-                                        Image(systemName: "circle")
-                                            .foregroundColor(.trainBorder)
-                                            .font(.title3)
-                                    }
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                                .background(
-                                    selectedReferralSource == source ?
-                                    Color.trainPrimary.opacity(0.1) :
-                                    Color.trainBackground
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                                        .stroke(
-                                            selectedReferralSource == source ?
-                                            Color.trainPrimary :
-                                            Color.trainBorder,
-                                            lineWidth: selectedReferralSource == source ? 2 : 1
-                                        )
-                                )
-                                .cornerRadius(CornerRadius.md)
-                            }
-                            .buttonStyle(ScaleButtonStyle())
-                        }
-                    }
-                    .padding(.horizontal, 24)
-
-                    Spacer()
-                        .frame(height: 32)
-
-                    // Start Training Now Button
-                    Button(action: {
-                        // Save referral source if selected
-                        if !selectedReferralSource.isEmpty {
-                            print("📊 [REFERRAL] Saving referral source: \(selectedReferralSource)")
-                            // TODO: Save to analytics or user profile
-                            UserDefaults.standard.set(selectedReferralSource, forKey: "referral_source")
-                        } else {
-                            print("📊 [REFERRAL] No referral source selected")
-                        }
-
-                        print("📊 [REFERRAL] Completing onboarding flow - proceeding to dashboard")
-                        onComplete()
-                    }) {
-                        Text("Start Training Now!")
-                            .font(.trainBodyMedium)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: ButtonHeight.standard)
-                            .background(Color.trainPrimary)
-                            .cornerRadius(CornerRadius.md)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 50)
+                    backButtonSection
+                    headerSection
+                    referralGrid
+                    Spacer().frame(height: 32)
+                    startButton
                 }
             }
         }
         .onAppear {
             print("📊 [REFERRAL] ReferralPageView appeared")
         }
+    }
+
+    @ViewBuilder
+    private var backButtonSection: some View {
+        if let onBack = onBack {
+            HStack {
+                Button(action: {
+                    print("⬅️ [REFERRAL] Back button tapped")
+                    onBack()
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "chevron.left")
+                            .font(.title3)
+                            .foregroundColor(.trainTextPrimary)
+                        Text("Back")
+                            .font(.trainBody)
+                            .foregroundColor(.trainTextPrimary)
+                    }
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+        } else {
+            Spacer().frame(height: 60)
+        }
+    }
+
+    private var headerSection: some View {
+        VStack(spacing: 16) {
+            Text("How did you hear about us?")
+                .font(.trainTitle)
+                .foregroundColor(.trainTextPrimary)
+                .multilineTextAlignment(.center)
+
+            Text("Help us understand how people discover Train so we can reach more fitness enthusiasts.")
+                .font(.trainBody)
+                .foregroundColor(.trainTextSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+        }
+    }
+
+    private var referralGrid: some View {
+        LazyVGrid(columns: gridColumns, spacing: Spacing.sm) {
+            ForEach(referralOptions) { option in
+                referralTile(for: option)
+            }
+        }
+        .padding(.horizontal, 24)
+    }
+
+    private var gridColumns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: Spacing.sm),
+            GridItem(.flexible(), spacing: Spacing.sm),
+            GridItem(.flexible(), spacing: Spacing.sm),
+            GridItem(.flexible(), spacing: Spacing.sm)
+        ]
+    }
+
+    private func referralTile(for option: ReferralOption) -> some View {
+        let isSelected = selectedReferralSource == option.id
+        return Button(action: {
+            selectedReferralSource = option.id
+            print("📊 [REFERRAL] Selected referral source: \(option.id)")
+        }) {
+            VStack(spacing: Spacing.xs) {
+                Image(systemName: option.icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(isSelected ? .white : .trainPrimary)
+
+                Text(option.title)
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundColor(isSelected ? .white : .trainTextPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+            }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity)
+            .aspectRatio(1, contentMode: .fit)
+            .background(tileBackground(isSelected: isSelected))
+            .overlay(tileOverlay(isSelected: isSelected))
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+
+    @ViewBuilder
+    private func tileBackground(isSelected: Bool) -> some View {
+        if isSelected {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.trainPrimary)
+        } else {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.ultraThinMaterial)
+        }
+    }
+
+    private func tileOverlay(isSelected: Bool) -> some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(
+                isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3),
+                lineWidth: 1
+            )
+    }
+
+    private var startButton: some View {
+        Button(action: {
+            if !selectedReferralSource.isEmpty {
+                print("📊 [REFERRAL] Saving referral source: \(selectedReferralSource)")
+                UserDefaults.standard.set(selectedReferralSource, forKey: "referral_source")
+            } else {
+                print("📊 [REFERRAL] No referral source selected")
+            }
+
+            print("📊 [REFERRAL] Completing onboarding flow - proceeding to dashboard")
+            onComplete()
+        }) {
+            Text("Start Training Now!")
+                .font(.trainBodyMedium)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: ButtonHeight.standard)
+                .background(Color.trainPrimary)
+                .cornerRadius(CornerRadius.md)
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 50)
     }
 }
 

@@ -52,18 +52,29 @@ class DynamicProgramGenerator {
         print("   Experience (raw): \(questionnaireData.experienceLevel)")
         print("   Goals: \(questionnaireData.primaryGoals.joined(separator: ", "))")
         print("   📦 Equipment from questionnaire: \(questionnaireData.equipmentAvailable)")
+        print("   🔗 Attachments from questionnaire: \(questionnaireData.detailedEquipment["attachments"] ?? [])")
 
         // Map questionnaire data to program parameters
         let experienceLevel = ExperienceLevel.fromQuestionnaire(questionnaireData.experienceLevel)
         let availableEquipment = ExerciseDatabaseFilter.mapEquipmentFromQuestionnaire(questionnaireData.equipmentAvailable)
+        let availableAttachments = ExerciseDatabaseFilter.mapAttachmentsFromQuestionnaire(questionnaireData.detailedEquipment["attachments"] ?? [])
         let splitType = determineSplitType(
             days: questionnaireData.trainingDaysPerWeek,
             duration: questionnaireData.sessionDuration
         )
         let sessionDuration = mapSessionDuration(questionnaireData.sessionDuration)
 
+        // Check for attachment warning (cables selected but no cable attachments)
+        if ConstantsManager.shared.shouldShowCableAttachmentWarning(
+            equipment: questionnaireData.equipmentAvailable,
+            attachments: availableAttachments
+        ) {
+            allWarnings.append(.attachmentWarning)
+        }
+
         print("   🔄 Experience mapped to: \(experienceLevel)")
         print("   🔄 Equipment mapped to DB values: \(availableEquipment)")
+        print("   🔄 Attachments mapped to DB values: \(availableAttachments)")
 
         // Get complexity rules for this user (hardcoded based on experience level)
         let complexityRules = experienceLevel.complexityRules
@@ -77,6 +88,7 @@ class DynamicProgramGenerator {
             sessionDuration: sessionDuration,
             experienceLevel: experienceLevel,
             availableEquipment: availableEquipment,
+            availableAttachments: availableAttachments,
             userInjuries: questionnaireData.injuries,
             targetMuscles: questionnaireData.targetMuscleGroups,
             fitnessGoal: questionnaireData.primaryGoals.first ?? "build_muscle",
@@ -288,6 +300,7 @@ class DynamicProgramGenerator {
         sessionDuration: SessionDuration,
         experienceLevel: ExperienceLevel,
         availableEquipment: [String],
+        availableAttachments: [String],
         userInjuries: [String],
         targetMuscles: [String],
         fitnessGoal: String,
@@ -306,6 +319,7 @@ class DynamicProgramGenerator {
                 template: template,
                 experienceLevel: experienceLevel,
                 availableEquipment: availableEquipment,
+                availableAttachments: availableAttachments,
                 userInjuries: userInjuries,
                 targetMuscles: targetMuscles,
                 fitnessGoal: fitnessGoal,
@@ -332,6 +346,7 @@ class DynamicProgramGenerator {
         sessionDuration: SessionDuration,
         experienceLevel: ExperienceLevel,
         availableEquipment: [String],
+        availableAttachments: [String] = [],
         userInjuries: [String],
         targetMuscles: [String],
         fitnessGoal: String,
@@ -344,6 +359,7 @@ class DynamicProgramGenerator {
             sessionDuration: sessionDuration,
             experienceLevel: experienceLevel,
             availableEquipment: availableEquipment,
+            availableAttachments: availableAttachments,
             userInjuries: userInjuries,
             targetMuscles: targetMuscles,
             fitnessGoal: fitnessGoal,
@@ -360,6 +376,7 @@ class DynamicProgramGenerator {
         template: SessionTemplate,
         experienceLevel: ExperienceLevel,
         availableEquipment: [String],
+        availableAttachments: [String],
         userInjuries: [String],
         targetMuscles: [String],
         fitnessGoal: String,
@@ -409,6 +426,7 @@ class DynamicProgramGenerator {
                     primaryMuscle: muscleGroup.muscle,
                     experienceLevel: experienceLevel,
                     availableEquipment: availableEquipment,
+                    availableAttachments: availableAttachments,
                     userInjuries: userInjuries,
                     excludedExerciseIds: usedExerciseIds,
                     excludedDisplayNames: usedDisplayNames,
@@ -428,6 +446,7 @@ class DynamicProgramGenerator {
                         primaryMuscle: muscleGroup.muscle,
                         experienceLevel: .beginner, // Use beginner level for broader selection
                         availableEquipment: ["Bodyweight", "Dumbbells", "Barbell"], // Basic equipment
+                        availableAttachments: [], // No attachment filtering in fallback
                         userInjuries: [],
                         excludedExerciseIds: Set<String>(), // Clear exclusions
                         excludedDisplayNames: Set<String>(),
@@ -480,33 +499,6 @@ class DynamicProgramGenerator {
         }
 
         return (sessionExercises, sessionWarnings)
-    }
-
-    /// Legacy method for backward compatibility
-    private func generateExercisesForSession(
-        template: SessionTemplate,
-        experienceLevel: ExperienceLevel,
-        availableEquipment: [String],
-        userInjuries: [String],
-        targetMuscles: [String],
-        fitnessGoal: String,
-        complexityRules: ExperienceComplexityRules,
-        usedExerciseIds: inout Set<String>,
-        usedDisplayNames: inout Set<String>
-    ) throws -> [ProgramExercise] {
-
-        let (exercises, _) = try generateExercisesForSessionWithWarnings(
-            template: template,
-            experienceLevel: experienceLevel,
-            availableEquipment: availableEquipment,
-            userInjuries: userInjuries,
-            targetMuscles: targetMuscles,
-            fitnessGoal: fitnessGoal,
-            complexityRules: complexityRules,
-            usedExerciseIds: &usedExerciseIds,
-            usedDisplayNames: &usedDisplayNames
-        )
-        return exercises
     }
 
     // MARK: - ProgramExercise Creation

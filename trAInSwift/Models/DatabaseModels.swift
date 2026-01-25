@@ -20,6 +20,7 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
     let displayName: String             // User-facing name
     let equipmentCategory: String       // High-level: "Barbells", "Dumbbells", "Cables", etc.
     let equipmentSpecific: String?      // Low-level: "Squat Rack", "Flat Bench", etc.
+    let attachmentSpecific: String?     // Attachments: "Rope", "D-Handles", "Straight Bar", etc.
     let complexityLevel: String         // "all", "1", "2"
     let primaryMuscle: String
     let secondaryMuscle: String?
@@ -35,6 +36,7 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         static let displayName = Column("display_name")
         static let equipmentCategory = Column("equipment_category")
         static let equipmentSpecific = Column("equipment_specific")
+        static let attachmentSpecific = Column("attachment_specific")
         static let complexityLevel = Column("complexity_level")
         static let primaryMuscle = Column("primary_muscle")
         static let secondaryMuscle = Column("secondary_muscle")
@@ -51,6 +53,7 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         case displayName = "display_name"
         case equipmentCategory = "equipment_category"
         case equipmentSpecific = "equipment_specific"
+        case attachmentSpecific = "attachment_specific"
         case complexityLevel = "complexity_level"
         case primaryMuscle = "primary_muscle"
         case secondaryMuscle = "secondary_muscle"
@@ -69,6 +72,7 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         displayName = try container.decode(String.self, forKey: .displayName)
         equipmentCategory = try container.decode(String.self, forKey: .equipmentCategory)
         equipmentSpecific = try container.decodeIfPresent(String.self, forKey: .equipmentSpecific)
+        attachmentSpecific = try container.decodeIfPresent(String.self, forKey: .attachmentSpecific)
         complexityLevel = try container.decode(String.self, forKey: .complexityLevel)
         primaryMuscle = try container.decode(String.self, forKey: .primaryMuscle)
         secondaryMuscle = try container.decodeIfPresent(String.self, forKey: .secondaryMuscle)
@@ -288,6 +292,7 @@ struct ExerciseDatabaseFilter {
     var canonicalName: String?              // Filter by movement pattern (for exercise swaps)
     var equipmentCategories: [String] = []  // Filter by equipment category (Barbells, Dumbbells, etc.)
     var equipmentSpecific: [String] = []    // Filter by specific equipment (Squat Rack, Flat Bench, etc.)
+    var attachmentSpecific: [String] = []   // Filter by attachments (Rope, D-Handles, Straight Bar, etc.)
     var maxComplexity: Int = 4              // Maximum complexity level (1-4)
     var primaryMuscle: String?
     var excludeInjuries: [String] = []
@@ -297,6 +302,7 @@ struct ExerciseDatabaseFilter {
     init(canonicalName: String? = nil,
          equipmentCategories: [String] = [],
          equipmentSpecific: [String] = [],
+         attachmentSpecific: [String] = [],
          maxComplexity: Int = 4,
          primaryMuscle: String? = nil,
          excludeInjuries: [String] = [],
@@ -305,6 +311,7 @@ struct ExerciseDatabaseFilter {
         self.canonicalName = canonicalName
         self.equipmentCategories = equipmentCategories
         self.equipmentSpecific = equipmentSpecific
+        self.attachmentSpecific = attachmentSpecific
         self.maxComplexity = maxComplexity
         self.primaryMuscle = primaryMuscle
         self.excludeInjuries = excludeInjuries
@@ -328,38 +335,15 @@ struct ExerciseDatabaseFilter {
 
 extension ExerciseDatabaseFilter {
     /// Map questionnaire equipment choices to database equipment categories
+    /// Uses ConstantsManager for single source of truth with Python generator
     static func mapEquipmentFromQuestionnaire(_ questionnaireEquipment: [String]) -> [String] {
-        var dbEquipment: [String] = []
+        return ConstantsManager.shared.mapEquipment(questionnaireEquipment)
+    }
 
-        for item in questionnaireEquipment {
-            switch item {
-            case "bodyweight":
-                dbEquipment.append("Bodyweight")
-            case "dumbbells":
-                dbEquipment.append("Dumbbells")
-            case "barbells":
-                dbEquipment.append("Barbells")
-            case "cable_machines":
-                dbEquipment.append("Cables")
-            case "kettlebells":
-                dbEquipment.append("Kettlebells")
-            case "pin_loaded":
-                dbEquipment.append("Pin-Loaded Machines")
-            case "plate_loaded":
-                dbEquipment.append("Plate-Loaded Machines")
-            case "other":
-                dbEquipment.append("Other")
-            default:
-                break
-            }
-        }
-
-        // If no equipment selected, allow all types
-        if dbEquipment.isEmpty {
-            dbEquipment = ["Bodyweight", "Barbells", "Dumbbells", "Cables", "Kettlebells", "Pin-Loaded Machines", "Plate-Loaded Machines", "Other"]
-        }
-
-        return dbEquipment
+    /// Map questionnaire attachment choices to database attachment values
+    /// Uses ConstantsManager for single source of truth with Python generator
+    static func mapAttachmentsFromQuestionnaire(_ questionnaireAttachments: Set<String>) -> [String] {
+        return ConstantsManager.shared.mapAttachments(questionnaireAttachments)
     }
 
     /// Map questionnaire machine choices to database equipment types (legacy - now handled by equipmentCategories)

@@ -308,6 +308,7 @@ struct ProgramProgressCard: View {
 struct WeeklySessionsSection: View {
     let userProgram: WorkoutProgram
     @State private var selectedSessionIndex: Int = 0
+    @ObservedObject private var authService = AuthService.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
@@ -320,6 +321,9 @@ struct WeeklySessionsSection: View {
                 let sessionsToShow = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
                 let sessionNames = getSessionDisplayNames(sessions: sessionsToShow)
 
+                // Ensure selectedSessionIndex is within bounds
+                let safeSelectedIndex = min(selectedSessionIndex, sessionsToShow.count - 1)
+
                 // Horizontal Day Buttons
                 HorizontalDayButtonsRow(
                     sessions: sessionsToShow,
@@ -331,21 +335,21 @@ struct WeeklySessionsSection: View {
                 // Action Button
                 SessionActionButton(
                     userProgram: userProgram,
-                    sessionIndex: selectedSessionIndex,
-                    isCompleted: isSessionCompleted(sessionIndex: selectedSessionIndex),
-                    hasBeenCompletedThisWeek: hasSessionBeenCompletedThisWeek(sessionIndex: selectedSessionIndex)
+                    sessionIndex: safeSelectedIndex,
+                    isCompleted: isSessionCompleted(sessionIndex: safeSelectedIndex),
+                    hasBeenCompletedThisWeek: hasSessionBeenCompletedThisWeek(sessionIndex: safeSelectedIndex)
                 )
 
                 // Dynamic Content: Exercise List or Completion Summary
-                if isSessionCompleted(sessionIndex: selectedSessionIndex) {
+                if isSessionCompleted(sessionIndex: safeSelectedIndex) {
                     CompletedSessionSummaryCard(
                         userProgram: userProgram,
-                        sessionIndex: selectedSessionIndex
+                        sessionIndex: safeSelectedIndex
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                } else {
+                } else if safeSelectedIndex < sessionsToShow.count {
                     ExerciseListView(
-                        session: sessionsToShow[selectedSessionIndex]
+                        session: sessionsToShow[safeSelectedIndex]
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
@@ -355,6 +359,10 @@ struct WeeklySessionsSection: View {
         .onAppear {
             // Default to first incomplete session or first session
             selectedSessionIndex = nextSessionIndex ?? 0
+        }
+        .onChange(of: authService.currentProgramId) { _, _ in
+            // Reset to first session when program changes
+            selectedSessionIndex = 0
         }
     }
 
@@ -1212,11 +1220,11 @@ struct TopHeaderView: View {
 
             Spacer()
 
-            // App logo - centered
+            // App logo - centered (using cropped SVG with reduced padding)
             Image("TrainLogoWithText")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(height: 72)
+                .frame(height: 40)
 
             Spacer()
 

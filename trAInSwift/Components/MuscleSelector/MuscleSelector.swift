@@ -210,58 +210,37 @@ struct MuscleSelector: View {
 struct CompactMuscleSelector: View {
     @Binding var selectedMuscles: [String]
     let maxSelections: Int
-
-    @State private var gender: MuscleSelector.BodyGender = .male
+    let gender: MuscleSelector.BodyGender
 
     // Standard canvas dimensions for aspect ratio (matching transformed data viewBox)
     private let svgWidth: CGFloat = 650
     private let svgHeight: CGFloat = 1450
 
-    init(selectedMuscles: Binding<[String]>, maxSelections: Int = 3) {
+    init(selectedMuscles: Binding<[String]>, maxSelections: Int = 3, gender: MuscleSelector.BodyGender = .male) {
         self._selectedMuscles = selectedMuscles
         self.maxSelections = maxSelections
+        self.gender = gender
     }
 
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            // Gender toggle only (no front/back toggle - both shown)
-            HStack(spacing: 0) {
-                ForEach(MuscleSelector.BodyGender.allCases, id: \.self) { bodyGender in
-                    Button(action: {
-                        gender = bodyGender
-                    }) {
-                        Image(systemName: bodyGender == .male ? "figure.stand" : "figure.stand.dress")
-                            .font(.system(size: 14))
-                            .foregroundColor(gender == bodyGender ? .white : .trainTextPrimary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Spacing.xs)
-                            .background(gender == bodyGender ? Color.trainPrimary : Color.clear)
-                    }
-                }
+        // Side by side body diagrams - front and back (gender inherited from questionnaire)
+        HStack(spacing: Spacing.sm) {
+            // Front view
+            VStack(spacing: 4) {
+                Text("Front")
+                    .font(.trainCaption)
+                    .foregroundColor(.trainTextSecondary)
+
+                bodyDiagram(side: .front)
             }
-            .background(Color.trainTextSecondary.opacity(0.1))
-            .cornerRadius(CornerRadius.sm)
-            .frame(width: 80)
 
-            // Side by side body diagrams - front and back
-            HStack(spacing: Spacing.sm) {
-                // Front view
-                VStack(spacing: 4) {
-                    Text("Front")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
+            // Back view
+            VStack(spacing: 4) {
+                Text("Back")
+                    .font(.trainCaption)
+                    .foregroundColor(.trainTextSecondary)
 
-                    bodyDiagram(side: .front)
-                }
-
-                // Back view
-                VStack(spacing: 4) {
-                    Text("Back")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-
-                    bodyDiagram(side: .back)
-                }
+                bodyDiagram(side: .back)
             }
         }
     }

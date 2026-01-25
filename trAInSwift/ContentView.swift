@@ -9,7 +9,7 @@
 
 import SwiftUI
 
-// Notification name for splash screen reset
+// Notification name for splash screen reset (legacy - no longer used for retake)
 extension Notification.Name {
     static let resetToSplash = Notification.Name("resetToSplash")
 }
@@ -28,18 +28,32 @@ struct ContentView: View {
                     .transition(.opacity)
                     .zIndex(1)
                     .onAppear {
-                        print("🚀 [LAUNCH] LaunchScreenView appeared - starting animation sequence")
+                        debugLog("CONTENT", "LaunchScreenView.onAppear", [
+                            "isSplashing": "\(isSplashing)"
+                        ])
                     }
             } else {
                 NavigationView {
                     if authService.isAuthenticated {
                         DashboardView()
                             .environmentObject(workoutViewModel)
+                            .onAppear {
+                                debugLog("CONTENT", "DashboardView.onAppear", [
+                                    "isAuthenticated": "\(authService.isAuthenticated)",
+                                    "userId": authService.currentUser?.id?.uuidString ?? "nil"
+                                ])
+                            }
                     } else {
                         OnboardingFlowView()
                             .environmentObject(workoutViewModel)
                             .sheet(isPresented: $showLogin) {
                                 LoginView()
+                            }
+                            .onAppear {
+                                debugLog("CONTENT", "OnboardingFlowView.onAppear (from ContentView)", [
+                                    "isAuthenticated": "\(authService.isAuthenticated)",
+                                    "showLogin": "\(showLogin)"
+                                ])
                             }
                     }
                 }
@@ -47,27 +61,50 @@ struct ContentView: View {
             }
         }
         .task {
-            print("🚀 [LAUNCH] ContentView.task started - beginning 3.5s countdown")
+            debugLog("CONTENT", "task.started", [
+                "isSplashing": "\(isSplashing)",
+                "isAuthenticated": "\(authService.isAuthenticated)",
+                "waitingFor": "3.5 seconds"
+            ])
             // Wait for exact animation duration (3.5 seconds) then fade to main app
             try? await Task.sleep(for: .seconds(3.5))
-            print("🚀 [LAUNCH] 3.5s elapsed - transitioning to main app")
+            debugLog("CONTENT", "task.splashComplete", [
+                "isAuthenticated": "\(authService.isAuthenticated)",
+                "willShow": authService.isAuthenticated ? "DashboardView" : "OnboardingFlowView"
+            ])
             withAnimation(.easeInOut(duration: 0.5)) {
                 isSplashing = false
             }
-            print("🚀 [LAUNCH] Transition animation started (0.5s duration)")
+            debugLog("CONTENT", "task.transitionStarted", [
+                "isSplashing": "\(isSplashing)",
+                "animationDuration": "0.5s"
+            ])
         }
         .onAppear {
-            print("🚀 [LAUNCH] ContentView appeared - isSplashing: \(isSplashing)")
+            debugLog("CONTENT", "ContentView.onAppear", [
+                "isSplashing": "\(isSplashing)",
+                "isAuthenticated": "\(authService.isAuthenticated)",
+                "hasCurrentUser": "\(authService.currentUser != nil)"
+            ])
         }
         .onReceive(NotificationCenter.default.publisher(for: .resetToSplash)) { _ in
-            print("🚀 [LAUNCH] Reset to splash notification received")
+            // NOTE: This is legacy and should NOT be used for retake questionnaire
+            // The retake flow now uses fullScreenCover directly without resetting ContentView
+            debugLog("CONTENT", "⚠️ resetToSplash.received (LEGACY)", [
+                "currentIsSplashing": "\(isSplashing)",
+                "isAuthenticated": "\(authService.isAuthenticated)",
+                "warning": "This notification should NOT be used for retake questionnaire"
+            ])
             withAnimation(.easeInOut(duration: 0.5)) {
                 isSplashing = true
             }
             // Restart the splash animation sequence
             Task {
                 try? await Task.sleep(for: .seconds(3.5))
-                print("🚀 [LAUNCH] Reset animation completed - transitioning to main app")
+                debugLog("CONTENT", "resetToSplash.animationComplete", [
+                    "isAuthenticated": "\(authService.isAuthenticated)",
+                    "willShow": authService.isAuthenticated ? "DashboardView (BUG!)" : "OnboardingFlowView"
+                ])
                 withAnimation(.easeInOut(duration: 0.5)) {
                     isSplashing = false
                 }
@@ -75,6 +112,20 @@ struct ContentView: View {
         }
     }
 
+}
+
+// MARK: - Debug Logging Helper
+
+/// Comprehensive debug logging for onboarding flow troubleshooting
+/// Format: 🔍 [CATEGORY] action | key1=value1 | key2=value2
+private func debugLog(_ category: String, _ action: String, _ params: [String: String] = [:]) {
+    let timestamp = Date().formatted(date: .omitted, time: .standard)
+    var message = "🔍 [\(category)] \(action)"
+    if !params.isEmpty {
+        let paramString = params.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: " | ")
+        message += " | \(paramString)"
+    }
+    print("[\(timestamp)] \(message)")
 }
 
 #Preview {

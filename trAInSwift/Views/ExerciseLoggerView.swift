@@ -183,9 +183,10 @@ struct ExerciseLoggerView: View {
                     }
                     .disabled(!atLeastOneSetCompleted)
                     .padding(.horizontal, 18)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, Spacing.md)
                 }
             }
+            .toolbar(.hidden, for: .tabBar)
 
             // Feedback notification (central modal overlay)
             if showFeedbackNotification {
@@ -316,7 +317,7 @@ struct ExerciseLoggerHeader: View {
                 .foregroundColor(.trainTextPrimary)
         }
         .padding(.horizontal, 18)
-        .padding(.top, 12)
+        .padding(.top, 8)
     }
 }
 

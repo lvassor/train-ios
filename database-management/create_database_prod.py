@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-Exercise Database Generator v3
+Exercise Database Generator v5
 ==============================
 This script creates a SQLite database directly in trAInSwift/Resources/ from:
-- train_exercise_database_prod.xlsx (master sheet)
-- train_exercise_contraindications_prod.xlsx (data sheet)
+- train_exercise_database_prod.csv (exercises data)
+- exercise_instructions_complete.csv (instructions data - joined by exercise_id)
+- train_exercise_contraindications_prod.csv (contraindications data)
 - exercise_video_mapping.csv (video URLs)
-- constants.json (centralized mappings)
+- constants.json (centralized mappings and equipment validation)
 
 Usage:
     python create_database_prod.py
 
 Requirements:
-    - pandas (install with: pip install pandas openpyxl)
+    - pandas (install with: pip install pandas)
 
 Output:
     - trAInSwift/Resources/exercises.db (SQLite database ready for iOS)
-    - Swift constants file for perfect sync
 """
 
 import sqlite3
@@ -27,17 +27,56 @@ import shutil
 import json
 
 def load_constants():
-    """Load constants from JSON file."""
+    """Load constants from JSON file (from trAInSwift/Resources/)."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if os.path.basename(script_dir) == 'database-management':
+        constants_path = os.path.join(script_dir, '..', 'trAInSwift', 'Resources', 'constants.json')
+    else:
+        constants_path = os.path.join(script_dir, 'trAInSwift', 'Resources', 'constants.json')
+
     try:
-        with open('constants.json', 'r') as f:
+        with open(constants_path, 'r') as f:
             return json.load(f)
     except FileNotFoundError:
-        print("❌ Error: constants.json not found!")
-        print("   Please create constants.json with equipment mappings.")
+        print(f"❌ Error: constants.json not found at {constants_path}!")
+        print("   Please ensure constants.json exists in trAInSwift/Resources/.")
         sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"❌ Error: Invalid JSON in constants.json: {e}")
         sys.exit(1)
+
+
+def validate_equipment_values(df_exercises, constants):
+    """Validate equipment_specific and attachment_specific values against constants.json."""
+    errors = []
+    warnings = []
+
+    # Build valid equipment_specific values from constants
+    valid_equipment_specific = set()
+    if 'equipment_specific_options' in constants:
+        for category, items in constants['equipment_specific_options'].items():
+            valid_equipment_specific.update(items)
+
+    # Build valid attachment values from constants
+    valid_attachments = set(constants.get('attachment_categories', []))
+
+    # Validate each exercise
+    for _, row in df_exercises.iterrows():
+        exercise_id = row['exercise_id']
+
+        # Validate equipment_specific
+        if pd.notna(row.get('equipment_specific')):
+            equip_specific = row['equipment_specific']
+            if equip_specific not in valid_equipment_specific:
+                warnings.append(f"  ⚠️  {exercise_id}: equipment_specific '{equip_specific}' not in constants.json")
+
+        # Validate attachment_specific
+        if pd.notna(row.get('attachment_specific')):
+            attachment = row['attachment_specific']
+            if attachment not in valid_attachments:
+                warnings.append(f"  ⚠️  {exercise_id}: attachment_specific '{attachment}' not in constants.json")
+
+    return errors, warnings
 
 def create_database():
     """Create SQLite database directly in Swift Resources from Excel files."""
@@ -48,9 +87,10 @@ def create_database():
 
     # Check if required files exist
     required_files = [
-        'train_exercise_database_prod.xlsx',
-        'train_exercise_contraindications_prod.xlsx',
-        'exercise_video_mapping.csv'
+        'train_exercise_database_prod.csv',
+        'train_exercise_contraindications_prod.csv',
+        'exercise_video_mapping.csv',
+        'exercise_instructions_complete.csv'
     ]
 
     for file in required_files:
@@ -89,7 +129,7 @@ def create_database():
 
     print("📋 Creating tables...")
 
-    # Exercises table - NEW SCHEMA with MCV heuristic support
+    # Exercises table - with MCV heuristic support and attachment filtering
     cursor.execute('''
     CREATE TABLE exercises (
         exercise_id TEXT PRIMARY KEY,
@@ -97,6 +137,7 @@ def create_database():
         display_name TEXT NOT NULL,
         equipment_category TEXT NOT NULL,
         equipment_specific TEXT,
+        attachment_specific TEXT,
         complexity_level TEXT NOT NULL CHECK(complexity_level IN ('all', '1', '2')),
         primary_muscle TEXT NOT NULL,
         secondary_muscle TEXT,
@@ -142,6 +183,7 @@ def create_database():
     cursor.execute('CREATE INDEX idx_exercises_canonical ON exercises(canonical_name)')
     cursor.execute('CREATE INDEX idx_exercises_category ON exercises(equipment_category)')
     cursor.execute('CREATE INDEX idx_exercises_specific ON exercises(equipment_specific)')
+    cursor.execute('CREATE INDEX idx_exercises_attachment ON exercises(attachment_specific)')
     cursor.execute('CREATE INDEX idx_exercises_complexity ON exercises(complexity_level)')
     cursor.execute('CREATE INDEX idx_exercises_muscle ON exercises(primary_muscle)')
     cursor.execute('CREATE INDEX idx_exercises_programme ON exercises(is_in_programme)')
@@ -159,8 +201,51 @@ def create_database():
 
     print("📥 Importing data...")
 
-    # Import exercises from Excel
-    df_exercises = pd.read_excel('train_exercise_database_prod.xlsx', sheet_name='master')
+    # Import exercises from CSV
+    df_exercises = pd.read_csv('train_exercise_database_prod.csv')
+
+    # Import instructions from separate CSV and join
+    df_instructions = pd.read_csv('exercise_instructions_complete.csv')
+    print(f"   📄 Loaded {len(df_instructions)} instructions from exercise_instructions_complete.csv")
+
+    # If exercises CSV has an instructions column, we'll override it with the joined data
+    if 'instructions' in df_exercises.columns:
+        df_exercises = df_exercises.drop(columns=['instructions'])
+
+    # Join instructions by exercise_id
+    df_exercises = df_exercises.merge(
+        df_instructions[['exercise_id', 'instructions']],
+        on='exercise_id',
+        how='left'
+    )
+
+    # Report exercises missing instructions
+    missing_instructions = df_exercises[df_exercises['instructions'].isna()]
+    if len(missing_instructions) > 0:
+        print(f"   ⚠️  {len(missing_instructions)} exercises missing instructions:")
+        for _, row in missing_instructions.head(10).iterrows():
+            print(f"      - {row['exercise_id']}: {row['display_name']}")
+        if len(missing_instructions) > 10:
+            print(f"      ... and {len(missing_instructions) - 10} more")
+
+    # Validate equipment values against constants.json
+    print("🔍 Validating equipment values against constants.json...")
+    errors, warnings = validate_equipment_values(df_exercises, constants)
+
+    if errors:
+        print("❌ Validation errors found:")
+        for error in errors:
+            print(error)
+        sys.exit(1)
+
+    if warnings:
+        print(f"   Found {len(warnings)} equipment value warnings:")
+        for warning in warnings[:20]:  # Show first 20 warnings
+            print(warning)
+        if len(warnings) > 20:
+            print(f"   ... and {len(warnings) - 20} more warnings")
+    else:
+        print("   ✅ All equipment values validated successfully")
 
     # Rename column if needed (is_in_programme vs programme_inclusion)
     if 'is_in_programme' in df_exercises.columns:
@@ -212,9 +297,9 @@ def create_database():
     df_exercises['regression_id'] = df_exercises['regression_id'].apply(
         lambda x: None if pd.isna(x) else x)
 
-    # Ensure correct column names match our schema (removed is_isolation)
+    # Ensure correct column names match our schema
     df_exercises = df_exercises[['exercise_id', 'canonical_name', 'display_name', 'equipment_category',
-                                  'equipment_specific', 'complexity_level',
+                                  'equipment_specific', 'attachment_specific', 'complexity_level',
                                   'primary_muscle', 'secondary_muscle', 'instructions', 'is_in_programme',
                                   'canonical_rating', 'progression_id', 'regression_id']]
 
@@ -222,16 +307,17 @@ def create_database():
     for _, row in df_exercises.iterrows():
         cursor.execute('''
             INSERT INTO exercises (exercise_id, canonical_name, display_name, equipment_category,
-                                   equipment_specific, complexity_level, primary_muscle,
+                                   equipment_specific, attachment_specific, complexity_level, primary_muscle,
                                    secondary_muscle, instructions, is_in_programme, canonical_rating,
                                    progression_id, regression_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             row['exercise_id'],
             row['canonical_name'],
             row['display_name'],
             row['equipment_category'],
             row['equipment_specific'] if pd.notna(row['equipment_specific']) else None,
+            row['attachment_specific'] if pd.notna(row['attachment_specific']) else None,
             row['complexity_level'],
             row['primary_muscle'],
             row['secondary_muscle'] if pd.notna(row['secondary_muscle']) else None,
@@ -244,8 +330,8 @@ def create_database():
 
     print(f"   ✅ {len(df_exercises)} exercises imported")
 
-    # Import contraindications from Excel (updated sheet name)
-    df_contra = pd.read_excel('train_exercise_contraindications_prod.xlsx', sheet_name='data')
+    # Import contraindications from CSV
+    df_contra = pd.read_csv('train_exercise_contraindications_prod.csv')
 
     # Only import records with non-null injury_type
     df_contra_valid = df_contra[df_contra['injury_type'].notna()]
@@ -329,6 +415,26 @@ def create_database():
     """)
     for row in cursor.fetchall():
         print(f"  {row[0]}: {row[1]} exercises")
+
+    # Show attachment distribution
+    print("\nAttachment Distribution:")
+    cursor.execute("""
+        SELECT attachment_specific, COUNT(*) as count
+        FROM exercises
+        WHERE attachment_specific IS NOT NULL
+        GROUP BY attachment_specific
+        ORDER BY count DESC
+    """)
+    attachment_rows = cursor.fetchall()
+    if attachment_rows:
+        for row in attachment_rows:
+            print(f"  {row[0]}: {row[1]} exercises")
+    else:
+        print("  (No exercises with attachments)")
+
+    cursor.execute("SELECT COUNT(*) FROM exercises WHERE attachment_specific IS NULL")
+    no_attachment_count = cursor.fetchone()[0]
+    print(f"  No attachment required: {no_attachment_count} exercises")
 
     # Show equipment hierarchy (category -> specific)
     print("\nEquipment Hierarchy (for expandable questionnaire):")

@@ -171,6 +171,17 @@ struct ProgramReadyView: View {
                     title: "Start Training Now!",
                     action: {
                         print("🎯 [PROGRAM READY] 'Start Training Now!' button tapped")
+                        print("🎯 [PROGRAM READY] isAuthenticated: \(AuthService.shared.isAuthenticated)")
+
+                        // If already authenticated (e.g., retaking questionnaire), skip signup and go directly to post-signup flow
+                        if AuthService.shared.isAuthenticated {
+                            print("🎯 [PROGRAM READY] ✅ User already authenticated - skipping signup, going to post-signup flow")
+                            onSignupStart?()
+                            withAnimation {
+                                showPostSignupFlow = true
+                            }
+                            return
+                        }
 
                         // CRITICAL: Call onSignupStart IMMEDIATELY to prevent race conditions
                         print("🎯 [PROGRAM READY] 🚨 CALLING onSignupStart() to set protection flag BEFORE showing signup sheet")

@@ -14,8 +14,8 @@ struct ReferralStepView: View {
         ReferralOption(id: "tiktok", title: "TikTok", icon: "play.rectangle.fill"),
         ReferralOption(id: "instagram", title: "Instagram", icon: "camera"),
         ReferralOption(id: "chatgpt", title: "ChatGPT", icon: "message"),
-        ReferralOption(id: "google", title: "Google Search", icon: "magnifyingglass"),
-        ReferralOption(id: "friend", title: "Friend or Family", icon: "person.2"),
+        ReferralOption(id: "google", title: "Google", icon: "magnifyingglass"),
+        ReferralOption(id: "friend", title: "Friend", icon: "person.2"),
         ReferralOption(id: "influencer", title: "Influencer", icon: "star"),
         ReferralOption(id: "app_store", title: "App Store", icon: "square.stack.3d.down.right"),
         ReferralOption(id: "other", title: "Other", icon: "ellipsis")
@@ -36,57 +36,70 @@ struct ReferralStepView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Referral options in a grid
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: Spacing.md) {
-                ForEach(referralOptions, id: \.id) { option in
-                    Button(action: { selectedReferral = option.id }) {
-                        VStack(spacing: Spacing.md) {
-                            // Enhanced icon container with better visual hierarchy
-                            ZStack {
-                                Circle()
-                                    .fill(selectedReferral == option.id ? Color.trainPrimary : Color.trainHover)
-                                    .frame(width: 56, height: 56)
-                                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-
-                                Image(systemName: option.icon)
-                                    .font(.system(size: 24, weight: .medium))
-                                    .foregroundColor(selectedReferral == option.id ? .white : .trainPrimary)
-                            }
-
-                            Text(option.title)
-                                .font(.trainBodyMedium)
-                                .foregroundColor(selectedReferral == option.id ? .trainPrimary : .trainTextPrimary)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.lg)
-                        .background(
-                            selectedReferral == option.id
-                                ? Color.trainPrimary.opacity(0.05)
-                                : Color.clear
-                        )
-                        .overlay(
-                            // Border highlight for selected state
-                            RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous)
-                                .stroke(
-                                    selectedReferral == option.id
-                                        ? Color.trainPrimary.opacity(0.3)
-                                        : Color.clear,
-                                    lineWidth: 2
-                                )
-                        )
-                        .appCard()
-                    }
-                    .buttonStyle(ScaleButtonStyle())
-                }
-            }
+            // Referral options as square grid tiles
+            referralGrid
 
             Spacer()
         }
+    }
+
+    private var referralGrid: some View {
+        LazyVGrid(columns: gridColumns, spacing: Spacing.sm) {
+            ForEach(referralOptions, id: \.id) { option in
+                referralTile(for: option)
+            }
+        }
+    }
+
+    private var gridColumns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: Spacing.sm),
+            GridItem(.flexible(), spacing: Spacing.sm),
+            GridItem(.flexible(), spacing: Spacing.sm),
+            GridItem(.flexible(), spacing: Spacing.sm)
+        ]
+    }
+
+    private func referralTile(for option: ReferralOption) -> some View {
+        let isSelected = selectedReferral == option.id
+        return Button(action: { selectedReferral = option.id }) {
+            VStack(spacing: Spacing.xs) {
+                Image(systemName: option.icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(isSelected ? .white : .trainPrimary)
+
+                Text(option.title)
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundColor(isSelected ? .white : .trainTextPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+            }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity)
+            .aspectRatio(1, contentMode: .fit)
+            .background(tileBackground(isSelected: isSelected))
+            .overlay(tileOverlay(isSelected: isSelected))
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+
+    @ViewBuilder
+    private func tileBackground(isSelected: Bool) -> some View {
+        if isSelected {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.trainPrimary)
+        } else {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.ultraThinMaterial)
+        }
+    }
+
+    private func tileOverlay(isSelected: Bool) -> some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(
+                isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3),
+                lineWidth: 1
+            )
     }
 }
 
