@@ -64,7 +64,15 @@ class WorkoutViewModel: ObservableObject {
         generatedProgram = result.program
 
         // Store warnings for display after user starts the program
+        // Include both the unique warnings AND the boolean flags converted to warnings
         pendingWarnings = result.uniqueWarnings
+
+        // Add low fill rate warning if applicable
+        if result.lowFillWarning {
+            pendingWarnings.append(.lowFillRate(fillRate: 0))
+        }
+
+        // Note: repeatWarning is already captured in uniqueWarnings via .exerciseRepeats
 
         print("✅ Program generated: \(result.program.type.description)")
         print("✅ Sessions: \(result.program.sessions.map { $0.dayName }.joined(separator: ", "))")
@@ -73,6 +81,9 @@ class WorkoutViewModel: ObservableObject {
 
         if result.hasWarnings {
             print("⚠️ Generation warnings: \(result.uniqueWarnings.count)")
+        }
+        if result.lowFillWarning {
+            print("⚠️ Low fill rate warning triggered")
         }
     }
 

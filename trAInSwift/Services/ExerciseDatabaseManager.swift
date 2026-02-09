@@ -138,7 +138,22 @@ class ExerciseDatabaseManager {
             }
 
             // Filter by max complexity
-            query = query.filter(Column("complexity_level") <= filter.maxComplexity)
+            // NOTE: complexity_level is stored as TEXT ("all", "1", "2") not INT
+            // "all" = available to everyone (numeric value 0)
+            // "1" = beginner only (numeric value 1)
+            // "2" = intermediate+ (numeric value 2)
+            // We must use string comparison, not numeric comparison
+            switch filter.maxComplexity {
+            case 1:
+                // Beginners: include "all" and "1"
+                query = query.filter(Column("complexity_level") == "all" || Column("complexity_level") == "1")
+            case 2:
+                // Intermediate+: include "all", "1", and "2"
+                query = query.filter(Column("complexity_level") == "all" || Column("complexity_level") == "1" || Column("complexity_level") == "2")
+            default:
+                // Advanced or no filter: include all complexity levels
+                query = query.filter(Column("complexity_level") == "all" || Column("complexity_level") == "1" || Column("complexity_level") == "2")
+            }
 
             // Fetch matching exercises
             var exercises = try query.fetchAll(db)

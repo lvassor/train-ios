@@ -38,29 +38,26 @@ struct WelcomeView: View {
                         .padding(.horizontal, 24)
                         .padding(.top, 12)
 
-                        // Centered larger logo (cropped SVG)
+                        // Centered larger logo (cropped SVG) - 75% of original size
                         Image("TrainLogoWithText")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(height: 80)
+                            .frame(height: 60)
                     }
 
-                    Spacer().frame(height: 20)
+                    Spacer().frame(height: 32)
 
-                    // Updated headlines with brand messaging
+                    // Updated headlines with brand messaging - line break after "Expert Programs."
                     VStack(alignment: .center, spacing: 4) {
-                        HStack {
-                            Text("Expert Programs")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.trainPrimary) // Brand orange highlighting
-                            +
-                            Text(". Built Around You.")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
+                        Text("Expert Programs.")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.trainPrimary) // Brand orange highlighting
+
+                        Text("Built Around You.")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
                     }
+                    .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
 
                     // Updated subtitle with proper line breaking
@@ -127,7 +124,7 @@ struct WelcomeView: View {
                         }
                     }
                     .frame(height: 330) // 75% of 440 = 330
-                    .padding(.top, 32)
+                    .padding(.top, 22) // Reduced by 30% (32 * 0.7)
 
                     // Updated caption moved above the carousel for better layout
                     Text("Join Train to get personalized workouts and hit your goals faster.")
@@ -151,16 +148,16 @@ struct WelcomeView: View {
                 // Get Started button - floating and fixed in Z-plane
                 Button(action: onContinue) {
                     Text("Get Started")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white) // White text for high contrast
+                        .font(.trainBodyMedium) // Match CustomButton styling
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(Color.trainPrimary) // Brand orange background
-                        .clipShape(RoundedRectangle(cornerRadius: 28))
+                        .frame(height: ElementHeight.button) // 50px - matches Continue button
+                        .background(Color.trainPrimary)
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)) // 16px - matches Continue button
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 16) // Match questionnaire horizontal padding
             }
-            .padding(.bottom, 50)
+            .padding(.bottom, 16) // Match questionnaire bottom padding
         }
         .charcoalGradientBackground()
         .onAppear {

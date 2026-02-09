@@ -301,7 +301,8 @@ class AuthService: ObservableObject {
         NotificationCenter.default.post(name: .resetToSplash, object: nil, userInfo: nil)
     }
 
-    /// Permanently deletes the user's account and all associated data
+    /// Permanently deletes the user's account and all associated data, then terminates the app.
+    /// On next launch, the user will see the fresh onboarding flow.
     func deleteAccount() {
         guard let user = currentUser else {
             AppLogger.logAuth("Cannot delete account: no current user", level: .error)
@@ -310,6 +311,11 @@ class AuthService: ObservableObject {
 
         let email = user.email ?? ""
         let userId = user.id
+        let isAppleUser = user.isAppleUser
+        let isGoogleUser = user.isGoogleUser
+
+        // Sign out of third-party services
+        googleSignIn.signOut()
 
         // Delete keychain credentials
         if !email.isEmpty {
@@ -320,8 +326,7 @@ class AuthService: ObservableObject {
                 AppLogger.logAuth("Failed to delete keychain password: \(error)", level: .warning)
             }
 
-            // Delete Apple identifier if exists
-            if user.isAppleUser {
+            if isAppleUser {
                 do {
                     try keychain.deleteAppleUserIdentifier(for: email)
                     AppLogger.logAuth("Deleted Apple user identifier")
@@ -330,8 +335,7 @@ class AuthService: ObservableObject {
                 }
             }
 
-            // Delete Google identifier if exists
-            if user.isGoogleUser {
+            if isGoogleUser {
                 do {
                     try keychain.deleteGoogleUserIdentifier(for: email)
                     AppLogger.logAuth("Deleted Google user identifier")
@@ -360,7 +364,7 @@ class AuthService: ObservableObject {
         // Delete the user profile
         context.delete(user)
 
-        // Save context
+        // Save context and clear session
         do {
             try context.save()
             AppLogger.logAuth("User account deleted successfully")
@@ -368,12 +372,13 @@ class AuthService: ObservableObject {
             AppLogger.logAuth("Failed to save context after deletion: \(error)", level: .error)
         }
 
-        // Sign out of Google if applicable
-        googleSignIn.signOut()
-
-        // Clear session and navigate to splash
+        // Clear session state (removes UserDefaults key)
         clearSession()
-        NotificationCenter.default.post(name: .resetToSplash, object: nil, userInfo: nil)
+
+        AppLogger.logAuth("Terminating app after account deletion")
+
+        // Terminate the app - on next launch user will see fresh onboarding
+        exit(0)
     }
 
     // MARK: - Validation Helpers
