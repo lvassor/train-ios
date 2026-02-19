@@ -902,15 +902,22 @@ struct EquipmentCard: View {
     var body: some View {
         Button(action: onToggle) {
             HStack(spacing: Spacing.md) {
-                // Thumbnail placeholder (64x64)
+                // Equipment thumbnail (64x64)
                 ZStack {
                     RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
                         .fill(Color.trainPrimary.opacity(0.1))
                         .frame(width: 64, height: 64)
 
-                    Image(systemName: equipmentIcon)
-                        .font(.system(size: 24))
-                        .foregroundColor(.trainPrimary.opacity(0.6))
+                    if let uiImage = EquipmentImageMapping.image(for: equipmentName) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 52, height: 52)
+                    } else {
+                        Image(systemName: equipmentIcon)
+                            .font(.system(size: 24))
+                            .foregroundColor(.trainPrimary.opacity(0.6))
+                    }
                 }
 
                 // Equipment name
@@ -1320,13 +1327,20 @@ struct EquipmentInfoModal: View {
 
             // Modal card with glassmorphic styling
             VStack(spacing: 0) {
-                // Image placeholder (top 40%)
+                // Equipment image (top 40%)
                 ZStack {
                     Color.trainPrimary.opacity(0.1)
 
-                    Image(systemName: equipmentIcon)
-                        .font(.system(size: 80))
-                        .foregroundColor(.trainPrimary)
+                    if let uiImage = EquipmentImageMapping.categoryImage(for: equipmentType) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 160)
+                    } else {
+                        Image(systemName: equipmentIcon)
+                            .font(.system(size: 80))
+                            .foregroundColor(.trainPrimary)
+                    }
                 }
                 .frame(height: 200)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))

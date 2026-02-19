@@ -1,0 +1,102 @@
+//
+//  EquipmentImageMapping.swift
+//  TrainSwift
+//
+//  Maps equipment names to bundled thumbnail images
+//
+
+import UIKit
+
+struct EquipmentImageMapping {
+
+    // MARK: - Category images (for info modals)
+    private static let categoryImages: [String: String] = [
+        "barbells": "00013101-Barbell_equipment_max.png",
+        "dumbbells": "00013101-Dumbbell_equipment_max.png",
+        "kettlebells": "00013101-Kettlebell_equipment_max.png",
+        "cable_machines": "00013101-Cable-Machine-VERSION-1_equipment_max.png",
+        "pin_loaded": "00013101-Lever-Seated-Leg-Press_equipment_max.png",
+        "plate_loaded": "00013101-45-Degrees-Leg-Press-Machine_max.png",
+        "other": "00013101-Fixed-Bar_max.png",
+        "attachments": "00013101-Cable-Machine-Attachment-Rope_equipment_max.png"
+    ]
+
+    // MARK: - Item images (for equipment cards)
+    private static let itemImages: [String: String] = [
+        // Barbells sub-items
+        "Squat Rack": "00013101-Rack-Squat_equipment_max.png",
+        "Flat Bench Press": "00013101-Rack-Flat-Bench_equipment_max.png",
+        "Incline Bench Press": "00013101-Rack-Incline-Bench_equipment_max.png",
+        "Decline Bench Press": "00013101-Bench-Decline_equipment_max.png",
+        "Landmine Attachment": "00013101-Landmine_max.png",
+        "Hip Thrust Bench": "00013101-Bench_equipment_max.png",
+        // Cable Machines sub-items
+        "Single Adjustable Cable Machine": "00013101-Cable-Machine-VERSION-3_equipment_max.png",
+        "Dual Cable Machine": "00013101-Cable-Machine-VERSION-2_equipment_max.png",
+        "Lat Pull Down Machine": "00013101-Lever-Lat-Pulldown_equipment_max.png",
+        "Cable Row Machine": "00013101-Lever-Seated-Row_equipment_max.png",
+        // Pin-Loaded / Plate-Loaded sub-items
+        "Leg Press Machine": "00013101-Lever-Seated-Leg-Press_equipment_max.png",
+        "Leg Extension Machine": "00013101-Leg-Extension-Machine_max.png",
+        "Lying Leg Curl Machine": "00013101-Lever-Lying-Leg-Curl_equipment_max.png",
+        "Seated Leg Curl Machine": "00013101-Lever-Leg-Curl_equipment_max.png",
+        "Standing Calf Raise Machine": "00013101-Lever-Calf-Raise-(plate-loaded)_equipment_max.png",
+        "Seated Calf Raise Machine": "00013101-Lever-Calf-Raise-(plate-loaded)-VERSION-2_equipment_max.png",
+        "Hip Abduction Machine": "00013101-Lever-Abductor_equipment_max.png",
+        "Hip Adduction Machine": "00013101-Lever-Adductor_equipment_max.png",
+        "Assisted Pull-Up/Dip Machine": "00013101-Lever-Assisted-Pull-up-Dip_equipment_max.png",
+        "Hack Squat Machine": "00013101-Lying-Hack-Squat-Machine_max.png",
+        "Glute Kickback Machine": "00013101-Lever-Standing-Hip-Extension_equipment_max.png",
+        // Other sub-items
+        "Ab Wheel": "00013101-Ab-Roller_equipment_max.png",
+        "Dip Station": "00013101-Dip-Cage_equipment_max.png",
+        "Flat Bench": "00013101-Bench_equipment_max.png",
+        "Pull-Up Bar": "00013101-Fixed-Bar_max.png",
+        "Roman Chair": "00013101-Bench-Hyperextension_equipment_max.png",
+        // Attachments sub-items
+        "Straight Bar": "00013101-Cable-Machine-Attachment-Cable-Bar_equipment_max.png",
+        "Rope": "00013101-Cable-Machine-Attachment-Rope_equipment_max.png",
+        "D-Handles": "00013101-Cable-Machine-Attachment-Handle_equipment_max.png",
+        "EZ-Bar": "00013101-EZ-Bar_equipment_max.png",
+        "EZ-Bar Cable": "00013101-Cable-Machine-Attachment-SZ-Bar_equipment_max.png",
+        "Ankle Strap": "00013101-Ankle-Strap_max.png",
+        "Resistance Band": "00013101-Resistance-Band_max.png",
+        "Weight Belt": "00013101-Weight-Belt_max.png",
+        // Category-level names (used when the category itself is shown as a card)
+        "Barbells": "00013101-Barbell_equipment_max.png",
+        "Dumbbells": "00013101-Dumbbell_equipment_max.png",
+        "Kettlebells": "00013101-Kettlebell_equipment_max.png",
+        "Cable Machines": "00013101-Cable-Machine-VERSION-1_equipment_max.png",
+        "Pin-Loaded Machines": "00013101-Lever-Seated-Leg-Press_equipment_max.png",
+        "Plate-Loaded Machines": "00013101-45-Degrees-Leg-Press-Machine_max.png",
+        "Other": "00013101-Fixed-Bar_max.png",
+        "Attachments": "00013101-Cable-Machine-Attachment-Rope_equipment_max.png"
+    ]
+
+    // MARK: - Image cache
+    private static var cache: [String: UIImage] = [:]
+
+    /// Load an equipment image for an item name (e.g. "Squat Rack", "Dumbbells")
+    static func image(for equipmentName: String) -> UIImage? {
+        if let cached = cache[equipmentName] { return cached }
+        guard let filename = itemImages[equipmentName] else { return nil }
+        return loadImage(filename: filename, cacheKey: equipmentName)
+    }
+
+    /// Load an equipment category image by category key (e.g. "barbells", "cable_machines")
+    static func categoryImage(for categoryKey: String) -> UIImage? {
+        let cacheKey = "cat_\(categoryKey)"
+        if let cached = cache[cacheKey] { return cached }
+        guard let filename = categoryImages[categoryKey] else { return nil }
+        return loadImage(filename: filename, cacheKey: cacheKey)
+    }
+
+    private static func loadImage(filename: String, cacheKey: String) -> UIImage? {
+        // Try with subdirectory first, then root (depends on how Xcode bundles the folder)
+        let path = Bundle.main.path(forResource: filename, ofType: nil, inDirectory: "equipment-img")
+            ?? Bundle.main.path(forResource: filename, ofType: nil)
+        guard let path, let image = UIImage(contentsOfFile: path) else { return nil }
+        cache[cacheKey] = image
+        return image
+    }
+}
