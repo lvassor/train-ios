@@ -93,10 +93,9 @@ struct MilestonesView: View {
                 label: "Workouts",
                 icon: "dumbbell.fill"
             )
-            StatBox(
+            StreakStatBox(
                 value: "\(topStats.progressionStreak)",
-                label: "Week streak",
-                icon: "flame.fill"
+                label: "Week streak"
             )
         }
         .padding(.horizontal, Spacing.lg)
@@ -200,6 +199,37 @@ private struct StatBox: View {
                 Image(systemName: icon)
                     .font(.system(size: 12))
                     .foregroundColor(.trainPrimary)
+
+                Text(value)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundColor(.trainTextPrimary)
+            }
+
+            Text(label)
+                .font(.system(size: 12))
+                .foregroundColor(.trainTextSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, Spacing.md)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                .stroke(Color.trainTextSecondary.opacity(0.2), lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Streak Stat Box (Lottie flame)
+
+private struct StreakStatBox: View {
+    let value: String
+    let label: String
+
+    var body: some View {
+        VStack(spacing: 6) {
+            HStack(spacing: 4) {
+                FlameView()
+                    .frame(width: 18, height: 18)
 
                 Text(value)
                     .font(.system(size: 24, weight: .bold, design: .rounded))
