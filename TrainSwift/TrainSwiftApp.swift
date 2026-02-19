@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import GoogleSignIn
 
 @main
 struct TrainSwiftApp: App {
@@ -17,6 +18,9 @@ struct TrainSwiftApp: App {
     @StateObject private var themeManager = ThemeManager()
 
     init() {
+        // Configure Google Sign-In
+        GoogleSignInService.shared.configure()
+
         // CRITICAL: Configure UINavigationBar appearance globally to allow gradient through
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground()
@@ -49,6 +53,9 @@ struct TrainSwiftApp: App {
             .environment(\.cardStyle, .warm) // Set app-wide card style to warm glass
             .environmentObject(themeManager) // Provide theme manager to all views
             .preferredColorScheme(themeManager.currentMode == .light ? .light : .dark)
+            .onOpenURL { url in
+                GoogleSignInService.shared.handle(url)
+            }
         }
     }
 }
