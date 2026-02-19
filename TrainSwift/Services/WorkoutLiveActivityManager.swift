@@ -27,7 +27,7 @@ class WorkoutLiveActivityManager: ObservableObject {
         exerciseIndex: Int
     ) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            print("❌ Live Activities are not enabled")
+            AppLogger.logWorkout("Live Activities are not enabled", level: .error)
             return
         }
 
@@ -59,9 +59,9 @@ class WorkoutLiveActivityManager: ObservableObject {
             currentActivity = activity
             isLiveActivityActive = true
 
-            print("✅ Started Live Activity for workout: \(workoutName)")
+            AppLogger.logWorkout("Started Live Activity for workout: \(workoutName)")
         } catch {
-            print("❌ Error starting Live Activity: \(error)")
+            AppLogger.logWorkout("Error starting Live Activity: \(error)", level: .error)
         }
     }
 
@@ -75,7 +75,7 @@ class WorkoutLiveActivityManager: ObservableObject {
         restTimeRemaining: Int? = nil
     ) {
         guard let activity = currentActivity else {
-            print("❌ No active Live Activity to update")
+            AppLogger.logWorkout("No active Live Activity to update", level: .error)
             return
         }
 
@@ -91,7 +91,7 @@ class WorkoutLiveActivityManager: ObservableObject {
         Task {
             let content = ActivityContent(state: newState, staleDate: nil)
             await activity.update(content)
-            print("✅ Updated Live Activity: \(currentExercise.exerciseName), Set \(currentSet)")
+            AppLogger.logWorkout("Updated Live Activity: \(currentExercise.exerciseName), Set \(currentSet)")
         }
     }
 
@@ -101,7 +101,7 @@ class WorkoutLiveActivityManager: ObservableObject {
         elapsedTime: TimeInterval
     ) {
         guard let activity = currentActivity else {
-            print("❌ No active Live Activity to update")
+            AppLogger.logWorkout("No active Live Activity to update", level: .error)
             return
         }
 
@@ -136,9 +136,9 @@ class WorkoutLiveActivityManager: ObservableObject {
                     currentActivity = newActivity
                 }
 
-                print("✅ Updated Live Activity for new exercise: \(currentExercise.exerciseName)")
+                AppLogger.logWorkout("Updated Live Activity for new exercise: \(currentExercise.exerciseName)")
             } catch {
-                print("❌ Error updating Live Activity for new exercise: \(error)")
+                AppLogger.logWorkout("Error updating Live Activity for new exercise: \(error)", level: .error)
             }
         }
     }
@@ -179,7 +179,7 @@ class WorkoutLiveActivityManager: ObservableObject {
                 await currentActivity.update(content)
             }
 
-            print("✅ Rest timer completed")
+            AppLogger.logWorkout("Rest timer completed")
         }
     }
 
@@ -196,7 +196,7 @@ class WorkoutLiveActivityManager: ObservableObject {
                 isLiveActivityActive = false
             }
 
-            print("✅ Ended Live Activity")
+            AppLogger.logWorkout("Ended Live Activity")
         }
     }
 

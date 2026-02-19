@@ -47,7 +47,7 @@ class ConstantsManager {
     // MARK: - Loading
     private func load() {
         guard let path = Bundle.main.path(forResource: "constants", ofType: "json") else {
-            print("⚠️ ConstantsManager: constants.json not found in bundle, using defaults")
+            AppLogger.logDatabase("ConstantsManager: constants.json not found in bundle, using defaults", level: .warning)
             loadDefaults()
             return
         }
@@ -88,14 +88,10 @@ class ConstantsManager {
                 }
             }
 
-            print("✅ ConstantsManager: Loaded constants from JSON")
-            print("   - Equipment mappings: \(equipmentMappings.count)")
-            print("   - Attachment mappings: \(attachmentMappings.count)")
-            print("   - Cable attachments: \(cableAttachments.count)")
-            print("   - Gym type presets: \(gymTypePresets.count)")
+            AppLogger.logDatabase("ConstantsManager: Loaded constants from JSON - Equipment: \(equipmentMappings.count), Attachments: \(attachmentMappings.count), Cable: \(cableAttachments.count), Gym presets: \(gymTypePresets.count)")
 
         } catch {
-            print("❌ ConstantsManager: Failed to load constants.json: \(error)")
+            AppLogger.logDatabase("ConstantsManager: Failed to load constants.json: \(error)", level: .error)
             loadDefaults()
         }
     }
@@ -152,7 +148,7 @@ class ConstantsManager {
             "Glutes", "Hamstrings", "Quads", "Shoulders", "Traps", "Triceps"
         ]
 
-        print("⚠️ ConstantsManager: Using hardcoded defaults")
+        AppLogger.logDatabase("ConstantsManager: Using hardcoded defaults", level: .warning)
     }
 
     // MARK: - Mapping Functions
@@ -224,7 +220,7 @@ class ConstantsManager {
     /// - Returns: Tuple of (equipment categories, detailed equipment, attachments) or nil if not found
     func getEquipmentForGymType(_ gymType: String) -> (categories: [String], specific: [String: Set<String>], attachments: Set<String>)? {
         guard let preset = gymTypePresets[gymType] else {
-            print("⚠️ ConstantsManager: Unknown gym type '\(gymType)'")
+            AppLogger.logDatabase("ConstantsManager: Unknown gym type '\(gymType)'", level: .warning)
             return nil
         }
 

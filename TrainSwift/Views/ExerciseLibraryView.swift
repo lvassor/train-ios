@@ -199,7 +199,7 @@ struct ExerciseLibraryView: View {
                     self.isLoading = false
                 }
             } catch {
-                print("❌ Error loading exercises: \(error)")
+                AppLogger.logDatabase("Error loading exercises: \(error)", level: .error)
                 DispatchQueue.main.async {
                     self.isLoading = false
                 }

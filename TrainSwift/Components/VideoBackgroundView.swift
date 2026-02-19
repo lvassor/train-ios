@@ -34,14 +34,12 @@ class VideoPlayerView: UIView {
     }
 
     func setupVideo(named videoName: String, extension videoExtension: String = "mp4") {
-        print("🎥 VideoPlayerView: Setting up video: \(videoName).\(videoExtension)")
+        AppLogger.logUI("Setting up video: \(videoName).\(videoExtension)")
 
         guard let videoURL = Bundle.main.url(forResource: videoName, withExtension: videoExtension) else {
-            print("❌ Video file not found: \(videoName).\(videoExtension)")
+            AppLogger.logUI("Video file not found: \(videoName).\(videoExtension)", level: .error)
             return
         }
-
-        print("✅ Video file found: \(videoURL.absoluteString)")
 
         // Create asset and player
         let asset = AVURLAsset(url: videoURL)
@@ -66,7 +64,7 @@ class VideoPlayerView: UIView {
 
         // Start playing
         player.play()
-        print("▶️ Started playing video: \(videoName)")
+        AppLogger.logUI("Started playing video: \(videoName)")
     }
 
     func cleanup() {
@@ -75,7 +73,7 @@ class VideoPlayerView: UIView {
         looper = nil
         player = nil
         playerLayer.player = nil
-        print("🧹 VideoPlayerView cleaned up")
+        AppLogger.logUI("VideoPlayerView cleaned up")
     }
 }
 

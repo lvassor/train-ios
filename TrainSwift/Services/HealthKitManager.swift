@@ -71,14 +71,14 @@ class HealthKitManager: ObservableObject {
     /// Request permission to access HealthKit data
     func requestPermission() async -> Bool {
         guard isAvailable else {
-            print("HealthKit not available")
+            AppLogger.logUI("HealthKit not available", level: .warning)
             permissionDenied = true
             return false
         }
 
         // Show warning for simulator users
         if isSimulator {
-            print("⚠️ Running in simulator - HealthKit functionality is limited")
+            AppLogger.logUI("Running in simulator - HealthKit functionality is limited", level: .warning)
         }
 
         do {
@@ -87,7 +87,7 @@ class HealthKitManager: ObservableObject {
             // Check if we actually got permission for the data we need
             guard let heightType = HKObjectType.quantityType(forIdentifier: .height),
                   let weightType = HKObjectType.quantityType(forIdentifier: .bodyMass) else {
-                print("HealthKit types not available")
+                AppLogger.logUI("HealthKit types not available", level: .warning)
                 permissionDenied = true
                 return false
             }
@@ -101,12 +101,12 @@ class HealthKitManager: ObservableObject {
             if hasPermission && !isSimulator {
                 await fetchHealthData()
             } else if isSimulator {
-                print("Simulator detected - skipping health data fetch")
+                AppLogger.logUI("Simulator detected - skipping health data fetch")
             }
 
             return hasPermission
         } catch {
-            print("HealthKit permission error: \(error)")
+            AppLogger.logUI("HealthKit permission error: \(error)", level: .error)
             permissionDenied = true
             return false
         }
@@ -143,7 +143,7 @@ class HealthKitManager: ObservableObject {
             )
 
         } catch {
-            print("HealthKit fetch error: \(error)")
+            AppLogger.logUI("HealthKit fetch error: \(error)", level: .error)
         }
     }
 
@@ -161,7 +161,7 @@ class HealthKitManager: ObservableObject {
                 sortDescriptors: [sortDescriptor]
             ) { _, samples, error in
                 if let error = error {
-                    print("HealthKit query error: \(error)")
+                    AppLogger.logUI("HealthKit query error: \(error)", level: .error)
                     continuation.resume(returning: nil)
                     return
                 }
@@ -209,7 +209,7 @@ class HealthKitManager: ObservableObject {
         return await withCheckedContinuation { continuation in
             healthStore.save(workout) { success, error in
                 if let error = error {
-                    print("HealthKit save workout error: \(error)")
+                    AppLogger.logWorkout("HealthKit save workout error: \(error)", level: .error)
                 }
                 continuation.resume(returning: success)
             }

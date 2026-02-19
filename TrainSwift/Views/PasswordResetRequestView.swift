@@ -130,7 +130,7 @@ struct PasswordResetRequestView: View {
 
         // Generate 6-digit code (in real app, this would be sent via email)
         resetCode = String(format: "%06d", Int.random(in: 0...999999))
-        print("🔐 Password reset code for \(email): \(resetCode)")
+        AppLogger.logAuth("[PASSWORD RESET] Reset code generated for \(email): \(resetCode)")
 
         // Show code entry modal
         withAnimation {

@@ -1785,7 +1785,7 @@ struct SplitSelectionStepView: View {
         guard let path = Bundle.main.path(forResource: "split_templates", ofType: "json"),
               let data = NSData(contentsOfFile: path),
               let json = try? JSONSerialization.jsonObject(with: data as Data, options: []) as? [String: [String: Any]] else {
-            print("Failed to load split_templates.json")
+            AppLogger.logUI("Failed to load split_templates.json", level: .error)
             return
         }
         splitTemplates = json

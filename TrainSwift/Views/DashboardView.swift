@@ -442,8 +442,8 @@ struct WeeklySessionsSection: View {
         var result: [(fullName: String, abbreviation: String)] = []
         for session in sessions {
             nameOccurrences[session.dayName, default: 0] += 1
-            let occurrence = nameOccurrences[session.dayName]!
-            let totalCount = nameCounts[session.dayName]!
+            let occurrence = nameOccurrences[session.dayName, default: 0]
+            let totalCount = nameCounts[session.dayName, default: 0]
 
             let fullName: String
             let abbreviation: String
@@ -779,7 +779,7 @@ struct ExerciseListView: View {
                 showExerciseDetail = true
             }
         } catch {
-            print("Error fetching exercise: \(error)")
+            AppLogger.logDatabase("Error fetching exercise: \(error)", level: .error)
         }
     }
 }
@@ -1307,7 +1307,7 @@ struct TopHeaderView: View {
             // Settings icon (replaces QR scanner per Figma)
             Button(action: {
                 // TODO: Implement settings navigation
-                print("Settings tapped")
+                AppLogger.logUI("Settings tapped")
             }) {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 24))

@@ -74,8 +74,7 @@ class ExerciseRepository {
     private let dbManager = ExerciseDatabaseManager.shared
 
     init() {
-        print("🔧 ExerciseRepository init() called")
-        print("🔧 Using ExerciseDatabaseManager.shared")
+        AppLogger.logProgram("ExerciseRepository init() called, using ExerciseDatabaseManager.shared")
     }
 
     // MARK: - Stage 1: Build User Pool
@@ -97,11 +96,7 @@ class ExerciseRepository {
         let maxComplexity = complexityRules.maxComplexity
         let warnings: [ExerciseSelectionWarning] = []
 
-        print("🏊 Building user pool for \(primaryMuscle ?? "all muscles")")
-        print("   Equipment: \(availableEquipment)")
-        print("   Attachments: \(availableAttachments)")
-        print("   Max complexity: \(maxComplexity)")
-        print("   User injuries (for UI only, not filtering): \(userInjuries)")
+        AppLogger.logProgram("Building user pool for \(primaryMuscle ?? "all muscles") - Equipment: \(availableEquipment), Attachments: \(availableAttachments), Max complexity: \(maxComplexity), Injuries (UI only): \(userInjuries)")
 
         // Stage 1: Filter by equipment, attachments, AND complexity (from DB)
         // NOTE: Injuries are NOT used for filtering - exercises with injury contraindications
@@ -117,7 +112,7 @@ class ExerciseRepository {
 
         let pool = try dbManager.fetchExercises(filter: filter)
 
-        print("   Pool size: \(pool.count)")
+        AppLogger.logProgram("Pool size: \(pool.count)")
 
         // Add warning if pool is empty
         var resultWarnings = warnings
@@ -161,8 +156,7 @@ class ExerciseRepository {
         var usedCanonicalNames = Set<String>()
         let relaxationUsed = allowDisplayNameRepeats && !excludedDisplayNames.isEmpty
 
-        print("🎯 MCV Heuristic selecting \(count) exercises from pool of \(availablePool.count)")
-        print("   Display name relaxation: \(allowDisplayNameRepeats ? "ENABLED" : "DISABLED")")
+        AppLogger.logProgram("MCV Heuristic selecting \(count) exercises from pool of \(availablePool.count) - Display name relaxation: \(allowDisplayNameRepeats ? "ENABLED" : "DISABLED")")
 
         // MCV Selection: Select highest canonical_rating exercises
         let sortedPool = availablePool.sorted { lhs, rhs in
@@ -183,10 +177,10 @@ class ExerciseRepository {
             selectedExercises.append(exercise)
             usedCanonicalNames.insert(exercise.canonicalName)
 
-            print("   ✅ Selected: \(exercise.displayName) (rating: \(exercise.canonicalRating))")
+            AppLogger.logProgram("Selected: \(exercise.displayName) (rating: \(exercise.canonicalRating))")
         }
 
-        print("   📊 Selected \(selectedExercises.count) of \(count) requested exercises")
+        AppLogger.logProgram("Selected \(selectedExercises.count) of \(count) requested exercises")
 
         return (selectedExercises, relaxationUsed)
     }
@@ -313,7 +307,7 @@ class ExerciseRepository {
 
         // If insufficient exercises and haven't relaxed constraints, try with relaxation
         if selectedExercises.count < count && !wasRelaxed {
-            print("🔄 Attempting soft constraint relaxation for \(primaryMuscle ?? "muscle")")
+            AppLogger.logProgram("Attempting soft constraint relaxation for \(primaryMuscle ?? "muscle")")
             let (relaxedExercises, _) = mcvSelectExercises(
                 from: pool,
                 count: count,
@@ -327,7 +321,7 @@ class ExerciseRepository {
             if relaxedExercises.count > selectedExercises.count {
                 selectedExercises = relaxedExercises
                 allWarnings.append(.exerciseRepeats)
-                print("   ✅ Relaxation improved selection: \(relaxedExercises.count) exercises")
+                AppLogger.logProgram("Relaxation improved selection: \(relaxedExercises.count) exercises")
             }
         }
 
@@ -350,7 +344,7 @@ class ExerciseRepository {
             return lhs.displayName < rhs.displayName
         }
 
-        print("✅ Selection complete: \(sortedExercises.count) exercises for \(primaryMuscle ?? "session")")
+        AppLogger.logProgram("Selection complete: \(sortedExercises.count) exercises for \(primaryMuscle ?? "session")")
 
         return ExerciseSelectionResult(exercises: sortedExercises, warnings: allWarnings)
     }

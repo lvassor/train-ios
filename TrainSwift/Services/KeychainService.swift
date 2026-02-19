@@ -64,7 +64,7 @@ class KeychainService {
             throw KeychainError.unknown(status)
         }
 
-        print("✅ Password hash saved to Keychain for: \(email)")
+        AppLogger.logAuth("Password hash saved to Keychain for: \(email)")
     }
 
     // MARK: - Retrieve Password Hash (Internal)
@@ -111,7 +111,7 @@ class KeychainService {
             throw KeychainError.unknown(status)
         }
 
-        print("✅ Password deleted from Keychain for: \(email)")
+        AppLogger.logAuth("Password deleted from Keychain for: \(email)")
     }
 
     // MARK: - Update Password
@@ -145,7 +145,7 @@ class KeychainService {
             throw KeychainError.unknown(status)
         }
 
-        print("✅ Password hash updated in Keychain for: \(email)")
+        AppLogger.logAuth("Password hash updated in Keychain for: \(email)")
     }
 
     // MARK: - Verify Password
@@ -156,7 +156,7 @@ class KeychainService {
             let inputHash = hashPassword(password)
             return storedHash == inputHash
         } catch {
-            print("❌ Keychain verification failed: \(error)")
+            AppLogger.logAuth("Keychain verification failed: \(error)", level: .error)
             return false
         }
     }
@@ -185,7 +185,7 @@ class KeychainService {
             throw KeychainError.unknown(status)
         }
 
-        print("✅ Apple user identifier saved to Keychain")
+        AppLogger.logAuth("Apple user identifier saved to Keychain")
     }
 
     /// Retrieve Apple Sign In user identifier
@@ -255,7 +255,7 @@ class KeychainService {
             throw KeychainError.unknown(status)
         }
 
-        print("✅ Google user identifier saved to Keychain")
+        AppLogger.logAuth("Google user identifier saved to Keychain")
     }
 
     /// Retrieve Google Sign In user identifier

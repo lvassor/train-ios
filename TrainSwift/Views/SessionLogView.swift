@@ -109,7 +109,7 @@ struct SessionLogView: View {
                 sessionStats = SessionStats(current: current, previous: previous)
             }
         } catch {
-            print("Failed to fetch sessions: \(error)")
+            AppLogger.logDatabase("Failed to fetch sessions: \(error)", level: .error)
         }
     }
 

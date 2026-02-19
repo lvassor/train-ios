@@ -554,7 +554,7 @@ struct WorkoutOverviewView: View {
                 }
             }
         } catch {
-            print("❌ Error checking contraindications: \(error)")
+            AppLogger.logUI("Error checking contraindications: \(error)", level: .error)
         }
 
         return nil

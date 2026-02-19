@@ -45,12 +45,12 @@ class ExerciseDatabaseManager {
                 }
 
                 if shouldCopy {
-                    print("📦 Copying updated database from bundle...")
+                    AppLogger.logDatabase("Copying updated database from bundle...")
                     if fileManager.fileExists(atPath: databaseURL.path) {
                         try fileManager.removeItem(at: databaseURL)
                     }
                     try fileManager.copyItem(at: bundleURL, to: databaseURL)
-                    print("✅ Database updated from bundle")
+                    AppLogger.logDatabase("Database updated from bundle")
                 }
             } else if !fileManager.fileExists(atPath: databaseURL.path) {
                 throw DatabaseError.bundleDatabaseNotFound
@@ -58,13 +58,13 @@ class ExerciseDatabaseManager {
 
             // Open database connection
             dbQueue = try DatabaseQueue(path: databaseURL.path)
-            print("✅ Exercise database initialized at: \(databaseURL.path)")
+            AppLogger.logDatabase("Exercise database initialized at: \(databaseURL.path)")
 
             // Verify database integrity
             try verifyDatabase()
 
         } catch {
-            print("❌ Failed to setup database: \(error.localizedDescription)")
+            AppLogger.logDatabase("Failed to setup database: \(error.localizedDescription)", level: .error)
         }
     }
 
@@ -77,9 +77,7 @@ class ExerciseDatabaseManager {
             let exerciseCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM exercises") ?? 0
             let contraCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM exercise_contraindications") ?? 0
 
-            print("📊 Database verification:")
-            print("   - Exercises: \(exerciseCount)")
-            print("   - Contraindications: \(contraCount)")
+            AppLogger.logDatabase("Database verification: Exercises: \(exerciseCount), Contraindications: \(contraCount)")
 
             if exerciseCount == 0 {
                 throw DatabaseError.emptyDatabase

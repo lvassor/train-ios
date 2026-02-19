@@ -130,7 +130,7 @@ struct PasswordResetCodeView: View {
 
         if enteredCode == expectedCode {
             // Code is correct
-            print("✅ Code verified successfully")
+            AppLogger.logAuth("[PASSWORD RESET] Code verified successfully")
             showError = false
             onDismiss()
 
@@ -140,7 +140,7 @@ struct PasswordResetCodeView: View {
             }
         } else {
             // Code is incorrect
-            print("❌ Invalid code entered")
+            AppLogger.logAuth("[PASSWORD RESET] Invalid code entered", level: .error)
             showError = true
 
             // Clear all fields and refocus first

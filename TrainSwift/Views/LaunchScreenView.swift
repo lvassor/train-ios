@@ -85,24 +85,23 @@ struct LaunchScreenView: View {
                 }
             )
             .onAppear {
-                print("🎨 [LAUNCH ANIM] LaunchScreenView.onAppear called")
-                print("🎨 [LAUNCH ANIM] Initial state - trimValue: \(trimValue), fillOpacity: \(fillOpacity), shimmerOffset: \(shimmerOffset)")
+                AppLogger.logUI("[LAUNCH ANIM] LaunchScreenView.onAppear - trimValue: \(trimValue), fillOpacity: \(fillOpacity), shimmerOffset: \(shimmerOffset)")
                 runLaunchSequence()
             }
     }
 
     private func runLaunchSequence() {
-        print("🎨 [LAUNCH ANIM] 🎦 Starting launch animation sequence")
+        AppLogger.logUI("[LAUNCH ANIM] Starting launch animation sequence")
 
         // Step 1: Draw Outlines (0.0 to 1.5s) - All shapes draw simultaneously
-        print("🎨 [LAUNCH ANIM] 🎨 Step 1: Starting outline drawing animation (1.5s)")
+        AppLogger.logUI("[LAUNCH ANIM] Step 1: Starting outline drawing animation (1.5s)")
         withAnimation(.easeInOut(duration: 1.5)) {
             trimValue = 1.0
         }
 
         // Step 2: Fill Colors (1.2s to 2.0s)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            print("🎨 [LAUNCH ANIM] 🎨 Step 2: Starting fill animation (0.8s)")
+            AppLogger.logUI("[LAUNCH ANIM] Step 2: Starting fill animation (0.8s)")
         }
         withAnimation(.easeIn(duration: 0.8).delay(1.2)) {
             fillOpacity = 1.0
@@ -110,7 +109,7 @@ struct LaunchScreenView: View {
 
         // Step 3: Single Brilliant Shimmer (2.0s to 3.2s)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            print("🎨 [LAUNCH ANIM] ✨ Step 3: Starting shimmer animation (1.2s)")
+            AppLogger.logUI("[LAUNCH ANIM] Step 3: Starting shimmer animation (1.2s)")
         }
         withAnimation(.linear(duration: 1.2).delay(2.0)) {
             shimmerOffset = 1.2
@@ -118,8 +117,7 @@ struct LaunchScreenView: View {
 
         // Final completion logging
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
-            print("🎨 [LAUNCH ANIM] ✅ Launch animation sequence completed")
-            print("🎨 [LAUNCH ANIM] Final state - trimValue: \(trimValue), fillOpacity: \(fillOpacity), shimmerOffset: \(shimmerOffset)")
+            AppLogger.logUI("[LAUNCH ANIM] Launch animation sequence completed - trimValue: \(trimValue), fillOpacity: \(fillOpacity), shimmerOffset: \(shimmerOffset)")
         }
     }
 }

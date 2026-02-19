@@ -20,7 +20,7 @@ extension CDWorkoutSession {
         do {
             return try context.fetch(request)
         } catch {
-            print("❌ Failed to fetch workout sessions: \(error)")
+            AppLogger.logDatabase("Failed to fetch workout sessions: \(error)", level: .error)
             return []
         }
     }
@@ -34,7 +34,7 @@ extension CDWorkoutSession {
         do {
             return try context.fetch(request)
         } catch {
-            print("❌ Failed to fetch recent workout sessions: \(error)")
+            AppLogger.logDatabase("Failed to fetch recent workout sessions: \(error)", level: .error)
             return []
         }
     }

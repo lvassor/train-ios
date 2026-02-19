@@ -656,12 +656,11 @@ struct QuestionnaireView: View {
 // MARK: - Debug Logging Helper
 
 private func questionnaireDebugLog(_ category: String, _ action: String, _ params: [String: String] = [:]) {
-    let timestamp = Date().formatted(date: .omitted, time: .standard)
-    var message = "🔍 [QUESTIONNAIRE-\(category)] \(action)"
+    var message = "[QUESTIONNAIRE-\(category)] \(action)"
     if !params.isEmpty {
         let paramString = params.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: " | ")
         message += " | \(paramString)"
     }
-    print("[\(timestamp)] \(message)")
+    AppLogger.logUI(message)
 }
 

@@ -51,7 +51,7 @@ struct ReferralPageView: View {
             }
         }
         .onAppear {
-            print("📊 [REFERRAL] ReferralPageView appeared")
+            AppLogger.logUI("[REFERRAL] ReferralPageView appeared")
         }
     }
 
@@ -60,7 +60,7 @@ struct ReferralPageView: View {
         if let onBack = onBack {
             HStack {
                 Button(action: {
-                    print("⬅️ [REFERRAL] Back button tapped")
+                    AppLogger.logUI("[REFERRAL] Back button tapped")
                     onBack()
                 }) {
                     HStack(spacing: 8) {
@@ -118,7 +118,7 @@ struct ReferralPageView: View {
         let isSelected = selectedReferralSource == option.id
         return Button(action: {
             selectedReferralSource = option.id
-            print("📊 [REFERRAL] Selected referral source: \(option.id)")
+            AppLogger.logUI("[REFERRAL] Selected referral source: \(option.id)")
         }) {
             VStack(spacing: Spacing.xs) {
                 Image(systemName: option.icon)
@@ -162,13 +162,13 @@ struct ReferralPageView: View {
     private var startButton: some View {
         Button(action: {
             if !selectedReferralSource.isEmpty {
-                print("📊 [REFERRAL] Saving referral source: \(selectedReferralSource)")
+                AppLogger.logUI("[REFERRAL] Saving referral source: \(selectedReferralSource)")
                 UserDefaults.standard.set(selectedReferralSource, forKey: "referral_source")
             } else {
-                print("📊 [REFERRAL] No referral source selected")
+                AppLogger.logUI("[REFERRAL] No referral source selected")
             }
 
-            print("📊 [REFERRAL] Completing onboarding flow - proceeding to dashboard")
+            AppLogger.logUI("[REFERRAL] Completing onboarding flow - proceeding to dashboard")
             onComplete()
         }) {
             Text("Start Training Now!")
@@ -187,7 +187,7 @@ struct ReferralPageView: View {
 #Preview {
     ReferralPageView(
         onComplete: {
-            print("Referral page completed")
+            AppLogger.logUI("Referral page completed")
         }
     )
 }

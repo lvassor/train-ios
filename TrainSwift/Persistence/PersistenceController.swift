@@ -33,7 +33,7 @@ class PersistenceController {
 
                 AppLogger.logDatabase("⚠️ Using in-memory fallback store - data will not persist", level: .warning)
             } else {
-                print("✅ Core Data loaded successfully")
+                AppLogger.logDatabase("Core Data loaded successfully")
             }
         }
 
@@ -73,7 +73,7 @@ class PersistenceController {
         do {
             try context.save()
         } catch {
-            print("❌ Preview data creation failed: \(error)")
+            AppLogger.logDatabase("Preview data creation failed: \(error)", level: .error)
         }
 
         return controller
@@ -87,9 +87,9 @@ class PersistenceController {
         if context.hasChanges {
             do {
                 try context.save()
-                print("✅ Core Data context saved")
+                AppLogger.logDatabase("Core Data context saved")
             } catch {
-                print("❌ Core Data save failed: \(error.localizedDescription)")
+                AppLogger.logDatabase("Core Data save failed: \(error.localizedDescription)", level: .error)
             }
         }
     }
@@ -105,9 +105,9 @@ class PersistenceController {
 
             do {
                 try container.viewContext.execute(batchDeleteRequest)
-                print("✅ Deleted all \(entity) records")
+                AppLogger.logDatabase("Deleted all \(entity) records")
             } catch {
-                print("❌ Failed to delete \(entity): \(error)")
+                AppLogger.logDatabase("Failed to delete \(entity): \(error)", level: .error)
             }
         }
 

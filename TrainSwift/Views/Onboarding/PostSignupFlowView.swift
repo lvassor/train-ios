@@ -24,7 +24,7 @@ struct PostSignupFlowView: View {
             case .notifications:
                 NotificationPermissionView(
                     onContinue: {
-                        print("🔄 [POST-SIGNUP] Step 18 (Notifications) completed, moving to step 19 (Referral)")
+                        AppLogger.logUI("[POST-SIGNUP] Step 18 (Notifications) completed, moving to step 19 (Referral)")
                         withAnimation {
                             currentStep = .referral
                         }
@@ -35,11 +35,11 @@ struct PostSignupFlowView: View {
             case .referral:
                 ReferralPageView(
                     onComplete: {
-                        print("🔄 [POST-SIGNUP] Step 19 (Referral) completed, finishing onboarding flow")
+                        AppLogger.logUI("[POST-SIGNUP] Step 19 (Referral) completed, finishing onboarding flow")
                         onComplete()
                     },
                     onBack: {
-                        print("⬅️ [POST-SIGNUP] Back from referral step, returning to notifications")
+                        AppLogger.logUI("[POST-SIGNUP] Back from referral step, returning to notifications")
                         withAnimation {
                             currentStep = .notifications
                         }
@@ -49,7 +49,7 @@ struct PostSignupFlowView: View {
             }
         }
         .onAppear {
-            print("🔄 [POST-SIGNUP] PostSignupFlowView appeared, starting with step 18 (Notifications)")
+            AppLogger.logUI("[POST-SIGNUP] PostSignupFlowView appeared, starting with step 18 (Notifications)")
         }
     }
 }
@@ -57,7 +57,7 @@ struct PostSignupFlowView: View {
 #Preview {
     PostSignupFlowView(
         onComplete: {
-            print("Post-signup flow completed")
+            AppLogger.logUI("Post-signup flow completed")
         }
     )
 }

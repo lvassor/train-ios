@@ -154,7 +154,7 @@ struct PasswordResetNewPasswordView: View {
         }
 
         // In real app, would update password in database
-        print("✅ Password updated successfully")
+        AppLogger.logAuth("[PASSWORD RESET] Password updated successfully")
 
         // Show success message
         showSuccess = true

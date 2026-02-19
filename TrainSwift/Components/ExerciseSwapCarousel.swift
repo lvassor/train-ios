@@ -177,26 +177,10 @@ struct ExerciseSwapCarousel: View {
                     alternatives = Array(sorted.prefix(5))
                     isLoading = false
 
-                    // Debug: Log thumbnail URLs for all alternatives
-                    print("🔄 Carousel loaded for: \(currentExercise.exerciseName)")
-                    print("   Found \(alternatives.count) alternatives:")
-                    for alt in alternatives {
-                        let media = ExerciseMediaMapping.media(for: alt.exerciseId)
-                        if let media = media {
-                            if media.mediaType == .video, let guid = media.guid {
-                                let url = BunnyConfig.videoThumbnailURL(for: guid)
-                                print("   ✅ \(alt.exerciseId) (\(alt.displayName)): \(url?.absoluteString ?? "nil")")
-                            } else if media.mediaType == .image, let filename = media.imageFilename {
-                                let url = BunnyConfig.imageURL(for: filename)
-                                print("   🖼️ \(alt.exerciseId) (\(alt.displayName)): \(url?.absoluteString ?? "nil")")
-                            }
-                        } else {
-                            print("   ❌ \(alt.exerciseId) (\(alt.displayName)): NO MAPPING FOUND")
-                        }
-                    }
+                    AppLogger.logUI("Carousel loaded for: \(currentExercise.exerciseName), \(alternatives.count) alternatives")
                 }
             } catch {
-                print("Error loading alternatives: \(error)")
+                AppLogger.logUI("Error loading alternatives: \(error)", level: .error)
                 await MainActor.run {
                     isLoading = false
                 }
@@ -235,21 +219,12 @@ struct AlternativeExerciseCard: View {
 
     // Get thumbnail URL based on media type
     private var thumbnailURL: URL? {
-        guard let media = exerciseMedia else {
-            print("⚠️ No media mapping for exercise: \(exercise.exerciseId)")
-            return nil
-        }
+        guard let media = exerciseMedia else { return nil }
 
         if media.mediaType == .video, let guid = media.guid {
-            // Video thumbnail from Bunny Stream
-            let url = BunnyConfig.videoThumbnailURL(for: guid)
-            print("🎬 Thumbnail URL for \(exercise.exerciseId): \(url?.absoluteString ?? "nil")")
-            return url
+            return BunnyConfig.videoThumbnailURL(for: guid)
         } else if media.mediaType == .image, let filename = media.imageFilename {
-            // Static image from storage
-            let url = BunnyConfig.imageURL(for: filename)
-            print("🖼️ Image URL for \(exercise.exerciseId): \(url?.absoluteString ?? "nil")")
-            return url
+            return BunnyConfig.imageURL(for: filename)
         }
         return nil
     }

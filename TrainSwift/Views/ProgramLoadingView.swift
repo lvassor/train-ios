@@ -33,7 +33,7 @@ struct ProgramLoadingView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 80)
                     .onAppear {
-                        print("🎯 [PROGRAM_LOADING] Static Train logo loaded")
+                        AppLogger.logUI("[PROGRAM_LOADING] Static Train logo loaded")
                     }
 
                 // Title

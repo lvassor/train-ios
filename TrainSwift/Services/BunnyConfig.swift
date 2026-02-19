@@ -104,14 +104,14 @@ struct BunnyConfig {
         if let apiKey = apiKey {
             try KeychainService.shared.saveAPIKey(apiKey, for: apiKeyKey)
         }
-        print("✅ Bunny credentials stored in Keychain")
+        AppLogger.logAuth("Bunny credentials stored in Keychain")
     }
 
     /// Clear stored credentials from Keychain
     static func clearCredentials() throws {
         try? KeychainService.shared.deleteAPIKey(for: libraryIdKey)
         try? KeychainService.shared.deleteAPIKey(for: apiKeyKey)
-        print("✅ Bunny credentials cleared from Keychain")
+        AppLogger.logAuth("Bunny credentials cleared from Keychain")
     }
 }
 

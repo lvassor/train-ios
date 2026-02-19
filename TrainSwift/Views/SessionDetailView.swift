@@ -164,7 +164,7 @@ struct SessionDetailView: View {
                     }
                 }
             } catch {
-                print("❌ Error loading exercise details: \(error)")
+                AppLogger.logUI("Error loading exercise details: \(error)", level: .error)
             }
         }
     }

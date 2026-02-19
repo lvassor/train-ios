@@ -375,10 +375,12 @@ class AuthService: ObservableObject {
         // Clear session state (removes UserDefaults key)
         clearSession()
 
-        AppLogger.logAuth("Terminating app after account deletion")
+        // Reset auth state so the UI returns to login screen
+        currentUser = nil
+        isAuthenticated = false
+        currentProgramId = nil
 
-        // Terminate the app - on next launch user will see fresh onboarding
-        exit(0)
+        AppLogger.logAuth("Account deleted — session cleared, returning to login")
     }
 
     // MARK: - Validation Helpers

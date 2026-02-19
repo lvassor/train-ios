@@ -20,7 +20,7 @@ extension UserProfile {
         do {
             return try context.fetch(request).first
         } catch {
-            print("❌ Failed to fetch user by email: \(error)")
+            AppLogger.logDatabase("Failed to fetch user by email: \(error)", level: .error)
             return nil
         }
     }
@@ -33,7 +33,7 @@ extension UserProfile {
         do {
             return try context.fetch(request).first
         } catch {
-            print("❌ Failed to fetch user by ID: \(error)")
+            AppLogger.logDatabase("Failed to fetch user by ID: \(error)", level: .error)
             return nil
         }
     }
@@ -46,7 +46,7 @@ extension UserProfile {
         do {
             return try context.fetch(request).first
         } catch {
-            print("❌ Failed to fetch user by Apple ID: \(error)")
+            AppLogger.logDatabase("Failed to fetch user by Apple ID: \(error)", level: .error)
             return nil
         }
     }
@@ -59,7 +59,7 @@ extension UserProfile {
         do {
             return try context.fetch(request).first
         } catch {
-            print("❌ Failed to fetch user by Google ID: \(error)")
+            AppLogger.logDatabase("Failed to fetch user by Google ID: \(error)", level: .error)
             return nil
         }
     }
@@ -70,7 +70,7 @@ extension UserProfile {
         do {
             return try context.fetch(request)
         } catch {
-            print("❌ Failed to fetch all users: \(error)")
+            AppLogger.logDatabase("Failed to fetch all users: \(error)", level: .error)
             return []
         }
     }

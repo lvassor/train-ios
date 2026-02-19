@@ -125,7 +125,7 @@ private func debugLog(_ category: String, _ action: String, _ params: [String: S
         let paramString = params.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: " | ")
         message += " | \(paramString)"
     }
-    print("[\(timestamp)] \(message)")
+    AppLogger.logUI("[\(timestamp)] \(message)")
 }
 
 #Preview {

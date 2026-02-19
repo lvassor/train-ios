@@ -31,62 +31,59 @@ struct ProgramReadyView: View {
             if showPostSignupFlow {
                 PostSignupFlowView(
                     onComplete: {
-                        print("🎯 [PROGRAM READY] PostSignupFlowView completed (steps 18-19)")
-                        print("🎯 [PROGRAM READY] 🚀 All onboarding steps finished - calling onStart()")
+                        AppLogger.logUI("[PROGRAM READY] PostSignupFlowView completed (steps 18-19), all onboarding steps finished - calling onStart()")
                         onStart()
                     }
                 )
                 .onAppear {
-                    print("🎯 [PROGRAM READY] VIEW STATE: Showing PostSignupFlowView (steps 18-19)")
+                    AppLogger.logUI("[PROGRAM READY] VIEW STATE: Showing PostSignupFlowView (steps 18-19)")
                 }
             } else if showPaywall {
                 PaywallView(onComplete: {
-                    print("🎯 [PROGRAM READY] PaywallView completed")
+                    AppLogger.logUI("[PROGRAM READY] PaywallView completed")
                     // After paywall, complete the whole flow
                     onStart()
                 })
                 .onAppear {
-                    print("🎯 [PROGRAM READY] VIEW STATE: Showing PaywallView")
+                    AppLogger.logUI("[PROGRAM READY] VIEW STATE: Showing PaywallView")
                 }
             } else if showLoading {
                 AccountCreationLoadingView(onComplete: {
-                    print("🎯 [PROGRAM READY] AccountCreationLoadingView completed")
+                    AppLogger.logUI("[PROGRAM READY] AccountCreationLoadingView completed")
                     withAnimation {
                         if skipPaywallForMVP {
                             // MVP: Skip paywall and go straight to dashboard
-                            print("🎯 [PROGRAM READY] 🚀 MVP Mode: Skipping paywall, calling onStart()")
+                            AppLogger.logUI("[PROGRAM READY] MVP Mode: Skipping paywall, calling onStart()")
                             onStart()
                         } else {
                             // Production: Show paywall
-                            print("🎯 [PROGRAM READY] Production mode: Setting showPaywall = true")
+                            AppLogger.logUI("[PROGRAM READY] Production mode: Setting showPaywall = true")
                             showPaywall = true
                         }
                     }
                 })
                 .onAppear {
-                    print("🎯 [PROGRAM READY] VIEW STATE: Showing AccountCreationLoadingView")
+                    AppLogger.logUI("[PROGRAM READY] VIEW STATE: Showing AccountCreationLoadingView")
                 }
             } else if showSignup {
                 PostQuestionnaireSignupView(
                     onSignupSuccess: {
-                        print("🎯 [PROGRAM READY] PostQuestionnaireSignupView onSignupSuccess called")
-                        print("🎯 [PROGRAM READY] 🚀 Signup successful - proceeding to post-signup flow (steps 18-19)")
+                        AppLogger.logUI("[PROGRAM READY] Signup successful - proceeding to post-signup flow (steps 18-19)")
 
                         // Direct navigation without safeNavigate to avoid conflicts
-                        print("🎯 [PROGRAM READY] 🎯 Directly transitioning to PostSignupFlowView")
+                        AppLogger.logUI("[PROGRAM READY] Directly transitioning to PostSignupFlowView")
                         showSignup = false  // Hide signup screen immediately
                         showPostSignupFlow = true  // Show steps 18-19 immediately
                     },
                     onSignupCancel: {
-                        print("🎯 [PROGRAM READY] 🚫 Signup cancelled - returning to Program Ready screen")
-                        print("🎯 [PROGRAM READY] 🔄 Resetting signup protection flag via onSignupCancel callback")
+                        AppLogger.logUI("[PROGRAM READY] Signup cancelled - returning to Program Ready screen, resetting signup protection flag")
                         showSignup = false
                         // Reset the protection flag by calling onSignupCancel to clear it
                         onSignupCancel?()
                     }
                 )
                 .onAppear {
-                    print("🎯 [PROGRAM READY] VIEW STATE: Showing PostQuestionnaireSignupView")
+                    AppLogger.logUI("[PROGRAM READY] VIEW STATE: Showing PostQuestionnaireSignupView")
                 }
             } else {
                 // Original Program Ready View with confetti overlay
@@ -98,8 +95,7 @@ struct ProgramReadyView: View {
                         }
                     }
                     .onAppear {
-                        print("🎯 [PROGRAM READY] VIEW STATE: Showing Program Ready content with confetti")
-                        print("🎯 [PROGRAM READY] Program Ready content appeared, triggering confetti")
+                        AppLogger.logUI("[PROGRAM READY] VIEW STATE: Showing Program Ready content with confetti")
                         // Trigger confetti animation when view appears
                         withAnimation {
                             showConfetti = true
@@ -170,12 +166,11 @@ struct ProgramReadyView: View {
                 CustomButton(
                     title: "Start Training Now!",
                     action: {
-                        print("🎯 [PROGRAM READY] 'Start Training Now!' button tapped")
-                        print("🎯 [PROGRAM READY] isAuthenticated: \(AuthService.shared.isAuthenticated)")
+                        AppLogger.logUI("[PROGRAM READY] 'Start Training Now!' button tapped, isAuthenticated: \(AuthService.shared.isAuthenticated)")
 
                         // If already authenticated (e.g., retaking questionnaire), skip signup and go directly to post-signup flow
                         if AuthService.shared.isAuthenticated {
-                            print("🎯 [PROGRAM READY] ✅ User already authenticated - skipping signup, going to post-signup flow")
+                            AppLogger.logUI("[PROGRAM READY] User already authenticated - skipping signup, going to post-signup flow")
                             onSignupStart?()
                             withAnimation {
                                 showPostSignupFlow = true
@@ -184,12 +179,12 @@ struct ProgramReadyView: View {
                         }
 
                         // CRITICAL: Call onSignupStart IMMEDIATELY to prevent race conditions
-                        print("🎯 [PROGRAM READY] 🚨 CALLING onSignupStart() to set protection flag BEFORE showing signup sheet")
+                        AppLogger.logUI("[PROGRAM READY] Calling onSignupStart() to set protection flag BEFORE showing signup sheet")
                         onSignupStart?()
-                        print("🎯 [PROGRAM READY] ✅ Protection flag set - QuestionnaireView is now immune to state changes")
+                        AppLogger.logUI("[PROGRAM READY] Protection flag set - QuestionnaireView is now immune to state changes")
 
                         withAnimation {
-                            print("🎯 [PROGRAM READY] Setting showSignup = true")
+                            AppLogger.logUI("[PROGRAM READY] Setting showSignup = true")
                             showSignup = true
                         }
                     }

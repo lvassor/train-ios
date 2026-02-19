@@ -557,13 +557,12 @@ struct ProgramCard: View {
 
     /// Debug logging for retake questionnaire flow
     private func retakeDebugLog(_ category: String, _ action: String, _ params: [String: String]) {
-        let timestamp = Date().formatted(date: .omitted, time: .standard)
-        var message = "🔍 [PROFILE-\(category)] \(action)"
+        var message = "[PROFILE-\(category)] \(action)"
         if !params.isEmpty {
             let paramString = params.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: " | ")
             message += " | \(paramString)"
         }
-        print("[\(timestamp)] \(message)")
+        AppLogger.logUI(message)
     }
 
     private func getPriorityMuscleGroups() -> [String] {

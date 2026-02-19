@@ -26,13 +26,9 @@ class WorkoutViewModel: ObservableObject {
     // Email signup state that persists across view recreations
     @Published var showEmailSignup = false {
         didSet {
-            print("📧 [VIEWMODEL] 🚨🚨🚨 showEmailSignup changed from \(oldValue) to \(showEmailSignup)")
+            AppLogger.logUI("showEmailSignup changed from \(oldValue) to \(showEmailSignup)")
             if !showEmailSignup && oldValue {
-                print("📧 [VIEWMODEL] ❌❌❌ EMAIL SHEET WAS DISMISSED! This should only happen on successful signup or user cancellation")
-                print("📧 [VIEWMODEL] 🕵️ Call stack trace for debugging:")
-                for symbol in Thread.callStackSymbols {
-                    print("📧 [VIEWMODEL] \(symbol)")
-                }
+                AppLogger.logUI("Email sheet dismissed", level: .warning)
             }
         }
     }
@@ -40,7 +36,7 @@ class WorkoutViewModel: ObservableObject {
     // Navigation state to prevent overlapping transitions
     @Published var isNavigationInProgress = false {
         didSet {
-            print("🚦 [NAVIGATION] isNavigationInProgress changed from \(oldValue) to \(isNavigationInProgress)")
+            AppLogger.logUI("isNavigationInProgress changed from \(oldValue) to \(isNavigationInProgress)")
         }
     }
 
@@ -50,8 +46,7 @@ class WorkoutViewModel: ObservableObject {
     // MARK: - Initialization
     private init() {
         // Private init to enforce singleton pattern
-        print("🧠 [VIEWMODEL] 🎬 WorkoutViewModel.shared created - instance: \(ObjectIdentifier(self))")
-        print("🧠 [VIEWMODEL] 🔒 This is the ONLY instance that should ever exist!")
+        AppLogger.logUI("WorkoutViewModel.shared created — instance: \(ObjectIdentifier(self))")
     }
 
     // MARK: - Program Generation
@@ -74,16 +69,13 @@ class WorkoutViewModel: ObservableObject {
 
         // Note: repeatWarning is already captured in uniqueWarnings via .exerciseRepeats
 
-        print("✅ Program generated: \(result.program.type.description)")
-        print("✅ Sessions: \(result.program.sessions.map { $0.dayName }.joined(separator: ", "))")
-        print("✅ Days per week: \(result.program.daysPerWeek)")
-        print("✅ Total weeks: \(result.program.totalWeeks)")
+        AppLogger.logProgram("Program generated: \(result.program.type.description), sessions: \(result.program.sessions.map { $0.dayName }.joined(separator: ", ")), \(result.program.daysPerWeek) days/week, \(result.program.totalWeeks) weeks")
 
         if result.hasWarnings {
-            print("⚠️ Generation warnings: \(result.uniqueWarnings.count)")
+            AppLogger.logProgram("Generation warnings: \(result.uniqueWarnings.count)", level: .warning)
         }
         if result.lowFillWarning {
-            print("⚠️ Low fill rate warning triggered")
+            AppLogger.logProgram("Low fill rate warning triggered", level: .warning)
         }
     }
 
@@ -97,13 +89,13 @@ class WorkoutViewModel: ObservableObject {
             AuthService.shared.updateQuestionnaireData(questionnaireData)
             AuthService.shared.updateProgram(program)
 
-            print("✅ Program saved to user")
+            AppLogger.logProgram("Program saved to user")
 
             // Show any pending warnings after saving
             if !pendingWarnings.isEmpty {
                 showWarnings(pendingWarnings)
                 // Don't clear warnings yet - they'll be cleared when user proceeds
-                print("⚠️ [VIEWMODEL] Showing \(pendingWarnings.count) warnings - waiting for user decision")
+                AppLogger.logProgram("Showing \(pendingWarnings.count) warnings — waiting for user decision", level: .warning)
                 return true  // Caller should wait for user to choose Amend or Proceed
             }
         }
@@ -112,7 +104,7 @@ class WorkoutViewModel: ObservableObject {
 
     /// Called when user chooses "Proceed Anyway" after seeing warnings
     func proceedAfterWarning() {
-        print("✅ [VIEWMODEL] User chose to proceed despite warnings")
+        AppLogger.logProgram("User chose to proceed despite warnings")
         pendingWarnings = []
     }
 
@@ -144,11 +136,11 @@ class WorkoutViewModel: ObservableObject {
     func safeNavigate(operation: @escaping () -> Void) {
         // Prevent overlapping navigation operations
         guard !isNavigationInProgress else {
-            print("🚦 [NAVIGATION] ⚠️ Navigation already in progress - skipping operation")
+            AppLogger.logUI("Navigation already in progress — skipping operation", level: .warning)
             return
         }
 
-        print("🚦 [NAVIGATION] ✅ Starting safe navigation operation")
+        AppLogger.logUI("Starting safe navigation operation")
         isNavigationInProgress = true
 
         // Execute on main queue with slight delay to ensure UI stability
@@ -158,7 +150,7 @@ class WorkoutViewModel: ObservableObject {
             // Reset navigation state after completion
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.isNavigationInProgress = false
-                print("🚦 [NAVIGATION] ✅ Navigation operation completed")
+                AppLogger.logUI("Navigation operation completed")
             }
         }
     }

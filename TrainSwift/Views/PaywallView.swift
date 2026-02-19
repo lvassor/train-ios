@@ -107,7 +107,7 @@ struct PaywallView: View {
                                 .foregroundColor(.trainTextSecondary)
                         } else {
                             Button(action: {
-                                print("⚠️ No products loaded - proceeding anyway for testing")
+                                AppLogger.logUI("[PAYWALL] No products loaded - proceeding anyway for testing", level: .warning)
                                 onComplete()
                             }) {
                                 Text("Continue (No Products)")
@@ -170,9 +170,9 @@ struct PaywallView: View {
                 (p2.subscription?.subscriptionPeriod.unit != .year)
             }
             isLoading = false
-            print("✅ Loaded \(products.count) subscription products")
+            AppLogger.logUI("[PAYWALL] Loaded \(products.count) subscription products")
         } catch {
-            print("❌ Failed to load products: \(error)")
+            AppLogger.logUI("[PAYWALL] Failed to load products: \(error)", level: .error)
             errorMessage = "Unable to load subscriptions. Please try again."
             isLoading = false
         }
@@ -192,7 +192,7 @@ struct PaywallView: View {
                 switch verification {
                 case .verified(let transaction):
                     // Transaction is verified - grant access
-                    print("✅ Purchase successful: \(transaction.productID)")
+                    AppLogger.logUI("[PAYWALL] Purchase successful: \(transaction.productID)")
                     await transaction.finish()
 
                     // Complete onboarding
@@ -203,7 +203,7 @@ struct PaywallView: View {
 
                 case .unverified(_, let error):
                     // Transaction failed verification
-                    print("❌ Transaction unverified: \(error)")
+                    AppLogger.logUI("[PAYWALL] Transaction unverified: \(error)", level: .error)
                     await MainActor.run {
                         errorMessage = "Purchase verification failed"
                         purchaseInProgress = false
@@ -212,7 +212,7 @@ struct PaywallView: View {
 
             case .pending:
                 // Purchase is pending (e.g., requires parental approval)
-                print("⏳ Purchase pending")
+                AppLogger.logUI("[PAYWALL] Purchase pending")
                 await MainActor.run {
                     errorMessage = "Purchase is pending approval"
                     purchaseInProgress = false
@@ -220,7 +220,7 @@ struct PaywallView: View {
 
             case .userCancelled:
                 // User cancelled the purchase
-                print("🚫 User cancelled purchase")
+                AppLogger.logUI("[PAYWALL] User cancelled purchase")
                 await MainActor.run {
                     purchaseInProgress = false
                 }
@@ -231,7 +231,7 @@ struct PaywallView: View {
                 }
             }
         } catch {
-            print("❌ Purchase failed: \(error)")
+            AppLogger.logUI("[PAYWALL] Purchase failed: \(error)", level: .error)
             await MainActor.run {
                 errorMessage = "Purchase failed: \(error.localizedDescription)"
                 purchaseInProgress = false
@@ -248,7 +248,7 @@ struct ProductCard: View {
 
     var body: some View {
         Button(action: {
-            print("🛒 Product card tapped: \(product.displayName)")
+            AppLogger.logUI("[PAYWALL] Product card tapped: \(product.displayName)")
             onPurchase()
         }) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -351,6 +351,6 @@ struct SubscriptionCard: View {
 
 #Preview {
     PaywallView(onComplete: {
-        print("Paywall completed!")
+        AppLogger.logUI("Paywall completed!")
     })
 }

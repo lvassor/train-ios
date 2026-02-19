@@ -37,8 +37,7 @@ class DynamicProgramGenerator {
     private let exerciseRepo = ExerciseRepository()
 
     init() {
-        print("🔧 DynamicProgramGenerator init() called")
-        print("🔧 ExerciseRepository created")
+        AppLogger.logProgram("DynamicProgramGenerator init() called, ExerciseRepository created")
     }
 
     // MARK: - Main Generation Function
@@ -47,12 +46,7 @@ class DynamicProgramGenerator {
     func generateProgramWithWarnings(from questionnaireData: QuestionnaireData) throws -> ProgramGenerationResult {
         var allWarnings: [ExerciseSelectionWarning] = []
 
-        print("🏋️ Generating dynamic program from questionnaire data...")
-        print("   Days per week: \(questionnaireData.trainingDaysPerWeek)")
-        print("   Experience (raw): \(questionnaireData.experienceLevel)")
-        print("   Goals: \(questionnaireData.primaryGoals.joined(separator: ", "))")
-        print("   📦 Equipment from questionnaire: \(questionnaireData.equipmentAvailable)")
-        print("   🔗 Attachments from questionnaire: \(questionnaireData.detailedEquipment["attachments"] ?? [])")
+        AppLogger.logProgram("Generating dynamic program - Days: \(questionnaireData.trainingDaysPerWeek), Experience: \(questionnaireData.experienceLevel), Goals: \(questionnaireData.primaryGoals.joined(separator: ", ")), Equipment: \(questionnaireData.equipmentAvailable), Attachments: \(questionnaireData.detailedEquipment["attachments"] ?? [])")
 
         // Map questionnaire data to program parameters
         let experienceLevel = ExperienceLevel.fromQuestionnaire(questionnaireData.experienceLevel)
@@ -72,15 +66,11 @@ class DynamicProgramGenerator {
             allWarnings.append(.attachmentWarning)
         }
 
-        print("   🔄 Experience mapped to: \(experienceLevel)")
-        print("   🔄 Equipment mapped to DB values: \(availableEquipment)")
-        print("   🔄 Attachments mapped to DB values: \(availableAttachments)")
+        AppLogger.logProgram("Mapped - Experience: \(experienceLevel), Equipment: \(availableEquipment), Attachments: \(availableAttachments)")
 
         // Get complexity rules for this user (hardcoded based on experience level)
         let complexityRules = experienceLevel.complexityRules
-        print("   Max complexity: \(complexityRules.maxComplexity)")
-        print("   Max complexity-4 per session: \(complexityRules.maxComplexity4PerSession)")
-        print("   Complexity-4 must be first: \(complexityRules.complexity4MustBeFirst)")
+        AppLogger.logProgram("Complexity rules - Max: \(complexityRules.maxComplexity), Max-4/session: \(complexityRules.maxComplexity4PerSession), 4-must-be-first: \(complexityRules.complexity4MustBeFirst)")
 
         // Generate sessions based on split type (with warnings)
         let (sessions, sessionWarnings) = try generateSessionsWithWarnings(
@@ -98,12 +88,12 @@ class DynamicProgramGenerator {
         allWarnings.append(contentsOf: sessionWarnings)
 
         // ROBUSTNESS: Ensure each session has at least one exercise
-        print("🔍 Validating generated sessions...")
+        AppLogger.logProgram("Validating generated sessions...")
         var robustSessions: [ProgramSession] = []
         for (index, session) in sessions.enumerated() {
-            print("   Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
+            AppLogger.logProgram("Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
             if session.exercises.isEmpty {
-                print("   🔄 Empty session detected for '\(session.dayName)' - adding emergency fallback exercises")
+                AppLogger.logProgram("Empty session detected for '\(session.dayName)' - adding emergency fallback exercises", level: .warning)
 
                 // Emergency fallback: add basic bodyweight exercises
                 let emergencyExercises = createEmergencyExercises(
@@ -120,7 +110,7 @@ class DynamicProgramGenerator {
 
                 // Add warning for emergency fallback
                 allWarnings.append(ExerciseSelectionWarning.equipmentLimitedSelection(muscle: "Emergency Fallback"))
-                print("   ✅ Added \(emergencyExercises.count) emergency exercises to '\(session.dayName)'")
+                AppLogger.logProgram("Added \(emergencyExercises.count) emergency exercises to '\(session.dayName)'")
             } else {
                 robustSessions.append(session)
             }
@@ -160,26 +150,17 @@ class DynamicProgramGenerator {
             totalWeeks: 8
         )
 
-        print("✅ Dynamic program generated successfully!")
-        print("   Program: \(splitType.description)")
-        print("   Sessions: \(sessions.count)")
-        print("   Total exercises: \(sessions.reduce(0) { $0 + $1.exercises.count })")
-        print("   Fill rates: \(sessionFillRates.map { String(format: "%.1f%%", $0) }.joined(separator: ", "))")
-        print("   Low fill warning: \(lowFillWarning)")
-        print("   Repeat warning: \(hasRepeats)")
+        AppLogger.logProgram("Dynamic program generated successfully! Program: \(splitType.description), Sessions: \(sessions.count), Total exercises: \(sessions.reduce(0) { $0 + $1.exercises.count }), Fill rates: \(sessionFillRates.map { String(format: "%.1f%%", $0) }.joined(separator: ", ")), Low fill: \(lowFillWarning), Repeats: \(hasRepeats)")
         if !allWarnings.isEmpty {
-            print("⚠️ Warnings: \(allWarnings.count)")
+            AppLogger.logProgram("Warnings: \(allWarnings.count)", level: .warning)
         }
 
         // Debug: Print full program details
-        print("\n📋 FULL PROGRAM BREAKDOWN:")
+        AppLogger.logProgram("FULL PROGRAM BREAKDOWN:")
         for session in sessions {
-            print("   \(session.dayName):")
-            for exercise in session.exercises {
-                print("      - \(exercise.exerciseName) (complexity: \(exercise.complexityLevel), equipment: \(exercise.equipmentType))")
-            }
+            let exerciseList = session.exercises.map { "\($0.exerciseName) (complexity: \($0.complexityLevel), equipment: \($0.equipmentType))" }.joined(separator: ", ")
+            AppLogger.logProgram("\(session.dayName): \(exerciseList)")
         }
-        print("")
 
         return ProgramGenerationResult(
             program: program,
@@ -191,10 +172,7 @@ class DynamicProgramGenerator {
 
     /// Legacy method for backward compatibility
     func generateProgram(from questionnaireData: QuestionnaireData) throws -> Program {
-        print("🏋️ Generating dynamic program from questionnaire data...")
-        print("   Days per week: \(questionnaireData.trainingDaysPerWeek)")
-        print("   Experience: \(questionnaireData.experienceLevel)")
-        print("   Goals: \(questionnaireData.primaryGoals.joined(separator: ", "))")
+        AppLogger.logProgram("Generating dynamic program (legacy) - Days: \(questionnaireData.trainingDaysPerWeek), Experience: \(questionnaireData.experienceLevel), Goals: \(questionnaireData.primaryGoals.joined(separator: ", "))")
 
         // Map questionnaire data to program parameters
         let experienceLevel = ExperienceLevel.fromQuestionnaire(questionnaireData.experienceLevel)
@@ -207,7 +185,7 @@ class DynamicProgramGenerator {
 
         // Get complexity rules for this user (hardcoded based on experience level)
         let complexityRules = experienceLevel.complexityRules
-        print("   Max complexity: \(complexityRules.maxComplexity)")
+        AppLogger.logProgram("Max complexity: \(complexityRules.maxComplexity)")
 
         // Generate sessions based on split type
         let sessions = try generateSessions(
@@ -223,12 +201,12 @@ class DynamicProgramGenerator {
         )
 
         // ROBUSTNESS: Ensure each session has at least one exercise (legacy method)
-        print("🔍 Validating generated sessions...")
+        AppLogger.logProgram("Validating generated sessions (legacy)...")
         var robustSessions: [ProgramSession] = []
         for (index, session) in sessions.enumerated() {
-            print("   Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
+            AppLogger.logProgram("Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
             if session.exercises.isEmpty {
-                print("   🔄 Empty session detected for '\(session.dayName)' - adding emergency fallback exercises")
+                AppLogger.logProgram("Empty session detected for '\(session.dayName)' - adding emergency fallback exercises", level: .warning)
 
                 // Emergency fallback: add basic bodyweight exercises
                 let emergencyExercises = createEmergencyExercises(
@@ -242,7 +220,7 @@ class DynamicProgramGenerator {
                     exercises: emergencyExercises
                 )
                 robustSessions.append(robustSession)
-                print("   ✅ Added \(emergencyExercises.count) emergency exercises to '\(session.dayName)'")
+                AppLogger.logProgram("Added \(emergencyExercises.count) emergency exercises to '\(session.dayName)'")
             } else {
                 robustSessions.append(session)
             }
@@ -256,10 +234,7 @@ class DynamicProgramGenerator {
             totalWeeks: 8
         )
 
-        print("✅ Dynamic program generated successfully!")
-        print("   Program: \(splitType.description)")
-        print("   Sessions: \(sessions.count)")
-        print("   Total exercises: \(sessions.reduce(0) { $0 + $1.exercises.count })")
+        AppLogger.logProgram("Dynamic program generated successfully (legacy)! Program: \(splitType.description), Sessions: \(sessions.count), Total exercises: \(sessions.reduce(0) { $0 + $1.exercises.count })")
 
         return program
     }
@@ -410,12 +385,9 @@ class DynamicProgramGenerator {
             let requireComplexity4First = complexityRules.complexity4MustBeFirst
 
             // Select exercises from database using new scoring system
-            print("🔍 Selecting exercises for: \(muscleGroup.muscle) (need \(targetCount))")
-            print("   Equipment: \(availableEquipment)")
-            print("   Injuries: \(userInjuries)")
-            print("   Already used: \(usedExerciseIds.count) exercises")
+            AppLogger.logProgram("Selecting exercises for: \(muscleGroup.muscle) (need \(targetCount)) - Equipment: \(availableEquipment), Injuries: \(userInjuries), Already used: \(usedExerciseIds.count)")
 
-            print("   🚫 Session canonical names already used: \(sessionCanonicalNames)")
+            AppLogger.logProgram("Session canonical names already used: \(sessionCanonicalNames)")
 
             // Try to select exercises with full constraints first
             let result: ExerciseSelectionResult
@@ -435,8 +407,7 @@ class DynamicProgramGenerator {
                     requireComplexity4First: requireComplexity4First
                 )
             } catch {
-                print("   🔄 Database error for \(muscleGroup.muscle): \(error.localizedDescription)")
-                print("   🔄 Attempting fallback selection with relaxed constraints...")
+                AppLogger.logProgram("Database error for \(muscleGroup.muscle): \(error.localizedDescription) - Attempting fallback with relaxed constraints...", level: .warning)
 
                 // Fallback: Try with relaxed constraints
                 do {
@@ -454,9 +425,9 @@ class DynamicProgramGenerator {
                         allowComplexity4: false,
                         requireComplexity4First: false
                     )
-                    print("   ✅ Fallback selection found \(result.exercises.count) exercises for \(muscleGroup.muscle)")
+                    AppLogger.logProgram("Fallback selection found \(result.exercises.count) exercises for \(muscleGroup.muscle)")
                 } catch {
-                    print("   ❌ Fallback also failed for \(muscleGroup.muscle): \(error.localizedDescription)")
+                    AppLogger.logProgram("Fallback also failed for \(muscleGroup.muscle): \(error.localizedDescription)", level: .error)
                     // Last resort: create empty result but program will still continue
                     result = ExerciseSelectionResult(exercises: [], warnings: [
                         ExerciseSelectionWarning.noExercisesForMuscle(muscle: muscleGroup.muscle)
@@ -467,9 +438,9 @@ class DynamicProgramGenerator {
             // Collect warnings
             sessionWarnings.append(contentsOf: result.warnings)
 
-            print("   ✅ Found \(result.exercises.count) exercises for \(muscleGroup.muscle)")
+            AppLogger.logProgram("Found \(result.exercises.count) exercises for \(muscleGroup.muscle)")
             if result.exercises.isEmpty {
-                print("   ⚠️  NO EXERCISES FOUND for \(muscleGroup.muscle) - session will skip this muscle group")
+                AppLogger.logProgram("NO EXERCISES FOUND for \(muscleGroup.muscle) - session will skip this muscle group", level: .warning)
             }
 
             // Convert to ProgramExercise with sets/reps based on goal
@@ -483,7 +454,7 @@ class DynamicProgramGenerator {
                 usedExerciseIds.insert(dbExercise.exerciseId)
                 usedDisplayNames.insert(dbExercise.displayName)
                 sessionCanonicalNames.insert(dbExercise.canonicalName)  // Session-level dedup
-                print("      ➕ Added: \(dbExercise.displayName) (canonical: \(dbExercise.canonicalName))")
+                AppLogger.logProgram("Added: \(dbExercise.displayName) (canonical: \(dbExercise.canonicalName))")
 
                 // Track if we added a complexity-4 exercise
                 if dbExercise.numericComplexity == 4 {
@@ -566,7 +537,10 @@ class DynamicProgramGenerator {
     }
 
     private func randomChoice<T>(_ options: [T]) -> T {
-        return options.randomElement() ?? options.first!
+        guard let choice = options.randomElement() else {
+            fatalError("randomChoice called with empty array")
+        }
+        return choice
     }
 
     private func getRestSecondsFromRating(_ canonicalRating: Int) -> Int {
@@ -1132,7 +1106,7 @@ class DynamicProgramGenerator {
         experienceLevel: ExperienceLevel
     ) -> [ProgramExercise] {
 
-        print("🚨 Creating emergency exercises for session: \(sessionName)")
+        AppLogger.logProgram("Creating emergency exercises for session: \(sessionName)", level: .warning)
 
         // For emergency exercises, use simple defaults since we don't have canonical_rating
         let repRange = "8-12" // Default rep range for bodyweight exercises
@@ -1179,7 +1153,7 @@ class DynamicProgramGenerator {
             ]
         }
 
-        print("   🚨 Emergency exercises created: \(emergencyExercises.map { $0.exerciseName }.joined(separator: ", "))")
+        AppLogger.logProgram("Emergency exercises created: \(emergencyExercises.map { $0.exerciseName }.joined(separator: ", "))")
         return emergencyExercises
     }
 

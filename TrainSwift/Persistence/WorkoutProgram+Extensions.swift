@@ -41,7 +41,7 @@ extension WorkoutProgram {
         do {
             return try context.fetch(request).first
         } catch {
-            print("❌ Failed to fetch current program: \(error)")
+            AppLogger.logDatabase("Failed to fetch current program: \(error)", level: .error)
             return nil
         }
     }
@@ -54,7 +54,7 @@ extension WorkoutProgram {
         do {
             return try context.fetch(request).first
         } catch {
-            print("❌ Failed to fetch program by ID: \(error)")
+            AppLogger.logDatabase("Failed to fetch program by ID: \(error)", level: .error)
             return nil
         }
     }
@@ -67,7 +67,7 @@ extension WorkoutProgram {
         do {
             return try context.fetch(request)
         } catch {
-            print("❌ Failed to fetch all programs: \(error)")
+            AppLogger.logDatabase("Failed to fetch all programs: \(error)", level: .error)
             return []
         }
     }
@@ -80,7 +80,7 @@ extension WorkoutProgram {
         do {
             return try context.fetch(request)
         } catch {
-            print("❌ Failed to fetch inactive programs: \(error)")
+            AppLogger.logDatabase("Failed to fetch inactive programs: \(error)", level: .error)
             return []
         }
     }
@@ -100,7 +100,7 @@ extension WorkoutProgram {
             let sortedPrograms = existingPrograms.sorted { $0.createdAt ?? Date.distantPast < $1.createdAt ?? Date.distantPast }
             if let oldestProgram = sortedPrograms.first {
                 context.delete(oldestProgram)
-                print("🗑️ Deleted oldest program to maintain 2 program limit")
+                AppLogger.logDatabase("Deleted oldest program to maintain 2 program limit")
             }
         }
 
@@ -131,7 +131,7 @@ extension WorkoutProgram {
     func activate(context: NSManagedObjectContext) {
         // Ensure userId is not nil
         guard let userId = userId else {
-            print("❌ Cannot activate program: userId is nil")
+            AppLogger.logDatabase("Cannot activate program: userId is nil", level: .error)
             return
         }
 
@@ -143,7 +143,7 @@ extension WorkoutProgram {
 
         // Activate this program
         isActive = true
-        print("✅ Activated program: \(name ?? "Unknown")")
+        AppLogger.logDatabase("Activated program: \(name ?? "Unknown")")
     }
 
     // MARK: - Helper Methods
@@ -157,14 +157,14 @@ extension WorkoutProgram {
 
         guard let data = exercisesData else {
             #if DEBUG
-            print("❌ getProgram() failed: exercisesData is nil")
+            AppLogger.logDatabase("getProgram() failed: exercisesData is nil", level: .error)
             #endif
             return nil
         }
 
         guard let sessions = try? JSONDecoder().decode([ProgramSession].self, from: data) else {
             #if DEBUG
-            print("❌ getProgram() failed: Could not decode sessions from JSON")
+            AppLogger.logDatabase("getProgram() failed: Could not decode sessions from JSON", level: .error)
             #endif
             return nil
         }
@@ -199,7 +199,7 @@ extension WorkoutProgram {
         programCache.setObject(ProgramWrapper(program), forKey: cacheKey)
 
         #if DEBUG
-        print("✅ getProgram() decoded and cached: \(programType.description), \(sessions.count) sessions")
+        AppLogger.logDatabase("getProgram() decoded and cached: \(programType.description), \(sessions.count) sessions")
         #endif
 
         return program

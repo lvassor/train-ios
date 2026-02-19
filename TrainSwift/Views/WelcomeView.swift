@@ -181,22 +181,21 @@ struct WelcomeView: View {
 // MARK: - Debug Logging Helper
 
 private func welcomeDebugLog(_ category: String, _ action: String, _ params: [String: String] = [:]) {
-    let timestamp = Date().formatted(date: .omitted, time: .standard)
-    var message = "🔍 [WELCOME-\(category)] \(action)"
+    var message = "[WELCOME-\(category)] \(action)"
     if !params.isEmpty {
         let paramString = params.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: " | ")
         message += " | \(paramString)"
     }
-    print("[\(timestamp)] \(message)")
+    AppLogger.logUI(message)
 }
 
 #Preview {
     WelcomeView(
         onContinue: {
-            print("Continue tapped")
+            AppLogger.logUI("Continue tapped")
         },
         onLogin: {
-            print("Login tapped")
+            AppLogger.logUI("Login tapped")
         }
     )
 }

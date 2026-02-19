@@ -71,6 +71,6 @@ struct AccountCreationLoadingView: View {
 
 #Preview {
     AccountCreationLoadingView(onComplete: {
-        print("Account creation complete!")
+        AppLogger.logUI("Account creation complete!")
     })
 }

@@ -72,7 +72,7 @@ struct NotificationPermissionView: View {
 
                     // Skip Button
                     Button(action: {
-                        print("📲 [NOTIFICATIONS] User skipped notification permission")
+                        AppLogger.logUI("[NOTIFICATIONS] User skipped notification permission")
                         onContinue()
                     }) {
                         Text("Maybe Later")
@@ -87,7 +87,7 @@ struct NotificationPermissionView: View {
             }
         }
         .onAppear {
-            print("📲 [NOTIFICATIONS] NotificationPermissionView appeared")
+            AppLogger.logUI("[NOTIFICATIONS] NotificationPermissionView appeared")
             // Check current permission status
             checkNotificationPermissionStatus()
         }
@@ -98,13 +98,13 @@ struct NotificationPermissionView: View {
             DispatchQueue.main.async {
                 switch settings.authorizationStatus {
                 case .authorized:
-                    print("📲 [NOTIFICATIONS] Already authorized - auto-continuing")
+                    AppLogger.logUI("[NOTIFICATIONS] Already authorized - auto-continuing")
                     permissionGranted = true
                     onContinue()
                 case .denied:
-                    print("📲 [NOTIFICATIONS] Previously denied")
+                    AppLogger.logUI("[NOTIFICATIONS] Previously denied")
                 case .notDetermined:
-                    print("📲 [NOTIFICATIONS] Not determined - showing permission request")
+                    AppLogger.logUI("[NOTIFICATIONS] Not determined - showing permission request")
                 default:
                     break
                 }
@@ -113,7 +113,7 @@ struct NotificationPermissionView: View {
     }
 
     private func requestNotificationPermission() {
-        print("📲 [NOTIFICATIONS] Requesting notification permission...")
+        AppLogger.logUI("[NOTIFICATIONS] Requesting notification permission...")
         isProcessingPermission = true
 
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
@@ -121,16 +121,16 @@ struct NotificationPermissionView: View {
                 isProcessingPermission = false
 
                 if let error = error {
-                    print("📲 [NOTIFICATIONS] Error requesting permission: \(error)")
+                    AppLogger.logUI("[NOTIFICATIONS] Error requesting permission: \(error)", level: .error)
                 } else if granted {
-                    print("📲 [NOTIFICATIONS] ✅ Permission granted")
+                    AppLogger.logUI("[NOTIFICATIONS] Permission granted")
                     permissionGranted = true
                 } else {
-                    print("📲 [NOTIFICATIONS] ❌ Permission denied")
+                    AppLogger.logUI("[NOTIFICATIONS] Permission denied", level: .warning)
                 }
 
                 // Continue regardless of permission result
-                print("📲 [NOTIFICATIONS] Proceeding to next step")
+                AppLogger.logUI("[NOTIFICATIONS] Proceeding to next step")
                 onContinue()
             }
         }
@@ -140,7 +140,7 @@ struct NotificationPermissionView: View {
 #Preview {
     NotificationPermissionView(
         onContinue: {
-            print("Continue tapped")
+            AppLogger.logUI("Continue tapped")
         }
     )
 }

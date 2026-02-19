@@ -187,7 +187,7 @@ struct HealthProfileStepView: View {
         .onAppear {
             // Check if HealthKit is available
             if !healthKitManager.isAvailable {
-                print("HealthKit not available on this device")
+                AppLogger.logUI("HealthKit not available on this device", level: .warning)
             }
         }
     }

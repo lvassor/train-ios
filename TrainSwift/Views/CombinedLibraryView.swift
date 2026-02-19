@@ -238,7 +238,7 @@ struct ExerciseLibraryContent: View {
                     isLoading = false
                 }
             } catch {
-                print("Error loading exercises: \(error)")
+                AppLogger.logDatabase("Error loading exercises: \(error)", level: .error)
                 await MainActor.run {
                     isLoading = false
                 }

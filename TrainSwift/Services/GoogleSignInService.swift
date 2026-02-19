@@ -48,7 +48,7 @@ class GoogleSignInService: NSObject, ObservableObject {
         // }
         //
         // GoogleSignIn.shared.configuration = GIDConfiguration(clientID: clientId)
-        print("⚠️ GoogleSignInService: SDK not integrated yet")
+        AppLogger.logAuth("GoogleSignInService: SDK not integrated yet", level: .warning)
     }
 
     // MARK: - Sign In Request
@@ -104,7 +104,7 @@ class GoogleSignInService: NSObject, ObservableObject {
     func signOut() {
         // TODO: Implement when GoogleSignIn SDK is added
         // GIDSignIn.sharedInstance.signOut()
-        print("⚠️ GoogleSignInService: Sign out not implemented yet")
+        AppLogger.logAuth("GoogleSignInService: Sign out not implemented yet", level: .warning)
     }
 
     // MARK: - Check Authentication State

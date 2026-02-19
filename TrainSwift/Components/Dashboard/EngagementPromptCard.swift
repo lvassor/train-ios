@@ -47,7 +47,7 @@ struct EngagementPromptCard: View {
         title: "Leave us a review!",
         description: "Help other athletes discover train by sharing your experience on the App Store",
         action: {
-            print("Tapped engagement prompt")
+            AppLogger.logUI("Tapped engagement prompt")
         }
     )
 

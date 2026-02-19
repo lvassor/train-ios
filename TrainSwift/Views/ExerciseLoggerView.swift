@@ -232,7 +232,7 @@ struct ExerciseLoggerView: View {
                     }
                 }
             } catch {
-                print("❌ Error loading exercise details: \(error)")
+                AppLogger.logUI("Error loading exercise details: \(error)", level: .error)
             }
         }
     }
@@ -1121,6 +1121,8 @@ struct ExerciseDemoTab: View {
     let exercise: DBExercise
     @Environment(\.colorScheme) var colorScheme
 
+    private static let stepPrefixRegex = try? NSRegularExpression(pattern: "^Step\\s*\\d+\\s*:\\s*", options: .caseInsensitive)
+
     // Get the list of equipment items from the exercise
     private var equipmentItems: [String] {
         // Parse equipment from category and specific fields
@@ -1374,12 +1376,9 @@ struct DemoInstructionsCard: View {
 
     // Clean up step text by removing "Step X:" prefix
     private func cleanStepText(_ step: String) -> String {
-        let pattern = "^Step\\s*\\d+\\s*:\\s*"
-        if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-            let range = NSRange(step.startIndex..., in: step)
-            return regex.stringByReplacingMatches(in: step, options: [], range: range, withTemplate: "")
-        }
-        return step
+        guard let regex = Self.stepPrefixRegex else { return step }
+        let range = NSRange(step.startIndex..., in: step)
+        return regex.stringByReplacingMatches(in: step, options: [], range: range, withTemplate: "")
     }
 }
 
