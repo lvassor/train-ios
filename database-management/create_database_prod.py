@@ -2,11 +2,11 @@
 """
 Exercise Database Generator v5
 ==============================
-This script creates a SQLite database directly in trAInSwift/Resources/ from:
+This script creates a SQLite database directly in TrainSwift/Resources/ from:
 - train_exercise_database_prod.csv (exercises data)
-- exercise_instructions_complete.csv (instructions data - joined by exercise_id)
+- exercise_instructions_prod.csv (instructions data - joined by exercise_id)
 - train_exercise_contraindications_prod.csv (contraindications data)
-- exercise_video_mapping.csv (video URLs)
+- exercise_video_mapping_prod.csv (video URLs)
 - constants.json (centralized mappings and equipment validation)
 
 Usage:
@@ -16,7 +16,7 @@ Requirements:
     - pandas (install with: pip install pandas)
 
 Output:
-    - trAInSwift/Resources/exercises.db (SQLite database ready for iOS)
+    - TrainSwift/Resources/exercises.db (SQLite database ready for iOS)
 """
 
 import sqlite3
@@ -27,19 +27,19 @@ import shutil
 import json
 
 def load_constants():
-    """Load constants from JSON file (from trAInSwift/Resources/)."""
+    """Load constants from JSON file (from TrainSwift/Resources/)."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
     if os.path.basename(script_dir) == 'database-management':
-        constants_path = os.path.join(script_dir, '..', 'trAInSwift', 'Resources', 'constants.json')
+        constants_path = os.path.join(script_dir, '..', 'TrainSwift', 'Resources', 'constants.json')
     else:
-        constants_path = os.path.join(script_dir, 'trAInSwift', 'Resources', 'constants.json')
+        constants_path = os.path.join(script_dir, 'TrainSwift', 'Resources', 'constants.json')
 
     try:
         with open(constants_path, 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         print(f"❌ Error: constants.json not found at {constants_path}!")
-        print("   Please ensure constants.json exists in trAInSwift/Resources/.")
+        print("   Please ensure constants.json exists in TrainSwift/Resources/.")
         sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"❌ Error: Invalid JSON in constants.json: {e}")
@@ -89,8 +89,8 @@ def create_database():
     required_files = [
         'train_exercise_database_prod.csv',
         'train_exercise_contraindications_prod.csv',
-        'exercise_video_mapping.csv',
-        'exercise_instructions_complete.csv'
+        'exercise_video_mapping_prod.csv',
+        'exercise_instructions_prod.csv'
     ]
 
     for file in required_files:
@@ -103,9 +103,9 @@ def create_database():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     # Check if we're in database-management subdirectory or root
     if os.path.basename(script_dir) == 'database-management':
-        resources_dir = os.path.join(script_dir, '..', 'trAInSwift', 'Resources')
+        resources_dir = os.path.join(script_dir, '..', 'TrainSwift', 'Resources')
     else:
-        resources_dir = os.path.join(script_dir, 'trAInSwift', 'Resources')
+        resources_dir = os.path.join(script_dir, 'TrainSwift', 'Resources')
     final_db_path = os.path.join(resources_dir, 'exercises.db')
 
     # Create Resources directory if it doesn't exist
@@ -168,7 +168,6 @@ def create_database():
         media_type TEXT NOT NULL CHECK(media_type IN ('vid', 'img')),
         filename TEXT NOT NULL,
         bunny_url TEXT NOT NULL,
-        note TEXT,
         FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id)
     )
     ''')
@@ -205,8 +204,8 @@ def create_database():
     df_exercises = pd.read_csv('train_exercise_database_prod.csv')
 
     # Import instructions from separate CSV and join
-    df_instructions = pd.read_csv('exercise_instructions_complete.csv')
-    print(f"   📄 Loaded {len(df_instructions)} instructions from exercise_instructions_complete.csv")
+    df_instructions = pd.read_csv('exercise_instructions_prod.csv')
+    print(f"   📄 Loaded {len(df_instructions)} instructions from exercise_instructions_prod.csv")
 
     # If exercises CSV has an instructions column, we'll override it with the joined data
     if 'instructions' in df_exercises.columns:
@@ -345,7 +344,7 @@ def create_database():
     print(f"   ✅ {len(df_contra_valid)} contraindications imported (from {len(df_contra)} total records)")
 
     # Import video mappings from CSV
-    df_videos = pd.read_csv('exercise_video_mapping.csv')
+    df_videos = pd.read_csv('exercise_video_mapping_prod.csv')
     bunny_base_url = constants['video_config']['bunny_base_url']
 
     video_imported_count = 0
@@ -356,15 +355,14 @@ def create_database():
 
         bunny_url = f"{bunny_base_url}{row['filename']}"
         cursor.execute('''
-            INSERT INTO exercise_videos (exercise_id, supplier_id, media_type, filename, bunny_url, note)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO exercise_videos (exercise_id, supplier_id, media_type, filename, bunny_url)
+            VALUES (?, ?, ?, ?, ?)
         ''', (
             row['exercise_id'],
             row['supplier_id'] if pd.notna(row['supplier_id']) else None,
             row['media_type'],
             row['filename'],
             bunny_url,
-            row['note'] if pd.notna(row['note']) else None
         ))
         video_imported_count += 1
 

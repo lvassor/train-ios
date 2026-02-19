@@ -153,7 +153,6 @@ struct DBExerciseVideo: Codable, FetchableRecord, TableRecord, Identifiable {
     let mediaType: String              // "vid" or "img"
     let filename: String
     let bunnyUrl: String              // Full bunny.net URL
-    let note: String?
 
     enum Columns {
         static let id = Column("id")
@@ -162,7 +161,6 @@ struct DBExerciseVideo: Codable, FetchableRecord, TableRecord, Identifiable {
         static let mediaType = Column("media_type")
         static let filename = Column("filename")
         static let bunnyUrl = Column("bunny_url")
-        static let note = Column("note")
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -172,7 +170,6 @@ struct DBExerciseVideo: Codable, FetchableRecord, TableRecord, Identifiable {
         case mediaType = "media_type"
         case filename
         case bunnyUrl = "bunny_url"
-        case note
     }
 
     /// Check if this is a video file
