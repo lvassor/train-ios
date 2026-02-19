@@ -52,6 +52,8 @@ struct WorkoutOverviewView: View {
     @State private var sessionExercises: [ProgramExercise] = [] // Mutable copy for swapping
     @State private var isEditing = false  // Edit mode for reordering, swap, remove
     @State private var exerciseToRemove: ProgramExercise? = nil  // For remove confirmation
+    @State private var showExercisePickerInOverview = false
+    @State private var hasAddedExerciseInOverview = false
 
     // Live Activity Manager
     @ObservedObject private var liveActivityManager = WorkoutLiveActivityManager.shared
@@ -157,6 +159,26 @@ struct WorkoutOverviewView: View {
                                 gender: userGender
                             )
                             .padding(.horizontal, Spacing.lg)
+
+                            // Add Exercise button - only visible in edit mode
+                            if isEditing && !hasAddedExerciseInOverview {
+                                Button(action: {
+                                    showExercisePickerInOverview = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "plus")
+                                            .font(.system(size: 16))
+                                        Text("Add Exercise")
+                                            .font(.system(size: 16, weight: .medium))
+                                    }
+                                    .foregroundColor(.trainPrimary)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(Color.trainPrimary.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                }
+                                .padding(.horizontal, Spacing.lg)
+                            }
                         }
                         .padding(.bottom, 20) // Small padding for scroll content
                     }
@@ -308,6 +330,26 @@ struct WorkoutOverviewView: View {
                 Text("This will permanently remove \"\(exercise.exerciseName)\" from your programme.\n\nIf you only want to skip it today, complete the sets with empty values instead.")
             }
         }
+        .sheet(isPresented: $showExercisePickerInOverview) {
+            ExercisePickerView(
+                sessionMuscleGroups: Array(Set(sessionExercises.map { $0.primaryMuscle })).sorted(),
+                existingExerciseIds: Set(sessionExercises.map { $0.exerciseId }),
+                onSelect: { newExercise in
+                    // Insert at correct position based on complexity (compounds first)
+                    let insertIndex = sessionExercises.firstIndex(where: {
+                        $0.complexityLevel < newExercise.complexityLevel
+                    }) ?? sessionExercises.endIndex
+                    sessionExercises.insert(newExercise, at: insertIndex)
+                    // Initialize logged exercise for the new addition
+                    loggedExercises[newExercise.id] = LoggedExercise(
+                        exerciseName: newExercise.exerciseName,
+                        sets: (0..<newExercise.sets).map { _ in LoggedSet() },
+                        notes: ""
+                    )
+                    hasAddedExerciseInOverview = true
+                }
+            )
+        }
         .onAppear {
             initializeSessionExercises()
             initializeLoggedExercises()
@@ -334,7 +376,8 @@ struct WorkoutOverviewView: View {
             if workoutStarted && workoutState.isWorkoutActive {
                 workoutState.updateWorkoutProgress(
                     completedExercises: completedExercises,
-                    loggedExercises: loggedExercises
+                    loggedExercises: loggedExercises,
+                    modifiedExercises: sessionExercises
                 )
             }
         }
@@ -441,8 +484,17 @@ struct WorkoutOverviewView: View {
 
     private func initializeSessionExercises() {
         guard let validSession = session else { return }
-        // Create mutable copy of exercises for swapping
-        sessionExercises = validSession.exercises
+        // Only initialize if empty (prevents overwriting edits when re-appearing from logger)
+        if sessionExercises.isEmpty {
+            // Check for modified exercises from active workout state first
+            if let activeWorkout = workoutState.activeWorkout,
+               activeWorkout.sessionIndex == sessionIndex,
+               let modified = activeWorkout.modifiedExercises {
+                sessionExercises = modified
+            } else {
+                sessionExercises = validSession.exercises
+            }
+        }
     }
 
     private func removeExercise(_ exercise: ProgramExercise) {
@@ -456,11 +508,14 @@ struct WorkoutOverviewView: View {
 
     private func initializeLoggedExercises() {
         for exercise in sessionExercises {
-            loggedExercises[exercise.id] = LoggedExercise(
-                exerciseName: exercise.exerciseName,
-                sets: (0..<exercise.sets).map { _ in LoggedSet() },
-                notes: ""
-            )
+            // Only create logged exercise if one doesn't already exist (prevents overwriting data)
+            if loggedExercises[exercise.id] == nil {
+                loggedExercises[exercise.id] = LoggedExercise(
+                    exerciseName: exercise.exerciseName,
+                    sets: (0..<exercise.sets).map { _ in LoggedSet() },
+                    notes: ""
+                )
+            }
         }
     }
 
@@ -536,7 +591,7 @@ struct WorkoutOverviewView: View {
         let duration = Int(elapsedTime / 60)
         let exercisesToSave = Array(loggedExercises.values).filter { logged in
             completedExercises.contains(where: { id in
-                validSession.exercises.first(where: { $0.id == id })?.exerciseName == logged.exerciseName
+                sessionExercises.first(where: { $0.id == id })?.exerciseName == logged.exerciseName
             })
         }
 
@@ -969,6 +1024,7 @@ struct ExerciseOverviewCard: View {
                     .frame(height: 64)
                 }
                 .padding(16)
+                .contentShape(Rectangle()) // Make entire card area tappable
                 .padding(.top, isEditing ? 0 : 0) // No extra padding needed, drag handle has its own
             }
             .buttonStyle(ScaleButtonStyle())
@@ -982,7 +1038,11 @@ struct ExerciseOverviewCard: View {
         .background(
             contraindicatedInjury != nil
                 ? Color.gray.opacity(0.15)
-                : (isEditing ? Color.trainPrimary.opacity(0.08) : Color.trainSurface)
+                : (isEditing
+                    ? Color.trainPrimary.opacity(0.08)
+                    : (isCompleted
+                        ? Color.trainPrimary.opacity(0.08)
+                        : Color.trainSurface))
         )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.1), radius: 0, x: 0, y: 1)

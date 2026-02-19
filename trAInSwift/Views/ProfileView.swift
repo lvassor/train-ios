@@ -19,8 +19,7 @@ struct ProfileView: View {
     @State private var showProgramSelector = false
 
     var body: some View {
-        NavigationView {
-            ScrollView {
+        ScrollView {
                     VStack(spacing: Spacing.lg) {
                         // User Info
                         VStack(spacing: Spacing.md) {
@@ -120,7 +119,6 @@ struct ProfileView: View {
                         .foregroundColor(.trainPrimary)
                     }
                 }
-        }
         .appThemeBackground(theme: themeManager.activeTheme)
         .confirmationDialog("Log Out", isPresented: $showLogoutConfirmation, titleVisibility: .visible) {
             Button("Log Out", role: .destructive) {

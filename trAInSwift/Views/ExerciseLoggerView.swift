@@ -109,6 +109,14 @@ struct ExerciseLoggerView: View {
                         }
                     }
 
+                // Inline rest timer - persists across tab switches
+                InlineRestTimer(
+                    totalSeconds: restTimerController.restSeconds,
+                    isActive: $restTimerController.isActive
+                )
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.sm)
+
                 // Content - fills remaining space
                 Group {
                     if selectedTab == .logger {
@@ -175,7 +183,7 @@ struct ExerciseLoggerView: View {
                     Button(action: submitExercise) {
                         Text("Complete Exercise")
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(colorScheme == .dark ? .black : .white)
+                            .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(atLeastOneSetCompleted ? Color.trainPrimary : Color.trainDisabled)
@@ -478,12 +486,6 @@ struct SetLoggingCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Inline rest timer (appears at top when active)
-            InlineRestTimer(
-                totalSeconds: restTimerController.restSeconds,
-                isActive: $restTimerController.isActive
-            )
-
             // Warm-up suggestion header with rep counter
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -646,6 +648,19 @@ struct SimplifiedSetRow: View {
                 weightText = String(format: "%.1f", displayWeight)
             }
         }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button {
+                    isWeightFieldFocused = false
+                    isRepsFieldFocused = false
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.trainTextPrimary)
+                }
+            }
+        }
     }
 
     private func toggleCompletion() {
@@ -670,12 +685,6 @@ struct SetLoggingSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            // Inline rest timer (appears at top when active)
-            InlineRestTimer(
-                totalSeconds: restTimerController.restSeconds,
-                isActive: $restTimerController.isActive
-            )
-
             // Header with unit toggle
             HStack {
                 Text("Log Sets")
@@ -878,6 +887,19 @@ struct SetInputRow: View {
             if set.weight > 0 {
                 let displayWeight = newUnit == .kg ? set.weight : set.weight * 2.20462
                 weightText = String(format: "%.1f", displayWeight)
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button {
+                    isWeightFieldFocused = false
+                    isRepsFieldFocused = false
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.trainTextPrimary)
+                }
             }
         }
     }

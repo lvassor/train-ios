@@ -574,6 +574,9 @@ struct SessionActionButton: View {
     let isCompleted: Bool
     let hasBeenCompletedThisWeek: Bool
     @ObservedObject private var workoutState = WorkoutStateManager.shared
+    @ObservedObject private var authService = AuthService.shared
+    @State private var showWorkoutConflict = false
+    @State private var navigateToNewWorkout = false
 
     private var isActiveWorkout: Bool {
         guard let activeWorkout = workoutState.activeWorkout else { return false }
@@ -588,10 +591,14 @@ struct SessionActionButton: View {
         }
     }
 
+    private var hasConflict: Bool {
+        workoutState.isWorkoutActive && !isActiveWorkout
+    }
+
     var body: some View {
         VStack(spacing: Spacing.sm) {
             // Active workout indicator (if there's an active workout but it's a different session)
-            if workoutState.isWorkoutActive && !isActiveWorkout {
+            if hasConflict {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "timer")
                         .font(.system(size: 12))
@@ -606,24 +613,42 @@ struct SessionActionButton: View {
                 .clipShape(Capsule())
             }
 
-            // Start/Continue Workout button - orange accent color per Figma
-            NavigationLink(destination: WorkoutOverviewView(
-                weekNumber: Int(userProgram.currentWeek),
-                sessionIndex: sessionIndex
-            )) {
-                HStack {
-                    if isActiveWorkout {
-                        Image(systemName: "play.circle.fill")
-                            .font(.system(size: 18))
+            // Start/Continue Workout button
+            if hasConflict {
+                // Conflict: another workout is active — show warning instead of navigating
+                Button(action: {
+                    showWorkoutConflict = true
+                }) {
+                    HStack {
+                        Text("Start Workout")
+                            .font(.system(size: 18, weight: .medium))
                     }
-                    Text(buttonText)
-                        .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.trainPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(Color.trainPrimary)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            } else {
+                // Normal: no conflict, navigate directly
+                NavigationLink(destination: WorkoutOverviewView(
+                    weekNumber: Int(userProgram.currentWeek),
+                    sessionIndex: sessionIndex
+                )) {
+                    HStack {
+                        if isActiveWorkout {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 18))
+                        }
+                        Text(buttonText)
+                            .font(.system(size: 18, weight: .medium))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.trainPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
             }
 
             // Show View Completed Workout button below Start button if session has been completed this week
@@ -646,6 +671,51 @@ struct SessionActionButton: View {
                 }
             }
         }
+        .navigationDestination(isPresented: $navigateToNewWorkout) {
+            WorkoutOverviewView(
+                weekNumber: Int(userProgram.currentWeek),
+                sessionIndex: sessionIndex
+            )
+        }
+        .confirmationDialog(
+            "Active Workout in Progress",
+            isPresented: $showWorkoutConflict,
+            titleVisibility: .visible
+        ) {
+            Button("Abandon Current Workout", role: .destructive) {
+                workoutState.cancelWorkout()
+                navigateToNewWorkout = true
+            }
+            Button("Submit & Save Current Workout") {
+                saveAndSubmitActiveWorkout()
+                navigateToNewWorkout = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You have an active \"\(workoutState.activeWorkout?.sessionName ?? "")\" session in progress. Please submit or abandon it before starting a new workout.")
+        }
+    }
+
+    private func saveAndSubmitActiveWorkout() {
+        guard let activeWorkout = workoutState.activeWorkout else { return }
+
+        let duration = Int(Date().timeIntervalSince(activeWorkout.startTime) / 60)
+        let exercisesToSave = Array(activeWorkout.loggedExercises.values).filter { logged in
+            activeWorkout.completedExercises.contains(where: { id in
+                (activeWorkout.modifiedExercises ?? []).first(where: { $0.id == id })?.exerciseName == logged.exerciseName
+            })
+        }
+
+        if !exercisesToSave.isEmpty {
+            authService.addWorkoutSession(
+                sessionName: activeWorkout.sessionName,
+                weekNumber: activeWorkout.weekNumber,
+                exercises: exercisesToSave,
+                durationMinutes: duration
+            )
+        }
+
+        workoutState.completeWorkout()
     }
 }
 
@@ -1140,45 +1210,51 @@ struct ActiveWorkoutTimerView: View {
 
     var body: some View {
         if workoutState.shouldShowContinueButton {
-            HStack(spacing: Spacing.md) {
-                // Active workout indicator
-                HStack(spacing: Spacing.xs) {
-                    // Pulsing dot to indicate active workout
-                    Circle()
-                        .fill(Color.trainTextSecondary)
-                        .frame(width: 8, height: 8)
-                        .scaleEffect(1.2)
-                        .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: currentTime)
+            NavigationLink(destination: WorkoutOverviewView(
+                weekNumber: workoutState.activeWorkout?.weekNumber ?? 1,
+                sessionIndex: workoutState.activeWorkout?.sessionIndex ?? 0
+            )) {
+                HStack(spacing: Spacing.md) {
+                    // Active workout indicator
+                    HStack(spacing: Spacing.xs) {
+                        // Pulsing dot to indicate active workout
+                        Circle()
+                            .fill(Color.trainTextSecondary)
+                            .frame(width: 8, height: 8)
+                            .scaleEffect(1.2)
+                            .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: currentTime)
 
-                    Text("ACTIVE WORKOUT")
-                        .font(.trainCaption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.trainTextSecondary)
+                        Text("ACTIVE WORKOUT")
+                            .font(.trainCaption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.trainTextSecondary)
+                    }
+
+                    Spacer()
+
+                    // Live timer
+                    HStack(spacing: Spacing.xs) {
+                        Image(systemName: "timer")
+                            .font(.system(size: 14))
+                            .foregroundColor(.trainTextSecondary)
+
+                        Text(elapsedTimeFormatted)
+                            .font(.trainBodyMedium)
+                            .fontWeight(.medium)
+                            .foregroundColor(.trainTextPrimary)
+                            .monospacedDigit()
+                    }
                 }
-
-                Spacer()
-
-                // Live timer
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "timer")
-                        .font(.system(size: 14))
-                        .foregroundColor(.trainTextSecondary)
-
-                    Text(elapsedTimeFormatted)
-                        .font(.trainBodyMedium)
-                        .fontWeight(.medium)
-                        .foregroundColor(.trainTextPrimary)
-                        .monospacedDigit() // Ensures consistent width
-                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.md)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.lg))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.lg)
+                        .stroke(Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
+                )
+                .padding(.horizontal, Spacing.lg)
             }
-            .padding(.horizontal, Spacing.lg)
-            .padding(.vertical, Spacing.md)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.lg))
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .stroke(Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
-            )
-            .padding(.horizontal, Spacing.lg)
+            .buttonStyle(PlainButtonStyle())
             .onAppear {
                 startTimer()
             }

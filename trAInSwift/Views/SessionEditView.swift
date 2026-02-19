@@ -19,6 +19,8 @@ struct SessionEditView: View {
     @State private var hasChanges = false
     @State private var exerciseToSwap: ProgramExercise? = nil
     @State private var showDiscardConfirmation = false
+    @State private var showExercisePicker = false
+    @State private var hasAddedExercise = false
 
     var body: some View {
         ZStack {
@@ -67,10 +69,9 @@ struct SessionEditView: View {
                         }
                         .padding(.horizontal, 20)
 
-                        // Add exercise button
+                        // Add exercise button (limited to 1 addition per session)
                         Button(action: {
-                            // TODO: Show exercise picker
-                            print("Add exercise tapped")
+                            showExercisePicker = true
                         }) {
                             HStack {
                                 Image(systemName: "plus")
@@ -78,12 +79,13 @@ struct SessionEditView: View {
                                 Text("Add Exercise")
                                     .font(.system(size: 16, weight: .medium))
                             }
-                            .foregroundColor(.trainPrimary)
+                            .foregroundColor(hasAddedExercise ? .trainTextSecondary : .trainPrimary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
-                            .background(Color.trainPrimary.opacity(0.1))
+                            .background(hasAddedExercise ? Color.trainDisabled.opacity(0.3) : Color.trainPrimary.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         }
+                        .disabled(hasAddedExercise)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 32)
                     }
@@ -120,6 +122,27 @@ struct SessionEditView: View {
         } message: {
             Text("You have unsaved changes. Are you sure you want to discard them?")
         }
+        .sheet(isPresented: $showExercisePicker) {
+            ExercisePickerView(
+                sessionMuscleGroups: extractMuscleGroups(),
+                existingExerciseIds: Set(editingExercises.map { $0.exerciseId }),
+                onSelect: { newExercise in
+                    // Insert at correct position based on complexity (compounds first)
+                    let insertIndex = editingExercises.firstIndex(where: {
+                        $0.complexityLevel < newExercise.complexityLevel
+                    }) ?? editingExercises.endIndex
+                    editingExercises.insert(newExercise, at: insertIndex)
+                    hasAddedExercise = true
+                    hasChanges = true
+                }
+            )
+        }
+    }
+
+    /// Extract unique muscle groups from the session's exercises
+    private func extractMuscleGroups() -> [String] {
+        let muscles = Set(editingExercises.map { $0.primaryMuscle })
+        return Array(muscles).sorted()
     }
 
     private func saveChanges() {

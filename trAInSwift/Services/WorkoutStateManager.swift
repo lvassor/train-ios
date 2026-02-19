@@ -28,6 +28,7 @@ class WorkoutStateManager: ObservableObject {
         var completedExercises: Set<String> = []
         var loggedExercises: [String: LoggedExercise] = [:]
         let totalExercises: Int
+        var modifiedExercises: [ProgramExercise]? = nil
     }
 
     // MARK: - Workout State Management
@@ -44,11 +45,14 @@ class WorkoutStateManager: ObservableObject {
         AppLogger.logWorkout("Started active workout: \(sessionName)")
     }
 
-    func updateWorkoutProgress(completedExercises: Set<String>, loggedExercises: [String: LoggedExercise]) {
+    func updateWorkoutProgress(completedExercises: Set<String>, loggedExercises: [String: LoggedExercise], modifiedExercises: [ProgramExercise]? = nil) {
         guard var workout = activeWorkout else { return }
         workout.completedExercises = completedExercises
         workout.loggedExercises = loggedExercises
         workout.elapsedTime = Date().timeIntervalSince(workout.startTime)
+        if let modified = modifiedExercises {
+            workout.modifiedExercises = modified
+        }
         activeWorkout = workout
     }
 

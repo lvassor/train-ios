@@ -2,7 +2,7 @@
 //  FloatingToolbar.swift
 //  trAInSwift
 //
-//  Native TabView wrapper that triggers sheets for non-dashboard tabs
+//  Native TabView wrapper with full navigation views for each tab
 //
 
 import SwiftUI
@@ -36,100 +36,38 @@ struct MainTabView<DashboardContent: View>: View {
     @ViewBuilder let dashboardContent: () -> DashboardContent
 
     @State private var selectedTab: ToolbarTab = .dashboard
-    @State private var showMilestones = false
-    @State private var showLibrary = false
-    @State private var showAccount = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            // Dashboard - actual content
+            // Dashboard
             Tab(ToolbarTab.dashboard.title, systemImage: ToolbarTab.dashboard.icon, value: .dashboard) {
                 dashboardContent()
             }
 
-            // Milestones - placeholder that triggers sheet
+            // Milestones - full navigation view
             Tab(ToolbarTab.milestones.title, systemImage: ToolbarTab.milestones.icon, value: .milestones) {
-                Color.clear
+                NavigationStack {
+                    MilestonesView()
+                }
             }
 
-            // Library - placeholder that triggers sheet
+            // Library - full navigation view
             Tab(ToolbarTab.library.title, systemImage: ToolbarTab.library.icon, value: .library) {
-                Color.clear
+                NavigationStack {
+                    CombinedLibraryView()
+                }
             }
 
-            // Account - visually distinct trailing tab (like Search in Apple docs)
+            // Account
             Tab(value: .account, role: .search) {
-                Color.clear
+                NavigationStack {
+                    ProfileView()
+                }
             } label: {
                 Label(ToolbarTab.account.title, systemImage: ToolbarTab.account.icon)
             }
         }
         .tint(Color.trainPrimary)
-        .onChange(of: selectedTab) { _, newTab in
-            switch newTab {
-            case .dashboard:
-                break
-            case .milestones:
-                showMilestones = true
-                // Reset to dashboard to keep dashboard content visible
-                selectedTab = .dashboard
-            case .library:
-                showLibrary = true
-                // Reset to dashboard to keep dashboard content visible
-                selectedTab = .dashboard
-            case .account:
-                showAccount = true
-                // Reset to dashboard to keep dashboard content visible
-                selectedTab = .dashboard
-            }
-        }
-        .sheet(isPresented: $showMilestones, onDismiss: {
-            selectedTab = .dashboard
-        }) {
-            NavigationStack {
-                MilestonesView()
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button("Done") {
-                                showMilestones = false
-                            }
-                            .foregroundColor(.trainPrimary)
-                        }
-                    }
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .presentationBackgroundInteraction(.enabled)
-            .presentationBackground(.clear)
-        }
-        .sheet(isPresented: $showLibrary, onDismiss: {
-            selectedTab = .dashboard
-        }) {
-            NavigationStack {
-                CombinedLibraryView()
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button("Done") {
-                                showLibrary = false
-                            }
-                            .foregroundColor(.trainPrimary)
-                        }
-                    }
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .presentationBackgroundInteraction(.enabled)
-            .presentationBackground(.clear)
-        }
-        .sheet(isPresented: $showAccount, onDismiss: {
-            selectedTab = .dashboard
-        }) {
-            ProfileView()
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-                .presentationBackgroundInteraction(.enabled)
-                .presentationBackground(.clear)
-        }
     }
 }
 
