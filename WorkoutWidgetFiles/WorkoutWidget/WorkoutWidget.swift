@@ -9,26 +9,80 @@ import ActivityKit
 import WidgetKit
 import SwiftUI
 
+// MARK: - Widget Color Constants
+// Widget extensions can't access the main app's theme, so define locally
+private enum WidgetColors {
+    static let accent = Color.orange
+    static let activeIndicator = Color.green
+    static let progressTint = Color.blue
+}
+
+private let widgetPadding: CGFloat = 16
+
 struct WorkoutWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: WorkoutWidgetAttributes.self) { context in
-            // Lock screen/banner UI goes here
             WorkoutLockScreenView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
-                // Expanded UI goes here
-                DynamicIslandExpandedContent(context: context)
+                DynamicIslandExpandedRegion(.leading) {
+                    HStack {
+                        WidgetTrainIcon(size: 24)
+
+                        VStack(alignment: .leading) {
+                            Text("Train")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                            Text(context.attributes.workoutName)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+
+                DynamicIslandExpandedRegion(.trailing) {
+                    VStack(alignment: .trailing) {
+                        Text(timeFormatted(context.state.elapsedTime))
+                            .font(.caption)
+                            .fontWeight(.semibold)
+
+                        if context.state.isResting, let restTime = context.state.restTimeRemaining {
+                            Text("Rest: \(restTime)s")
+                                .font(.caption2)
+                                .foregroundColor(WidgetColors.accent)
+                        }
+                    }
+                }
+
+                DynamicIslandExpandedRegion(.bottom) {
+                    VStack(spacing: 4) {
+                        Text(context.state.currentExerciseName)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+
+                        if !context.state.isResting {
+                            Text("Set \(context.state.currentSet) of \(context.state.totalSets)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+
+                        ProgressView(
+                            value: Double(context.attributes.currentExerciseIndex + 1),
+                            total: Double(context.attributes.totalExercises)
+                        )
+                        .tint(WidgetColors.progressTint)
+                    }
+                    .padding(.horizontal, widgetPadding)
+                }
             } compactLeading: {
-                // Compact leading view
-                TrainIconView(size: 16)
+                WidgetTrainIcon(size: 16)
             } compactTrailing: {
-                // Time elapsed
                 Text(timeFormatted(context.state.elapsedTime))
                     .font(.caption2)
                     .fontWeight(.semibold)
             } minimal: {
-                // Minimal view
-                TrainIconView(size: 12)
+                WidgetTrainIcon(size: 12)
             }
         }
     }
@@ -41,9 +95,8 @@ struct WorkoutLockScreenView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            // Header with Train logo and title
             HStack {
-                TrainIconView(size: 20)
+                WidgetTrainIcon(size: 20)
 
                 Text("Train")
                     .font(.headline)
@@ -51,13 +104,11 @@ struct WorkoutLockScreenView: View {
 
                 Spacer()
 
-                // Elapsed time
                 Text(timeFormatted(context.state.elapsedTime))
                     .font(.subheadline)
                     .fontWeight(.semibold)
             }
 
-            // Workout name
             HStack {
                 Text(context.attributes.workoutName)
                     .font(.title3)
@@ -65,7 +116,6 @@ struct WorkoutLockScreenView: View {
                 Spacer()
             }
 
-            // Current exercise info
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(context.state.currentExerciseName)
@@ -76,11 +126,11 @@ struct WorkoutLockScreenView: View {
                         if let restTime = context.state.restTimeRemaining {
                             Text("Rest: \(restTime)s remaining")
                                 .font(.caption)
-                                .foregroundColor(.orange)
+                                .foregroundColor(WidgetColors.accent)
                         } else {
                             Text("Resting")
                                 .font(.caption)
-                                .foregroundColor(.orange)
+                                .foregroundColor(WidgetColors.accent)
                         }
                     } else {
                         Text("Set \(context.state.currentSet) of \(context.state.totalSets)")
@@ -91,74 +141,35 @@ struct WorkoutLockScreenView: View {
 
                 Spacer()
 
-                // Exercise progress indicator
                 Circle()
-                    .fill(context.state.isResting ? Color.orange : Color.green)
+                    .fill(context.state.isResting ? WidgetColors.accent : WidgetColors.activeIndicator)
                     .frame(width: 8, height: 8)
             }
         }
-        .padding(16)
+        .padding(widgetPadding)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
-// MARK: - Dynamic Island Expanded Content
+// MARK: - Widget Train Icon (self-contained, no dependency on main app)
 
-struct DynamicIslandExpandedContent: DynamicIslandExpandedContent {
-    let context: ActivityViewContext<WorkoutWidgetAttributes>
+private struct WidgetTrainIcon: View {
+    let size: CGFloat
 
-    var body: some DynamicIslandExpandedContent {
-        DynamicIslandExpandedRegion(.leading) {
-            HStack {
-                TrainIconView(size: 24)
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(LinearGradient(
+                    gradient: Gradient(colors: [WidgetColors.accent, WidgetColors.accent.opacity(0.7)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
+                .frame(width: size, height: size)
 
-                VStack(alignment: .leading) {
-                    Text("Train")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                    Text(context.attributes.workoutName)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-
-        DynamicIslandExpandedRegion(.trailing) {
-            VStack(alignment: .trailing) {
-                Text(timeFormatted(context.state.elapsedTime))
-                    .font(.caption)
-                    .fontWeight(.semibold)
-
-                if context.state.isResting, let restTime = context.state.restTimeRemaining {
-                    Text("Rest: \(restTime)s")
-                        .font(.caption2)
-                        .foregroundColor(.orange)
-                }
-            }
-        }
-
-        DynamicIslandExpandedRegion(.bottom) {
-            VStack(spacing: 4) {
-                Text(context.state.currentExerciseName)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .lineLimit(1)
-
-                if !context.state.isResting {
-                    Text("Set \(context.state.currentSet) of \(context.state.totalSets)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                // Progress bar
-                ProgressView(
-                    value: Double(context.attributes.currentExerciseIndex + 1),
-                    total: Double(context.attributes.totalExercises)
-                )
-                .tint(.blue)
-            }
-            .padding(.horizontal, 16)
+            Text("T")
+                .font(.system(size: size * 0.6, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
         }
     }
 }
