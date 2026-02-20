@@ -21,17 +21,37 @@ class AuthService: ObservableObject {
     /// Tracks the currently active program's ID - changes trigger UI refresh
     @Published private(set) var currentProgramId: UUID?
 
-    private let keychain = KeychainService.shared
-    private let appleSignIn = AppleSignInService.shared
-    private let googleSignIn = GoogleSignInService.shared
-    private let persistence = PersistenceController.shared
+    let keychain: KeychainServiceProtocol
+    private let appleSignIn: AppleSignInService
+    private let googleSignIn: GoogleSignInService
+    private let persistence: PersistenceController
     private var context: NSManagedObjectContext {
         persistence.container.viewContext
     }
 
     private let currentUserIdKey = "train_current_user_id"
 
-    private init() {
+    /// Convenience initializer using shared singletons (production default)
+    private convenience init() {
+        self.init(
+            keychain: KeychainService.shared,
+            appleSignIn: AppleSignInService.shared,
+            googleSignIn: GoogleSignInService.shared,
+            persistence: PersistenceController.shared
+        )
+    }
+
+    /// Designated initializer with injectable dependencies (for testing)
+    init(
+        keychain: KeychainServiceProtocol,
+        appleSignIn: AppleSignInService,
+        googleSignIn: GoogleSignInService,
+        persistence: PersistenceController
+    ) {
+        self.keychain = keychain
+        self.appleSignIn = appleSignIn
+        self.googleSignIn = googleSignIn
+        self.persistence = persistence
         loadSession()
     }
 
