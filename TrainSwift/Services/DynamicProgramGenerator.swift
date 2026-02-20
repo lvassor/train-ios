@@ -503,7 +503,7 @@ class DynamicProgramGenerator {
 
     // MARK: - Rep Range Rules (NEW BUSINESS LOGIC)
 
-    private func getRepRangeForGoalAndRating(_ goalSelection: String, canonicalRating: Int) -> String {
+    func getRepRangeForGoalAndRating(_ goalSelection: String, canonicalRating: Int) -> String {
         let isHighRating = canonicalRating > 75
 
         // Define goal combinations
@@ -543,7 +543,7 @@ class DynamicProgramGenerator {
         return choice
     }
 
-    private func getRestSecondsFromRating(_ canonicalRating: Int) -> Int {
+    func getRestSecondsFromRating(_ canonicalRating: Int) -> Int {
         if canonicalRating > 80 {
             return 120 // 2 minutes for highest rated exercises
         } else if canonicalRating >= 50 {

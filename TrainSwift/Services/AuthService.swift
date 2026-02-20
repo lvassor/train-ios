@@ -406,14 +406,14 @@ class AuthService: ObservableObject {
 
     // MARK: - Validation Helpers
 
-    private func isValidEmail(_ email: String) -> Bool {
+    func isValidEmail(_ email: String) -> Bool {
         // RFC 5322 simplified validation
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
     }
 
-    private func isValidPassword(_ password: String) -> Bool {
+    func isValidPassword(_ password: String) -> Bool {
         // Minimum 6 characters, must contain at least one number and one special character
         guard password.count >= 6 else { return false }
         let hasNumber = password.rangeOfCharacter(from: .decimalDigits) != nil
