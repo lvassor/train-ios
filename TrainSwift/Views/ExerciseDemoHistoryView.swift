@@ -15,6 +15,13 @@ enum DemoHistoryTabOption: String, CaseIterable, Hashable {
     case demo = "Demo"
     case history = "History"
 
+    var localizedName: String {
+        switch self {
+        case .demo: return String(localized: "Demo")
+        case .history: return String(localized: "History")
+        }
+    }
+
     var icon: String {
         switch self {
         case .demo: return "play.circle.fill"
@@ -119,7 +126,7 @@ struct DemoHistoryTabSelector: View {
                             selectedTab = tab
                         }
                     }) {
-                        Text(tab.rawValue)
+                        Text(tab.localizedName)
                             .font(.system(size: 16, weight: .regular))
                             .foregroundColor(.trainTextPrimary)
                             .frame(maxWidth: .infinity)

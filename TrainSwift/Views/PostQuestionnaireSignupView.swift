@@ -481,7 +481,7 @@ struct EmailSignupSheet: View {
         // Name validation
         guard !fullName.isEmpty else {
             AppLogger.logAuth("[EMAIL SIGNUP] Name validation failed", level: .error)
-            errorMessage = "Please enter your full name"
+            errorMessage = String(localized: "Please enter your full name")
             showError = true
             return
         }
@@ -489,7 +489,7 @@ struct EmailSignupSheet: View {
         // Basic email validation
         guard email.contains("@") && email.contains(".") else {
             AppLogger.logAuth("[EMAIL SIGNUP] Email validation failed", level: .error)
-            errorMessage = "Please enter a valid email address"
+            errorMessage = String(localized: "Please enter a valid email address")
             showError = true
             return
         }
@@ -497,7 +497,7 @@ struct EmailSignupSheet: View {
         // Password validation
         guard isValidPassword(password) else {
             AppLogger.logAuth("[EMAIL SIGNUP] Password validation failed", level: .error)
-            errorMessage = "Password must be at least 6 characters with a number and special character"
+            errorMessage = String(localized: "Password must be at least 6 characters with a number and special character")
             showError = true
             return
         }

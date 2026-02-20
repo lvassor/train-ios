@@ -123,7 +123,7 @@ struct PasswordResetRequestView: View {
 
         // Validate email
         guard email.contains("@"), email.contains(".") else {
-            errorMessage = "Please enter a valid email address"
+            errorMessage = String(localized: "Please enter a valid email address")
             showError = true
             return
         }

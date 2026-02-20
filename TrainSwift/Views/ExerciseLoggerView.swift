@@ -17,6 +17,14 @@ enum LoggerTabOption: String, CaseIterable, Hashable {
     case demo = "Demo"
     case history = "History"
 
+    var localizedName: String {
+        switch self {
+        case .logger: return String(localized: "Logger")
+        case .demo: return String(localized: "Demo")
+        case .history: return String(localized: "History")
+        }
+    }
+
     var icon: String {
         switch self {
         case .logger: return "list.bullet.clipboard"
@@ -252,23 +260,23 @@ struct ExerciseLoggerView: View {
         // Generate feedback with progressive overload suggestions
         if totalReps >= targetTotal {
             // Hit max reps - suggest weight increase
-            feedbackTitle = "Time to Progress!"
-            feedbackMessage = "You've hit \(targetMax) reps consistently. Consider increasing the weight by 2.5-5kg next session."
+            feedbackTitle = String(localized: "Time to Progress!")
+            feedbackMessage = String(localized: "You've hit \(targetMax) reps consistently. Consider increasing the weight by 2.5-5kg next session.")
             feedbackType = .success
         } else if averageRepsPerSet >= targetMax {
             // Averaging at top of range
-            feedbackTitle = "Strong Performance!"
-            feedbackMessage = "You're ready to increase the weight. Add 2.5kg and aim for \(targetMin) reps."
+            feedbackTitle = String(localized: "Strong Performance!")
+            feedbackMessage = String(localized: "You're ready to increase the weight. Add 2.5kg and aim for \(targetMin) reps.")
             feedbackType = .success
         } else if totalReps >= exercise.sets * targetMin {
             // Within target range - stay the course
-            feedbackTitle = "On Track"
-            feedbackMessage = "Keep this weight until you can hit \(targetMax) reps on all sets, then increase."
+            feedbackTitle = String(localized: "On Track")
+            feedbackMessage = String(localized: "Keep this weight until you can hit \(targetMax) reps on all sets, then increase.")
             feedbackType = .info
         } else {
             // Below target - maintain or slightly reduce
-            feedbackTitle = "Building Strength"
-            feedbackMessage = "Focus on hitting \(targetMin)-\(targetMax) reps before increasing weight. You've got this!"
+            feedbackTitle = String(localized: "Building Strength")
+            feedbackMessage = String(localized: "Focus on hitting \(targetMin)-\(targetMax) reps before increasing weight. You've got this!")
             feedbackType = .warning
         }
 
@@ -351,7 +359,7 @@ struct LoggerTabSelector: View {
                             selectedTab = tab
                         }
                     }) {
-                        Text(tab.rawValue)
+                        Text(tab.localizedName)
                             .font(.system(size: 16, weight: .regular))
                             .foregroundColor(.trainTextPrimary)
                             .frame(maxWidth: .infinity)

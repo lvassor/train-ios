@@ -173,7 +173,7 @@ struct PaywallView: View {
             AppLogger.logUI("[PAYWALL] Loaded \(products.count) subscription products")
         } catch {
             AppLogger.logUI("[PAYWALL] Failed to load products: \(error)", level: .error)
-            errorMessage = "Unable to load subscriptions. Please try again."
+            errorMessage = String(localized: "Unable to load subscriptions. Please try again.")
             isLoading = false
         }
     }
@@ -205,7 +205,7 @@ struct PaywallView: View {
                     // Transaction failed verification
                     AppLogger.logUI("[PAYWALL] Transaction unverified: \(error)", level: .error)
                     await MainActor.run {
-                        errorMessage = "Purchase verification failed"
+                        errorMessage = String(localized: "Purchase verification failed")
                         purchaseInProgress = false
                     }
                 }
@@ -214,7 +214,7 @@ struct PaywallView: View {
                 // Purchase is pending (e.g., requires parental approval)
                 AppLogger.logUI("[PAYWALL] Purchase pending")
                 await MainActor.run {
-                    errorMessage = "Purchase is pending approval"
+                    errorMessage = String(localized: "Purchase is pending approval")
                     purchaseInProgress = false
                 }
 
@@ -233,7 +233,7 @@ struct PaywallView: View {
         } catch {
             AppLogger.logUI("[PAYWALL] Purchase failed: \(error)", level: .error)
             await MainActor.run {
-                errorMessage = "Purchase failed: \(error.localizedDescription)"
+                errorMessage = String(localized: "Purchase failed: \(error.localizedDescription)")
                 purchaseInProgress = false
             }
         }

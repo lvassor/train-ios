@@ -141,14 +141,14 @@ struct PasswordResetNewPasswordView: View {
 
         // Validate password length
         guard newPassword.count >= 8 else {
-            errorMessage = "Password must be at least 8 characters"
+            errorMessage = String(localized: "Password must be at least 8 characters")
             showError = true
             return
         }
 
         // Validate passwords match
         guard newPassword == confirmPassword else {
-            errorMessage = "Passwords do not match"
+            errorMessage = String(localized: "Passwords do not match")
             showError = true
             return
         }

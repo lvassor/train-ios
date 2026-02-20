@@ -1456,7 +1456,7 @@ struct TrainingDaysStepView: View {
 
     // Warning message for out-of-range selections
     private var warningMessage: String {
-        return "We recommend a maximum of \(recommendedRange.upperBound) sessions per week for your experience level, in order for your brain to learn new movements and for your body to recover properly"
+        return String(localized: "We recommend a maximum of \(recommendedRange.upperBound) sessions per week for your experience level, in order for your brain to learn new movements and for your body to recover properly")
     }
 
     var body: some View {

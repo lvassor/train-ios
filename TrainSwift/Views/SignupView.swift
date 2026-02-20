@@ -129,7 +129,7 @@ struct SignupView: View {
 
         // Validate passwords match
         guard password == confirmPassword else {
-            errorMessage = "Passwords do not match"
+            errorMessage = String(localized: "Passwords do not match")
             showError = true
             return
         }

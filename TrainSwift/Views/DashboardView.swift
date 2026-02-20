@@ -1066,7 +1066,7 @@ struct BottomNavigationBar: View {
 
 struct BottomNavItem: View {
     let icon: String
-    let label: String
+    let label: LocalizedStringKey
     let action: () -> Void
 
     var body: some View {

@@ -592,29 +592,29 @@ enum AuthError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidEmail:
-            return "Please enter a valid email address"
+            return String(localized: "Please enter a valid email address")
         case .passwordTooShort:
-            return "Password must be at least 6 characters"
+            return String(localized: "Password must be at least 6 characters")
         case .passwordTooWeak:
-            return "Password must contain at least one number and one special character"
+            return String(localized: "Password must contain at least one number and one special character")
         case .emailAlreadyExists:
-            return "An account with this email already exists"
+            return String(localized: "An account with this email already exists")
         case .userNotFound:
-            return "No account found with this email"
+            return String(localized: "No account found with this email")
         case .invalidCredentials:
-            return "Invalid email or password"
+            return String(localized: "Invalid email or password")
         case .keychainError:
-            return "Failed to securely store password"
+            return String(localized: "Failed to securely store password")
         case .useAppleSignIn:
-            return "This account uses Sign in with Apple"
+            return String(localized: "This account uses Sign in with Apple")
         case .useGoogleSignIn:
-            return "This account uses Google Sign-In"
+            return String(localized: "This account uses Google Sign-In")
         case .appleSignInFailed:
-            return "Sign in with Apple failed. Please try again."
+            return String(localized: "Sign in with Apple failed. Please try again.")
         case .googleSignInFailed:
-            return "Google Sign-In failed. Please try again."
+            return String(localized: "Google Sign-In failed. Please try again.")
         case .cancelled:
-            return "Sign in was cancelled"
+            return String(localized: "Sign in was cancelled")
         }
     }
 }
