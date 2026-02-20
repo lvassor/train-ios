@@ -122,40 +122,7 @@ struct DashboardContent: View {
 
     private func calculateStreak() -> Int {
         guard let userId = user?.id else { return 0 }
-
-        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
-        fetchRequest.predicate = NSPredicate(
-            format: "userId == %@", userId as CVarArg
-        )
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "completedAt", ascending: false)]
-
-        do {
-            let sessions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
-
-            var streak = 0
-            var currentDate = Calendar.current.startOfDay(for: Date())
-
-            for session in sessions {
-                guard let sessionDate = session.completedAt else { continue }
-                let normalizedSessionDate = Calendar.current.startOfDay(for: sessionDate)
-
-                // Check if this session is on the current date we're looking for
-                if Calendar.current.isDate(normalizedSessionDate, inSameDayAs: currentDate) {
-                    streak += 1
-                    // Move to previous day
-                    currentDate = Calendar.current.date(byAdding: .day, value: -1, to: currentDate) ?? currentDate
-                } else if normalizedSessionDate < currentDate {
-                    // Gap in streak - stop counting
-                    break
-                }
-                // If sessionDate > currentDate, skip this session (future sessions shouldn't exist but handle gracefully)
-            }
-
-            return streak
-        } catch {
-            AppLogger.logDatabase("Failed to calculate streak: \(error)", level: .error)
-            return 0
-        }
+        return SessionCompletionHelper.calculateStreak(userId: userId)
     }
 }
 
@@ -370,26 +337,9 @@ struct WeeklySessionsSection: View {
         sessionsCompletedThisWeek.count
     }
 
-    /// Sessions completed this calendar week (Monday-Sunday)
-    /// This now represents the current training week that resets every Monday
     private var sessionsCompletedThisWeek: [CDWorkoutSession] {
         guard let userId = AuthService.shared.currentUser?.id else { return [] }
-
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekday = calendar.component(.weekday, from: today)
-        let daysFromMonday = (weekday == 1) ? 6 : weekday - 2
-
-        guard let weekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: today),
-              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return [] }
-
-        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
-        fetchRequest.predicate = NSPredicate(
-            format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
-            userId as CVarArg, weekStart as NSDate, weekEnd as NSDate
-        )
-
-        return (try? PersistenceController.shared.container.viewContext.fetch(fetchRequest)) ?? []
+        return SessionCompletionHelper.sessionsCompletedThisWeek(userId: userId)
     }
 
     private var nextSessionIndex: Int? {
@@ -404,19 +354,14 @@ struct WeeklySessionsSection: View {
     private func isSessionCompleted(sessionIndex: Int) -> Bool {
         guard let programData = userProgram.getProgram() else { return false }
         let sessions = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
-        guard sessionIndex < sessions.count else { return false }
-
-        let sessionName = sessions[sessionIndex].dayName
-        let priorCount = sessions.prefix(sessionIndex).filter { $0.dayName == sessionName }.count
-        let completedCount = sessionsCompletedThisWeek.filter { $0.sessionName == sessionName }.count
-
-        // A session is "completed" for UI purposes if it has been done at least once this week
-        // But users can still start additional sessions beyond the program requirements
-        return completedCount > priorCount
+        return SessionCompletionHelper.isSessionCompleted(
+            sessionIndex: sessionIndex,
+            sessions: sessions,
+            completedSessions: sessionsCompletedThisWeek
+        )
     }
 
     /// Check if this specific session instance has been completed this week
-    /// Used for showing both Start and View buttons appropriately
     private func hasSessionBeenCompletedThisWeek(sessionIndex: Int) -> Bool {
         guard let programData = userProgram.getProgram() else { return false }
         let sessions = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
@@ -424,7 +369,6 @@ struct WeeklySessionsSection: View {
 
         let sessionName = sessions[sessionIndex].dayName
         let completedCount = sessionsCompletedThisWeek.filter { $0.sessionName == sessionName }.count
-
         return completedCount > 0
     }
 
@@ -533,36 +477,17 @@ struct HorizontalDayButtonsRow: View {
         .frame(height: 44)
     }
 
-    /// Sessions completed this calendar week (Monday-Sunday)
-    /// Weekly logic automatically resets every Monday
     private var sessionsCompletedThisWeek: [CDWorkoutSession] {
         guard let userId = AuthService.shared.currentUser?.id else { return [] }
-
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekday = calendar.component(.weekday, from: today)
-        let daysFromMonday = (weekday == 1) ? 6 : weekday - 2
-
-        guard let weekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: today),
-              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return [] }
-
-        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
-        fetchRequest.predicate = NSPredicate(
-            format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
-            userId as CVarArg, weekStart as NSDate, weekEnd as NSDate
-        )
-
-        return (try? PersistenceController.shared.container.viewContext.fetch(fetchRequest)) ?? []
+        return SessionCompletionHelper.sessionsCompletedThisWeek(userId: userId)
     }
 
     private func isSessionCompleted(sessionIndex: Int) -> Bool {
-        guard sessionIndex < sessions.count else { return false }
-
-        let sessionName = sessions[sessionIndex].dayName
-        let priorCount = sessions.prefix(sessionIndex).filter { $0.dayName == sessionName }.count
-        let completedCount = sessionsCompletedThisWeek.filter { $0.sessionName == sessionName }.count
-
-        return completedCount > priorCount
+        return SessionCompletionHelper.isSessionCompleted(
+            sessionIndex: sessionIndex,
+            sessions: sessions,
+            completedSessions: sessionsCompletedThisWeek
+        )
     }
 }
 
@@ -1045,36 +970,9 @@ struct UpcomingWorkoutsSection: View {
         }
     }
 
-    /// Sessions completed this calendar week (Monday-Sunday)
-    /// Weekly logic automatically resets every Monday
     private var sessionsCompletedThisWeek: [CDWorkoutSession] {
         guard let userId = AuthService.shared.currentUser?.id else { return [] }
-
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekday = calendar.component(.weekday, from: today)
-        let daysFromMonday = (weekday == 1) ? 6 : weekday - 2
-
-        guard let weekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: today),
-              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return [] }
-
-        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
-        fetchRequest.predicate = NSPredicate(
-            format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
-            userId as CVarArg, weekStart as NSDate, weekEnd as NSDate
-        )
-
-        return (try? PersistenceController.shared.container.viewContext.fetch(fetchRequest)) ?? []
-    }
-
-    private func isSessionCompleted(sessionIndex: Int, sessions: [ProgramSession]) -> Bool {
-        guard sessionIndex < sessions.count else { return false }
-
-        let sessionName = sessions[sessionIndex].dayName
-        let priorCount = sessions.prefix(sessionIndex).filter { $0.dayName == sessionName }.count
-        let completedCount = sessionsCompletedThisWeek.filter { $0.sessionName == sessionName }.count
-
-        return completedCount > priorCount
+        return SessionCompletionHelper.sessionsCompletedThisWeek(userId: userId)
     }
 
     private var upcomingSessions: [SessionInfo] {
@@ -1086,7 +984,7 @@ struct UpcomingWorkoutsSection: View {
 
         var foundNext = false
         for (index, session) in sessionsToConsider.enumerated() {
-            if !isSessionCompleted(sessionIndex: index, sessions: sessionsToConsider) {
+            if !SessionCompletionHelper.isSessionCompleted(sessionIndex: index, sessions: sessionsToConsider, completedSessions: sessionsCompletedThisWeek) {
                 if foundNext {
                     upcoming.append(SessionInfo(
                         id: index,
@@ -1323,36 +1221,7 @@ struct TopHeaderView: View {
 
     private func calculateStreak() -> Int {
         guard let userId = authService.currentUser?.id else { return 0 }
-
-        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
-        fetchRequest.predicate = NSPredicate(
-            format: "userId == %@", userId as CVarArg
-        )
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "completedAt", ascending: false)]
-
-        do {
-            let sessions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
-
-            var streak = 0
-            var currentDate = Calendar.current.startOfDay(for: Date())
-
-            for session in sessions {
-                guard let sessionDate = session.completedAt else { continue }
-                let normalizedSessionDate = Calendar.current.startOfDay(for: sessionDate)
-
-                if Calendar.current.isDate(normalizedSessionDate, inSameDayAs: currentDate) {
-                    streak += 1
-                    currentDate = Calendar.current.date(byAdding: .day, value: -1, to: currentDate) ?? currentDate
-                } else if normalizedSessionDate < currentDate {
-                    break
-                }
-            }
-
-            return streak
-        } catch {
-            AppLogger.logDatabase("Failed to calculate streak: \(error)", level: .error)
-            return 0
-        }
+        return SessionCompletionHelper.calculateStreak(userId: userId)
     }
 }
 
