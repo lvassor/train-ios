@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import Combine
 
+@MainActor
 class AppViewModel: ObservableObject {
     @Published var authService = AuthService.shared
     @Published var questionnaireData = QuestionnaireData()
@@ -36,12 +37,12 @@ class AppViewModel: ObservableObject {
         authService.updateQuestionnaireData(questionnaireData)
 
         // Generate program based on questionnaire (with warnings)
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        Task.detached(priority: .userInitiated) { [weak self] in
             guard let self = self else { return }
 
-            let result = self.programGenerator.generateProgramWithWarnings(from: self.questionnaireData)
+            let result = self.programGenerator.generateProgramWithWarnings(from: await self.questionnaireData)
 
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.authService.updateProgram(result.program)
                 self.isGeneratingProgram = false
 

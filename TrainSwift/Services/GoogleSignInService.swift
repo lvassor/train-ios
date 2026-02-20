@@ -10,6 +10,7 @@ import Foundation
 import Combine
 import GoogleSignIn
 
+@MainActor
 class GoogleSignInService: NSObject, ObservableObject {
     static let shared = GoogleSignInService()
 

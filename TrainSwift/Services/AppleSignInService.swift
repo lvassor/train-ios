@@ -11,6 +11,7 @@ import AuthenticationServices
 import CryptoKit
 import Combine
 
+@MainActor
 class AppleSignInService: NSObject, ObservableObject {
     static let shared = AppleSignInService()
 
@@ -48,7 +49,7 @@ class AppleSignInService: NSObject, ObservableObject {
 
     func checkCredentialState(userID: String, completion: @escaping (ASAuthorizationAppleIDProvider.CredentialState) -> Void) {
         ASAuthorizationAppleIDProvider().getCredentialState(forUserID: userID) { state, error in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 completion(state)
             }
         }

@@ -12,6 +12,7 @@ import Combine
 import CoreData
 
 
+@MainActor
 class AuthService: ObservableObject {
     static let shared = AuthService()
 
@@ -151,7 +152,7 @@ class AuthService: ObservableObject {
         appleSignIn.signIn { [weak self] result in
             guard let self = self else { return }
 
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 switch result {
                 case .success(let appleResult):
                     self.handleAppleSignInResult(appleResult, completion: completion)
@@ -227,7 +228,7 @@ class AuthService: ObservableObject {
         googleSignIn.signIn { [weak self] result in
             guard let self = self else { return }
 
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 switch result {
                 case .success(let googleResult):
                     self.handleGoogleSignInResult(googleResult, completion: completion)

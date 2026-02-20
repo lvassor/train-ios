@@ -187,20 +187,20 @@ struct ExerciseLibraryView: View {
     private func loadExercises() {
         isLoading = true
 
-        DispatchQueue.global(qos: .userInitiated).async {
+        Task.detached(priority: .userInitiated) {
             do {
                 let dbManager = ExerciseDatabaseManager.shared
                 let filter = ExerciseDatabaseFilter()
                 let allExercises = try dbManager.fetchExercises(filter: filter)
 
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.exercises = allExercises
                     self.filteredExercises = allExercises
                     self.isLoading = false
                 }
             } catch {
                 AppLogger.logDatabase("Error loading exercises: \(error)", level: .error)
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.isLoading = false
                 }
             }

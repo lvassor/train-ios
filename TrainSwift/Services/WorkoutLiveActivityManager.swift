@@ -10,6 +10,7 @@ import Foundation
 import Combine
 
 @available(iOS 16.1, *)
+@MainActor
 class WorkoutLiveActivityManager: ObservableObject {
     static let shared = WorkoutLiveActivityManager()
 
@@ -132,9 +133,7 @@ class WorkoutLiveActivityManager: ObservableObject {
                     pushType: nil
                 )
 
-                await MainActor.run {
-                    currentActivity = newActivity
-                }
+                currentActivity = newActivity
 
                 AppLogger.logWorkout("Updated Live Activity for new exercise: \(currentExercise.exerciseName)")
             } catch {
@@ -191,10 +190,8 @@ class WorkoutLiveActivityManager: ObservableObject {
         Task {
             await activity.end(nil, dismissalPolicy: .default)
 
-            await MainActor.run {
-                currentActivity = nil
-                isLiveActivityActive = false
-            }
+            currentActivity = nil
+            isLiveActivityActive = false
 
             AppLogger.logWorkout("Ended Live Activity")
         }

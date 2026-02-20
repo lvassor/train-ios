@@ -9,6 +9,7 @@
 import Foundation
 import Combine
 
+@MainActor
 class WorkoutStateManager: ObservableObject {
     static let shared = WorkoutStateManager()
 

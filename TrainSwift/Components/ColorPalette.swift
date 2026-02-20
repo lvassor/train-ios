@@ -28,6 +28,7 @@ enum AppThemeMode {
 }
 
 /// Theme Manager for handling app-wide theme state
+@MainActor
 class ThemeManager: ObservableObject {
     @Published var currentMode: AppThemeMode
 

@@ -120,6 +120,7 @@ struct InlineRestTimer: View {
 
 // MARK: - Rest Timer Controller (manages timer state and reset logic)
 
+@MainActor
 class RestTimerController: ObservableObject {
     @Published var isActive: Bool = false
     @Published var restSeconds: Int = 0

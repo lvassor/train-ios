@@ -171,12 +171,12 @@ struct MilestonesView: View {
     // MARK: - Data Loading
 
     private func loadData() {
-        DispatchQueue.global(qos: .userInitiated).async {
+        Task.detached(priority: .userInitiated) {
             let milestones = service.computeAllMilestones()
             let stats = service.computeTopStats()
             let pbs = service.computeRecentPBs()
 
-            DispatchQueue.main.async {
+            await MainActor.run {
                 allMilestones = milestones
                 topStats = stats
                 recentPBs = pbs

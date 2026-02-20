@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import Combine
 
+@MainActor
 class WorkoutViewModel: ObservableObject {
     // MARK: - Singleton
     static let shared = WorkoutViewModel()
