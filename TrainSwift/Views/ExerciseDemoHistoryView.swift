@@ -109,7 +109,7 @@ struct DemoHistoryTabSelector: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(colorScheme == .dark
                     ? Color.white.opacity(0.1)
-                    : Color(hex: "E2E3E4"))
+                    : Color.trainTabBackground)
                 .frame(height: 40)
 
             HStack(spacing: 0) {

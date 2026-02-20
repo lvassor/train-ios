@@ -341,7 +341,7 @@ struct LoggerTabSelector: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(colorScheme == .dark
                     ? Color.white.opacity(0.1)
-                    : Color(hex: "E2E3E4"))
+                    : Color.trainTabBackground)
                 .frame(height: 40)
 
             HStack(spacing: 0) {
@@ -404,7 +404,7 @@ struct ExerciseLoggerInfoSection: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 6)
-                .background(Color.gray)
+                .background(Color.trainTag)
                 .clipShape(Capsule())
                 .padding(.top, 4)
         }
@@ -505,7 +505,7 @@ struct SetLoggingCard: View {
                 if let diff = totalRepsDifference, diff > 0 {
                     Text("+ \(diff)")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(hex: "4DCA73"))
+                        .foregroundColor(Color.trainSuccess)
                 }
             }
             .padding(.bottom, 8)

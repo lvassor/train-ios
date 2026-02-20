@@ -55,7 +55,7 @@ struct ExerciseDemoTab: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 6)
-                        .background(Color.gray)
+                        .background(Color.trainTag)
                         .clipShape(Capsule())
                         .padding(.top, 4)
                 }

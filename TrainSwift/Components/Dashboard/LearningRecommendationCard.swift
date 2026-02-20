@@ -86,7 +86,7 @@ struct LearningRecommendationCard: View {
 
     private var thumbnailPlaceholder: some View {
         RoundedRectangle(cornerRadius: 8, style: .continuous)
-            .fill(Color.gray.opacity(0.3))
+            .fill(Color.trainPlaceholder)
             .frame(width: 80, height: 64)
             .overlay {
                 Image(systemName: "photo")

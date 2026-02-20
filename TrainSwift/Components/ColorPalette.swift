@@ -270,6 +270,24 @@ extension Color {
     }
 }
 
+// MARK: - Semantic Colors (consistent across themes)
+extension Color {
+    /// Success indicator (green) - progressive overload, completion, etc.
+    static let trainSuccess = Color(hex: "4DCA73")
+    /// Warning indicator (orange/amber)
+    static let trainWarning = Color.orange
+    /// Error indicator (red)
+    static let trainError = Color.red
+    /// Info indicator (blue)
+    static let trainInfo = Color.blue
+    /// Placeholder/thumbnail background
+    static let trainPlaceholder = Color.gray.opacity(0.3)
+    /// Equipment tag background
+    static let trainTag = Color.gray
+    /// Tab selector background (light mode)
+    static let trainTabBackground = Color(hex: "E2E3E4")
+}
+
 // MARK: - Legacy Compatibility (backwards compatible with existing code)
 extension Color {
     // These provide backwards compatibility with existing code
