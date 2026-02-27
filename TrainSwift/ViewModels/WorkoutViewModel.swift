@@ -25,21 +25,10 @@ class WorkoutViewModel: ObservableObject {
     @Published var warningAlertMessage = ""
 
     // Email signup state that persists across view recreations
-    @Published var showEmailSignup = false {
-        didSet {
-            AppLogger.logUI("showEmailSignup changed from \(oldValue) to \(showEmailSignup)")
-            if !showEmailSignup && oldValue {
-                AppLogger.logUI("Email sheet dismissed", level: .warning)
-            }
-        }
-    }
+    @Published var showEmailSignup = false
 
     // Navigation state to prevent overlapping transitions
-    @Published var isNavigationInProgress = false {
-        didSet {
-            AppLogger.logUI("isNavigationInProgress changed from \(oldValue) to \(isNavigationInProgress)")
-        }
-    }
+    @Published var isNavigationInProgress = false
 
     // Store warnings for display after program ready screen
     private var pendingWarnings: [ExerciseSelectionWarning] = []
@@ -47,7 +36,6 @@ class WorkoutViewModel: ObservableObject {
     // MARK: - Initialization
     private init() {
         // Private init to enforce singleton pattern
-        AppLogger.logUI("WorkoutViewModel.shared created — instance: \(ObjectIdentifier(self))")
     }
 
     // MARK: - Program Generation
