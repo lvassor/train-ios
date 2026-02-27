@@ -134,25 +134,23 @@ class WorkoutViewModel: ObservableObject {
     // MARK: - Navigation Management
 
     /// Safely execute navigation operations to prevent UIKit conflicts
-    func safeNavigate(operation: @escaping () -> Void) {
+    func safeNavigate(operation: @escaping @MainActor () -> Void) {
         // Prevent overlapping navigation operations
         guard !isNavigationInProgress else {
             AppLogger.logUI("Navigation already in progress — skipping operation", level: .warning)
             return
         }
 
-        AppLogger.logUI("Starting safe navigation operation")
         isNavigationInProgress = true
 
-        // Execute on main queue with slight delay to ensure UI stability
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        Task {
+            // Brief delay to ensure UI stability before navigating
+            try? await Task.sleep(for: .milliseconds(100))
             operation()
 
             // Reset navigation state after completion
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.isNavigationInProgress = false
-                AppLogger.logUI("Navigation operation completed")
-            }
+            try? await Task.sleep(for: .milliseconds(500))
+            self.isNavigationInProgress = false
         }
     }
 }

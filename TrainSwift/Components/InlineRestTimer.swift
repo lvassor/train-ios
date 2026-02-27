@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 // MARK: - Inline Rest Timer (Non-blocking)
 
@@ -35,7 +36,7 @@ struct InlineRestTimer: View {
 
                 // Time remaining
                 Text(timeFormatted)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.trainBody).fontWeight(.semibold)
                     .foregroundColor(.white)
                     .monospacedDigit()
 
@@ -48,9 +49,9 @@ struct InlineRestTimer: View {
                 // Dismiss button
                 Button(action: dismissTimer) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.trainCaptionSmall).fontWeight(.semibold)
                         .foregroundColor(.white.opacity(0.7))
-                        .frame(width: 24, height: 24)
+                        .frame(width: IconSize.md, height: IconSize.md)
                         .background(Color.white.opacity(0.15))
                         .clipShape(Circle())
                 }
@@ -131,7 +132,8 @@ class RestTimerController: ObservableObject {
         if isActive {
             // Briefly deactivate to trigger reset
             isActive = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            Task {
+                try? await Task.sleep(for: .milliseconds(50))
                 self.isActive = true
             }
         } else {

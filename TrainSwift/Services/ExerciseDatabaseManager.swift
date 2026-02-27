@@ -16,12 +16,13 @@ class ExerciseDatabaseManager {
     private let databaseFileName = "exercises.db"
 
     // Equipment cache — loaded once at startup, keyed by equipment_id
-    private var equipmentById: [String: DBEquipment] = [:]
-    private var equipmentByName: [String: DBEquipment] = [:]
-    private var equipmentByCategory: [String: [DBEquipment]] = [:]
+    // nonisolated(unsafe): written only during init, then read-only for the lifetime of the singleton
+    private nonisolated(unsafe) var equipmentById: [String: DBEquipment] = [:]
+    private nonisolated(unsafe) var equipmentByName: [String: DBEquipment] = [:]
+    private nonisolated(unsafe) var equipmentByCategory: [String: [DBEquipment]] = [:]
 
     // Video GUID cache — loaded once at startup, keyed by exercise_id
-    private var videoGuidByExerciseId: [String: String] = [:]
+    private nonisolated(unsafe) var videoGuidByExerciseId: [String: String] = [:]
 
     private init() {
         setupDatabase()
