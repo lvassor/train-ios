@@ -55,7 +55,7 @@ struct ExerciseHistoryView: View {
 
                     VStack(spacing: Spacing.md) {
                         Image(systemName: "chart.line.uptrend.xyaxis")
-                            .font(.system(size: 48))
+                            .font(.system(size: IconSize.xl))
                             .foregroundColor(.trainTextSecondary)
 
                         Text("No data - not in any program")
@@ -75,37 +75,37 @@ struct ExerciseHistoryView: View {
             } else {
                 VStack(spacing: 0) {
                     // Exercise Info Header (same as Logger/Demo - centered, no container)
-                    VStack(spacing: 4) {
+                    VStack(spacing: Spacing.xs) {
                         Text(exercise.displayName)
-                            .font(.system(size: 20, weight: .medium))
+                            .font(.trainHeadline).fontWeight(.medium)
                             .foregroundColor(.trainTextPrimary)
                             .multilineTextAlignment(.center)
 
                         // Equipment tag
                         Text(exercise.equipmentCategory)
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.trainBody).fontWeight(.medium)
                             .foregroundColor(.white)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, Spacing.lg)
+                            .padding(.vertical, Spacing.sm)
                             .background(Color.trainTag)
                             .clipShape(Capsule())
-                            .padding(.top, 4)
+                            .padding(.top, Spacing.xs)
                     }
-                    .padding(.top, 20)
+                    .padding(.top, Spacing.lg)
 
                     // Stats Cards - side by side with border stroke
-                    HStack(spacing: 20) {
+                    HStack(spacing: Spacing.lg) {
                         HistoryStatCard(
                             title: "Best Set",
-                            value: bestSet != nil ? "\(Int(bestSet!.weight)) kg • \(bestSet!.reps) reps" : "--"
+                            value: bestSet.map { "\(Int($0.weight)) kg • \($0.reps) reps" } ?? "--"
                         )
                         HistoryStatCard(
                             title: "Start Weight",
                             value: startWeight > 0 ? "\(Int(startWeight)) kg" : "--"
                         )
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.top, 16)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.md)
 
                     // Progress Chart - simplified with area gradient
                     if !historyEntries.isEmpty {
@@ -113,18 +113,18 @@ struct ExerciseHistoryView: View {
                             entries: historyEntries,
                             selectedMetric: selectedMetric
                         )
-                        .frame(height: 180)
-                        .padding(.top, 8)
+                        .frame(height: ElementHeight.chart)
+                        .padding(.top, Spacing.sm)
                     }
 
                     // History Entries
-                    VStack(spacing: 20) {
+                    VStack(spacing: Spacing.lg) {
                         ForEach(historyEntries) { entry in
                             HistorySessionCard(entry: entry)
                         }
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.top, 24)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.lg)
                     .padding(.bottom, 100)
                 }
             }
@@ -218,18 +218,18 @@ struct HistoryStatCard: View {
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: Spacing.sm) {
             Text(title)
-                .font(.system(size: 16, weight: .regular))
+                .font(.trainBody)
                 .foregroundColor(.trainTextSecondary)
             Text(value)
-                .font(.system(size: 16, weight: .medium))
+                .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(.trainTextPrimary)
         }
         .frame(width: 160, height: 60)
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
         )
     }
 }
@@ -253,8 +253,8 @@ struct HistoryProgressChart: View {
             .foregroundStyle(
                 LinearGradient(
                     colors: [
-                        (colorScheme == .dark ? Color.white : Color.gray).opacity(0.3),
-                        (colorScheme == .dark ? Color.white : Color.gray).opacity(0.1)
+                        Color.trainTextMuted.opacity(0.3),
+                        Color.trainTextMuted.opacity(0.1)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -267,13 +267,13 @@ struct HistoryProgressChart: View {
                 x: .value("Date", entry.date),
                 y: .value(selectedMetric.rawValue, yValue)
             )
-            .foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
+            .foregroundStyle(Color.trainTextPrimary)
             .lineStyle(StrokeStyle(lineWidth: 2))
             .interpolationMethod(.catmullRom)
         }
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
-        .padding(.horizontal, 18)
+        .padding(.horizontal, Spacing.md)
     }
 }
 
@@ -296,39 +296,39 @@ struct HistorySessionCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             // Header with date and badge
             HStack {
                 HStack(spacing: 0) {
                     Text(formattedDate)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.trainBody).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
                     Text(" - \(dayOfWeek)")
-                        .font(.system(size: 16, weight: .regular))
+                        .font(.trainBody)
                         .foregroundColor(.trainTextSecondary)
                 }
                 Spacer()
                 if entry.hadProgression {
                     Image(systemName: "medal")
-                        .font(.system(size: 28))
+                        .font(.system(size: IconSize.lg))
                         .foregroundColor(colorScheme == .dark ? Color.trainPrimary : Color.gray.opacity(0.6))
                 }
             }
 
             // Set details
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 ForEach(Array(entry.sets.enumerated()), id: \.element.id) { index, set in
                     Text("Set \(index + 1): \(Int(set.weight)) kg • \(set.reps) reps")
-                        .font(.system(size: 16, weight: index == 0 ? .medium : .regular))
+                        .font(.trainBody).fontWeight(index == 0 ? .medium : .regular)
                         .foregroundColor(.trainTextPrimary)
                 }
             }
         }
-        .padding(20)
+        .padding(Spacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
         )
     }
 }
@@ -349,12 +349,12 @@ struct HistoryEntryCard: View {
 
                 if entry.hadProgression {
                     Image(systemName: "rosette.fill")
-                        .font(.system(size: 20))
+                        .font(.system(size: IconSize.md))
                         .foregroundColor(.trainPrimary)
                 }
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 ForEach(Array(entry.sets.enumerated()), id: \.element.id) { index, set in
                     HStack {
                         Text("Set \(index + 1):")
@@ -369,10 +369,10 @@ struct HistoryEntryCard: View {
                             Text("+1")
                                 .font(.trainCaption)
                                 .foregroundColor(.green)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.xxs)
                                 .background(Color.green.opacity(0.1))
-                                .cornerRadius(4)
+                                .cornerRadius(CornerRadius.xxs)
                         }
                     }
                 }
@@ -380,9 +380,9 @@ struct HistoryEntryCard: View {
         }
         .padding(Spacing.md)
         .appCard()
-        .cornerRadius(15)
+        .cornerRadius(CornerRadius.md)
         .overlay(
-            RoundedRectangle(cornerRadius: 15)
+            RoundedRectangle(cornerRadius: CornerRadius.md)
                 .stroke(entry.hadProgression ? Color.trainPrimary : Color.clear, lineWidth: entry.hadProgression ? 2 : 1)
         )
     }

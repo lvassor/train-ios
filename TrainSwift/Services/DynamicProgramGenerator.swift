@@ -46,6 +46,21 @@ enum ProgramGenerationError: LocalizedError {
     }
 }
 
+// MARK: - Program Constants
+
+private enum ProgramConstants {
+    static let defaultSetsPerExercise = 3
+    static let defaultRepRange = "8-12"
+    static let totalWeeks = 8
+    static let highRatingRestSeconds = 120
+    static let mediumRatingRestSeconds = 90
+    static let lowRatingRestSeconds = 60
+    static let highRatingThreshold = 80
+    static let mediumRatingThreshold = 50
+    static let lowFillRateThreshold = 75.0
+    static let highCanonicalRatingThreshold = 75
+}
+
 class DynamicProgramGenerator {
     private let exerciseRepo = ExerciseRepository()
 
@@ -153,14 +168,14 @@ class DynamicProgramGenerator {
         }
 
         // Check if any session is below 75% fill rate
-        let lowFillWarning = sessionFillRates.contains { $0 < 75.0 }
+        let lowFillWarning = sessionFillRates.contains { $0 < ProgramConstants.lowFillRateThreshold }
 
         let program = Program(
             type: splitType,
             daysPerWeek: questionnaireData.trainingDaysPerWeek,
             sessionDuration: sessionDuration,
             sessions: robustSessions,
-            totalWeeks: 8
+            totalWeeks: ProgramConstants.totalWeeks
         )
 
         AppLogger.logProgram("Dynamic program generated successfully! Program: \(splitType.description), Sessions: \(sessions.count), Total exercises: \(sessions.reduce(0) { $0 + $1.exercises.count }), Fill rates: \(sessionFillRates.map { String(format: "%.1f%%", $0) }.joined(separator: ", ")), Low fill: \(lowFillWarning), Repeats: \(hasRepeats)")
@@ -432,8 +447,7 @@ class DynamicProgramGenerator {
         // Determine rep range based on fitness goal and canonical rating (NEW BUSINESS RULE)
         let repRange = try getRepRangeForGoalAndRating(fitnessGoal, canonicalRating: dbExercise.canonicalRating)
 
-        // Always 3 sets for all exercises (NEW RULE)
-        let sets = 3
+        let sets = ProgramConstants.defaultSetsPerExercise
 
         // Determine rest period based on canonical rating (NEW RULE)
         let rest = getRestSecondsFromRating(dbExercise.canonicalRating)
@@ -453,7 +467,7 @@ class DynamicProgramGenerator {
     // MARK: - Rep Range Rules (NEW BUSINESS LOGIC)
 
     func getRepRangeForGoalAndRating(_ goalSelection: String, canonicalRating: Int) throws -> String {
-        let isHighRating = canonicalRating > 75
+        let isHighRating = canonicalRating > ProgramConstants.highCanonicalRatingThreshold
 
         // Define goal combinations
         let hasGetStronger = goalSelection.contains("get_stronger")
@@ -481,7 +495,7 @@ class DynamicProgramGenerator {
             return try randomChoice(["6-10", "8-12"])
         } else {
             // Default case
-            return "8-12"
+            return ProgramConstants.defaultRepRange
         }
     }
 
@@ -493,12 +507,12 @@ class DynamicProgramGenerator {
     }
 
     func getRestSecondsFromRating(_ canonicalRating: Int) -> Int {
-        if canonicalRating > 80 {
-            return 120 // 2 minutes for highest rated exercises
-        } else if canonicalRating >= 50 {
-            return 90 // 90 seconds for medium rated exercises
+        if canonicalRating > ProgramConstants.highRatingThreshold {
+            return ProgramConstants.highRatingRestSeconds
+        } else if canonicalRating >= ProgramConstants.mediumRatingThreshold {
+            return ProgramConstants.mediumRatingRestSeconds
         } else {
-            return 60 // 1 minute for lower rated exercises
+            return ProgramConstants.lowRatingRestSeconds
         }
     }
 
