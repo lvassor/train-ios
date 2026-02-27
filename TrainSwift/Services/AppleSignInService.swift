@@ -119,9 +119,6 @@ extension AppleSignInService: ASAuthorizationControllerDelegate {
             fullName: displayName
         )
 
-        // Store the user identifier for future credential checks
-        UserDefaults.standard.set(userIdentifier, forKey: "appleUserIdentifier")
-
         completionHandler?(.success(result))
     }
 

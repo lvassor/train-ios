@@ -463,14 +463,6 @@ class ExerciseDatabaseManager {
 
     // MARK: - Legacy compatibility methods
 
-    func fetchAvailableEquipmentNames() throws -> [String] {
-        return try fetchAvailableEquipmentCategories()
-    }
-
-    func fetchAvailableEquipmentTypes() throws -> [String] {
-        return []
-    }
-
     func fetchContraindications(forExerciseId exerciseId: String) throws -> [String] {
         guard let exercise = try fetchExercise(byId: exerciseId) else {
             return []
