@@ -166,11 +166,8 @@
     "Triceps"
   ],
   "video_config": {
-    "bunny_base_url": "https://vz-f673c4c2-345.b-cdn.net/",
-    "media_types": ["vid", "img"],
-    "supported_formats": [".mp4", ".png", ".jpg"],
-    "fallback_video": "placeholder.mp4",
-    "fallback_image": "placeholder.png"
+    "bunny_library_id": "608029",
+    "bunny_stream_cdn_hostname": "vz-85f6f2ce-b76.b-cdn.net"
   },
   "database_schema": {
     "exercises_table": {
@@ -201,10 +198,8 @@
         "id",
         "exercise_id",
         "supplier_id",
-        "media_type",
         "filename",
-        "bunny_url",
-        "note"
+        "bunny_guid"
       ]
     },
     "exercise_contraindications_table": {

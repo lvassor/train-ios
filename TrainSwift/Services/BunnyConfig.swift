@@ -32,7 +32,7 @@ struct BunnyConfig {
 
     /// Bunny.net Stream Library ID (public, safe to embed in app)
     /// This is needed for iframe embeds and HLS playback URLs
-    static let libraryId: String = "568658"
+    static let libraryId: String = "608029"
 
     /// Bunny.net API Key (private, for signed URLs)
     /// WARNING: Only use for generating signed URLs server-side or in secure contexts
@@ -60,8 +60,8 @@ struct BunnyConfig {
     /// Base URL for Bunny.net Stream iframe embeds
     static let streamEmbedBaseURL = "https://iframe.mediadelivery.net/embed"
 
-    /// Base URL for Bunny.net Storage/Pull Zone (images)
-    static let storageBaseURL = "https://train-strength.b-cdn.net"
+    /// Stream CDN hostname for thumbnail delivery
+    static let streamCdnHostname = "vz-85f6f2ce-b76.b-cdn.net"
 
     /// Generate video embed URL for a given video GUID
     /// - Parameter videoGuid: The Bunny.net video GUID
@@ -77,23 +77,13 @@ struct BunnyConfig {
         URL(string: "https://vz-\(libraryId).b-cdn.net/\(videoGuid)/playlist.m3u8")
     }
 
-    /// Stream CDN ID for thumbnail delivery (different from library ID)
-    static let streamCdnId: String = "e5fdd1e5"
-
     /// Generate thumbnail URL for a video
     /// - Parameters:
     ///   - videoGuid: The Bunny.net video GUID
     ///   - thumbnailName: Thumbnail filename (default: thumbnail.jpg)
     /// - Returns: URL for video thumbnail
     static func videoThumbnailURL(for videoGuid: String, thumbnailName: String = "thumbnail.jpg") -> URL? {
-        URL(string: "https://vz-\(streamCdnId)-cce.b-cdn.net/\(videoGuid)/\(thumbnailName)")
-    }
-
-    /// Generate image URL from storage/pull zone
-    /// - Parameter filename: The image filename
-    /// - Returns: URL for the image
-    static func imageURL(for filename: String) -> URL? {
-        URL(string: "\(storageBaseURL)/\(filename)")
+        URL(string: "https://\(streamCdnHostname)/\(videoGuid)/\(thumbnailName)")
     }
 
     // MARK: - Keychain Storage (for production)

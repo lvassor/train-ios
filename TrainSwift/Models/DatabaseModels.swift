@@ -3,11 +3,30 @@
 //  TrainSwift
 //
 //  Models matching the SQLite database schema for exercises.db
-//  Updated to match new schema with equipment_category/equipment_specific hierarchy
+//  Schema uses normalized equipment references: equipment_id_1/equipment_id_2 → equipment table
 //
 
 import Foundation
 import GRDB
+
+// MARK: - Equipment Model
+
+struct DBEquipment: Codable, FetchableRecord, TableRecord, Identifiable, Hashable {
+    static let databaseTableName = "equipment"
+
+    var id: String { equipmentId }
+    let equipmentId: String     // e.g., "EP001"
+    let category: String        // "Barbells", "Dumbbells", "Cables", etc.
+    let name: String            // "Barbells", "Squat Rack", "Single Adjustable Cable Machine", etc.
+    let imageFilename: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case equipmentId = "equipment_id"
+        case category
+        case name
+        case imageFilename = "image_filename"
+    }
+}
 
 // MARK: - Database Exercise Model
 
@@ -18,10 +37,9 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
     let exerciseId: String              // e.g., "EX001"
     let canonicalName: String           // Movement pattern grouping for swaps
     let displayName: String             // User-facing name
-    let equipmentCategory: String       // High-level: "Barbells", "Dumbbells", "Cables", etc.
-    let equipmentSpecific: String?      // Low-level: "Squat Rack", "Flat Bench", etc.
-    let attachmentSpecific: String?     // Attachments: "Rope", "D-Handles", "Straight Bar", etc.
-    let complexityLevel: String         // "all", "1", "2"
+    let equipmentId1: String            // FK → equipment table (primary equipment)
+    let equipmentId2: String?           // FK → equipment table (secondary/attachment, optional)
+    let complexityLevel: String         // "All", "1", "2"
     let primaryMuscle: String
     let secondaryMuscle: String?
     let instructions: String?
@@ -34,9 +52,8 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         static let exerciseId = Column("exercise_id")
         static let canonicalName = Column("canonical_name")
         static let displayName = Column("display_name")
-        static let equipmentCategory = Column("equipment_category")
-        static let equipmentSpecific = Column("equipment_specific")
-        static let attachmentSpecific = Column("attachment_specific")
+        static let equipmentId1 = Column("equipment_id_1")
+        static let equipmentId2 = Column("equipment_id_2")
         static let complexityLevel = Column("complexity_level")
         static let primaryMuscle = Column("primary_muscle")
         static let secondaryMuscle = Column("secondary_muscle")
@@ -51,9 +68,8 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         case exerciseId = "exercise_id"
         case canonicalName = "canonical_name"
         case displayName = "display_name"
-        case equipmentCategory = "equipment_category"
-        case equipmentSpecific = "equipment_specific"
-        case attachmentSpecific = "attachment_specific"
+        case equipmentId1 = "equipment_id_1"
+        case equipmentId2 = "equipment_id_2"
         case complexityLevel = "complexity_level"
         case primaryMuscle = "primary_muscle"
         case secondaryMuscle = "secondary_muscle"
@@ -70,9 +86,8 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
         exerciseId = try container.decode(String.self, forKey: .exerciseId)
         canonicalName = try container.decode(String.self, forKey: .canonicalName)
         displayName = try container.decode(String.self, forKey: .displayName)
-        equipmentCategory = try container.decode(String.self, forKey: .equipmentCategory)
-        equipmentSpecific = try container.decodeIfPresent(String.self, forKey: .equipmentSpecific)
-        attachmentSpecific = try container.decodeIfPresent(String.self, forKey: .attachmentSpecific)
+        equipmentId1 = try container.decode(String.self, forKey: .equipmentId1)
+        equipmentId2 = try container.decodeIfPresent(String.self, forKey: .equipmentId2)
         complexityLevel = try container.decode(String.self, forKey: .complexityLevel)
         primaryMuscle = try container.decode(String.self, forKey: .primaryMuscle)
         secondaryMuscle = try container.decodeIfPresent(String.self, forKey: .secondaryMuscle)
@@ -87,25 +102,50 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
     }
 
     /// Get numeric complexity level for filtering (convert string to int)
+    /// DB stores "All" (capital A), "1", "2"
     var numericComplexity: Int {
-        switch complexityLevel {
-        case "all":
-            return 0
-        case "1":
-            return 1
-        case "2":
-            return 2
-        default:
-            fatalError("Invalid complexity_level: \(complexityLevel). Expected 'all', '1', or '2'")
+        switch complexityLevel.lowercased() {
+        case "all": return 0
+        case "1": return 1
+        case "2": return 2
+        default: return 0
         }
     }
 
-    /// For backward compatibility - returns equipment_category
+    // MARK: - Equipment Lookups (from cache)
+
+    /// Primary equipment record
+    var equipment1: DBEquipment? {
+        ExerciseDatabaseManager.shared.equipment(for: equipmentId1)
+    }
+
+    /// Secondary equipment record (if any)
+    var equipment2: DBEquipment? {
+        guard let id2 = equipmentId2 else { return nil }
+        return ExerciseDatabaseManager.shared.equipment(for: id2)
+    }
+
+    /// Equipment category (e.g., "Barbells", "Dumbbells") — resolved from equipment_id_1
+    var equipmentCategory: String {
+        equipment1?.category ?? "Unknown"
+    }
+
+    /// Specific equipment name (e.g., "Squat Rack", "Single Adjustable Cable Machine")
+    var equipmentSpecific: String? {
+        equipment1?.name
+    }
+
+    /// Secondary/attachment name (e.g., "Straight Bar", "Roman Chair")
+    var attachmentSpecific: String? {
+        equipment2?.name
+    }
+
+    /// For backward compatibility — returns equipment category
     var equipmentName: String? {
         return equipmentCategory
     }
 
-    /// For backward compatibility - returns equipment_category
+    /// For backward compatibility — returns equipment category
     var equipmentType: String {
         return equipmentCategory
     }
@@ -113,7 +153,6 @@ struct DBExercise: Codable, FetchableRecord, TableRecord, Identifiable, Hashable
     /// Get formatted instructions as array of steps
     var instructionSteps: [String] {
         guard let instructions = instructions else { return [] }
-        // Instructions are formatted as "Step 1: ...\nStep 2: ..." etc.
         return instructions.components(separatedBy: "\n")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
@@ -150,41 +189,15 @@ struct DBExerciseVideo: Codable, FetchableRecord, TableRecord, Identifiable {
     let id: Int
     let exerciseId: String
     let supplierId: String?
-    let mediaType: String              // "vid" or "img"
     let filename: String
-    let bunnyUrl: String              // Full bunny.net URL
-
-    enum Columns {
-        static let id = Column("id")
-        static let exerciseId = Column("exercise_id")
-        static let supplierId = Column("supplier_id")
-        static let mediaType = Column("media_type")
-        static let filename = Column("filename")
-        static let bunnyUrl = Column("bunny_url")
-    }
+    let bunnyGuid: String
 
     private enum CodingKeys: String, CodingKey {
         case id
         case exerciseId = "exercise_id"
         case supplierId = "supplier_id"
-        case mediaType = "media_type"
         case filename
-        case bunnyUrl = "bunny_url"
-    }
-
-    /// Check if this is a video file
-    var isVideo: Bool {
-        return mediaType == "vid"
-    }
-
-    /// Check if this is an image file
-    var isImage: Bool {
-        return mediaType == "img"
-    }
-
-    /// Get file extension from filename
-    var fileExtension: String? {
-        return URL(string: filename)?.pathExtension
+        case bunnyGuid = "bunny_guid"
     }
 }
 
@@ -287,9 +300,10 @@ enum ExperienceLevel: String, Codable, CaseIterable {
 
 struct ExerciseDatabaseFilter {
     var canonicalName: String?              // Filter by movement pattern (for exercise swaps)
-    var equipmentCategories: [String] = []  // Filter by equipment category (Barbells, Dumbbells, etc.)
-    var equipmentSpecific: [String] = []    // Filter by specific equipment (Squat Rack, Flat Bench, etc.)
-    var attachmentSpecific: [String] = []   // Filter by attachments (Rope, D-Handles, Straight Bar, etc.)
+    var equipmentCategories: [String] = []  // Equipment category names (e.g., "Barbells", "Cables")
+    var equipmentSpecific: [String] = []    // Specific equipment names (e.g., "Squat Rack")
+    var attachmentSpecific: [String] = []   // Attachment names (e.g., "Rope", "Straight Bar")
+    var allowedEquipmentIds: Set<String>? = nil  // Pre-resolved equipment IDs (overrides above if set)
     var maxComplexity: Int = 4              // Maximum complexity level (1-4)
     var primaryMuscle: String?
     var excludeInjuries: [String] = []
@@ -300,6 +314,7 @@ struct ExerciseDatabaseFilter {
          equipmentCategories: [String] = [],
          equipmentSpecific: [String] = [],
          attachmentSpecific: [String] = [],
+         allowedEquipmentIds: Set<String>? = nil,
          maxComplexity: Int = 4,
          primaryMuscle: String? = nil,
          excludeInjuries: [String] = [],
@@ -309,6 +324,7 @@ struct ExerciseDatabaseFilter {
         self.equipmentCategories = equipmentCategories
         self.equipmentSpecific = equipmentSpecific
         self.attachmentSpecific = attachmentSpecific
+        self.allowedEquipmentIds = allowedEquipmentIds
         self.maxComplexity = maxComplexity
         self.primaryMuscle = primaryMuscle
         self.excludeInjuries = excludeInjuries
@@ -332,20 +348,17 @@ struct ExerciseDatabaseFilter {
 
 extension ExerciseDatabaseFilter {
     /// Map questionnaire equipment choices to database equipment categories
-    /// Uses ConstantsManager for single source of truth with Python generator
     static func mapEquipmentFromQuestionnaire(_ questionnaireEquipment: [String]) -> [String] {
         return ConstantsManager.shared.mapEquipment(questionnaireEquipment)
     }
 
     /// Map questionnaire attachment choices to database attachment values
-    /// Uses ConstantsManager for single source of truth with Python generator
     static func mapAttachmentsFromQuestionnaire(_ questionnaireAttachments: Set<String>) -> [String] {
         return ConstantsManager.shared.mapAttachments(questionnaireAttachments)
     }
 
-    /// Map questionnaire machine choices to database equipment types (legacy - now handled by equipmentCategories)
+    /// Map questionnaire machine choices to database equipment types (legacy)
     static func mapMachineTypesFromQuestionnaire(_ questionnaireEquipment: [String]) -> [String] {
-        // This is now handled by equipmentCategories directly
         return []
     }
 }
@@ -371,15 +384,14 @@ enum InjuryType: String, CaseIterable, Codable {
 // MARK: - Equipment Hierarchy (for expandable questionnaire)
 
 struct EquipmentHierarchy {
-    /// Equipment categories that have expandable specific items
+    /// Equipment categories that have expandable specific items.
+    /// Maps questionnaire key → list of specific equipment names (matching equipment.name in DB).
     static let expandableCategories: [String: [String]] = [
         "bodyweight": [
             "Flat Bench",
-            "Squat Rack",
             "Pull-Up Bar",
             "Dip Station",
             "Roman Chair",
-            "Plyometric Box",
             "Ab Wheel"
         ],
         "barbells": [
@@ -388,7 +400,12 @@ struct EquipmentHierarchy {
             "Incline Bench Press",
             "Decline Bench Press",
             "Landmine Attachment",
-            "Hip Thrust Bench"
+            "Hip Thrust Bench",
+            "Preacher Bench",
+            "Smith Machine"
+        ],
+        "dumbbells": [
+            "Adjustable Bench"
         ],
         "cable_machines": [
             "Single Adjustable Cable Machine",
@@ -405,7 +422,12 @@ struct EquipmentHierarchy {
             "Seated Calf Raise Machine",
             "Hip Abduction Machine",
             "Hip Adduction Machine",
-            "Assisted Pull-Up/Dip Machine"
+            "Assisted Pull-Up/Dip Machine",
+            "Machine Chest Press",
+            "Pec Deck",
+            "Shoulder Press Machine",
+            "Chest Supported Row Machine",
+            "Preacher Curl Machine"
         ],
         "plate_loaded": [
             "Leg Press Machine",
@@ -415,13 +437,14 @@ struct EquipmentHierarchy {
             "Seated Leg Curl Machine",
             "Standing Calf Raise Machine",
             "Seated Calf Raise Machine",
-            "Glute Kickback Machine"
+            "Glute Kickback Machine",
+            "Machine Chest Press",
+            "Shoulder Press Machine",
+            "Chest Supported Row Machine",
+            "Hip Thrust Machine"
         ]
     ]
 
-    /// Categories that don't expand (no equipment_specific breakdown)
-    static let simpleCategories = ["dumbbells", "kettlebells"]
-
-    /// Note: "bodyweight" has been added as a new equipment category
-    /// and appears in expandableCategories due to equipment_specific items
+    /// Categories that don't expand (no specific equipment sub-items)
+    static let simpleCategories = ["kettlebells"]
 }

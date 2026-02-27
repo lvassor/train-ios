@@ -36,9 +36,9 @@ struct ExerciseSwapCarousel: View {
 
                     Button(action: onDismiss) {
                         Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.trainBody).fontWeight(.semibold)
                             .foregroundColor(.trainTextSecondary)
-                            .frame(width: 32, height: 32)
+                            .frame(width: IconSize.lg, height: IconSize.lg)
                             .background(.ultraThinMaterial)
                             .clipShape(Circle())
                     }
@@ -59,16 +59,16 @@ struct ExerciseSwapCarousel: View {
                         Text(currentExercise.primaryMuscle)
                             .font(.trainCaption)
                             .foregroundColor(.trainTextSecondary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.xs)
                             .background(Color.trainTextSecondary.opacity(0.1))
                             .clipShape(Capsule())
 
                         Text(currentExercise.equipmentType)
                             .font(.trainCaption)
                             .foregroundColor(.trainTextSecondary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.xs)
                             .background(Color.trainTextSecondary.opacity(0.1))
                             .clipShape(Capsule())
                     }
@@ -94,7 +94,7 @@ struct ExerciseSwapCarousel: View {
                 } else if alternatives.isEmpty {
                     VStack(spacing: Spacing.md) {
                         Image(systemName: "exclamationmark.circle")
-                            .font(.system(size: 40))
+                            .font(.system(size: IconSize.xl))
                             .foregroundColor(.trainTextSecondary)
                         Text("No alternatives available")
                             .font(.trainBody)
@@ -121,7 +121,7 @@ struct ExerciseSwapCarousel: View {
                         .frame(height: 180)
 
                         // Page indicators
-                        HStack(spacing: 6) {
+                        HStack(spacing: Spacing.sm) {
                             ForEach(0..<alternatives.count, id: \.self) { index in
                                 Circle()
                                     .fill(index == selectedIndex ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3))
@@ -212,21 +212,8 @@ struct ExerciseSwapCarousel: View {
 struct AlternativeExerciseCard: View {
     let exercise: DBExercise
 
-    // Get media info for this exercise
-    private var exerciseMedia: ExerciseMedia? {
-        ExerciseMediaMapping.media(for: exercise.exerciseId)
-    }
-
-    // Get thumbnail URL based on media type
     private var thumbnailURL: URL? {
-        guard let media = exerciseMedia else { return nil }
-
-        if media.mediaType == .video, let guid = media.guid {
-            return BunnyConfig.videoThumbnailURL(for: guid)
-        } else if media.mediaType == .image, let filename = media.imageFilename {
-            return BunnyConfig.imageURL(for: filename)
-        }
-        return nil
+        ExerciseMediaMapping.thumbnailURL(for: exercise.exerciseId)
     }
 
     var body: some View {
@@ -253,9 +240,9 @@ struct AlternativeExerciseCard: View {
                 }
 
                 // Play icon overlay for videos
-                if exerciseMedia?.mediaType == .video {
+                if ExerciseMediaMapping.videoGuid(for: exercise.exerciseId) != nil {
                     Image(systemName: "play.circle.fill")
-                        .font(.system(size: 28))
+                        .font(.system(size: IconSize.lg))
                         .foregroundColor(.white.opacity(0.9))
                         .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                 }
@@ -273,24 +260,24 @@ struct AlternativeExerciseCard: View {
             // Badges
             HStack(spacing: Spacing.xs) {
                 // Equipment
-                HStack(spacing: 2) {
+                HStack(spacing: Spacing.xxs) {
                     Image(systemName: "dumbbell")
-                        .font(.system(size: 10))
+                        .font(.trainMicro)
                     Text(exercise.equipmentType)
-                        .font(.system(size: 11))
+                        .font(.trainTag).fontWeight(.regular)
                 }
                 .foregroundColor(.trainTextSecondary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xxs)
                 .background(Color.trainTextSecondary.opacity(0.1))
                 .clipShape(Capsule())
 
                 // Primary muscle
                 Text(exercise.primaryMuscle)
-                    .font(.system(size: 11))
+                    .font(.trainTag).fontWeight(.regular)
                     .foregroundColor(.trainPrimary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xxs)
                     .background(Color.trainPrimary.opacity(0.1))
                     .clipShape(Capsule())
             }
@@ -310,7 +297,7 @@ struct AlternativeExerciseCard: View {
         ZStack {
             Color.trainTextSecondary.opacity(0.1)
             Image(systemName: "figure.strengthtraining.traditional")
-                .font(.system(size: 24))
+                .font(.system(size: IconSize.md))
                 .foregroundColor(.trainTextSecondary.opacity(0.5))
         }
     }

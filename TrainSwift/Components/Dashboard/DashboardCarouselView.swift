@@ -20,7 +20,7 @@ struct DashboardCarouselView: View {
     private let expandedHeight: CGFloat = 420
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.md) {
             // Carousel - when expanded, show only the current card without TabView swiping
             if isCalendarExpanded {
                 // Expanded: show current card directly without carousel behavior
@@ -30,8 +30,8 @@ struct DashboardCarouselView: View {
                         userProgram: userProgram,
                         isCalendarExpanded: $isCalendarExpanded
                     )
-                    .padding(.horizontal, 4) // Prevent edge clipping of rounded corners
-                    .padding(.vertical, 2) // Prevent top/bottom border clipping
+                    .padding(.horizontal, Spacing.xs) // Prevent edge clipping of rounded corners
+                    .padding(.vertical, Spacing.xxs) // Prevent top/bottom border clipping
                 }
             } else {
                 // Collapsed: normal carousel with swiping
@@ -42,8 +42,8 @@ struct DashboardCarouselView: View {
                             userProgram: userProgram,
                             isCalendarExpanded: $isCalendarExpanded
                         )
-                        .padding(.horizontal, 4) // Prevent edge clipping of rounded corners
-                        .padding(.vertical, 2) // Prevent top/bottom border clipping
+                        .padding(.horizontal, Spacing.xs) // Prevent edge clipping of rounded corners
+                        .padding(.vertical, Spacing.xxs) // Prevent top/bottom border clipping
                         .tag(index)
                     }
                 }
@@ -55,7 +55,7 @@ struct DashboardCarouselView: View {
         // Page indicators - outside the card, hidden when expanded
         .overlay(alignment: .bottom) {
             if carouselItems.count > 1 && !isCalendarExpanded {
-                HStack(spacing: 8) {
+                HStack(spacing: Spacing.sm) {
                     ForEach(0..<carouselItems.count, id: \.self) { index in
                         Circle()
                             .fill(index == currentPage ? Color.trainTextSecondary : Color.clear)
@@ -123,21 +123,8 @@ struct DashboardCarouselView: View {
         let title = randomExercise.exerciseName
         let description = "Master proper form and technique for this key exercise"
 
-        // Look up the actual video GUID from ExerciseMediaMapping using exerciseId
-        let videoGuid: String?
-        if let media = ExerciseMediaMapping.mapping[randomExercise.exerciseId],
-           media.mediaType == .video {
-            videoGuid = media.guid
-        } else {
-            videoGuid = nil
-        }
-
-        let thumbnailURL: URL?
-        if let guid = videoGuid {
-            thumbnailURL = BunnyConfig.videoThumbnailURL(for: guid)
-        } else {
-            thumbnailURL = nil
-        }
+        let videoGuid = ExerciseMediaMapping.videoGuid(for: randomExercise.exerciseId)
+        let thumbnailURL = ExerciseMediaMapping.thumbnailURL(for: randomExercise.exerciseId)
 
         return LearningRecommendationData(
             title: title,

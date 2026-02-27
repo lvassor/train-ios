@@ -28,34 +28,17 @@ struct DashboardExerciseCard: View {
         return questionnaireData.gender.lowercased() == "female" ? .female : .male
     }
 
-    // Get media info for this exercise
-    private var media: ExerciseMedia? {
-        ExerciseMediaMapping.media(for: exercise.exerciseId)
-    }
-
-    // Get thumbnail URL - video thumbnail or static image
     private var thumbnailURL: URL? {
-        guard let media = media else { return nil }
-
-        if media.mediaType == .video, let guid = media.guid {
-            // Bunny Stream auto-generated thumbnail
-            return BunnyConfig.videoThumbnailURL(for: guid)
-        } else if media.mediaType == .image, let filename = media.imageFilename {
-            // Static image from CDN
-            return BunnyConfig.imageURL(for: filename)
-        }
-        return nil
+        ExerciseMediaMapping.thumbnailURL(for: exercise.exerciseId)
     }
 
-    // Check if this exercise has video
     private var hasVideo: Bool {
-        guard let media = media else { return false }
-        return media.mediaType == .video && media.guid != nil
+        ExerciseMediaMapping.videoGuid(for: exercise.exerciseId) != nil
     }
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 16) {
+            HStack(spacing: Spacing.md) {
                 // Video thumbnail with play button
                 ZStack(alignment: .bottomLeading) {
                     // Thumbnail image - fixed 80x64 dimensions
@@ -66,9 +49,9 @@ struct DashboardExerciseCard: View {
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                                    .frame(width: 80, height: 64)
+                                    .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
                                     .clipped()
-                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous))
                             case .failure:
                                 thumbnailPlaceholder
                             case .empty:
@@ -93,27 +76,27 @@ struct DashboardExerciseCard: View {
                             onVideoTap()
                         }) {
                             Image(systemName: "play.fill")
-                                .font(.system(size: 10))
+                                .font(.trainMicro)
                                 .foregroundColor(.white)
-                                .padding(6)
+                                .padding(Spacing.sm)
                                 .background(Color.black.opacity(0.6))
                                 .clipShape(Circle())
                         }
                         .offset(x: 4, y: -4)
                     }
                 }
-                .frame(width: 80, height: 64)
+                .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
 
                 // Exercise info
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(exercise.exerciseName)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.trainBody).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
                     Text("\(exercise.sets) sets • \(exercise.repRange) reps")
-                        .font(.system(size: 14, weight: .light))
+                        .font(.trainCaption).fontWeight(.light)
                         .foregroundColor(.trainTextSecondary)
                 }
 
@@ -127,29 +110,28 @@ struct DashboardExerciseCard: View {
                 )
                 .frame(height: 64)
             }
-            .padding(16)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(Spacing.md)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                     .stroke(Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
             )
         }
         .buttonStyle(ScaleButtonStyle())
         .fullScreenCover(isPresented: $showVideoPlayer) {
-            if let media = ExerciseMediaMapping.media(for: exercise.exerciseId),
-               let guid = media.guid {
+            if let guid = ExerciseMediaMapping.videoGuid(for: exercise.exerciseId) {
                 FullscreenVideoPlayer(videoGuid: guid)
             }
         }
     }
 
     private var thumbnailPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
+        RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
             .fill(Color.trainPlaceholder)
-            .frame(width: 80, height: 64)
+            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
             .overlay {
                 Image(systemName: "photo")
-                    .font(.system(size: 20))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextSecondary.opacity(0.5))
             }
     }
@@ -307,34 +289,17 @@ struct DashboardExerciseCardDarkMode: View {
         return questionnaireData.gender.lowercased() == "female" ? .female : .male
     }
 
-    // Get media info for this exercise
-    private var media: ExerciseMedia? {
-        ExerciseMediaMapping.media(for: exercise.exerciseId)
-    }
-
-    // Get thumbnail URL - video thumbnail or static image
     private var thumbnailURL: URL? {
-        guard let media = media else { return nil }
-
-        if media.mediaType == .video, let guid = media.guid {
-            // Bunny Stream auto-generated thumbnail
-            return BunnyConfig.videoThumbnailURL(for: guid)
-        } else if media.mediaType == .image, let filename = media.imageFilename {
-            // Static image from CDN
-            return BunnyConfig.imageURL(for: filename)
-        }
-        return nil
+        ExerciseMediaMapping.thumbnailURL(for: exercise.exerciseId)
     }
 
-    // Check if this exercise has video
     private var hasVideo: Bool {
-        guard let media = media else { return false }
-        return media.mediaType == .video && media.guid != nil
+        ExerciseMediaMapping.videoGuid(for: exercise.exerciseId) != nil
     }
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 16) {
+            HStack(spacing: Spacing.md) {
                 // Video thumbnail with play button
                 ZStack(alignment: .bottomLeading) {
                     // Thumbnail image - fixed 80x64 dimensions
@@ -345,9 +310,9 @@ struct DashboardExerciseCardDarkMode: View {
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                                    .frame(width: 80, height: 64)
+                                    .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
                                     .clipped()
-                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous))
                             case .failure:
                                 thumbnailPlaceholder
                             case .empty:
@@ -372,27 +337,27 @@ struct DashboardExerciseCardDarkMode: View {
                             onVideoTap()
                         }) {
                             Image(systemName: "play.fill")
-                                .font(.system(size: 10))
+                                .font(.trainMicro)
                                 .foregroundColor(.white)
-                                .padding(6)
+                                .padding(Spacing.sm)
                                 .background(Color.black.opacity(0.6))
                                 .clipShape(Circle())
                         }
                         .offset(x: 4, y: -4)
                     }
                 }
-                .frame(width: 80, height: 64)
+                .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
 
                 // Exercise info
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(exercise.exerciseName)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.trainBody).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
                     Text("\(exercise.sets) sets • \(exercise.repRange) reps")
-                        .font(.system(size: 14, weight: .light))
+                        .font(.trainCaption).fontWeight(.light)
                         .foregroundColor(.trainTextSecondary)
                 }
 
@@ -406,29 +371,28 @@ struct DashboardExerciseCardDarkMode: View {
                 )
                 .frame(height: 64)
             }
-            .padding(16)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(Spacing.md)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                     .stroke(Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
             )
         }
         .buttonStyle(ScaleButtonStyle())
         .fullScreenCover(isPresented: $showVideoPlayer) {
-            if let media = ExerciseMediaMapping.media(for: exercise.exerciseId),
-               let guid = media.guid {
+            if let guid = ExerciseMediaMapping.videoGuid(for: exercise.exerciseId) {
                 FullscreenVideoPlayer(videoGuid: guid)
             }
         }
     }
 
     private var thumbnailPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
+        RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
             .fill(Color.trainTextSecondary.opacity(0.2))
-            .frame(width: 80, height: 64)
+            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
             .overlay {
                 Image(systemName: "photo")
-                    .font(.system(size: 20))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextSecondary.opacity(0.5))
             }
     }
@@ -448,7 +412,7 @@ struct DashboardExerciseCardDarkMode: View {
         complexityLevel: 1
     )
 
-    VStack(spacing: 16) {
+    VStack(spacing: Spacing.md) {
         // Light mode style
         DashboardExerciseCard(exercise: exercise)
             .padding(.horizontal)

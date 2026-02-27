@@ -31,6 +31,7 @@ protocol ExerciseDatabaseProtocol {
     func fetchExercise(byId id: String) throws -> DBExercise?
     func fetchAlternatives(for exercise: DBExercise, filter: ExerciseDatabaseFilter) throws -> [DBExercise]
     func fetchContraindications(forExerciseId exerciseId: String) throws -> [String]
+    func videoGuid(for exerciseId: String) -> String?
 }
 
 // MARK: - Conformance

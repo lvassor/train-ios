@@ -55,10 +55,10 @@ struct ExercisePickerView: View {
                 // Warning banner
                 HStack(spacing: Spacing.sm) {
                     Image(systemName: "info.circle.fill")
-                        .font(.system(size: 14))
+                        .font(.trainCaption)
                         .foregroundColor(.trainPrimary)
                     Text("Adding an exercise may increase session duration. Consider swapping instead.")
-                        .font(.system(size: 13, weight: .regular))
+                        .font(.trainCaptionSmall)
                         .foregroundColor(.trainTextSecondary)
                 }
                 .padding(Spacing.md)
@@ -109,7 +109,7 @@ struct ExercisePickerView: View {
                     Spacer()
                     VStack(spacing: Spacing.md) {
                         Image(systemName: "magnifyingglass")
-                            .font(.system(size: 40))
+                            .font(.system(size: IconSize.xl))
                             .foregroundColor(.trainTextSecondary)
                         Text("No exercises found")
                             .font(.trainBodyMedium)
@@ -206,10 +206,10 @@ private struct FilterChip: View {
     var body: some View {
         Button(action: onTap) {
             Text(label)
-                .font(.system(size: 14, weight: .medium))
+                .font(.trainCaption).fontWeight(.medium)
                 .foregroundColor(isSelected ? .white : .trainTextSecondary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
+                .padding(.horizontal, Spacing.smd)
+                .padding(.vertical, Spacing.sm)
                 .background(isSelected ? Color.trainPrimary : Color.trainSurface)
                 .clipShape(Capsule())
         }
@@ -224,14 +224,12 @@ private struct ExercisePickerCard: View {
     let onSelect: () -> Void
 
     private var thumbnailURL: URL? {
-        guard let media = ExerciseMediaMapping.media(for: exercise.exerciseId),
-              let guid = media.guid else { return nil }
-        return BunnyConfig.videoThumbnailURL(for: guid)
+        ExerciseMediaMapping.thumbnailURL(for: exercise.exerciseId)
     }
 
     var body: some View {
         Button(action: onSelect) {
-            HStack(spacing: 12) {
+            HStack(spacing: Spacing.smd) {
                 // Thumbnail
                 if let url = thumbnailURL {
                     AsyncImage(url: url) { phase in
@@ -242,7 +240,7 @@ private struct ExercisePickerCard: View {
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 64, height: 52)
                                 .clipped()
-                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous))
                         default:
                             thumbnailPlaceholder
                         }
@@ -252,30 +250,30 @@ private struct ExercisePickerCard: View {
                 }
 
                 // Info
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack(spacing: Spacing.xs) {
                         Text(exercise.displayName)
-                            .font(.system(size: 15, weight: .medium))
+                            .font(.trainCaptionLarge).fontWeight(.medium)
                             .foregroundColor(.trainTextPrimary)
                             .lineLimit(2)
 
                         if isAboveUserLevel {
                             Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 12))
+                                .font(.trainCaptionSmall)
                                 .foregroundColor(.orange)
                         }
                     }
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.sm) {
                         Text(exercise.primaryMuscle)
-                            .font(.system(size: 13, weight: .regular))
+                            .font(.trainCaptionSmall)
                             .foregroundColor(.trainTextSecondary)
 
                         Text("•")
                             .foregroundColor(.trainTextSecondary)
 
                         Text(exercise.equipmentType)
-                            .font(.system(size: 13, weight: .regular))
+                            .font(.trainCaptionSmall)
                             .foregroundColor(.trainTextSecondary)
                     }
                 }
@@ -283,23 +281,23 @@ private struct ExercisePickerCard: View {
                 Spacer()
 
                 Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 22))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainPrimary)
             }
-            .padding(12)
+            .padding(Spacing.smd)
             .background(Color.trainSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
         }
         .buttonStyle(PlainButtonStyle())
     }
 
     private var thumbnailPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
+        RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
             .fill(Color.trainTextSecondary.opacity(0.15))
             .frame(width: 64, height: 52)
             .overlay {
                 Image(systemName: "dumbbell.fill")
-                    .font(.system(size: 16))
+                    .font(.system(size: IconSize.sm))
                     .foregroundColor(.trainTextSecondary.opacity(0.4))
             }
     }

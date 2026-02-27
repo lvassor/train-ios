@@ -100,7 +100,7 @@ struct WorkoutOverviewView: View {
                 // Error state
                 VStack(spacing: Spacing.lg) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 50))
+                        .font(.system(size: IconSize.xxl))
                         .foregroundColor(.trainTextSecondary)
                     Text("Unable to load workout session")
                         .font(.trainHeadline)
@@ -167,20 +167,20 @@ struct WorkoutOverviewView: View {
                                 }) {
                                     HStack {
                                         Image(systemName: "plus")
-                                            .font(.system(size: 16))
+                                            .font(.system(size: IconSize.sm))
                                         Text("Add Exercise")
-                                            .font(.system(size: 16, weight: .medium))
+                                            .font(.trainBody).fontWeight(.medium)
                                     }
                                     .foregroundColor(.trainPrimary)
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
+                                    .padding(.vertical, Spacing.md)
                                     .background(Color.trainPrimary.opacity(0.1))
-                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                                 }
                                 .padding(.horizontal, Spacing.lg)
                             }
                         }
-                        .padding(.bottom, 20) // Small padding for scroll content
+                        .padding(.bottom, Spacing.lg) // Small padding for scroll content
                     }
                     .scrollContentBackground(.hidden)
                 }
@@ -628,7 +628,7 @@ struct WorkoutOverviewHeader: View {
             // Back button
             Button(action: onCancel) {
                 Image(systemName: "arrow.left")
-                    .font(.system(size: 20))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextPrimary)
             }
             .frame(width: 24, height: 24)
@@ -637,7 +637,7 @@ struct WorkoutOverviewHeader: View {
 
             // Title
             Text(sessionName)
-                .font(.system(size: 18, weight: .medium))
+                .font(.trainBodyMedium)
                 .foregroundColor(.trainTextPrimary)
 
             Spacer()
@@ -645,18 +645,18 @@ struct WorkoutOverviewHeader: View {
             // Edit/Done pill button (Apple-style)
             Button(action: onEditToggle) {
                 Text(isEditing ? "Done" : "Edit")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.trainCaption).fontWeight(.medium)
                     .foregroundColor(isEditing ? .trainPrimary : .trainTextPrimary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.sm)
                     .background(
                         Capsule()
                             .stroke(isEditing ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
                     )
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 16)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -672,41 +672,41 @@ struct WarmUpCard: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // Section title
             Text("Suggested Warm-Up")
-                .font(.system(size: 14, weight: .light))
+                .font(.trainCaption).fontWeight(.light)
                 .foregroundColor(.trainTextSecondary)
-                .padding(.top, 8)
+                .padding(.top, Spacing.sm)
 
             // Warm up card - Figma style with thumbnail
             Button(action: onBegin) {
-                HStack(spacing: 16) {
+                HStack(spacing: Spacing.md) {
                     // Thumbnail with play button
                     ZStack(alignment: .bottomLeading) {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
                             .fill(Color.trainTextSecondary.opacity(0.2))
-                            .frame(width: 80, height: 64)
+                            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
                             .overlay {
                                 Image(systemName: "figure.strengthtraining.traditional")
-                                    .font(.system(size: 24))
+                                    .font(.system(size: IconSize.md))
                                     .foregroundColor(.trainTextSecondary.opacity(0.5))
                             }
 
                         // Play button
                         Image(systemName: "play.fill")
-                            .font(.system(size: 10))
+                            .font(.trainMicro)
                             .foregroundColor(.white)
-                            .padding(6)
+                            .padding(Spacing.sm)
                             .background(Color.black.opacity(0.6))
                             .clipShape(Circle())
                             .offset(x: 4, y: -4)
                     }
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text("Upper Body Mobility")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.trainBody).fontWeight(.medium)
                             .foregroundColor(.trainTextPrimary)
 
                         Text("X exercises • X minutes")
-                            .font(.system(size: 14, weight: .light))
+                            .font(.trainCaption).fontWeight(.light)
                             .foregroundColor(.trainTextSecondary)
                     }
 
@@ -715,18 +715,18 @@ struct WarmUpCard: View {
                     // Skip button
                     Button(action: onSkip) {
                         Text("Skip")
-                            .font(.system(size: 14, weight: .light))
+                            .font(.trainCaption).fontWeight(.light)
                             .foregroundColor(.trainTextSecondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, Spacing.smd)
+                            .padding(.vertical, Spacing.sm)
                             .background(Color.trainTextSecondary.opacity(0.1))
                             .clipShape(Capsule())
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
-                .padding(16)
+                .padding(Spacing.md)
                 .background(Color.trainSurface)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 1)
             }
             .buttonStyle(ScaleButtonStyle())
@@ -758,9 +758,9 @@ struct WorkoutExerciseList: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // Section title
             Text("Workout")
-                .font(.system(size: 14, weight: .light))
+                .font(.trainCaption).fontWeight(.light)
                 .foregroundColor(.trainTextSecondary)
-                .padding(.top, 8)
+                .padding(.top, Spacing.sm)
 
             // Exercise cards with vertical line behind
             ZStack(alignment: .leading) {
@@ -768,14 +768,14 @@ struct WorkoutExerciseList: View {
                 if !isEditing {
                     Rectangle()
                         .fill(Color.trainTextSecondary.opacity(0.2))
-                        .frame(width: 2)
+                        .frame(width: Spacing.xxs)
                         .padding(.leading, lineXOffset - 1)
-                        .padding(.top, 48)
-                        .padding(.bottom, 48)
+                        .padding(.top, Spacing.xxl)
+                        .padding(.bottom, Spacing.xxl)
                 }
 
                 // Exercise cards
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.smd) {
                     ForEach(Array(exercises.enumerated()), id: \.element.id) { index, exercise in
                         exerciseCardView(for: exercise, at: index)
                     }
@@ -825,7 +825,7 @@ struct WorkoutExerciseList: View {
                 .zIndex(isDragging ? 100 : 0)
                 .background(
                     isDraggedOver && !isDragging ?
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: CornerRadius.md)
                             .stroke(Color.trainPrimary, lineWidth: 2)
                             .padding(-4)
                         : nil
@@ -920,28 +920,12 @@ struct ExerciseOverviewCard: View {
     // Drag state for visual feedback
     @State private var isDragHandlePressed = false
 
-    // Get media info for this exercise
-    private var media: ExerciseMedia? {
-        ExerciseMediaMapping.media(for: exercise.exerciseId)
-    }
-
-    // Get thumbnail URL - video thumbnail or static image
     private var thumbnailURL: URL? {
-        guard let media = media else { return nil }
-
-        if media.mediaType == .video, let guid = media.guid {
-            // Bunny Stream auto-generated thumbnail
-            return BunnyConfig.videoThumbnailURL(for: guid)
-        } else if media.mediaType == .image, let filename = media.imageFilename {
-            // Static image from CDN
-            return BunnyConfig.imageURL(for: filename)
-        }
-        return nil
+        ExerciseMediaMapping.thumbnailURL(for: exercise.exerciseId)
     }
 
     private var hasVideo: Bool {
-        guard let media = media else { return false }
-        return media.mediaType == .video && media.guid != nil
+        ExerciseMediaMapping.videoGuid(for: exercise.exerciseId) != nil
     }
 
     var body: some View {
@@ -952,7 +936,7 @@ struct ExerciseOverviewCard: View {
             }
 
             Button(action: onTap) {
-                HStack(spacing: 16) {
+                HStack(spacing: Spacing.md) {
                     // Thumbnail with play button - fixed 80x64 dimensions
                     ZStack(alignment: .bottomLeading) {
                         if let url = thumbnailURL {
@@ -962,9 +946,9 @@ struct ExerciseOverviewCard: View {
                                     image
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
-                                        .frame(width: 80, height: 64)
+                                        .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
                                         .clipped()
-                                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous))
                                 case .failure, .empty:
                                     thumbnailPlaceholder
                                 @unknown default:
@@ -978,20 +962,20 @@ struct ExerciseOverviewCard: View {
                         // Play button (only for videos)
                         if hasVideo {
                             Image(systemName: "play.fill")
-                                .font(.system(size: 10))
+                                .font(.trainMicro)
                                 .foregroundColor(.white)
-                                .padding(6)
+                                .padding(Spacing.sm)
                                 .background(Color.black.opacity(0.6))
                                 .clipShape(Circle())
                                 .offset(x: 4, y: -4)
                         }
                     }
-                    .frame(width: 80, height: 64)
+                    .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        HStack(spacing: Spacing.xs) {
                             Text(exercise.exerciseName)
-                                .font(.system(size: 16, weight: .medium))
+                                .font(.trainBody).fontWeight(.medium)
                                 .foregroundColor(isCompleted ? .trainTextSecondary : .trainTextPrimary)
                                 .strikethrough(isCompleted)
                                 .lineLimit(2)
@@ -1001,7 +985,7 @@ struct ExerciseOverviewCard: View {
                             if contraindicatedInjury != nil {
                                 Button(action: { onWarningTap?() }) {
                                     Image(systemName: "exclamationmark.triangle.fill")
-                                        .font(.system(size: 14))
+                                        .font(.trainCaption)
                                         .foregroundColor(.orange)
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -1009,7 +993,7 @@ struct ExerciseOverviewCard: View {
                         }
 
                         Text("\(exercise.sets) sets • \(exercise.repRange) reps")
-                            .font(.system(size: 14, weight: .light))
+                            .font(.trainCaption).fontWeight(.light)
                             .foregroundColor(.trainTextSecondary)
                     }
 
@@ -1023,7 +1007,7 @@ struct ExerciseOverviewCard: View {
                     )
                     .frame(height: 64)
                 }
-                .padding(16)
+                .padding(Spacing.md)
                 .contentShape(Rectangle()) // Make entire card area tappable
                 .padding(.top, isEditing ? 0 : 0) // No extra padding needed, drag handle has its own
             }
@@ -1044,10 +1028,10 @@ struct ExerciseOverviewCard: View {
                         ? Color.trainPrimary.opacity(0.08)
                         : Color.trainSurface))
         )
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
         .shadow(color: .black.opacity(0.1), radius: 0, x: 0, y: 1)
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .stroke(isEditing ? Color.trainPrimary.opacity(0.3) : Color.clear, lineWidth: 1)
         )
     }
@@ -1056,7 +1040,7 @@ struct ExerciseOverviewCard: View {
 
     private var dragHandle: some View {
         // Double horizontal line drag indicator - centered
-        VStack(spacing: 3) {
+        VStack(spacing: Spacing.xxs) {
             RoundedRectangle(cornerRadius: 1)
                 .fill(isDragHandlePressed ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.4))
                 .frame(width: 36, height: 3)
@@ -1066,46 +1050,46 @@ struct ExerciseOverviewCard: View {
         }
         .scaleEffect(isDragHandlePressed ? 1.1 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isDragHandlePressed)
-        .padding(.vertical, 8)
+        .padding(.vertical, Spacing.sm)
     }
 
     // MARK: - Edit Action Buttons
 
     private var editActionButtons: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.smd) {
             // Swap button
             Button(action: onSwap) {
                 Text("Swap")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.trainCaption).fontWeight(.medium)
                     .foregroundColor(.trainTextPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(Color.trainPrimary.opacity(0.15))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
             }
 
             // Remove button
             Button(action: onRemove) {
                 Text("Remove")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.trainCaption).fontWeight(.medium)
                     .foregroundColor(.red.opacity(0.8))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(Color.red.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        .padding(.horizontal, Spacing.md)
+        .padding(.bottom, Spacing.md)
     }
 
     private var thumbnailPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
+        RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
             .fill(Color.trainTextSecondary.opacity(0.2))
-            .frame(width: 80, height: 64)
+            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
             .overlay {
                 Image(systemName: "photo")
-                    .font(.system(size: 20))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextSecondary.opacity(0.5))
             }
     }
@@ -1128,7 +1112,7 @@ struct InjuryWarningOverlay: View {
             VStack(spacing: Spacing.lg) {
                 // Warning icon
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 40))
+                    .font(.system(size: IconSize.xl))
                     .foregroundColor(.orange)
 
                 // Title
@@ -1151,9 +1135,9 @@ struct InjuryWarningOverlay: View {
                             .font(.trainBodyMedium)
                             .foregroundColor(.trainTextPrimary)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+                            .frame(minHeight: ElementHeight.button)
+                            .background(Color.trainSurface.opacity(0.5))
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
 
                     // Primary button (accent color)
@@ -1162,18 +1146,18 @@ struct InjuryWarningOverlay: View {
                             .font(.trainBodyMedium)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 50)
+                            .frame(minHeight: ElementHeight.button)
                             .background(Color.trainPrimary)
-                            .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
                 }
             }
             .padding(Spacing.xl)
             .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                RoundedRectangle(cornerRadius: CornerRadius.modal, style: .continuous)
+                    .stroke(Color.trainBorderSubtle.opacity(0.3), lineWidth: 1)
             )
             .padding(.horizontal, Spacing.xl)
         }

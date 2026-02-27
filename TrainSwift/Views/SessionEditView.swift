@@ -38,19 +38,19 @@ struct SessionEditView: View {
                 )
 
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: Spacing.md) {
                         // Section header
                         HStack {
                             Text("Exercises")
-                                .font(.system(size: 14, weight: .light))
+                                .font(.trainCaption).fontWeight(.light)
                                 .foregroundColor(.trainTextSecondary)
                             Spacer()
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 16)
+                        .padding(.horizontal, Layout.horizontalPadding)
+                        .padding(.top, Spacing.md)
 
                         // Exercise list
-                        VStack(spacing: 12) {
+                        VStack(spacing: Spacing.smd) {
                             ForEach(Array(editingExercises.enumerated()), id: \.element.id) { index, exercise in
                                 EditableExerciseCard(
                                     exercise: $editingExercises[index],
@@ -67,7 +67,7 @@ struct SessionEditView: View {
                                 )
                             }
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, Layout.horizontalPadding)
 
                         // Add exercise button (limited to 1 addition per session)
                         Button(action: {
@@ -75,19 +75,19 @@ struct SessionEditView: View {
                         }) {
                             HStack {
                                 Image(systemName: "plus")
-                                    .font(.system(size: 16))
+                                    .font(.system(size: IconSize.sm))
                                 Text("Add Exercise")
-                                    .font(.system(size: 16, weight: .medium))
+                                    .font(.trainBody).fontWeight(.medium)
                             }
                             .foregroundColor(hasAddedExercise ? .trainTextSecondary : .trainPrimary)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+                            .padding(.vertical, Spacing.md)
                             .background(hasAddedExercise ? Color.trainDisabled.opacity(0.3) : Color.trainPrimary.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                         }
                         .disabled(hasAddedExercise)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 32)
+                        .padding(.horizontal, Layout.horizontalPadding)
+                        .padding(.bottom, Spacing.xl)
                     }
                 }
             }
@@ -167,7 +167,7 @@ struct SessionEditHeader: View {
             // Cancel button
             Button(action: onCancel) {
                 Text("Cancel")
-                    .font(.system(size: 16, weight: .light))
+                    .font(.trainBody).fontWeight(.light)
                     .foregroundColor(.trainTextSecondary)
             }
 
@@ -175,7 +175,7 @@ struct SessionEditHeader: View {
 
             // Title
             Text("Edit Session")
-                .font(.system(size: 18, weight: .medium))
+                .font(.trainBodyMedium)
                 .foregroundColor(.trainTextPrimary)
 
             Spacer()
@@ -183,12 +183,12 @@ struct SessionEditHeader: View {
             // Save button
             Button(action: onSave) {
                 Text("Save")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.trainBody).fontWeight(.medium)
                     .foregroundColor(.trainPrimary)
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 16)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -204,33 +204,30 @@ struct EditableExerciseCard: View {
     @State private var showSetsPicker = false
     @State private var showRepsPicker = false
 
-    // Get video thumbnail URL
     private var thumbnailURL: URL? {
-        guard let media = ExerciseMediaMapping.media(for: exercise.exerciseId),
-              let guid = media.guid else { return nil }
-        return BunnyConfig.videoThumbnailURL(for: guid)
+        ExerciseMediaMapping.thumbnailURL(for: exercise.exerciseId)
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: Spacing.smd) {
             // Number indicator
             ZStack {
                 Circle()
                     .fill(Color.trainSurface)
-                    .frame(width: 32, height: 32)
+                    .frame(width: IconSize.lg, height: IconSize.lg)
                     .overlay(
                         Circle()
                             .stroke(Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
                     )
 
                 Text("\(exerciseNumber)")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.trainCaption).fontWeight(.medium)
                     .foregroundColor(.trainTextPrimary)
             }
 
             // Exercise card
             VStack(spacing: 0) {
-                HStack(spacing: 16) {
+                HStack(spacing: Spacing.md) {
                     // Thumbnail
                     if let url = thumbnailURL {
                         AsyncImage(url: url) { phase in
@@ -239,8 +236,8 @@ struct EditableExerciseCard: View {
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                                    .frame(width: 80, height: 64)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                    .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
+                                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous))
                             default:
                                 thumbnailPlaceholder
                             }
@@ -250,38 +247,38 @@ struct EditableExerciseCard: View {
                     }
 
                     // Exercise info
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(exercise.exerciseName)
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.trainBody).fontWeight(.medium)
                             .foregroundColor(.trainTextPrimary)
                             .lineLimit(2)
 
                         // Editable sets and reps
-                        HStack(spacing: 12) {
+                        HStack(spacing: Spacing.smd) {
                             // Sets button
                             Button(action: { showSetsPicker = true }) {
-                                HStack(spacing: 4) {
+                                HStack(spacing: Spacing.xs) {
                                     Text("\(exercise.sets) sets")
-                                        .font(.system(size: 14, weight: .light))
+                                        .font(.trainCaption).fontWeight(.light)
                                         .foregroundColor(.trainTextSecondary)
                                     Image(systemName: "chevron.down")
-                                        .font(.system(size: 10))
+                                        .font(.trainMicro)
                                         .foregroundColor(.trainTextSecondary)
                                 }
                             }
 
                             Text("•")
-                                .font(.system(size: 14))
+                                .font(.trainCaption)
                                 .foregroundColor(.trainTextSecondary)
 
                             // Reps button
                             Button(action: { showRepsPicker = true }) {
-                                HStack(spacing: 4) {
+                                HStack(spacing: Spacing.xs) {
                                     Text("\(exercise.repRange) reps")
-                                        .font(.system(size: 14, weight: .light))
+                                        .font(.trainCaption).fontWeight(.light)
                                         .foregroundColor(.trainTextSecondary)
                                     Image(systemName: "chevron.down")
-                                        .font(.system(size: 10))
+                                        .font(.trainMicro)
                                         .foregroundColor(.trainTextSecondary)
                                 }
                             }
@@ -291,24 +288,24 @@ struct EditableExerciseCard: View {
                     Spacer()
 
                     // Action buttons
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         Button(action: onSwap) {
                             Image(systemName: "arrow.triangle.2.circlepath")
-                                .font(.system(size: 16))
+                                .font(.system(size: IconSize.sm))
                                 .foregroundColor(.trainTextSecondary)
                         }
 
                         Button(action: onDelete) {
                             Image(systemName: "trash")
-                                .font(.system(size: 16))
+                                .font(.system(size: IconSize.sm))
                                 .foregroundColor(.red.opacity(0.7))
                         }
                     }
                 }
-                .padding(16)
+                .padding(Spacing.md)
             }
             .background(Color.trainSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
             .shadow(color: .black.opacity(0.1), radius: 0, x: 0, y: 1)
         }
         .sheet(isPresented: $showSetsPicker) {
@@ -352,12 +349,12 @@ struct EditableExerciseCard: View {
     }
 
     private var thumbnailPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
+        RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
             .fill(Color.trainTextSecondary.opacity(0.2))
-            .frame(width: 80, height: 64)
+            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
             .overlay {
                 Image(systemName: "photo")
-                    .font(.system(size: 20))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextSecondary.opacity(0.5))
             }
     }
@@ -372,9 +369,9 @@ struct SetsPicker: View {
     let setOptions = [1, 2, 3, 4, 5, 6]
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: Spacing.lg) {
             Text("Number of Sets")
-                .font(.system(size: 18, weight: .medium))
+                .font(.trainBodyMedium)
                 .foregroundColor(.trainTextPrimary)
 
             Picker("Sets", selection: $selectedSets) {
@@ -387,7 +384,7 @@ struct SetsPicker: View {
             Button("Done") {
                 dismiss()
             }
-            .font(.system(size: 16, weight: .medium))
+            .font(.trainBody).fontWeight(.medium)
             .foregroundColor(.trainPrimary)
         }
         .padding()
@@ -403,9 +400,9 @@ struct RepsPicker: View {
     let repOptions = ["3-5", "5-8", "6-8", "8-10", "8-12", "10-12", "12-15", "15-20"]
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: Spacing.lg) {
             Text("Rep Range")
-                .font(.system(size: 18, weight: .medium))
+                .font(.trainBodyMedium)
                 .foregroundColor(.trainTextPrimary)
 
             Picker("Reps", selection: $selectedRepRange) {
@@ -418,7 +415,7 @@ struct RepsPicker: View {
             Button("Done") {
                 dismiss()
             }
-            .font(.system(size: 16, weight: .medium))
+            .font(.trainBody).fontWeight(.medium)
             .foregroundColor(.trainPrimary)
         }
         .padding()
