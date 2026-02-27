@@ -255,11 +255,10 @@ class KeychainService {
         }
     }
 
-    // MARK: - Apple Sign In Token Storage
+    // MARK: - Generic Identifier Storage (shared by Apple/Google)
 
-    /// Save Apple Sign In user identifier
-    func saveAppleUserIdentifier(_ identifier: String, for email: String) throws {
-        try? deleteAppleUserIdentifier(for: email)
+    private func saveIdentifier(_ identifier: String, for email: String, serviceSuffix: String) throws {
+        try? deleteIdentifier(for: email, serviceSuffix: serviceSuffix)
 
         guard let identifierData = identifier.data(using: .utf8) else {
             throw KeychainError.invalidData
@@ -267,7 +266,7 @@ class KeychainService {
 
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service + ".apple",
+            kSecAttrService as String: service + ".\(serviceSuffix)",
             kSecAttrAccount as String: email.lowercased(),
             kSecValueData as String: identifierData,
             kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
@@ -278,15 +277,12 @@ class KeychainService {
         guard status == errSecSuccess else {
             throw KeychainError.unknown(status)
         }
-
-        AppLogger.logAuth("Apple user identifier saved to Keychain")
     }
 
-    /// Retrieve Apple Sign In user identifier
-    func retrieveAppleUserIdentifier(for email: String) throws -> String {
+    private func retrieveIdentifier(for email: String, serviceSuffix: String) throws -> String {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service + ".apple",
+            kSecAttrService as String: service + ".\(serviceSuffix)",
             kSecAttrAccount as String: email.lowercased(),
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
@@ -310,11 +306,10 @@ class KeychainService {
         return identifier
     }
 
-    /// Delete Apple Sign In user identifier
-    func deleteAppleUserIdentifier(for email: String) throws {
+    private func deleteIdentifier(for email: String, serviceSuffix: String) throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service + ".apple",
+            kSecAttrService as String: service + ".\(serviceSuffix)",
             kSecAttrAccount as String: email.lowercased()
         ]
 
@@ -323,75 +318,35 @@ class KeychainService {
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw KeychainError.unknown(status)
         }
+    }
+
+    // MARK: - Apple Sign In Token Storage
+
+    func saveAppleUserIdentifier(_ identifier: String, for email: String) throws {
+        try saveIdentifier(identifier, for: email, serviceSuffix: "apple")
+        AppLogger.logAuth("Apple user identifier saved to Keychain")
+    }
+
+    func retrieveAppleUserIdentifier(for email: String) throws -> String {
+        try retrieveIdentifier(for: email, serviceSuffix: "apple")
+    }
+
+    func deleteAppleUserIdentifier(for email: String) throws {
+        try deleteIdentifier(for: email, serviceSuffix: "apple")
     }
 
     // MARK: - Google Sign In Token Storage
 
-    /// Save Google Sign In user identifier
     func saveGoogleUserIdentifier(_ identifier: String, for email: String) throws {
-        try? deleteGoogleUserIdentifier(for: email)
-
-        guard let identifierData = identifier.data(using: .utf8) else {
-            throw KeychainError.invalidData
-        }
-
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service + ".google",
-            kSecAttrAccount as String: email.lowercased(),
-            kSecValueData as String: identifierData,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
-        ]
-
-        let status = SecItemAdd(query as CFDictionary, nil)
-
-        guard status == errSecSuccess else {
-            throw KeychainError.unknown(status)
-        }
-
+        try saveIdentifier(identifier, for: email, serviceSuffix: "google")
         AppLogger.logAuth("Google user identifier saved to Keychain")
     }
 
-    /// Retrieve Google Sign In user identifier
     func retrieveGoogleUserIdentifier(for email: String) throws -> String {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service + ".google",
-            kSecAttrAccount as String: email.lowercased(),
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-
-        guard status == errSecSuccess else {
-            if status == errSecItemNotFound {
-                throw KeychainError.itemNotFound
-            }
-            throw KeychainError.unknown(status)
-        }
-
-        guard let identifierData = result as? Data,
-              let identifier = String(data: identifierData, encoding: .utf8) else {
-            throw KeychainError.invalidData
-        }
-
-        return identifier
+        try retrieveIdentifier(for: email, serviceSuffix: "google")
     }
 
-    /// Delete Google Sign In user identifier
     func deleteGoogleUserIdentifier(for email: String) throws {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service + ".google",
-            kSecAttrAccount as String: email.lowercased()
-        ]
-
-        let status = SecItemDelete(query as CFDictionary)
-
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw KeychainError.unknown(status)
-        }
+        try deleteIdentifier(for: email, serviceSuffix: "google")
     }
 }

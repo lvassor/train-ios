@@ -166,6 +166,27 @@ class AuthService: ObservableObject {
         return .success(newUser)
     }
 
+    // MARK: - Social Sign-In Provider
+
+    private enum SocialProvider {
+        case apple
+        case google
+
+        var label: String {
+            switch self {
+            case .apple: return "Apple"
+            case .google: return "Google"
+            }
+        }
+
+        var failureError: AuthError {
+            switch self {
+            case .apple: return .appleSignInFailed
+            case .google: return .googleSignInFailed
+            }
+        }
+    }
+
     // MARK: - Sign in with Apple
 
     func signInWithApple(completion: @escaping (Result<UserProfile, AuthError>) -> Void) {
@@ -175,10 +196,16 @@ class AuthService: ObservableObject {
             Task { @MainActor in
                 switch result {
                 case .success(let appleResult):
-                    self.handleAppleSignInResult(appleResult, completion: completion)
+                    let email = appleResult.email ?? "\(appleResult.userIdentifier)@privaterelay.appleid.com"
+                    self.handleSocialSignIn(
+                        identifier: appleResult.userIdentifier,
+                        email: email,
+                        fullName: appleResult.fullName,
+                        provider: .apple,
+                        completion: completion
+                    )
                 case .failure(let error):
                     if (error as NSError).code == 1001 {
-                        // User cancelled
                         completion(.failure(.cancelled))
                     } else {
                         AppLogger.logAuth("Apple Sign In failed: \(error.localizedDescription)", level: .error)
@@ -187,59 +214,6 @@ class AuthService: ObservableObject {
                 }
             }
         }
-    }
-
-    private func handleAppleSignInResult(_ result: AppleSignInResult, completion: @escaping (Result<UserProfile, AuthError>) -> Void) {
-        let userIdentifier = result.userIdentifier
-
-        // Check if user already exists by Apple user identifier
-        if let existingUser = UserProfile.fetch(byAppleId: userIdentifier, context: context) {
-            existingUser.updateLastLogin()
-            currentUser = existingUser
-            isAuthenticated = true
-            saveSession()
-            AppLogger.logAuth("Apple user logged in successfully")
-            completion(.success(existingUser))
-            return
-        }
-
-        // Check if user exists by email (linking accounts)
-        if let email = result.email,
-           let existingUser = UserProfile.fetch(byEmail: email.lowercased(), context: context) {
-            // Link Apple ID to existing account
-            existingUser.appleUserIdentifier = userIdentifier
-            existingUser.isAppleUser = true
-            existingUser.updateLastLogin()
-            currentUser = existingUser
-            isAuthenticated = true
-            saveSession()
-            AppLogger.logAuth("Linked Apple ID to existing account")
-            completion(.success(existingUser))
-            return
-        }
-
-        // Create new user with Apple credentials
-        // Note: email may be nil on subsequent logins (Apple only provides it once)
-        let email = result.email ?? "\(userIdentifier)@privaterelay.appleid.com"
-        let newUser = UserProfile.create(email: email.lowercased(), context: context)
-        newUser.name = result.fullName ?? ""
-        newUser.appleUserIdentifier = userIdentifier
-        newUser.isAppleUser = true
-
-        // Store Apple identifier in Keychain
-        do {
-            try keychain.saveAppleUserIdentifier(userIdentifier, for: email)
-        } catch {
-            AppLogger.logAuth("Failed to save Apple identifier: \(error)", level: .warning)
-            // Continue anyway - not critical
-        }
-
-        currentUser = newUser
-        isAuthenticated = true
-        saveSession()
-
-        AppLogger.logAuth("New Apple user created successfully")
-        completion(.success(newUser))
     }
 
     // MARK: - Sign in with Google
@@ -251,7 +225,13 @@ class AuthService: ObservableObject {
             Task { @MainActor in
                 switch result {
                 case .success(let googleResult):
-                    self.handleGoogleSignInResult(googleResult, completion: completion)
+                    self.handleSocialSignIn(
+                        identifier: googleResult.userID,
+                        email: googleResult.email,
+                        fullName: googleResult.fullName,
+                        provider: .google,
+                        completion: completion
+                    )
                 case .failure(let error):
                     if let googleError = error as? GoogleSignInError, googleError == .cancelled {
                         completion(.failure(.cancelled))
@@ -264,55 +244,76 @@ class AuthService: ObservableObject {
         }
     }
 
-    private func handleGoogleSignInResult(_ result: GoogleSignInResult, completion: @escaping (Result<UserProfile, AuthError>) -> Void) {
-        let userIdentifier = result.userID
-        let email = result.email
+    // MARK: - Unified Social Sign-In Handler
 
-        // Check if user already exists by Google user identifier
-        if let existingUser = UserProfile.fetch(byGoogleId: userIdentifier, context: context) {
+    private func handleSocialSignIn(
+        identifier: String,
+        email: String,
+        fullName: String?,
+        provider: SocialProvider,
+        completion: @escaping (Result<UserProfile, AuthError>) -> Void
+    ) {
+        // 1. Check if user already exists by provider identifier
+        let existingByProvider: UserProfile? = switch provider {
+        case .apple:  UserProfile.fetch(byAppleId: identifier, context: context)
+        case .google: UserProfile.fetch(byGoogleId: identifier, context: context)
+        }
+
+        if let existingUser = existingByProvider {
             existingUser.updateLastLogin()
             currentUser = existingUser
             isAuthenticated = true
             saveSession()
-            AppLogger.logAuth("Google user logged in successfully")
+            AppLogger.logAuth("\(provider.label) user logged in successfully")
             completion(.success(existingUser))
             return
         }
 
-        // Check if user exists by email (linking accounts)
+        // 2. Check if user exists by email (linking accounts)
         if let existingUser = UserProfile.fetch(byEmail: email.lowercased(), context: context) {
-            // Link Google ID to existing account
-            existingUser.googleUserIdentifier = userIdentifier
-            existingUser.isGoogleUser = true
+            linkProvider(provider, identifier: identifier, to: existingUser)
             existingUser.updateLastLogin()
             currentUser = existingUser
             isAuthenticated = true
             saveSession()
-            AppLogger.logAuth("Linked Google ID to existing account")
+            AppLogger.logAuth("Linked \(provider.label) ID to existing account")
             completion(.success(existingUser))
             return
         }
 
-        // Create new user with Google credentials
+        // 3. Create new user
         let newUser = UserProfile.create(email: email.lowercased(), context: context)
-        newUser.name = result.fullName ?? ""
-        newUser.googleUserIdentifier = userIdentifier
-        newUser.isGoogleUser = true
+        newUser.name = fullName ?? ""
+        linkProvider(provider, identifier: identifier, to: newUser)
 
-        // Store Google identifier in Keychain
+        // Store identifier in Keychain (non-critical)
         do {
-            try keychain.saveGoogleUserIdentifier(userIdentifier, for: email)
+            switch provider {
+            case .apple:  try keychain.saveAppleUserIdentifier(identifier, for: email)
+            case .google: try keychain.saveGoogleUserIdentifier(identifier, for: email)
+            }
         } catch {
-            AppLogger.logAuth("Failed to save Google identifier: \(error)", level: .warning)
-            // Continue anyway - not critical
+            AppLogger.logAuth("Failed to save \(provider.label) identifier: \(error)", level: .warning)
         }
 
         currentUser = newUser
         isAuthenticated = true
         saveSession()
 
-        AppLogger.logAuth("New Google user created successfully")
+        AppLogger.logAuth("New \(provider.label) user created successfully")
         completion(.success(newUser))
+    }
+
+    /// Link a social provider's identifier to an existing user profile
+    private func linkProvider(_ provider: SocialProvider, identifier: String, to user: UserProfile) {
+        switch provider {
+        case .apple:
+            user.appleUserIdentifier = identifier
+            user.isAppleUser = true
+        case .google:
+            user.googleUserIdentifier = identifier
+            user.isGoogleUser = true
+        }
     }
 
     func logout() {

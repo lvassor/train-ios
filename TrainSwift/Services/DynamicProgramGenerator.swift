@@ -183,73 +183,9 @@ class DynamicProgramGenerator {
         )
     }
 
-    /// Legacy method for backward compatibility
+    /// Legacy method for backward compatibility — delegates to the full warnings version
     func generateProgram(from questionnaireData: QuestionnaireData) throws -> Program {
-        AppLogger.logProgram("Generating dynamic program (legacy) - Days: \(questionnaireData.trainingDaysPerWeek), Experience: \(questionnaireData.experienceLevel), Goals: \(questionnaireData.primaryGoals.joined(separator: ", "))")
-
-        // Map questionnaire data to program parameters
-        let experienceLevel = ExperienceLevel.fromQuestionnaire(questionnaireData.experienceLevel)
-        let availableEquipment = ExerciseDatabaseFilter.mapEquipmentFromQuestionnaire(questionnaireData.equipmentAvailable)
-        let splitType = determineSplitType(
-            days: questionnaireData.trainingDaysPerWeek,
-            duration: questionnaireData.sessionDuration
-        )
-        let sessionDuration = mapSessionDuration(questionnaireData.sessionDuration)
-
-        // Get complexity rules for this user (hardcoded based on experience level)
-        let complexityRules = experienceLevel.complexityRules
-        AppLogger.logProgram("Max complexity: \(complexityRules.maxComplexity)")
-
-        // Generate sessions based on split type
-        let sessions = try generateSessions(
-            splitType: splitType,
-            sessionDuration: sessionDuration,
-            experienceLevel: experienceLevel,
-            availableEquipment: availableEquipment,
-            userInjuries: questionnaireData.injuries,
-            targetMuscles: questionnaireData.targetMuscleGroups,
-            fitnessGoal: questionnaireData.primaryGoals.first ?? "build_muscle",
-            complexityRules: complexityRules,
-            daysPerWeek: questionnaireData.trainingDaysPerWeek
-        )
-
-        // ROBUSTNESS: Ensure each session has at least one exercise (legacy method)
-        AppLogger.logProgram("Validating generated sessions (legacy)...")
-        var robustSessions: [ProgramSession] = []
-        for (index, session) in sessions.enumerated() {
-            AppLogger.logProgram("Session \(index): \(session.dayName) - \(session.exercises.count) exercises")
-            if session.exercises.isEmpty {
-                AppLogger.logProgram("Empty session detected for '\(session.dayName)' - adding emergency fallback exercises", level: .warning)
-
-                // Emergency fallback: add basic bodyweight exercises
-                let emergencyExercises = createEmergencyExercises(
-                    for: session.dayName,
-                    fitnessGoal: questionnaireData.primaryGoals.first ?? "build_muscle",
-                    experienceLevel: experienceLevel
-                )
-
-                let robustSession = ProgramSession(
-                    dayName: session.dayName,
-                    exercises: emergencyExercises
-                )
-                robustSessions.append(robustSession)
-                AppLogger.logProgram("Added \(emergencyExercises.count) emergency exercises to '\(session.dayName)'")
-            } else {
-                robustSessions.append(session)
-            }
-        }
-
-        let program = Program(
-            type: splitType,
-            daysPerWeek: questionnaireData.trainingDaysPerWeek,
-            sessionDuration: sessionDuration,
-            sessions: robustSessions,
-            totalWeeks: 8
-        )
-
-        AppLogger.logProgram("Dynamic program generated successfully (legacy)! Program: \(splitType.description), Sessions: \(sessions.count), Total exercises: \(sessions.reduce(0) { $0 + $1.exercises.count })")
-
-        return program
+        try generateProgramWithWarnings(from: questionnaireData).program
     }
 
     // MARK: - Split Type Determination
