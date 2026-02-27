@@ -36,7 +36,14 @@ class AppleSignInService: NSObject, ObservableObject {
         request.requestedScopes = [.fullName, .email]
 
         // Generate nonce for security
-        let nonce = randomNonceString()
+        let nonce: String
+        do {
+            nonce = try randomNonceString()
+        } catch {
+            isSigningIn = false
+            completion(.failure(AppleSignInError.nonceGenerationFailed))
+            return
+        }
         request.nonce = sha256(nonce)
 
         let controller = ASAuthorizationController(authorizationRequests: [request])
@@ -57,12 +64,12 @@ class AppleSignInService: NSObject, ObservableObject {
 
     // MARK: - Nonce Generation (for security)
 
-    private func randomNonceString(length: Int = 32) -> String {
+    private func randomNonceString(length: Int = 32) throws -> String {
         precondition(length > 0)
         var randomBytes = [UInt8](repeating: 0, count: length)
         let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
-        if errorCode != errSecSuccess {
-            fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
+        guard errorCode == errSecSuccess else {
+            throw AppleSignInError.nonceGenerationFailed
         }
 
         let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
@@ -129,10 +136,9 @@ extension AppleSignInService: ASAuthorizationControllerDelegate {
 
 extension AppleSignInService: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        // Get the key window
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = scene.windows.first else {
-            fatalError("No window available for Sign in with Apple")
+            return UIWindow()
         }
         return window
     }
@@ -149,6 +155,7 @@ struct AppleSignInResult {
 enum AppleSignInError: LocalizedError {
     case invalidCredential
     case cancelled
+    case nonceGenerationFailed
     case unknown
 
     var errorDescription: String? {
@@ -157,6 +164,8 @@ enum AppleSignInError: LocalizedError {
             return "Invalid Apple ID credential"
         case .cancelled:
             return "Sign in was cancelled"
+        case .nonceGenerationFailed:
+            return "Failed to generate security nonce for Apple Sign In"
         case .unknown:
             return "An unknown error occurred"
         }

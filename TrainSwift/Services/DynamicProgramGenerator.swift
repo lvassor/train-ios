@@ -33,6 +33,19 @@ struct ProgramGenerationResult {
     }
 }
 
+// MARK: - Program Generation Errors
+
+enum ProgramGenerationError: LocalizedError {
+    case emptySelectionPool
+
+    var errorDescription: String? {
+        switch self {
+        case .emptySelectionPool:
+            return "No options available for random selection during program generation."
+        }
+    }
+}
+
 class DynamicProgramGenerator {
     private let exerciseRepo = ExerciseRepository()
 
@@ -445,7 +458,7 @@ class DynamicProgramGenerator {
 
             // Convert to ProgramExercise with sets/reps based on goal
             for dbExercise in result.exercises {
-                let programExercise = createProgramExercise(
+                let programExercise = try createProgramExercise(
                     from: dbExercise,
                     fitnessGoal: fitnessGoal,
                     experienceLevel: experienceLevel
@@ -478,10 +491,10 @@ class DynamicProgramGenerator {
         from dbExercise: DBExercise,
         fitnessGoal: String,
         experienceLevel: ExperienceLevel
-    ) -> ProgramExercise {
+    ) throws -> ProgramExercise {
 
         // Determine rep range based on fitness goal and canonical rating (NEW BUSINESS RULE)
-        let repRange = getRepRangeForGoalAndRating(fitnessGoal, canonicalRating: dbExercise.canonicalRating)
+        let repRange = try getRepRangeForGoalAndRating(fitnessGoal, canonicalRating: dbExercise.canonicalRating)
 
         // Always 3 sets for all exercises (NEW RULE)
         let sets = 3
@@ -503,7 +516,7 @@ class DynamicProgramGenerator {
 
     // MARK: - Rep Range Rules (NEW BUSINESS LOGIC)
 
-    func getRepRangeForGoalAndRating(_ goalSelection: String, canonicalRating: Int) -> String {
+    func getRepRangeForGoalAndRating(_ goalSelection: String, canonicalRating: Int) throws -> String {
         let isHighRating = canonicalRating > 75
 
         // Define goal combinations
@@ -514,31 +527,31 @@ class DynamicProgramGenerator {
         // Goal combination logic
         if hasGetStronger && !hasIncreaseMuscle && !hasFatLoss {
             // Get Stronger only
-            return isHighRating ? randomChoice(["5-8", "6-10"]) : randomChoice(["6-10", "8-12"])
+            return isHighRating ? try randomChoice(["5-8", "6-10"]) : try randomChoice(["6-10", "8-12"])
         } else if hasGetStronger && hasFatLoss && !hasIncreaseMuscle {
             // Get Stronger + Fat Loss (no Increase Muscle)
-            return isHighRating ? randomChoice(["5-8", "6-10"]) : randomChoice(["6-10", "8-12"])
+            return isHighRating ? try randomChoice(["5-8", "6-10"]) : try randomChoice(["6-10", "8-12"])
         } else if hasGetStronger {
             // Get Stronger (alone or with others except Fat Loss only combo)
-            return isHighRating ? randomChoice(["5-8", "6-10"]) : randomChoice(["6-10", "8-12"])
+            return isHighRating ? try randomChoice(["5-8", "6-10"]) : try randomChoice(["6-10", "8-12"])
         } else if hasIncreaseMuscle && hasFatLoss {
             // Increase Muscle + Fat Loss
-            return randomChoice(["8-12", "10-14"])
+            return try randomChoice(["8-12", "10-14"])
         } else if hasFatLoss && !hasIncreaseMuscle && !hasGetStronger {
             // Fat Loss only
-            return randomChoice(["8-12", "10-14"])
+            return try randomChoice(["8-12", "10-14"])
         } else if hasIncreaseMuscle && !hasFatLoss {
             // Increase Muscle only
-            return randomChoice(["6-10", "8-12"])
+            return try randomChoice(["6-10", "8-12"])
         } else {
             // Default case
             return "8-12"
         }
     }
 
-    private func randomChoice<T>(_ options: [T]) -> T {
+    private func randomChoice<T>(_ options: [T]) throws -> T {
         guard let choice = options.randomElement() else {
-            fatalError("randomChoice called with empty array")
+            throw ProgramGenerationError.emptySelectionPool
         }
         return choice
     }
