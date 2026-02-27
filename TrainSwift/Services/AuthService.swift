@@ -318,8 +318,6 @@ class AuthService: ObservableObject {
     func logout() {
         googleSignIn.signOut()
         clearSession()
-        // Trigger splash screen when logging out
-        NotificationCenter.default.post(name: .resetToSplash, object: nil, userInfo: nil)
     }
 
     /// Permanently deletes the user's account and all associated data, then terminates the app.
