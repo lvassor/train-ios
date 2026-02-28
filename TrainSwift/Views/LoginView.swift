@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AuthenticationServices
 
 struct LoginView: View {
     @ObservedObject var authService = AuthService.shared
@@ -104,6 +105,14 @@ struct LoginView: View {
                             .cornerRadius(CornerRadius.md)
                     }
 
+                    // Error message
+                    if showError {
+                        Text(errorMessage)
+                            .font(.trainCaption)
+                            .foregroundColor(.trainError)
+                            .padding(.horizontal, Spacing.sm)
+                    }
+
                     // OR Divider
                     HStack {
                         Rectangle()
@@ -120,10 +129,15 @@ struct LoginView: View {
 
                     // Sign Up Button for new users
                     Button(action: { showSignup = true }) {
-                        Text("Sign up")
+                        Text("Create an Account")
                             .font(.trainBody).fontWeight(.medium)
-                            .foregroundColor(.trainTextSecondary)
-                            .underline()
+                            .foregroundColor(.trainTextPrimary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: ButtonHeight.standard)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: CornerRadius.md)
+                                    .stroke(Color.trainTextSecondary.opacity(0.5), lineWidth: 1)
+                            )
                     }
                 }
                 .padding(.horizontal, Spacing.lg)
@@ -274,12 +288,11 @@ struct EmailLoginSheet: View {
 
                                 Spacer()
 
-                                // Disabled for MVP - password reset not fully implemented
-                                // Button(action: { showPasswordReset = true }) {
-                                //     Text("Forgot Password?")
-                                //         .font(.trainCaption)
-                                //         .foregroundColor(.trainPrimary)
-                                // }
+                                Button(action: { showPasswordReset = true }) {
+                                    Text("Forgot Password?")
+                                        .font(.trainCaption)
+                                        .foregroundColor(.trainPrimary)
+                                }
                             }
 
                             SecureField("Enter your password", text: $password)
@@ -325,7 +338,7 @@ struct EmailLoginSheet: View {
             }
         }
         .sheet(isPresented: $showPasswordReset) {
-            // PasswordResetRequestView() // Uncomment when password reset is implemented
+            PasswordResetRequestView()
         }
     }
 

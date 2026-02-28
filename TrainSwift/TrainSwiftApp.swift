@@ -52,6 +52,7 @@ struct TrainSwiftApp: App {
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
             .environment(\.cardStyle, .warm) // Set app-wide card style to warm glass
             .environmentObject(themeManager) // Provide theme manager to all views
+            .fontDesign(.rounded) // Apply SF Pro Rounded app-wide (Dynamic Type tokens inherit this)
             .preferredColorScheme(themeManager.currentMode == .light ? .light : .dark)
             .onOpenURL { url in
                 GoogleSignInService.shared.handle(url)

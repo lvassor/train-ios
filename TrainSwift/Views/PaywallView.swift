@@ -2,16 +2,32 @@
 //  PaywallView.swift
 //  TrainSwift
 //
-//  Paywall screen with REAL Apple StoreKit 2 subscriptions
+//  Production paywall with 3 subscription tiers and StoreKit 2 integration
 //
 
 import SwiftUI
 import StoreKit
 
+// MARK: - Product Identifiers
+
+private enum SubscriptionProduct: String, CaseIterable {
+    case monthly = "com.train.subscription.monthly"
+    case quarterly = "com.train.subscription.quarterly"
+    case annual = "com.train.subscription.annual"
+
+    /// Display order: Monthly | Annual | Quarterly (left to right)
+    static var displayOrder: [SubscriptionProduct] {
+        [.monthly, .annual, .quarterly]
+    }
+}
+
+// MARK: - PaywallView
+
 struct PaywallView: View {
     let onComplete: () -> Void
 
     @State private var products: [Product] = []
+    @State private var selectedProductID: String = SubscriptionProduct.monthly.rawValue
     @State private var isLoading = true
     @State private var purchaseInProgress = false
     @State private var errorMessage: String?
@@ -22,130 +38,11 @@ struct PaywallView: View {
                 ProgressView("Loading subscriptions...")
                     .foregroundColor(.trainTextPrimary)
             } else {
-                VStack(spacing: Spacing.xl) {
-                    Spacer()
-
-                    // Logo/Icon
-                    ZStack {
-                        Circle()
-                            .fill(Color.trainPrimary.opacity(0.2))
-                            .frame(width: 100, height: 100)
-
-                        Image(systemName: "dumbbell.fill")
-                            .font(.system(size: IconSize.xl))
-                            .foregroundColor(.trainPrimary)
-                    }
-
-                    // Header
-                    VStack(spacing: Spacing.sm) {
-                        Text("Free 7 Day Trial")
-                            .font(.trainTitle)
-                            .foregroundColor(.trainTextPrimary)
-
-                        Text("Cancel anytime.")
-                            .font(.trainSubtitle)
-                            .foregroundColor(.trainTextSecondary)
-
-                        Text("Train with structure, guidance and\nprogress in mind.")
-                            .font(.trainBody)
-                            .foregroundColor(.trainTextPrimary)
-                            .multilineTextAlignment(.center)
-                            .padding(.top, Spacing.sm)
-                    }
-
-                    // Subscription Options from StoreKit
-                    if !products.isEmpty {
-                        VStack(spacing: Spacing.md) {
-                            ForEach(products, id: \.id) { product in
-                                ProductCard(
-                                    product: product,
-                                    isMostPopular: product.subscription?.subscriptionPeriod.unit == .year,
-                                    onPurchase: {
-                                        Task {
-                                            await purchase(product)
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                        .padding(.horizontal, Spacing.lg)
-                    } else {
-                        // Fallback static display if no products loaded
-                        VStack(spacing: Spacing.md) {
-                            SubscriptionCard(
-                                title: "Annual Plan",
-                                price: "£8.33/mo",
-                                description: "7 days free, then £99.99/year",
-                                isMostPopular: true
-                            )
-
-                            SubscriptionCard(
-                                title: "Monthly Plan",
-                                price: "£13.99/mo",
-                                description: "7 days free.",
-                                isMostPopular: false
-                            )
-                        }
-                        .padding(.horizontal, Spacing.lg)
-                    }
-
-                    // Error message
-                    if let error = errorMessage {
-                        Text(error)
-                            .font(.trainCaption)
-                            .foregroundColor(.trainError)
-                            .padding(.horizontal, Spacing.lg)
-                    }
-
-                    Spacer()
-
-                    // Start Trial Button (or skip for testing)
-                    VStack(spacing: Spacing.sm) {
-                        if !products.isEmpty {
-                            Text("Tap a plan above to subscribe")
-                                .font(.trainCaption)
-                                .foregroundColor(.trainTextSecondary)
-                        } else {
-                            Button(action: {
-                                AppLogger.logUI("[PAYWALL] No products loaded - proceeding anyway for testing", level: .warning)
-                                onComplete()
-                            }) {
-                                Text("Continue (No Products)")
-                                    .font(.trainBodyMedium)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: ButtonHeight.standard)
-                                    .background(Color.trainPrimary)
-                                    .cornerRadius(CornerRadius.md)
-                            }
-                            .padding(.horizontal, Spacing.lg)
-                        }
-                    }
-                    .padding(.bottom, Spacing.xl)
-                }
-                .disabled(purchaseInProgress)
-                .opacity(purchaseInProgress ? 0.6 : 1.0)
+                mainContent
             }
 
-            // Purchase in progress overlay
             if purchaseInProgress {
-                ZStack {
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
-
-                    VStack(spacing: Spacing.md) {
-                        ProgressView()
-                            .scaleEffect(1.5)
-                            .tint(.white)
-
-                        Text("Processing...")
-                            .font(.trainBody)
-                            .foregroundColor(.white)
-                    }
-                    .padding(Spacing.xl)
-                    .background(Color.trainPrimary)
-                    .cornerRadius(CornerRadius.md)
-                }
+                purchaseOverlay
             }
         }
         .charcoalGradientBackground()
@@ -154,21 +51,211 @@ struct PaywallView: View {
         }
     }
 
-    // Load products from StoreKit
+    // MARK: - Main Content
+
+    private var mainContent: some View {
+        VStack(spacing: 0) {
+            // Top bar: Dismiss + Restore
+            topBar
+                .padding(.horizontal, Spacing.md)
+                .padding(.top, Spacing.sm)
+
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: Spacing.lg) {
+                    // Header
+                    headerSection
+                        .padding(.top, Spacing.xl)
+
+                    // Pricing tiers
+                    pricingTiersSection
+                        .padding(.horizontal, Spacing.md)
+
+                    // Error message
+                    if let error = errorMessage {
+                        Text(error)
+                            .font(.trainCaption)
+                            .foregroundColor(.trainError)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, Spacing.lg)
+                    }
+
+                    // Continue CTA
+                    continueButton
+                        .padding(.horizontal, Spacing.lg)
+
+                    // Promo code link
+                    promoCodeLink
+
+                    // Legal links
+                    legalLinks
+                        .padding(.bottom, Spacing.xl)
+                }
+            }
+        }
+        .disabled(purchaseInProgress)
+        .opacity(purchaseInProgress ? 0.6 : 1.0)
+    }
+
+    // MARK: - Top Bar
+
+    private var topBar: some View {
+        HStack {
+            Button {
+                AppLogger.logUI("[PAYWALL] Dismissed")
+                onComplete()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.trainTextSecondary)
+                    .frame(width: ElementHeight.touchTarget, height: ElementHeight.touchTarget)
+            }
+
+            Spacer()
+
+            Button {
+                Task {
+                    await restorePurchases()
+                }
+            } label: {
+                Text("Restore")
+                    .font(.trainCaption)
+                    .foregroundColor(.trainTextSecondary)
+            }
+        }
+    }
+
+    // MARK: - Header
+
+    private var headerSection: some View {
+        VStack(spacing: Spacing.sm) {
+            ZStack {
+                Circle()
+                    .fill(Color.trainPrimary.opacity(0.2))
+                    .frame(width: 80, height: 80)
+
+                Image(systemName: "dumbbell.fill")
+                    .font(.system(size: IconSize.xl))
+                    .foregroundColor(.trainPrimary)
+            }
+
+            Text("Unlock Your Full Potential")
+                .font(.trainTitle)
+                .foregroundColor(.trainTextPrimary)
+                .multilineTextAlignment(.center)
+
+            Text("Train with structure, guidance and\nprogress in mind.")
+                .font(.trainBody)
+                .foregroundColor(.trainTextSecondary)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    // MARK: - Pricing Tiers
+
+    private var pricingTiersSection: some View {
+        HStack(spacing: Spacing.sm) {
+            ForEach(SubscriptionProduct.displayOrder, id: \.rawValue) { tier in
+                let product = products.first { $0.id == tier.rawValue }
+                PricingTierCard(
+                    tier: tier,
+                    product: product,
+                    isSelected: selectedProductID == tier.rawValue,
+                    onSelect: {
+                        withAnimation(.easeInOut(duration: AnimationDuration.quick)) {
+                            selectedProductID = tier.rawValue
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    // MARK: - Continue Button
+
+    private var continueButton: some View {
+        Button {
+            guard let product = products.first(where: { $0.id == selectedProductID }) else {
+                AppLogger.logUI("[PAYWALL] No product found for ID: \(selectedProductID)", level: .warning)
+                // Fallback: allow proceeding without purchase for testing
+                onComplete()
+                return
+            }
+            Task {
+                await purchase(product)
+            }
+        } label: {
+            Text("CONTINUE")
+                .font(.trainBodyMedium)
+                .fontWeight(.bold)
+                .foregroundColor(.trainTextOnPrimary)
+                .frame(maxWidth: .infinity)
+                .frame(height: ButtonHeight.standard)
+                .background(Color.trainPrimary)
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
+                .shadowStyle(.elevated)
+        }
+    }
+
+    // MARK: - Promo Code
+
+    private var promoCodeLink: some View {
+        Button {
+            presentPromoCodeSheet()
+        } label: {
+            Text("Have a promo code?")
+                .font(.trainCaption)
+                .foregroundColor(.trainTextSecondary)
+                .underline()
+        }
+    }
+
+    // MARK: - Legal Links
+
+    private var legalLinks: some View {
+        HStack(spacing: Spacing.md) {
+            Link("Terms of Service", destination: URL(string: "https://train.app/terms")!)
+                .font(.trainCaptionSmall)
+                .foregroundColor(.trainTextSecondary)
+
+            Text("|")
+                .font(.trainCaptionSmall)
+                .foregroundColor(.trainTextSecondary.opacity(0.5))
+
+            Link("Privacy Policy", destination: URL(string: "https://train.app/privacy")!)
+                .font(.trainCaptionSmall)
+                .foregroundColor(.trainTextSecondary)
+        }
+    }
+
+    // MARK: - Purchase Overlay
+
+    private var purchaseOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+
+            VStack(spacing: Spacing.md) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
+
+                Text("Processing...")
+                    .font(.trainBody)
+                    .foregroundColor(.white)
+            }
+            .padding(Spacing.xl)
+            .background(Color.trainPrimary)
+            .cornerRadius(CornerRadius.md)
+        }
+    }
+
+    // MARK: - StoreKit Logic
+
     private func loadProducts() async {
         do {
-            // Replace with your actual product IDs from App Store Connect
-            let productIDs = [
-                "com.train.subscription.annual",
-                "com.train.subscription.monthly"
-            ]
-
+            let productIDs = SubscriptionProduct.allCases.map(\.rawValue)
             let loadedProducts = try await Product.products(for: productIDs)
-            products = loadedProducts.sorted { p1, p2 in
-                // Sort annual first
-                (p1.subscription?.subscriptionPeriod.unit == .year) &&
-                (p2.subscription?.subscriptionPeriod.unit != .year)
-            }
+            products = loadedProducts
             isLoading = false
             AppLogger.logUI("[PAYWALL] Loaded \(products.count) subscription products")
         } catch {
@@ -178,7 +265,6 @@ struct PaywallView: View {
         }
     }
 
-    // Purchase a product
     private func purchase(_ product: Product) async {
         purchaseInProgress = true
         errorMessage = nil
@@ -188,21 +274,16 @@ struct PaywallView: View {
 
             switch result {
             case .success(let verification):
-                // Verify the transaction
                 switch verification {
                 case .verified(let transaction):
-                    // Transaction is verified - grant access
                     AppLogger.logUI("[PAYWALL] Purchase successful: \(transaction.productID)")
                     await transaction.finish()
-
-                    // Complete onboarding
                     await MainActor.run {
                         purchaseInProgress = false
                         onComplete()
                     }
 
                 case .unverified(_, let error):
-                    // Transaction failed verification
                     AppLogger.logUI("[PAYWALL] Transaction unverified: \(error)", level: .error)
                     await MainActor.run {
                         errorMessage = String(localized: "Purchase verification failed")
@@ -211,7 +292,6 @@ struct PaywallView: View {
                 }
 
             case .pending:
-                // Purchase is pending (e.g., requires parental approval)
                 AppLogger.logUI("[PAYWALL] Purchase pending")
                 await MainActor.run {
                     errorMessage = String(localized: "Purchase is pending approval")
@@ -219,7 +299,6 @@ struct PaywallView: View {
                 }
 
             case .userCancelled:
-                // User cancelled the purchase
                 AppLogger.logUI("[PAYWALL] User cancelled purchase")
                 await MainActor.run {
                     purchaseInProgress = false
@@ -238,116 +317,196 @@ struct PaywallView: View {
             }
         }
     }
-}
 
-// Product Card for StoreKit products
-struct ProductCard: View {
-    let product: Product
-    let isMostPopular: Bool
-    let onPurchase: () -> Void
+    private func restorePurchases() async {
+        purchaseInProgress = true
+        errorMessage = nil
 
-    var body: some View {
-        Button(action: {
-            AppLogger.logUI("[PAYWALL] Product card tapped: \(product.displayName)")
-            onPurchase()
-        }) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                if isMostPopular {
-                    HStack {
-                        Spacer()
-                        Text("Most Popular")
-                            .font(.trainCaption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.trainPrimary)
-                            .padding(.horizontal, Spacing.sm)
-                            .padding(.vertical, Spacing.xs)
-                            .background(Color.trainPrimary.opacity(0.1))
-                            .cornerRadius(CornerRadius.sm)
-                        Spacer()
-                    }
-                }
+        do {
+            try await AppStore.sync()
+            AppLogger.logUI("[PAYWALL] Restore purchases completed")
 
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(product.displayName)
-                            .font(.trainHeadline)
-                            .foregroundColor(.trainTextPrimary)
-
-                        Text(product.description)
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
-                    }
-
-                    Spacer()
-
-                    Text(product.displayPrice)
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.trainPrimary)
+            // Check if any current entitlements exist after sync
+            var hasActiveSubscription = false
+            for await result in Transaction.currentEntitlements {
+                if case .verified = result {
+                    hasActiveSubscription = true
+                    break
                 }
             }
-            .padding(Spacing.md)
-            .appCard()
-            .cornerRadius(CornerRadius.md)
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(isMostPopular ? Color.trainPrimary : Color.clear, lineWidth: isMostPopular ? 2 : 1)
+
+            await MainActor.run {
+                purchaseInProgress = false
+                if hasActiveSubscription {
+                    AppLogger.logUI("[PAYWALL] Active subscription found after restore")
+                    onComplete()
+                } else {
+                    errorMessage = String(localized: "No active subscriptions found")
+                }
+            }
+        } catch {
+            AppLogger.logUI("[PAYWALL] Restore failed: \(error)", level: .error)
+            await MainActor.run {
+                errorMessage = String(localized: "Restore failed: \(error.localizedDescription)")
+                purchaseInProgress = false
+            }
+        }
+    }
+
+    private func presentPromoCodeSheet() {
+        #if !targetEnvironment(simulator)
+        if #available(iOS 16.0, *) {
+            // On iOS 16+, use the modern offer code redemption
+            // This is handled by the system via subscription store
+        }
+        // Fallback to SKPaymentQueue for promo code redemption
+        SKPaymentQueue.default().presentCodeRedemptionSheet()
+        AppLogger.logUI("[PAYWALL] Presenting promo code redemption sheet")
+        #else
+        AppLogger.logUI("[PAYWALL] Promo code redemption not available in simulator", level: .warning)
+        #endif
+    }
+}
+
+// MARK: - Pricing Tier Card
+
+private struct PricingTierCard: View {
+    let tier: SubscriptionProduct
+    let product: Product?
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    private var tierTitle: String {
+        switch tier {
+        case .monthly: return "1 Month"
+        case .quarterly: return "3 Months"
+        case .annual: return "1 Year"
+        }
+    }
+
+    private var badgeText: String? {
+        switch tier {
+        case .monthly: return "Most popular"
+        case .annual: return "Best value"
+        case .quarterly: return nil
+        }
+    }
+
+    private var badgeColor: Color {
+        switch tier {
+        case .monthly: return .trainPrimary
+        case .annual: return .trainSuccess
+        case .quarterly: return .clear
+        }
+    }
+
+    private var displayPrice: String {
+        if let product {
+            return product.displayPrice
+        }
+        // Fallback prices
+        switch tier {
+        case .monthly: return "£4.99"
+        case .quarterly: return "£14.99"
+        case .annual: return "£59.99"
+        }
+    }
+
+    private var periodLabel: String {
+        switch tier {
+        case .monthly: return "/month"
+        case .quarterly: return "/quarter"
+        case .annual: return "/year"
+        }
+    }
+
+    private var perWeekPrice: String {
+        if let product {
+            let weeklyPrice: Decimal
+            switch tier {
+            case .monthly: weeklyPrice = product.price / 4
+            case .quarterly: weeklyPrice = product.price / 13
+            case .annual: weeklyPrice = product.price / 52
+            }
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            formatter.locale = product.priceFormatStyle.locale
+            formatter.maximumFractionDigits = 2
+            return formatter.string(from: weeklyPrice as NSDecimalNumber) ?? ""
+        }
+        // Fallback per-week prices
+        switch tier {
+        case .monthly: return "£1.25"
+        case .quarterly: return "£1.15"
+        case .annual: return "£1.15"
+        }
+    }
+
+    var body: some View {
+        Button(action: onSelect) {
+            VStack(spacing: Spacing.sm) {
+                // Badge area (fixed height so cards align)
+                if let badge = badgeText {
+                    Text(badge)
+                        .font(.trainTag)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.xs)
+                        .background(badgeColor)
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
+                } else {
+                    // Spacer to keep alignment consistent
+                    Text(" ")
+                        .font(.trainTag)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.xs)
+                        .opacity(0)
+                }
+
+                // Tier title
+                Text(tierTitle)
+                    .font(.trainHeadline)
+                    .foregroundColor(.trainTextPrimary)
+
+                // Price
+                VStack(spacing: Spacing.xxs) {
+                    Text(displayPrice)
+                        .font(.trainBodyMedium)
+                        .foregroundColor(.trainTextPrimary)
+
+                    Text(periodLabel)
+                        .font(.trainCaptionSmall)
+                        .foregroundColor(.trainTextSecondary)
+                }
+
+                // Per-week breakdown
+                Text("\(perWeekPrice)/wk")
+                    .font(.trainCaptionSmall)
+                    .foregroundColor(.trainTextSecondary)
+                    .padding(.top, Spacing.xs)
+            }
+            .padding(.vertical, Spacing.md)
+            .padding(.horizontal, Spacing.sm)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                    .fill(.ultraThinMaterial)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                    .strokeBorder(
+                        isSelected ? Color.trainPrimary : Color.trainBorderSubtle,
+                        lineWidth: isSelected ? BorderWidth.emphasis : BorderWidth.hairline
+                    )
+            )
+            .shadowStyle(isSelected ? .card : .subtle)
         }
         .buttonStyle(.plain)
     }
 }
 
-// Static subscription card (fallback)
-struct SubscriptionCard: View {
-    let title: String
-    let price: String
-    let description: String
-    let isMostPopular: Bool
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            if isMostPopular {
-                HStack {
-                    Spacer()
-                    Text("Most Popular")
-                        .font(.trainCaption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.trainPrimary)
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, Spacing.xs)
-                        .background(Color.trainPrimary.opacity(0.1))
-                        .cornerRadius(CornerRadius.sm)
-                    Spacer()
-                }
-            }
-
-            HStack {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(title)
-                        .font(.trainHeadline)
-                        .foregroundColor(.trainTextPrimary)
-
-                    Text(description)
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-                }
-
-                Spacer()
-
-                Text(price)
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.trainPrimary)
-            }
-        }
-        .padding(Spacing.md)
-        .appCard()
-        .cornerRadius(CornerRadius.md)
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .stroke(isMostPopular ? Color.trainPrimary : Color.clear, lineWidth: isMostPopular ? 2 : 1)
-        )
-    }
-}
+// MARK: - Preview
 
 #Preview {
     PaywallView(onComplete: {

@@ -19,3 +19,24 @@ Each line documents a single UX/UI change made during the overhaul.
 - Fixed 4 hardcoded `cornerRadius` values to use `CornerRadius` tokens across 3 files
 - Eliminated 17 `@Environment(\.colorScheme)` manual branching declarations across 4 files
 - Replaced 11 conditional color expressions with adaptive Asset Catalog tokens
+
+## Phase 2: P0 Ship-Blockers
+- Replaced `Int.random()` streak/session counts in WorkoutSummaryView with real Core Data queries via `SessionCompletionHelper`
+- Replaced `completedSets * 2` fake reps calculation with actual set-by-set comparison using `getPreviousSessionData()`
+- Made `generateCelebrationContent()` deterministic based on PBs/streak/completion instead of `randomElement()`
+- Implemented `shareWorkout()` with `UIActivityViewController` — builds text payload with exercises, sets, PB callouts
+- Replaced hardcoded "47:20" / "12 reps" / "25.0kg" in DashboardView `CompletedSessionSummaryCard` with real `CDWorkoutSession` data
+- Replaced mock exercise history entries in ExerciseHistoryView with real Core Data fetch across all `CDWorkoutSession` records
+- Changed warm-up card in WorkoutOverviewView to show actual exercise count and duration estimate
+- Fixed CalendarView `NSPredicate(value: true)` → `NSPredicate(format: "userId == %@", userId)` to scope to current user only
+- Removed `UINavigationBar.appearance()` global mutation from ProgramOverviewView `.onAppear` — uses app-level config instead
+- Rewrote PaywallView with 3 pricing tiers (Monthly/Quarterly/Annual), dismiss X, Restore, promo code, ToS/Privacy links
+- Added `com.train.subscription.quarterly` product ID to PaywallView alongside existing monthly/annual
+- Added error message display to LoginView for failed auth attempts
+- Uncommented "Forgot Password?" button and wired to `PasswordResetRequestView` in LoginView
+- Promoted Sign Up from underlined grey text to full outlined secondary button "Create an Account"
+- Rewrote ProfileView `SubscriptionInfoCard` — loads real subscription data from StoreKit `Transaction.currentEntitlements`
+- Wired DashboardView settings gear button to open ProfileView via sheet
+- Added accessibility labels and hints to 5 key views: DashboardView, WorkoutOverviewView, WorkoutSummaryView, ProfileView, CalendarView
+- Converted 11 typography tokens from fixed `Font.system(size:)` to Dynamic Type-scaling built-in text styles
+- Applied `.fontDesign(.rounded)` at app root for SF Pro Rounded inheritance across all Dynamic Type tokens

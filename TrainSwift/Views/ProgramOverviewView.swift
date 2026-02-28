@@ -79,14 +79,8 @@ struct ProgramOverviewView: View {
                     .foregroundColor(.trainTextPrimary)
             }
         }
-        .onAppear {
-            // Force navigation bar to be transparent
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithTransparentBackground()
-            appearance.backgroundColor = .clear
-            UINavigationBar.appearance().standardAppearance = appearance
-            UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        }
+        // Navigation bar transparency is handled globally in TrainSwiftApp.init()
+        // No per-view UINavigationBar.appearance() mutation needed
         .navigationDestination(item: $selectedSession) { info in
             SessionDetailView(
                 userProgram: userProgram,

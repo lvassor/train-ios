@@ -40,30 +40,47 @@ extension Color {
 // The Color extensions are applied there automatically
 
 // MARK: - Typography
-// Apple-inspired glassmorphic design system with SF Pro Rounded
+// Dynamic Type-aware typography tokens.
+// Text fonts use built-in SwiftUI text styles so they scale with the user's
+// preferred content size. Apply `.fontDesign(.rounded)` at the NavigationStack
+// or per-view level (or use the `.trainRounded()` modifier) to get the rounded
+// design system look — this keeps Dynamic Type scaling intact.
+//
+// Number fonts remain fixed-size because they are decorative / layout-critical.
 extension Font {
-    // Headers - using SF Pro Rounded for softer, more approachable feel
-    static let trainTitle = Font.system(size: 28, weight: .semibold, design: .rounded)        // Bumped for rounded design
-    static let trainTitle2 = Font.system(size: 24, weight: .semibold, design: .rounded)       // Bumped weight for presence
-    static let trainHeadline = Font.system(size: 20, weight: .semibold, design: .rounded)     // Semibold for headers
+    // Headers — scale with Dynamic Type
+    static var trainTitle: Font { .title.weight(.semibold) }                   // ~28pt base
+    static var trainTitle2: Font { .title2.weight(.semibold) }                 // ~22pt base
+    static var trainHeadline: Font { .headline }                               // ~17pt base, semibold by default
 
-    // Body - default design for better readability
-    static let trainSubtitle = Font.system(size: 16, weight: .regular)      // Regular for body text
-    static let trainBody = Font.system(size: 16, weight: .regular)          // Regular for body text
-    static let trainBodyMedium = Font.system(size: 18, weight: .medium, design: .rounded)   // Rounded for interactive elements
-    static let trainCaption = Font.system(size: 14, weight: .regular)       // Slightly smaller caption
-    static let trainCaptionLarge = Font.system(size: 15.5, weight: .regular)  // Larger caption for questionnaire descriptions
+    // Body — scale with Dynamic Type
+    static var trainSubtitle: Font { .subheadline }                            // ~15pt base
+    static var trainBody: Font { .body }                                       // ~17pt base
+    static var trainBodyMedium: Font { .body.weight(.medium) }                 // ~17pt base, medium weight
+    static var trainCaption: Font { .caption }                                 // ~12pt base
+    static var trainCaptionLarge: Font { .callout }                            // ~16pt base
 
-    // Small text
-    static let trainCaptionSmall = Font.system(size: 12, weight: .regular)    // Day labels, secondary counts
-    static let trainTag = Font.system(size: 11, weight: .medium)              // Tags, badges
-    static let trainMicro = Font.system(size: 10, weight: .regular)           // Micro labels
+    // Small text — scale with Dynamic Type
+    static var trainCaptionSmall: Font { .caption2 }                           // ~11pt base
+    static var trainTag: Font { .caption2.weight(.medium) }                    // ~11pt base, medium weight
+    static var trainMicro: Font { .caption2 }                                  // ~11pt base
 
-    // Special - rounded design for numbers
+    // Special — fixed-size rounded numbers (decorative, should NOT scale)
     static let trainLargeNumber = Font.system(size: 72, weight: .bold, design: .rounded)
     static let trainMediumNumber = Font.system(size: 48, weight: .semibold, design: .rounded)  // For stats
     static let trainSmallNumber = Font.system(size: 24, weight: .semibold, design: .rounded)   // For compact displays
     static let trainPickerNumber = Font.system(size: 56, weight: .bold, design: .rounded)      // Picker wheels
+}
+
+// MARK: - Rounded Font Design Modifier
+extension View {
+    /// Applies the SF Pro Rounded design across all descendant text in this view.
+    /// Attach at the NavigationStack or screen level so every `trainTitle`,
+    /// `trainBody`, etc. inherits the rounded design while still scaling with
+    /// Dynamic Type.
+    func trainRounded() -> some View {
+        self.fontDesign(.rounded)
+    }
 }
 
 // MARK: - Line Height

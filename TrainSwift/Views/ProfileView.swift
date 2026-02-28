@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import StoreKit
 
 struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
@@ -59,6 +60,7 @@ struct ProfileView: View {
                                 title: "Edit Profile",
                                 action: { showEditProfile = true }
                             )
+                            .accessibilityHint("Opens profile editing screen")
 
                             if authService.getInactivePrograms().count > 0 {
                                 Divider()
@@ -69,6 +71,7 @@ struct ProfileView: View {
                                     title: "Switch Program",
                                     action: { showProgramSelector = true }
                                 )
+                                .accessibilityHint("Switch to a different training program")
                             }
 
                             Divider()
@@ -88,6 +91,7 @@ struct ProfileView: View {
                                     showLogoutConfirmation = true
                                 }
                             )
+                            .accessibilityHint("Signs you out of your account")
 
                             Divider()
                                 .padding(.leading, 60)
@@ -100,6 +104,7 @@ struct ProfileView: View {
                                     showDeleteAccountConfirmation = true
                                 }
                             )
+                            .accessibilityHint("Permanently deletes your account and all data")
                         }
                         .appCard()
                         .padding(.horizontal, Spacing.lg)
@@ -314,6 +319,11 @@ struct ProfileMenuItem: View {
 // MARK: - Subscription Info Card
 
 struct SubscriptionInfoCard: View {
+    @State private var planName: String = "Loading..."
+    @State private var planPrice: String = ""
+    @State private var renewalDate: String = ""
+    @State private var isActive: Bool = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Your Plan")
@@ -322,20 +332,34 @@ struct SubscriptionInfoCard: View {
 
             HStack {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("Annual Plan")
+                    Text(planName)
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
 
-                    Text("£99.99/year")
-                        .font(.trainBody)
-                        .foregroundColor(.trainTextSecondary)
+                    if !planPrice.isEmpty {
+                        Text(planPrice)
+                            .font(.trainBody)
+                            .foregroundColor(.trainTextSecondary)
+                    }
 
-                    Text("Next billing: Jan 15, 2026")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
+                    if !renewalDate.isEmpty {
+                        Text(renewalDate)
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+                    }
                 }
 
                 Spacer()
+
+                if isActive {
+                    Text("ACTIVE")
+                        .font(.trainTag)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.xxs)
+                        .background(Color.trainSuccess)
+                        .clipShape(Capsule())
+                }
             }
 
             Button(action: {
@@ -352,9 +376,56 @@ struct SubscriptionInfoCard: View {
                     .background(Color.trainPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
             }
+            .accessibilityHint("Opens subscription management in the App Store")
         }
         .padding(Spacing.md)
         .appCard()
+        .task {
+            await loadSubscriptionStatus()
+        }
+    }
+
+    private func loadSubscriptionStatus() async {
+        do {
+            // Check current entitlements from StoreKit
+            for await result in StoreKit.Transaction.currentEntitlements {
+                guard case .verified(let transaction) = result else { continue }
+
+                isActive = true
+
+                // Determine plan name from product ID
+                switch transaction.productID {
+                case "com.train.subscription.annual":
+                    planName = "Annual Plan"
+                case "com.train.subscription.quarterly":
+                    planName = "Quarterly Plan"
+                case "com.train.subscription.monthly":
+                    planName = "Monthly Plan"
+                default:
+                    planName = "Subscription"
+                }
+
+                // Get price from product
+                if let product = try? await StoreKit.Product.products(for: [transaction.productID]).first {
+                    planPrice = product.displayPrice + "/" + (product.subscription?.subscriptionPeriod.unit == .year ? "year" : product.subscription?.subscriptionPeriod.unit == .month ? (product.subscription?.subscriptionPeriod.value == 3 ? "quarter" : "month") : "period")
+                }
+
+                // Renewal date
+                if let expirationDate = transaction.expirationDate {
+                    let formatter = DateFormatter()
+                    formatter.dateStyle = .medium
+                    renewalDate = "Renews: \(formatter.string(from: expirationDate))"
+                }
+
+                return // Found active subscription
+            }
+
+            // No active subscription found
+            planName = "No Active Plan"
+            planPrice = ""
+            renewalDate = ""
+            isActive = false
+        }
     }
 }
 
@@ -493,6 +564,7 @@ struct ProgramCard: View {
                     .background(Color.trainPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
             }
+            .accessibilityHint("Retake the questionnaire to generate a new program")
         }
         .padding(Spacing.md)
         .appCard()
@@ -812,6 +884,8 @@ struct ThemeToggleRow: View {
             .frame(width: 100)
         }
         .padding(Spacing.md)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Appearance theme, currently \(themeManager.currentMode == .light ? "light" : "dark")")
     }
 }
 

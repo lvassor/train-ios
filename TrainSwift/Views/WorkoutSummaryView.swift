@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct WorkoutSummaryView: View {
     let sessionName: String
@@ -124,6 +125,8 @@ struct WorkoutSummaryView: View {
                             .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
                     )
                     .padding(.horizontal, Spacing.lg)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Streak increase, \(streakMessage)")
 
                     Spacer().frame(height: 100)
                 }
@@ -153,6 +156,8 @@ struct WorkoutSummaryView: View {
                                 .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
                         )
                     }
+                    .accessibilityLabel("Share workout")
+                    .accessibilityHint("Share your workout results")
 
                     // Done Button
                     Button(action: onDone) {
@@ -164,6 +169,8 @@ struct WorkoutSummaryView: View {
                             .background(Color.trainPrimary)
                             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                     }
+                    .accessibilityLabel("Done")
+                    .accessibilityHint("Close workout summary and return to dashboard")
                 }
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.lg)
@@ -191,26 +198,23 @@ struct WorkoutSummaryView: View {
     }
 
     private func generateCelebrationContent() -> CelebrationContent {
-        let emojis = ["⭐", "🎉", "💪", "🏆", "🏋️", "💯"]
-        let headlines = [
-            "You smashed this workout!",
-            "Another one for the books",
-            "Great progress today!",
-            "You're getting stronger!",
-            "Outstanding effort!",
-            "Fantastic session!"
-        ]
+        // Select emoji based on context (deterministic, not random)
+        let selectedEmoji: String
+        let selectedHeadline: String
 
-        // Select emoji based on context
-        var selectedEmoji = emojis.randomElement() ?? "💪"
         if !personalBests.isEmpty {
-            selectedEmoji = "🏆" // Trophy for PB achievements
+            selectedEmoji = "🏆"
+            selectedHeadline = "You hit a new PB!"
         } else if currentStreak >= 7 {
-            selectedEmoji = "🔥" // Fire for strong streaks
+            selectedEmoji = "🔥"
+            selectedHeadline = "You're on fire!"
+        } else if completedExercises == totalExercises {
+            selectedEmoji = "💪"
+            selectedHeadline = "You smashed this workout!"
+        } else {
+            selectedEmoji = "⭐"
+            selectedHeadline = "Another one for the books"
         }
-
-        // Select headline
-        let selectedHeadline = headlines.randomElement() ?? "Great workout!"
 
         // Generate contextual support message
         let supportMessage = generateSupportMessage()
@@ -312,10 +316,28 @@ struct WorkoutSummaryView: View {
     }
 
     private func calculateRepsIncrease() -> Int {
-        // Mock calculation - in real app, compare with previous session
-        return loggedExercises.reduce(0) { total, exercise in
-            total + exercise.sets.filter { $0.completed }.count * 2 // Approximate increase
+        // Compare current session reps with previous session reps for each exercise
+        var totalIncrease = 0
+
+        guard let programId = authService.getCurrentProgram()?.id?.uuidString else {
+            return 0
         }
+
+        for exercise in loggedExercises {
+            guard let previousSets = authService.getPreviousSessionData(
+                programId: programId,
+                exerciseName: exercise.exerciseName
+            ) else { continue }
+
+            let currentReps = exercise.sets.filter { $0.completed }.reduce(0) { $0 + $1.reps }
+            let previousReps = previousSets.filter { $0.completed }.reduce(0) { $0 + $1.reps }
+            let diff = currentReps - previousReps
+            if diff > 0 {
+                totalIncrease += diff
+            }
+        }
+
+        return totalIncrease
     }
 
     private func calculateTotalWeight() -> Double {
@@ -325,22 +347,55 @@ struct WorkoutSummaryView: View {
     }
 
     private func calculateCurrentStreak() -> Int {
-        // Mock implementation - replace with actual streak calculation
-        return Int.random(in: 1...14)
+        guard let userId = authService.currentUser?.id else { return 0 }
+        return SessionCompletionHelper.calculateStreak(userId: userId)
     }
 
     private func getTotalSessionCount() -> Int {
-        // Mock implementation - replace with actual session count
-        return Int.random(in: 10...200)
+        return authService.getWorkoutHistory().count
     }
 
     private func getSessionsThisWeek() -> Int {
-        // Mock implementation - replace with actual weekly count
-        return Int.random(in: 1...5)
+        guard let userId = authService.currentUser?.id else { return 0 }
+        return SessionCompletionHelper.sessionsCompletedThisWeek(userId: userId).count
     }
 
     private func shareWorkout() {
-        // TODO: Implement share functionality
+        // Build share text
+        var shareText = "💪 \(sessionName) — Completed!\n"
+        shareText += "⏱ \(formatDuration(duration))\n\n"
+
+        // List exercises with sets
+        for exercise in loggedExercises {
+            let completedSets = exercise.sets.filter { $0.completed }
+            guard !completedSets.isEmpty else { continue }
+            let setsDescription = completedSets.map { "\($0.reps)×\(Int($0.weight))kg" }.joined(separator: ", ")
+            shareText += "• \(exercise.exerciseName): \(setsDescription)\n"
+        }
+
+        // Add PB callouts
+        if !personalBests.isEmpty {
+            shareText += "\n🏆 Personal Bests:\n"
+            for pb in personalBests {
+                shareText += "• \(pb.exerciseName): \(pb.previousWeight)kg → \(pb.newWeight)kg\n"
+            }
+        }
+
+        shareText += "\nLogged with train."
+
+        // Present share sheet
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootVC = windowScene.windows.first?.rootViewController else { return }
+
+        let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
+
+        // iPad popover support
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = rootVC.view
+            popover.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.maxY - 100, width: 0, height: 0)
+        }
+
+        rootVC.present(activityVC, animated: true)
     }
 }
 
@@ -395,6 +450,8 @@ struct PBCardView: View {
             RoundedRectangle(cornerRadius: CornerRadius.md)
                 .stroke(Color.trainPrimary.opacity(0.5), lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(pb.exerciseName) personal best, \(pb.previousWeight) to \(pb.newWeight) kilograms")
     }
 }
 

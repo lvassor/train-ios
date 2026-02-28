@@ -177,6 +177,8 @@ struct WorkoutOverviewView: View {
                                     .background(Color.trainPrimary.opacity(0.1))
                                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                                 }
+                                .accessibilityLabel("Add exercise")
+                                .accessibilityHint("Add a new exercise to this workout")
                                 .padding(.horizontal, Spacing.lg)
                             }
                         }
@@ -206,6 +208,8 @@ struct WorkoutOverviewView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                         }
                         .disabled(!canCompleteWorkout)
+                        .accessibilityLabel("Complete workout")
+                        .accessibilityHint("Saves your workout and shows summary")
                         .padding(.horizontal, Spacing.lg)
                         .padding(.bottom, Spacing.md)
                     }
@@ -632,6 +636,7 @@ struct WorkoutOverviewHeader: View {
                     .foregroundColor(.trainTextPrimary)
             }
             .frame(width: 24, height: 24)
+            .accessibilityLabel("Cancel workout")
 
             Spacer()
 
@@ -654,6 +659,7 @@ struct WorkoutOverviewHeader: View {
                             .stroke(isEditing ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
                     )
             }
+            .accessibilityLabel(isEditing ? "Done editing" : "Edit exercises")
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.md)
@@ -705,7 +711,7 @@ struct WarmUpCard: View {
                             .font(.trainBody).fontWeight(.medium)
                             .foregroundColor(.trainTextPrimary)
 
-                        Text("X exercises • X minutes")
+                        Text("5 exercises • 5 minutes")
                             .font(.trainCaption).fontWeight(.light)
                             .foregroundColor(.trainTextSecondary)
                     }
@@ -723,6 +729,7 @@ struct WarmUpCard: View {
                             .clipShape(Capsule())
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .accessibilityLabel("Skip warm-up")
                 }
                 .padding(Spacing.md)
                 .background(Color.trainSurface)
@@ -730,6 +737,7 @@ struct WarmUpCard: View {
                 .shadowStyle(.borderLine)
             }
             .buttonStyle(ScaleButtonStyle())
+            .accessibilityLabel("Warm-up: Upper Body Mobility, 5 exercises, 5 minutes")
         }
     }
 }
@@ -1029,6 +1037,9 @@ struct ExerciseOverviewCard: View {
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .stroke(isEditing ? Color.trainPrimary.opacity(0.3) : Color.clear, lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(exercise.exerciseName), \(exercise.sets) sets of \(exercise.repRange) reps")
+        .accessibilityValue(isCompleted ? "Completed" : "Not started")
     }
 
     // MARK: - Drag Handle (Double Line Indicator)

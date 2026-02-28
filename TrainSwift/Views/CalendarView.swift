@@ -19,10 +19,14 @@ struct CalendarView: View {
     @FetchRequest private var workoutSessions: FetchedResults<CDWorkoutSession>
 
     init() {
-        // Initialize with empty predicate, will be updated based on current user
+        // Filter to current user's sessions only
         let request: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \CDWorkoutSession.completedAt, ascending: false)]
-        request.predicate = NSPredicate(value: true) // Placeholder
+        if let userId = AuthService.shared.currentUser?.id {
+            request.predicate = NSPredicate(format: "userId == %@", userId as CVarArg)
+        } else {
+            request.predicate = NSPredicate(value: false) // No user — show nothing
+        }
         _workoutSessions = FetchRequest(fetchRequest: request)
     }
 
@@ -69,6 +73,8 @@ struct CalendarView: View {
                         Text("Done")
                             .foregroundColor(.trainPrimary)
                     }
+                    .accessibilityLabel("Done")
+                    .accessibilityHint("Close workout history")
                 }
             }
         }
@@ -120,6 +126,7 @@ struct MonthNavigationView: View {
                     .font(.title3)
                     .foregroundColor(.trainPrimary)
             }
+            .accessibilityLabel("Previous month")
 
             Spacer()
 
@@ -134,6 +141,7 @@ struct MonthNavigationView: View {
                     .font(.title3)
                     .foregroundColor(.trainPrimary)
             }
+            .accessibilityLabel("Next month")
         }
         .gesture(
             DragGesture(minimumDistance: 30, coordinateSpace: .local)
@@ -267,6 +275,10 @@ struct CalendarDayView: View {
     let isToday: Bool
     let onTap: () -> Void
 
+    private var dayNumber: Int {
+        Calendar.current.component(.day, from: date)
+    }
+
     var body: some View {
         Button(action: onTap) {
             ZStack {
@@ -281,7 +293,7 @@ struct CalendarDayView: View {
                 }
 
                 // Day Number
-                Text("\(Calendar.current.component(.day, from: date))")
+                Text("\(dayNumber)")
                     .font(.trainBody)
                     .foregroundColor(isSelected ? .white : .trainTextPrimary)
 
@@ -295,6 +307,8 @@ struct CalendarDayView: View {
             }
             .frame(height: ElementHeight.tabSelector)
         }
+        .accessibilityLabel("Day \(dayNumber)")
+        .accessibilityValue(hasWorkout ? "Has workout" : "No workout")
     }
 }
 
@@ -371,6 +385,8 @@ struct WorkoutHistoryCard: View {
         }
         .padding(Spacing.md)
         .glassCompactCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(workout.sessionType), \(workout.durationMinutes) minutes, \(workout.exercises.count) exercises")
     }
 }
 

@@ -57,11 +57,11 @@ struct ExerciseHistoryView: View {
                             .font(.system(size: IconSize.xl))
                             .foregroundColor(.trainTextSecondary)
 
-                        Text("No data - not in any program")
+                        Text("No history yet")
                             .font(.trainBodyMedium)
                             .foregroundColor(.trainTextPrimary)
 
-                        Text("This exercise hasn't been completed in any of your training programs yet.")
+                        Text("You haven't logged this exercise in any workout session yet.")
                             .font(.trainBody)
                             .foregroundColor(.trainTextSecondary)
                             .multilineTextAlignment(.center)
@@ -134,64 +134,74 @@ struct ExerciseHistoryView: View {
     }
 
     private func loadHistory() {
-        // Check if exercise is in user's program
-        isInProgram = exercise.isInProgramme
+        let exerciseName = exercise.displayName
 
-        // If not in program, don't load sample data
+        // Fetch all workout sessions for the current user from Core Data
+        let allSessions = AuthService.shared.getWorkoutHistory()
+
+        // Build history entries from sessions that contain this exercise
+        // Sort sessions by date ascending (oldest first) so we can compute progression
+        var matchingEntries: [(date: Date, sets: [LoggedSet])] = []
+
+        for session in allSessions {
+            guard let completedDate = session.completedAt else { continue }
+            let loggedExercises = session.getLoggedExercises()
+
+            // Find exercises matching by display name
+            for loggedExercise in loggedExercises {
+                if loggedExercise.exerciseName == exerciseName {
+                    let completedSets = loggedExercise.sets.filter { $0.completed }
+                    guard !completedSets.isEmpty else { continue }
+                    matchingEntries.append((date: completedDate, sets: completedSets))
+                }
+            }
+        }
+
+        // Sort by date ascending (oldest first) for progression comparison
+        matchingEntries.sort { $0.date < $1.date }
+
+        // Determine visibility: show data if exercise is in program OR has history
+        let hasHistory = !matchingEntries.isEmpty
+        isInProgram = exercise.isInProgramme || hasHistory
         guard isInProgram else { return }
 
-        // Sample data for demonstration
-        let calendar = Calendar.current
-        let now = Date()
+        // Convert to WorkoutHistoryEntry with progression tracking
+        var previousMaxWeight: Double? = nil
+        var entries: [WorkoutHistoryEntry] = []
 
-        historyEntries = [
-            WorkoutHistoryEntry(
-                date: calendar.date(byAdding: .day, value: -14, to: now)!,
-                sets: [
-                    ExerciseSet(weight: 60, reps: 12, increased: false),
-                    ExerciseSet(weight: 60, reps: 10, increased: false),
-                    ExerciseSet(weight: 60, reps: 8, increased: false)
-                ],
-                totalVolume: 1800,
-                maxWeight: 60,
-                hadProgression: false
-            ),
-            WorkoutHistoryEntry(
-                date: calendar.date(byAdding: .day, value: -10, to: now)!,
-                sets: [
-                    ExerciseSet(weight: 65, reps: 12, increased: true),
-                    ExerciseSet(weight: 65, reps: 11, increased: true),
-                    ExerciseSet(weight: 65, reps: 9, increased: true)
-                ],
-                totalVolume: 2080,
-                maxWeight: 65,
-                hadProgression: true
-            ),
-            WorkoutHistoryEntry(
-                date: calendar.date(byAdding: .day, value: -7, to: now)!,
-                sets: [
-                    ExerciseSet(weight: 65, reps: 12, increased: false),
-                    ExerciseSet(weight: 65, reps: 12, increased: true),
-                    ExerciseSet(weight: 65, reps: 10, increased: true)
-                ],
-                totalVolume: 2210,
-                maxWeight: 65,
-                hadProgression: true
-            ),
-            WorkoutHistoryEntry(
-                date: calendar.date(byAdding: .day, value: -3, to: now)!,
-                sets: [
-                    ExerciseSet(weight: 70, reps: 12, increased: true),
-                    ExerciseSet(weight: 70, reps: 10, increased: false),
-                    ExerciseSet(weight: 70, reps: 9, increased: false)
-                ],
-                totalVolume: 2170,
-                maxWeight: 70,
-                hadProgression: true
-            )
-        ]
+        for match in matchingEntries {
+            let sets = match.sets.map { loggedSet in
+                ExerciseSet(
+                    weight: loggedSet.weight,
+                    reps: loggedSet.reps,
+                    increased: false // Will be unused; progression is per-entry
+                )
+            }
 
-        // Calculate best set and start weight
+            let totalVolume = match.sets.reduce(0.0) { $0 + $1.weight * Double($1.reps) }
+            let maxWeight = match.sets.map(\.weight).max() ?? 0.0
+
+            // Progression: maxWeight increased compared to previous entry
+            let hadProgression: Bool
+            if let prevMax = previousMaxWeight {
+                hadProgression = maxWeight > prevMax
+            } else {
+                hadProgression = false
+            }
+            previousMaxWeight = maxWeight
+
+            entries.append(WorkoutHistoryEntry(
+                date: match.date,
+                sets: sets,
+                totalVolume: totalVolume,
+                maxWeight: maxWeight,
+                hadProgression: hadProgression
+            ))
+        }
+
+        historyEntries = entries
+
+        // Calculate best set (highest weight x reps product) across all history
         var maxProduct = 0.0
         for entry in historyEntries {
             for set in entry.sets {
@@ -203,8 +213,9 @@ struct ExerciseHistoryView: View {
             }
         }
 
-        if let firstEntry = historyEntries.first, let firstSet = firstEntry.sets.first {
-            startWeight = firstSet.weight
+        // Start weight is the max weight from the earliest entry
+        if let firstEntry = historyEntries.first {
+            startWeight = firstEntry.maxWeight
         }
     }
 }
