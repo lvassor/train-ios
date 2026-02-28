@@ -34,7 +34,6 @@ enum DemoHistoryTabOption: String, CaseIterable, Hashable {
 
 struct ExerciseDemoHistoryView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(\.colorScheme) var colorScheme
 
     let exercise: DBExercise
 
@@ -108,7 +107,6 @@ struct DemoHistoryHeader: View {
 
 struct DemoHistoryTabSelector: View {
     @Binding var selectedTab: DemoHistoryTabOption
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         ZStack {

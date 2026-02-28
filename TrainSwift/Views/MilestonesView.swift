@@ -295,11 +295,11 @@ private struct MilestoneCard: View {
                 // Progress bar
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 3)
+                        RoundedRectangle(cornerRadius: CornerRadius.xxs)
                             .fill(Color.trainTextSecondary.opacity(0.15))
                             .frame(height: 6)
 
-                        RoundedRectangle(cornerRadius: 3)
+                        RoundedRectangle(cornerRadius: CornerRadius.xxs)
                             .fill(categoryColor.opacity(0.75))
                             .frame(width: geometry.size.width * milestone.progress, height: 6)
                     }

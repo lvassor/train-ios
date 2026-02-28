@@ -64,7 +64,7 @@ struct PasswordResetCodeView: View {
                             .cornerRadius(CornerRadius.xs)
                             .overlay(
                                 RoundedRectangle(cornerRadius: CornerRadius.xs)
-                                    .stroke(showError ? Color.red : Color.clear, lineWidth: 2)
+                                    .stroke(showError ? Color.trainError : Color.clear, lineWidth: 2)
                             )
                             .font(.trainSmallNumber).fontWeight(.bold)
                             .focused($focusedField, equals: index)
@@ -79,13 +79,13 @@ struct PasswordResetCodeView: View {
                 if showError {
                     Text("Invalid code. Please try again.")
                         .font(.trainCaption)
-                        .foregroundColor(.red)
+                        .foregroundColor(.trainError)
                 }
             }
             .frame(maxWidth: .infinity)
             .appCard()
             .cornerRadius(20, corners: [.topLeft, .topRight])
-            .shadow(radius: 20)
+            .shadowStyle(.modal)
 
             if navigateToNewPassword {
                 Color.clear

@@ -67,7 +67,7 @@ struct DashboardContent: View {
                             VStack(spacing: Spacing.lg) {
                                 Image(systemName: "exclamationmark.triangle")
                                     .font(.system(size: IconSize.xl))
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(.trainWarning)
 
                                 Text("No Training Program Found")
                                     .font(.trainTitle)
@@ -527,14 +527,14 @@ struct SessionActionButton: View {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "timer")
                         .font(.system(size: IconSize.sm))
-                        .foregroundColor(.orange)
+                        .foregroundColor(.trainWarning)
                     Text("Active workout: \(workoutState.activeWorkout?.sessionName ?? "")")
                         .font(.trainCaption)
-                        .foregroundColor(.orange)
+                        .foregroundColor(.trainWarning)
                 }
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.xs)
-                .background(Color.orange.opacity(0.1))
+                .background(Color.trainWarning.opacity(0.1))
                 .clipShape(Capsule())
             }
 
@@ -789,7 +789,7 @@ struct CompletedSessionSummaryCard: View {
         .padding(Spacing.lg)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 16, x: 0, y: 8)
+        .shadowStyle(.elevated)
     }
 
     private func formatDate(_ date: Date) -> String {
@@ -850,7 +850,7 @@ struct SessionBubble: View {
         .padding(Spacing.md)
         .background(isCompleted ? Color.trainPrimary : Color.trainSurface)
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+        .shadowStyle(.card)
     }
 }
 
@@ -895,7 +895,7 @@ struct ExpandedSessionBubble: View {
         .padding(Spacing.md)
         .appCard()
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+        .shadowStyle(.card)
     }
 }
 
@@ -1020,7 +1020,7 @@ struct UpcomingWorkoutCard: View {
             Spacer()
         }
         .padding(Spacing.md)
-        .glassCompactCard(cornerRadius: 15)
+        .glassCompactCard(cornerRadius: CornerRadius.md)
     }
 }
 
@@ -1060,7 +1060,7 @@ struct BottomNavigationBar: View {
         }
         .frame(height: ElementHeight.tabBar)
         .appCard()
-        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
+        .shadowStyle(.navBar)
     }
 }
 

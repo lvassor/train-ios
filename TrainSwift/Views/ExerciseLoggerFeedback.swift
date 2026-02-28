@@ -68,7 +68,7 @@ struct FeedbackModalOverlay: View {
                 RoundedRectangle(cornerRadius: CornerRadius.modal, style: .continuous)
                     .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.25), radius: 30, x: 0, y: 10)
+            .shadowStyle(.modal)
             .padding(.horizontal, Spacing.xl)
         }
     }

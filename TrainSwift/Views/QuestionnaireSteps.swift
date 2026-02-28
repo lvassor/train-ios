@@ -260,7 +260,7 @@ struct AgeStepView: View {
             if age < 18 {
                 Text("You must be at least 18 years old")
                     .font(.trainCaption)
-                    .foregroundColor(.red)
+                    .foregroundColor(.trainError)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, Spacing.lg)
             }
@@ -1365,7 +1365,7 @@ struct EquipmentInfoModal: View {
             .frame(width: 320, height: 480)
             .background(.regularMaterial)
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))
-            .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 15)
+            .shadowStyle(.modal)
             .overlay(
                 // Close button with glassmorphic style
                 Button(action: onDismiss) {
@@ -1599,11 +1599,11 @@ struct TrainingDaysStepView: View {
                     HStack(spacing: Spacing.sm) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.trainCaption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.trainWarning)
 
                         Text("Training Frequency Warning")
                             .font(.trainCaption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.trainWarning)
 
                         Spacer()
                     }
@@ -1614,7 +1614,7 @@ struct TrainingDaysStepView: View {
                         .multilineTextAlignment(.leading)
                 }
                 .padding(Spacing.md)
-                .background(Color.orange.opacity(0.1))
+                .background(Color.trainWarning.opacity(0.1))
                 .appCard()
             }
 

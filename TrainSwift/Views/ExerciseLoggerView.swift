@@ -36,7 +36,6 @@ enum LoggerTabOption: String, CaseIterable, Hashable {
 
 struct ExerciseLoggerView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(\.colorScheme) var colorScheme
 
     let exercise: ProgramExercise
     let exerciseIndex: Int
@@ -341,7 +340,6 @@ struct ExerciseLoggerHeader: View {
 
 struct LoggerTabSelector: View {
     @Binding var selectedTab: LoggerTabOption
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         ZStack {
@@ -368,9 +366,7 @@ struct LoggerTabSelector: View {
                                         .fill(Color.trainSurface)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                                                .stroke(colorScheme == .dark
-                                                    ? Color.white.opacity(0.3)
-                                                    : Color.black.opacity(0.47), lineWidth: 1)
+                                                .stroke(Color.trainBorderDefault, lineWidth: 1)
                                         )
                                 : nil
                             )
@@ -387,7 +383,6 @@ struct LoggerTabSelector: View {
 
 struct ExerciseLoggerInfoSection: View {
     let exercise: ProgramExercise
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(spacing: 4) {
@@ -468,7 +463,6 @@ struct SetLoggingCard: View {
     @ObservedObject var restTimerController: RestTimerController
     @ObservedObject var liveActivityManager: WorkoutLiveActivityManager
     let onSetCompleted: () -> Void
-    @Environment(\.colorScheme) var colorScheme
 
     // Calculate progressive overload rep difference
     private var totalRepsDifference: Int? {
@@ -543,14 +537,14 @@ struct SetLoggingCard: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                             .stroke(style: StrokeStyle(lineWidth: 1, dash: [5]))
-                            .foregroundColor(colorScheme == .dark ? .white.opacity(0.5) : .black)
+                            .foregroundColor(Color.trainBorderStrong)
                     )
             }
         }
         .padding(Spacing.lg)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+                .stroke(Color.trainBorderDefault, lineWidth: 1)
         )
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: restTimerController.isActive)
     }
@@ -574,7 +568,6 @@ struct SimplifiedSetRow: View {
     @Binding var set: LoggedSet
     let weightUnit: ExerciseLoggerView.WeightUnit
     let onComplete: () -> Void
-    @Environment(\.colorScheme) var colorScheme
 
     @State private var repsText: String = ""
     @State private var weightText: String = ""
@@ -599,7 +592,7 @@ struct SimplifiedSetRow: View {
                 .focused($isWeightFieldFocused)
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
-                        .stroke(colorScheme == .dark ? Color.white.opacity(0.5) : Color.black, lineWidth: 1)
+                        .stroke(Color.trainBorderStrong, lineWidth: 1)
                 )
                 .onChange(of: weightText) { _, newValue in
                     if let weight = Double(newValue) {
@@ -617,7 +610,7 @@ struct SimplifiedSetRow: View {
                 .focused($isRepsFieldFocused)
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
-                        .stroke(colorScheme == .dark ? Color.white.opacity(0.5) : Color.black, lineWidth: 1)
+                        .stroke(Color.trainBorderStrong, lineWidth: 1)
                 )
                 .onChange(of: repsText) { _, newValue in
                     if let reps = Int(newValue) {
@@ -832,10 +825,10 @@ struct SetInputRow: View {
                 if let diff = repsDifference, diff > 0 {
                     Text("+\(diff)")
                         .font(.trainTag).fontWeight(.bold)
-                        .foregroundColor(.green)
+                        .foregroundColor(.trainSuccess)
                         .padding(.horizontal, Spacing.xs)
                         .padding(.vertical, Spacing.xxs)
-                        .background(Color.green.opacity(0.15))
+                        .background(Color.trainSuccess.opacity(0.15))
                         .clipShape(Capsule())
                         .offset(x: 20, y: -12)
                 }
@@ -863,7 +856,7 @@ struct SetInputRow: View {
                 if weightIncreased {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.trainCaption)
-                        .foregroundColor(.green)
+                        .foregroundColor(.trainSuccess)
                         .offset(x: 20, y: -12)
                 }
             }

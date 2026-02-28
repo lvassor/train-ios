@@ -89,7 +89,7 @@ struct WelcomeView: View {
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fit)
                                                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal))
-                                                .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                                .shadowStyle(.media)
                                                 .scaleEffect(scale)
                                                 .opacity(opacity)
                                                 .animation(.spring(response: 0.6, dampingFraction: 0.8), value: scale)
@@ -113,7 +113,7 @@ struct WelcomeView: View {
                                             .frame(width: UIScreen.main.bounds.width * 0.45)
                                             .frame(height: 300) // Reduced from 60% to 45%
                                             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal))
-                                            .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                            .shadowStyle(.media)
                                             .scaleEffect(index == currentIndex ? 1.2 : 0.8)
                                             .opacity(index == currentIndex ? 1.0 : 0.6)
                                     }

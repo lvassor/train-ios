@@ -98,7 +98,7 @@ struct WeeklyCalendarView: View {
                     .padding(.bottom, Spacing.smd)
             }
         }
-        .appCard(cornerRadius: 20)
+        .appCard(cornerRadius: CornerRadius.modal)
     }
 
     // MARK: - Week Row
@@ -164,7 +164,7 @@ struct WeeklyCalendarView: View {
 
                     Text(workoutLetter)
                         .font(.system(size: isCompact ? 14 : 16, weight: .bold))
-                        .foregroundColor(Color(hex: "#1a1a2e")) // Dark background color for contrast
+                        .foregroundColor(Color.trainTextOnPrimary) // Dark background color for contrast
                 } else if dayInfo.isToday {
                     // Today without workout - hollow orange ring (empty inside)
                     Circle()

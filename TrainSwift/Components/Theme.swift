@@ -152,6 +152,67 @@ struct ThumbnailSize {
     static let cornerRadius: CGFloat = CornerRadius.xs
 }
 
+// MARK: - Shadow Tokens
+/// Standardized elevation levels — replace all ad-hoc .shadow() calls with these
+struct ShadowStyle {
+    let color: Color
+    let radius: CGFloat
+    let x: CGFloat
+    let y: CGFloat
+
+    /// No shadow
+    static let none = ShadowStyle(color: .clear, radius: 0, x: 0, y: 0)
+    /// Hairline bottom border — cards in lists, dividers
+    static let borderLine = ShadowStyle(color: .black.opacity(0.1), radius: 0, x: 0, y: 1)
+    /// Subtle lift — compact cards, tags
+    static let subtle = ShadowStyle(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+    /// Standard card elevation
+    static let card = ShadowStyle(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+    /// Elevated element — buttons, floating elements
+    static let elevated = ShadowStyle(color: .black.opacity(0.1), radius: 16, x: 0, y: 8)
+    /// Modal/overlay — heavy elevation for overlays and modals
+    static let modal = ShadowStyle(color: .black.opacity(0.15), radius: 30, x: 0, y: 10)
+    /// Carousel/media card
+    static let media = ShadowStyle(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+    /// Icon overlay on thumbnails
+    static let iconOverlay = ShadowStyle(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+    /// Drag state for reorderable elements
+    static let dragging = ShadowStyle(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+    /// Nav bar upward shadow
+    static let navBar = ShadowStyle(color: .black.opacity(0.1), radius: 8, x: 0, y: -2)
+}
+
+extension View {
+    /// Apply a standardized shadow token
+    func shadowStyle(_ style: ShadowStyle) -> some View {
+        self.shadow(color: style.color, radius: style.radius, x: style.x, y: style.y)
+    }
+}
+
+// MARK: - Border Width Tokens
+struct BorderWidth {
+    static let hairline: CGFloat = 1       // Subtle card outlines
+    static let standard: CGFloat = 1.5     // Input field borders
+    static let emphasis: CGFloat = 2       // Selected state, error borders
+    static let heavy: CGFloat = 3          // Strong visual emphasis
+}
+
+// MARK: - Opacity Tokens
+struct OpacityLevel {
+    static let disabled: Double = 0.3      // Disabled elements, inactive states
+    static let secondary: Double = 0.5     // Secondary information, subtle fills
+    static let primary: Double = 0.8       // Primary-but-translucent elements
+    static let full: Double = 1.0          // Fully opaque
+}
+
+// MARK: - Animation Duration Tokens
+struct AnimationDuration {
+    static let quick: Double = 0.15        // Micro-interactions (checkmarks, toggles)
+    static let standard: Double = 0.3      // Standard transitions
+    static let slow: Double = 0.5          // Celebration, entrance animations
+    static let celebration: Double = 0.8   // PB overlays, confetti
+}
+
 // MARK: - Centralized App Gradient
 
 /// Centralized gradient/background — colours resolve light/dark from Asset Catalog

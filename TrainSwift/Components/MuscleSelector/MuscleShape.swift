@@ -463,7 +463,7 @@ struct MusclePathView: View {
 
     init(
         paths: [String],
-        fillColor: Color = Color(hex: "#3f3f3f") ?? .gray,
+        fillColor: Color = Color.trainMuscleDefault,
         strokeColor: Color = .clear,
         strokeWidth: CGFloat = 0,
         isSelected: Bool = false,

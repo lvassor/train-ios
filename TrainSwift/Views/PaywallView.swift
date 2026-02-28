@@ -93,7 +93,7 @@ struct PaywallView: View {
                     if let error = errorMessage {
                         Text(error)
                             .font(.trainCaption)
-                            .foregroundColor(.red)
+                            .foregroundColor(.trainError)
                             .padding(.horizontal, Spacing.lg)
                     }
 

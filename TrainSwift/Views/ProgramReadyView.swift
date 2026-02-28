@@ -220,14 +220,7 @@ struct ProgramInfoCard: View {
 
 struct ConfettiView: View {
     @State private var confettiPieces: [ConfettiPiece] = []
-    private let confettiColors: [Color] = [
-        .red, .orange, .yellow, .green, .blue, .purple, .pink,
-        Color(hex: "#FF6B6B") ?? .red,
-        Color(hex: "#4ECDC4") ?? .teal,
-        Color(hex: "#FFE66D") ?? .yellow,
-        Color(hex: "#95E1D3") ?? .mint,
-        Color(hex: "#F38181") ?? .pink
-    ]
+    private let confettiColors: [Color] = Color.trainConfetti
 
     var body: some View {
         GeometryReader { geometry in

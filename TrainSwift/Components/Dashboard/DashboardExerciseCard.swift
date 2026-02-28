@@ -264,7 +264,7 @@ struct CompactMuscleHighlight: View {
             return Color.trainPrimary
         case .none:
             // Non-highlighted parts use uniform grey matching Demo tab style
-            return Color(hex: "#8a8a8a") ?? .gray
+            return Color.trainMuscleInactive
         }
     }
 }

@@ -165,7 +165,7 @@ struct WeeklyProgressCard: View {
 
                 Text(workoutLetter)
                     .font(.trainCaptionSmall).fontWeight(.bold)
-                    .foregroundColor(Color(hex: "#1a1a2e"))
+                    .foregroundColor(Color.trainTextOnPrimary)
             } else if dayInfo.isToday {
                 // Today - orange stroke ring
                 Circle()
@@ -195,7 +195,7 @@ struct WeeklyProgressCard: View {
 
                     Text(workoutLetter)
                         .font(.trainMicro).fontWeight(.bold)
-                        .foregroundColor(Color(hex: "#1a1a2e"))
+                        .foregroundColor(Color.trainTextOnPrimary)
                 } else if dayInfo.isToday {
                     // Today - orange stroke ring
                     Circle()

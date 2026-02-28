@@ -727,7 +727,7 @@ struct WarmUpCard: View {
                 .padding(Spacing.md)
                 .background(Color.trainSurface)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-                .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 1)
+                .shadowStyle(.borderLine)
             }
             .buttonStyle(ScaleButtonStyle())
         }
@@ -815,12 +815,7 @@ struct WorkoutExerciseList: View {
             // Edit mode: apply drag/drop modifiers
             card
                 .scaleEffect(isDragging ? 1.05 : 1.0)
-                .shadow(
-                    color: isDragging ? .black.opacity(0.3) : .black.opacity(0.1),
-                    radius: isDragging ? 10 : 0,
-                    x: 0,
-                    y: isDragging ? 5 : 1
-                )
+                .shadowStyle(isDragging ? .dragging : .borderLine)
                 .opacity(isDragging ? 0.9 : 1.0)
                 .zIndex(isDragging ? 100 : 0)
                 .background(
@@ -986,7 +981,7 @@ struct ExerciseOverviewCard: View {
                                 Button(action: { onWarningTap?() }) {
                                     Image(systemName: "exclamationmark.triangle.fill")
                                         .font(.trainCaption)
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(.trainWarning)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
@@ -1029,7 +1024,7 @@ struct ExerciseOverviewCard: View {
                         : Color.trainSurface))
         )
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-        .shadow(color: .black.opacity(0.1), radius: 0, x: 0, y: 1)
+        .shadowStyle(.borderLine)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .stroke(isEditing ? Color.trainPrimary.opacity(0.3) : Color.clear, lineWidth: 1)
@@ -1072,10 +1067,10 @@ struct ExerciseOverviewCard: View {
             Button(action: onRemove) {
                 Text("Remove")
                     .font(.trainCaption).fontWeight(.medium)
-                    .foregroundColor(.red.opacity(0.8))
+                    .foregroundColor(.trainError.opacity(0.8))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(Color.red.opacity(0.1))
+                    .background(Color.trainError.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
             }
         }
@@ -1113,7 +1108,7 @@ struct InjuryWarningOverlay: View {
                 // Warning icon
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: IconSize.xl))
-                    .foregroundColor(.orange)
+                    .foregroundColor(.trainWarning)
 
                 // Title
                 Text("Injury Warning")

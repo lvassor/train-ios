@@ -11,7 +11,6 @@ import SwiftUI
 
 struct ExerciseDemoTab: View {
     let exercise: DBExercise
-    @Environment(\.colorScheme) var colorScheme
 
     private static let stepPrefixRegex = try? NSRegularExpression(pattern: "^Step\\s*\\d+\\s*:\\s*", options: .caseInsensitive)
 
@@ -95,7 +94,6 @@ struct ExerciseDemoTab: View {
 
 struct DemoVideoPlayerCard: View {
     let exerciseId: String
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         ZStack {
@@ -105,7 +103,7 @@ struct DemoVideoPlayerCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                        .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+                        .stroke(Color.trainBorderDefault, lineWidth: 1)
                 )
         }
     }
@@ -122,7 +120,6 @@ struct DemoInfoSection: View {
     let title: String
     let items: [String]
     let sectionType: DemoSectionType
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.smd) {
@@ -158,17 +155,16 @@ struct DemoInfoSection: View {
 struct DemoPlaceholderTile: View {
     let label: String
     let iconName: String
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(spacing: Spacing.xs) {
             ZStack {
                 RoundedRectangle(cornerRadius: CornerRadius.xxs, style: .continuous)
-                    .fill(colorScheme == .dark ? Color.white.opacity(0.1) : Color.white)
+                    .fill(Color.trainSurface)
                     .frame(width: 70, height: 70)
                     .overlay(
                         RoundedRectangle(cornerRadius: CornerRadius.xxs, style: .continuous)
-                            .stroke(colorScheme == .dark ? Color.white.opacity(0.2) : Color.black.opacity(0.1), lineWidth: 1)
+                            .stroke(Color.trainBorderSubtle, lineWidth: 1)
                     )
 
                 Image(systemName: iconName)
@@ -189,7 +185,6 @@ struct DemoPlaceholderTile: View {
 struct DemoMuscleGroupsSection: View {
     let title: String
     let muscleGroups: [String]
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.smd) {
@@ -226,7 +221,6 @@ struct DemoMuscleGroupsSection: View {
 
 struct DemoInstructionsCard: View {
     let instructions: [String]
-    @Environment(\.colorScheme) var colorScheme
 
     private static let stepPrefixRegex = try? NSRegularExpression(pattern: "^Step\\s*\\d+\\s*:\\s*", options: .caseInsensitive)
 
@@ -264,7 +258,7 @@ struct DemoInstructionsCard: View {
         .padding(Spacing.lg)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+                .stroke(Color.trainBorderDefault, lineWidth: 1)
         )
     }
 

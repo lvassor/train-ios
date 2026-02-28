@@ -10,7 +10,6 @@ import Charts
 
 struct ExerciseHistoryView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(\.colorScheme) var colorScheme
     let exercise: DBExercise
     @State private var historyEntries: [WorkoutHistoryEntry] = []
     @State private var bestSet: ExerciseSet?
@@ -215,7 +214,6 @@ struct ExerciseHistoryView: View {
 struct HistoryStatCard: View {
     let title: String
     let value: String
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(spacing: Spacing.sm) {
@@ -239,7 +237,6 @@ struct HistoryStatCard: View {
 struct HistoryProgressChart: View {
     let entries: [ExerciseHistoryView.WorkoutHistoryEntry]
     let selectedMetric: ExerciseHistoryView.ChartMetric
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         Chart(entries) { entry in
@@ -281,7 +278,6 @@ struct HistoryProgressChart: View {
 
 struct HistorySessionCard: View {
     let entry: ExerciseHistoryView.WorkoutHistoryEntry
-    @Environment(\.colorScheme) var colorScheme
 
     private var formattedDate: String {
         let formatter = DateFormatter()
@@ -311,7 +307,7 @@ struct HistorySessionCard: View {
                 if entry.hadProgression {
                     Image(systemName: "medal")
                         .font(.system(size: IconSize.lg))
-                        .foregroundColor(colorScheme == .dark ? Color.trainPrimary : Color.gray.opacity(0.6))
+                        .foregroundColor(Color.trainPrimary)
                 }
             }
 
@@ -368,10 +364,10 @@ struct HistoryEntryCard: View {
                         if set.increased {
                             Text("+1")
                                 .font(.trainCaption)
-                                .foregroundColor(.green)
+                                .foregroundColor(.trainSuccess)
                                 .padding(.horizontal, Spacing.sm)
                                 .padding(.vertical, Spacing.xxs)
-                                .background(Color.green.opacity(0.1))
+                                .background(Color.trainSuccess.opacity(0.1))
                                 .cornerRadius(CornerRadius.xxs)
                         }
                     }

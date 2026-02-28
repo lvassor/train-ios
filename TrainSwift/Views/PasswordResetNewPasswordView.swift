@@ -91,7 +91,7 @@ struct PasswordResetNewPasswordView: View {
                     if showError {
                         Text(errorMessage)
                             .font(.trainCaption)
-                            .foregroundColor(.red)
+                            .foregroundColor(.trainError)
                     }
                 }
                 .padding(.horizontal, Spacing.lg)
@@ -120,7 +120,7 @@ struct PasswordResetNewPasswordView: View {
                 VStack(spacing: Spacing.lg) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: IconSize.display))
-                        .foregroundColor(.green)
+                        .foregroundColor(.trainSuccess)
 
                     Text("Password Updated Successfully")
                         .font(.trainTitle)
@@ -130,7 +130,7 @@ struct PasswordResetNewPasswordView: View {
                 .padding(Spacing.xl)
                 .appCard()
                 .cornerRadius(CornerRadius.modal)
-                .shadow(radius: 20)
+                .shadowStyle(.modal)
                 .padding(.horizontal, Spacing.xl)
             }
         }

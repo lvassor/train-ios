@@ -329,10 +329,10 @@ struct ExerciseLogCard: View {
                         if let repIncrease = getRepIncrease(setIndex: index) {
                             Text("+\(repIncrease)")
                                 .font(.trainCaption)
-                                .foregroundColor(.green)
+                                .foregroundColor(.trainSuccess)
                                 .padding(.horizontal, Spacing.sm)
                                 .padding(.vertical, Spacing.xxs)
-                                .background(Color.green.opacity(0.1))
+                                .background(Color.trainSuccess.opacity(0.1))
                                 .cornerRadius(CornerRadius.xxs)
                         }
                     }
