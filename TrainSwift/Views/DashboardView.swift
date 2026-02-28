@@ -658,6 +658,7 @@ struct ExerciseListView: View {
     // Navigation state for exercise detail
     @State private var selectedExercise: DBExercise?
     @State private var showExerciseDetail = false
+    @State private var showNavigationError = false
 
     // Thumbnail width is 80, padding is 16, so center of thumbnail is at 16 + 40 = 56
     private let lineXOffset: CGFloat = 56
@@ -701,6 +702,11 @@ struct ExerciseListView: View {
                 ExerciseDemoHistoryView(exercise: exercise)
             }
         }
+        .alert("Exercise Not Found", isPresented: $showNavigationError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("This exercise could not be loaded. Please try again.")
+        }
     }
 
     private func navigateToExerciseDetail(_ exercise: ProgramExercise) {
@@ -708,9 +714,12 @@ struct ExerciseListView: View {
             if let dbExercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: exercise.exerciseId) {
                 selectedExercise = dbExercise
                 showExerciseDetail = true
+            } else {
+                showNavigationError = true
             }
         } catch {
             AppLogger.logDatabase("Error fetching exercise: \(error)", level: .error)
+            showNavigationError = true
         }
     }
 }

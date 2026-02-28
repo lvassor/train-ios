@@ -298,9 +298,26 @@ struct ExerciseLoggerView: View {
                     await MainActor.run {
                         selectedDBExercise = dbExercise
                     }
+                } else {
+                    // Fallback: construct a DBExercise from ProgramExercise data so tabs don't spin forever
+                    await setFallbackExercise()
                 }
             } catch {
                 AppLogger.logUI("Error loading exercise details: \(error)", level: .error)
+                // Fallback: construct a DBExercise from ProgramExercise data so tabs don't spin forever
+                await setFallbackExercise()
+            }
+        }
+    }
+
+    private func setFallbackExercise() async {
+        let fallbackJSON = """
+        {"exercise_id":"\(exercise.exerciseId)","canonical_name":"unknown","display_name":"\(exercise.exerciseName)","equipment_id_1":"EP001","complexity_level":"1","canonical_rating":50,"primary_muscle":"\(exercise.primaryMuscle)","is_in_programme":1}
+        """
+        if let data = fallbackJSON.data(using: .utf8),
+           let fallback = try? JSONDecoder().decode(DBExercise.self, from: data) {
+            await MainActor.run {
+                selectedDBExercise = fallback
             }
         }
     }
@@ -462,7 +479,7 @@ struct LoggerTabSelector: View {
         ZStack {
             // Background pill
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                .fill(Color.trainSurface.opacity(0.5))
+                .fill(.ultraThinMaterial)
                 .frame(height: ElementHeight.tabSelector)
 
             HStack(spacing: 0) {

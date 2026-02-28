@@ -15,6 +15,7 @@ struct FlameView: UIViewRepresentable {
         let animationView = LottieAnimationView(name: "Fire")
         animationView.contentMode = .scaleAspectFit
         animationView.loopMode = .loop
+        animationView.translatesAutoresizingMaskIntoConstraints = false
         animationView.play()
 
         // Pause when app backgrounds to save battery

@@ -4,7 +4,13 @@
     "" : {
 
     },
+    " " : {
+
+    },
     " - %@" : {
+
+    },
+    "-" : {
 
     },
     "(%lld more)" : {
@@ -45,6 +51,16 @@
         }
       }
     },
+    "%@  •  %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@  •  %2$@"
+          }
+        }
+      }
+    },
     "%@ • %lld exercises" : {
       "localizations" : {
         "en" : {
@@ -55,7 +71,53 @@
         }
       }
     },
+    "%@ personal best, %lld to %lld kilograms" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ personal best, %2$lld to %3$lld kilograms"
+          }
+        }
+      }
+    },
     "%@ reps" : {
+
+    },
+    "%@ session" : {
+
+    },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "%@, %lld minutes, %lld exercises" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld minutes, %3$lld exercises"
+          }
+        }
+      }
+    },
+    "%@, %lld sets of %@ reps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld sets of %3$@ reps"
+          }
+        }
+      }
+    },
+    "%@/wk" : {
 
     },
     "%d days/week" : {
@@ -70,6 +132,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$lld %2$@ (50-70%%) • 10 reps"
+          }
+        }
+      }
+    },
+    "%lld %@ per week" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@ per week"
           }
         }
       }
@@ -165,6 +237,26 @@
         }
       }
     },
+    "%lld/%lld days" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld days"
+          }
+        }
+      }
+    },
+    "%lld/%lld exercises" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld exercises"
+          }
+        }
+      }
+    },
     "%lld/%lld sessions complete" : {
       "localizations" : {
         "en" : {
@@ -216,16 +308,37 @@
     "+%lld" : {
 
     },
+    "+%lld reps" : {
+
+    },
+    "+%lld reps across sets!" : {
+
+    },
     "+1" : {
+
+    },
+    "|" : {
+
+    },
+    "~%lld min remaining" : {
+
+    },
+    "~3 min" : {
+
+    },
+    "🏆" : {
 
     },
     "🔥" : {
 
     },
-    "£99.99/year" : {
+    "🔥 %lld day streak" : {
 
     },
     "0" : {
+
+    },
+    "5 exercises • 5 minutes" : {
 
     },
     "Abandon Current Workout" : {
@@ -249,7 +362,16 @@
     "Active Workout in Progress" : {
 
     },
+    "Active workout, %@ elapsed" : {
+
+    },
     "Active workout: %@" : {
+
+    },
+    "Add a new exercise to this workout" : {
+
+    },
+    "Add exercise" : {
 
     },
     "Add Exercise" : {
@@ -264,6 +386,9 @@
     "Adding an exercise may increase session duration. Consider swapping instead." : {
 
     },
+    "Almost there — %lld%% complete" : {
+
+    },
     "Alternatives (%lld)" : {
 
     },
@@ -273,13 +398,13 @@
     "An account with this email already exists" : {
 
     },
-    "Annual Plan" : {
-
-    },
     "Any muscle groups you want to prioritise?" : {
 
     },
     "Appearance" : {
+
+    },
+    "Appearance theme, currently %@" : {
 
     },
     "Apply" : {
@@ -318,7 +443,7 @@
     "Cancel" : {
 
     },
-    "Cancel anytime." : {
+    "Cancel workout" : {
 
     },
     "Cancel Workout" : {
@@ -339,6 +464,12 @@
     "Clear filters" : {
 
     },
+    "Close workout history" : {
+
+    },
+    "Close workout summary and return to dashboard" : {
+
+    },
     "cm" : {
 
     },
@@ -349,6 +480,9 @@
 
     },
     "Complete this workout to see your logged data here." : {
+
+    },
+    "Complete workout" : {
 
     },
     "Complete Workout" : {
@@ -372,7 +506,7 @@
     "Continue" : {
 
     },
-    "Continue (No Products)" : {
+    "CONTINUE" : {
 
     },
     "Continue Anyway" : {
@@ -384,10 +518,16 @@
     "Continue Workout" : {
 
     },
+    "Continue your active workout" : {
+
+    },
     "Create a password" : {
 
     },
     "Create Account" : {
+
+    },
+    "Create an Account" : {
 
     },
     "Create New Password" : {
@@ -408,6 +548,9 @@
     "Current Program" : {
 
     },
+    "Current streak: %lld days" : {
+
+    },
     "Current:" : {
 
     },
@@ -421,6 +564,9 @@
 
     },
     "day" : {
+
+    },
+    "Day %lld" : {
 
     },
     "days" : {
@@ -441,10 +587,19 @@
     "Discard Workout" : {
 
     },
+    "Dismiss prompt" : {
+
+    },
+    "Dismiss rest timer" : {
+
+    },
     "Do you have any injuries?" : {
 
     },
     "Done" : {
+
+    },
+    "Done editing" : {
 
     },
     "Duration" : {
@@ -454,6 +609,9 @@
 
     },
     "Edit" : {
+
+    },
+    "Edit exercises" : {
 
     },
     "Edit Profile" : {
@@ -516,9 +674,6 @@
     "Expert Programs." : {
 
     },
-    "Failed to load image" : {
-
-    },
     "Failed to securely store password" : {
 
     },
@@ -541,7 +696,7 @@
         }
       }
     },
-    "Free 7 Day Trial" : {
+    "Forgot Password?" : {
 
     },
     "Frequency" : {
@@ -572,6 +727,12 @@
 
     },
     "Google Sign-In failed. Please try again." : {
+
+    },
+    "Has workout" : {
+
+    },
+    "Have a promo code?" : {
 
     },
     "Height" : {
@@ -628,9 +789,6 @@
     "Keep Editing" : {
 
     },
-    "Keep this weight until you can hit %lld reps on all sets, then increase." : {
-
-    },
     "kg" : {
 
     },
@@ -638,9 +796,6 @@
 
     },
     "lbs" : {
-
-    },
-    "Library" : {
 
     },
     "Limited Equipment" : {
@@ -685,6 +840,9 @@
     "Logger" : {
 
     },
+    "Make sure everything looks right" : {
+
+    },
     "Male" : {
 
     },
@@ -703,9 +861,6 @@
     "Min 6 chars with a number and special character" : {
 
     },
-    "Most Popular" : {
-
-    },
     "Muscle" : {
 
     },
@@ -718,22 +873,34 @@
     "NEXT" : {
 
     },
-    "Next billing: Jan 15, 2026" : {
+    "Next month" : {
 
     },
     "Next Workout" : {
 
     },
+    "Next: %@" : {
+
+    },
+    "Nice to meet you, %@!" : {
+
+    },
     "No account found with this email" : {
+
+    },
+    "No active streak" : {
+
+    },
+    "No active subscriptions found" : {
 
     },
     "No alternatives available" : {
 
     },
-    "No data - not in any program" : {
+    "No exercises found" : {
 
     },
-    "No exercises found" : {
+    "No history yet" : {
 
     },
     "No injuries" : {
@@ -745,19 +912,43 @@
     "No Training Program Found" : {
 
     },
+    "No workout" : {
+
+    },
     "No workout data found" : {
 
     },
     "No workouts on this day" : {
 
     },
+    "Not started" : {
+
+    },
+    "Notifications were previously denied. Enable them in Settings → train. → Notifications." : {
+
+    },
     "Number of Sets" : {
 
     },
-    "On Track" : {
+    "Onboarding Complete!" : {
 
     },
-    "Onboarding Complete!" : {
+    "Open Settings" : {
+
+    },
+    "Opens account settings" : {
+
+    },
+    "Opens profile editing screen" : {
+
+    },
+    "Opens subscription management in the App Store" : {
+
+    },
+    "Opens the workout session" : {
+
+    },
+    "Opens your milestones and achievements" : {
 
     },
     "OR" : {
@@ -790,16 +981,25 @@
     "per week" : {
 
     },
+    "Permanently deletes your account and all data" : {
+
+    },
+    "Personal Best" : {
+
+    },
     "Please enter a valid email address" : {
 
     },
     "Please enter your full name" : {
 
     },
-    "Please enter your username" : {
+    "Please enter your name" : {
 
     },
-    "Pre-selected based on your gym type" : {
+    "Prepare for your next session" : {
+
+    },
+    "Previous month" : {
 
     },
     "Previous Programs" : {
@@ -847,9 +1047,6 @@
     "Recommended" : {
 
     },
-    "Recommended Learning" : {
-
-    },
     "Remember your password?" : {
 
     },
@@ -874,6 +1071,12 @@
     "Requesting Permission..." : {
 
     },
+    "Resend Code" : {
+
+    },
+    "Resend code in %llds" : {
+
+    },
     "Reset Email Sent" : {
 
     },
@@ -886,13 +1089,28 @@
     "Rest" : {
 
     },
+    "Restore" : {
+
+    },
+    "Restore failed: %@" : {
+
+    },
     "Retake Quiz" : {
+
+    },
+    "Retake the questionnaire to generate a new program" : {
+
+    },
+    "Review Your Choices" : {
 
     },
     "Save" : {
 
     },
     "Save & Retake" : {
+
+    },
+    "Saves your workout and shows summary" : {
 
     },
     "Search" : {
@@ -938,7 +1156,16 @@
     "Sets" : {
 
     },
+    "Settings" : {
+
+    },
     "Share" : {
+
+    },
+    "Share workout" : {
+
+    },
+    "Share your workout results" : {
 
     },
     "Shoulders" : {
@@ -951,9 +1178,6 @@
 
     },
     "Sign in with Apple failed. Please try again." : {
-
-    },
-    "Sign up" : {
 
     },
     "Sign Up" : {
@@ -971,7 +1195,13 @@
     "Sign up with your email" : {
 
     },
+    "Signs you out of your account" : {
+
+    },
     "Skip" : {
+
+    },
+    "Skip warm-up" : {
 
     },
     "Split Type" : {
@@ -995,10 +1225,16 @@
     "Stay on Track" : {
 
     },
+    "Streak" : {
+
+    },
     "Streak Increase" : {
 
     },
-    "Strong Performance!" : {
+    "Streak increase, %@" : {
+
+    },
+    "Streak Milestones" : {
 
     },
     "Submit & Save Current Workout" : {
@@ -1025,6 +1261,9 @@
     "Switch to '%@'? Your current program will be saved and you can switch back later." : {
 
     },
+    "Switch to a different training program" : {
+
+    },
     "Switch to this program?" : {
 
     },
@@ -1040,7 +1279,7 @@
     "T" : {
 
     },
-    "Tap a plan above to subscribe" : {
+    "Tap anywhere to continue" : {
 
     },
     "Target:" : {
@@ -1062,6 +1301,9 @@
     "Terms of Service" : {
 
     },
+    "That's workout #%lld" : {
+
+    },
     "Theme" : {
 
     },
@@ -1075,9 +1317,6 @@
 
     },
     "This affects the number of exercises in your program" : {
-
-    },
-    "This exercise hasn't been completed in any of your training programs yet." : {
 
     },
     "This helps us calculate your body metrics" : {
@@ -1098,13 +1337,10 @@
     "This will only take a moment..." : {
 
     },
-    "This will permanently delete your account, workout history, and all associated data. This action cannot be undone." : {
+    "This will permanently delete your account, workout history, and all associated data. This action cannot be undone.\n\nType DELETE to confirm." : {
 
     },
     "This will permanently remove \"%@\" from your programme.\n\nIf you only want to skip it today, complete the sets with empty values instead." : {
-
-    },
-    "Time to Progress!" : {
 
     },
     "To personalize workouts and calculate calories burned, sync your Apple health profile. Your data is never shared with third parties." : {
@@ -1128,10 +1364,23 @@
     "train." : {
 
     },
+    "Training days slider, %lld %@ per week" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Training days slider, %1$lld %2$@ per week"
+          }
+        }
+      }
+    },
     "Training Frequency Warning" : {
 
     },
     "Try adjusting your filters" : {
+
+    },
+    "Type DELETE to confirm" : {
 
     },
     "Unable to load session" : {
@@ -1143,6 +1392,9 @@
     "Unable to load workout session" : {
 
     },
+    "Unlock Your Full Potential" : {
+
+    },
     "Upper Body Mobility" : {
 
     },
@@ -1150,6 +1402,15 @@
 
     },
     "View Completed Workout" : {
+
+    },
+    "View details of your completed workout" : {
+
+    },
+    "View Your Milestones" : {
+
+    },
+    "Warm-up: Upper Body Mobility, 5 exercises, 5 minutes" : {
 
     },
     "We may require this for exercise prescription" : {
@@ -1213,10 +1474,13 @@
     "Would you like to save your current program? You can switch back to it later in 'Switch Programs'." : {
 
     },
-    "X exercises • X minutes" : {
+    "years old" : {
 
     },
-    "years old" : {
+    "You can enable notifications anytime in Settings → train." : {
+
+    },
+    "You exceeded the rep range last session. Consider progressing to a higher weight." : {
 
     },
     "You have an active \"%@\" session in progress. Please submit or abandon it before starting a new workout." : {
@@ -1225,13 +1489,19 @@
     "You have unsaved changes. Are you sure you want to discard them?" : {
 
     },
+    "You haven't logged this exercise in any workout session yet." : {
+
+    },
+    "You lifted %@kg more!" : {
+
+    },
     "You must be at least 18 years old" : {
 
     },
-    "You're ready to increase the weight. Add 2.5kg and aim for %lld reps." : {
+    "You showed up!" : {
 
     },
-    "You've hit %lld reps consistently. Consider increasing the weight by 2.5-5kg next session." : {
+    "You're ready to increase the weight!" : {
 
     },
     "Your personalised plan is complete" : {

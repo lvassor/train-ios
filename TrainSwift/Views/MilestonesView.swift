@@ -93,14 +93,27 @@ struct MilestonesView: View {
                 label: "PBs achieved",
                 icon: "trophy.fill"
             )
+
+            // Center flame - decorative, no card background
+            VStack(spacing: Spacing.xs) {
+                FlameView()
+                    .frame(width: 44, height: 44)
+                    .clipped()
+
+                Text("\(topStats.progressionStreak)")
+                    .font(.trainSmallNumber).fontWeight(.bold)
+                    .foregroundColor(.trainTextPrimary)
+
+                Text("Progression Streak")
+                    .font(.trainCaptionSmall)
+                    .foregroundColor(.trainTextSecondary)
+            }
+            .frame(maxWidth: .infinity)
+
             StatBox(
                 value: "\(topStats.workoutsCompleted)",
-                label: "Workouts",
+                label: "Workouts\ncompleted",
                 icon: "dumbbell.fill"
-            )
-            StreakStatBox(
-                value: "\(topStats.progressionStreak)",
-                label: "Week streak"
             )
         }
         .padding(.horizontal, Spacing.lg)

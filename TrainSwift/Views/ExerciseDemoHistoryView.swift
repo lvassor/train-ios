@@ -112,7 +112,7 @@ struct DemoHistoryTabSelector: View {
         ZStack {
             // Background pill - sized for 2 tabs
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                .fill(Color.trainSurface.opacity(0.5))
+                .fill(.ultraThinMaterial)
                 .frame(height: ElementHeight.tabSelector)
 
             HStack(spacing: 0) {

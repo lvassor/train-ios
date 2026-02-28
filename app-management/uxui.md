@@ -140,3 +140,13 @@ Each line documents a single UX/UI change made during the overhaul.
 - Added Siri Shortcut registration for "Start my workout" via `NSUserActivity` on app launch
 - Wired Spotlight indexing into `WorkoutOverviewView` session save flow
 - Added `.keyboardShortcut(.defaultAction)` to `CustomButton` primary style for external keyboard support
+
+## Post-Phase 7: Bug Fixes & Polish
+- Fixed infinite loading on Demo/History tabs — fallback `DBExercise` from `ProgramExercise` data if DB fetch fails; renders placeholders instead of spinner
+- Added navigation error alert when dashboard exercise card tap fails — `ExerciseListView` shows "Exercise Not Found" alert
+- Changed `LoggerTabSelector` and `DemoHistoryTabSelector` backgrounds from `Color.trainSurface.opacity(0.5)` to `.ultraThinMaterial` (glass style)
+- Restored exercise database — set `is_in_programme = 1` for all 230 exercises (was 102); regenerated `exercises.db` via Python script
+- Replaced SF Symbol equipment icons in Demo tab with bundled equipment images via `EquipmentImageMapping.image(for:)` with SF Symbol fallback
+- Centered "Equipment" and "Active Muscle Groups" section headings on Demo tab — removed left-alignment and hardcoded padding
+- Restructured MilestonesView top stats — Lottie flame now centered between PBs and Workouts cards as decorative element (no card background); fixed FlameView UIKit constraints
+- Added video thumbnails to `ExerciseLibraryCard` via `AsyncImage` + Bunny CDN; updated subtitle to show primary muscle + equipment info

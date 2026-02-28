@@ -251,16 +251,36 @@ struct ExerciseLibraryCard: View {
 
     var body: some View {
         HStack(spacing: Spacing.md) {
-            // Thumbnail placeholder
-            ZStack {
-                RoundedRectangle(cornerRadius: CornerRadius.sm)
-                    .fill(Color.trainPrimary.opacity(0.1))
-                    .frame(width: 80, height: 80)
-
-                Image(systemName: "figure.strengthtraining.traditional")
-                    .font(.system(size: IconSize.lg))
-                    .foregroundColor(.trainPrimary)
+            // Thumbnail with AsyncImage from Bunny CDN
+            ZStack(alignment: .bottomLeading) {
+                if let url = ExerciseMediaMapping.thumbnailURL(for: exercise.exerciseId) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 80, height: 64)
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous))
+                        case .failure:
+                            thumbnailPlaceholder
+                        case .empty:
+                            thumbnailPlaceholder
+                                .overlay {
+                                    ProgressView()
+                                        .tint(.trainTextSecondary)
+                                        .scaleEffect(0.7)
+                                }
+                        @unknown default:
+                            thumbnailPlaceholder
+                        }
+                    }
+                } else {
+                    thumbnailPlaceholder
+                }
             }
+            .frame(width: 80, height: 64)
 
             // Exercise info
             VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -271,24 +291,26 @@ struct ExerciseLibraryCard: View {
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
 
-                HStack(spacing: Spacing.sm) {
-                    // Muscle tag
+                // Subtitle showing muscle + equipment
+                HStack(spacing: Spacing.xs) {
                     Text(exercise.primaryMuscle)
-                        .font(.trainTag)
+                        .font(.trainCaption)
                         .foregroundColor(.trainPrimary)
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, Spacing.xs)
-                        .background(Color.trainPrimary.opacity(0.1))
-                        .cornerRadius(CornerRadius.modal)
 
-                    // Equipment tag
-                    Text(exercise.equipmentType)
-                        .font(.trainTag)
+                    Text("\u{2022}")
                         .foregroundColor(.trainTextSecondary)
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, Spacing.xs)
-                        .background(Color.trainTextSecondary.opacity(0.1))
-                        .cornerRadius(CornerRadius.modal)
+
+                    Text(exercise.equipmentCategory)
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+
+                    if let attachment = exercise.attachmentSpecific, !attachment.isEmpty {
+                        Text("\u{2022}")
+                            .foregroundColor(.trainTextSecondary)
+                        Text(attachment)
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+                    }
                 }
             }
 
@@ -301,6 +323,17 @@ struct ExerciseLibraryCard: View {
         .padding(Spacing.md)
         .appCard()
         .cornerRadius(CornerRadius.md)
+    }
+
+    private var thumbnailPlaceholder: some View {
+        RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
+            .fill(Color.trainTextSecondary.opacity(0.2))
+            .frame(width: 80, height: 64)
+            .overlay {
+                Image(systemName: "photo")
+                    .font(.system(size: IconSize.md))
+                    .foregroundColor(.trainTextSecondary.opacity(0.5))
+            }
     }
 }
 
