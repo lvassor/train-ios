@@ -116,3 +116,27 @@ Each line documents a single UX/UI change made during the overhaul.
 - Added notification type bullet list to NotificationPermissionView — rest timer, workout reminders, streak updates
 - Added "You can enable notifications anytime in Settings → train." subtitle below Maybe Later button
 - Added notification denied state handling — shows "Open Settings" button when permissions previously denied
+
+## Phase 7: Polish & Platform
+- Added `.light` haptic feedback on `OptionCard` and `MultiSelectCard` tap in questionnaire
+- Added `.medium` haptic feedback on questionnaire Continue button taps
+- Added `.success` notification haptic on Generate Program final step
+- Added `.success` notification haptic on `ProgramReadyView` confetti trigger
+- Added horizontal shake animation (±10pt, 3 cycles) on wrong password reset code entry
+- Added green checkmark scale animation on correct password reset code verification
+- Added `.transition(.opacity)` with `withAnimation` to LoginView Apple/Google sign-in loading overlay
+- Added staggered `.offset(y:)` + `.opacity` entrance animation on PaywallView pricing tier cards (0.1s delay per card)
+- Changed ProgramLoadingView to non-linear progress curve — fast 0→30%, slow 30→80%, fast 80→100%
+- Extended ProgramLoadingView completion celebration pause from 0.5s to 1.5s
+- Wrapped 5 verbose debug `DispatchQueue.main.asyncAfter` chains in `#if DEBUG` in PostQuestionnaireSignupView
+- Marked 4 legacy dead code components as deprecated: `ExerciseLoggerInfoCard`, `SetLoggingSection`, `SetInputRow`, `HistoryEntryCard`
+- Added "Resend Code" button with 60-second countdown timer to PasswordResetCodeView
+- Added `.textContentType(.newPassword)` to all 4 password fields in PasswordResetNewPasswordView for Keychain integration
+- Capped WeeklyCalendarView forward navigation at current month — disables forward chevron when viewing current or future month
+- Removed plaintext password reset code from `AppLogger.logAuth()` — now logs only email, not the code value
+- Replaced weak `email.contains("@")` validation with proper RFC-compliant email regex in PasswordResetRequestView
+- Added "Type DELETE to confirm" text input confirmation to ProfileView delete account — prevents accidental single-tap deletion
+- Created `SpotlightIndexer.swift` — indexes completed workouts in CoreSpotlight with session name, date, exercise count, duration
+- Added Siri Shortcut registration for "Start my workout" via `NSUserActivity` on app launch
+- Wired Spotlight indexing into `WorkoutOverviewView` session save flow
+- Added `.keyboardShortcut(.defaultAction)` to `CustomButton` primary style for external keyboard support

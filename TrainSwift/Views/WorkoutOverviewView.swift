@@ -653,6 +653,15 @@ struct WorkoutOverviewView: View {
             durationMinutes: duration
         )
 
+        // Index completed workout in Spotlight
+        SpotlightIndexer.shared.indexWorkoutSession(
+            id: UUID(),
+            sessionName: validSession.dayName,
+            completedAt: Date(),
+            exerciseCount: exercisesToSave.count,
+            durationMinutes: duration
+        )
+
         authService.completeCurrentSession()
 
         // Complete workout in global state manager

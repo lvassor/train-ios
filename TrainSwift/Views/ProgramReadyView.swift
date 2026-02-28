@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ProgramReadyView: View {
     @ObservedObject var viewModel = WorkoutViewModel.shared  // Add WorkoutViewModel for safe navigation
@@ -97,6 +98,7 @@ struct ProgramReadyView: View {
                     .onAppear {
                         AppLogger.logUI("[PROGRAM READY] VIEW STATE: Showing Program Ready content with confetti")
                         // Trigger confetti animation when view appears
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
                         withAnimation {
                             showConfetti = true
                         }

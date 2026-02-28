@@ -15,6 +15,7 @@ struct ProfileView: View {
     @ObservedObject var authService = AuthService.shared
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
+    @State private var deleteConfirmationText: String = ""
     @State private var shouldRestartQuestionnaire = false
     @State private var showEditProfile = false
     @State private var showProgramSelector = false
@@ -134,14 +135,21 @@ struct ProfileView: View {
         } message: {
             Text("Are you sure you want to log out?")
         }
-        .confirmationDialog("Delete Account", isPresented: $showDeleteAccountConfirmation, titleVisibility: .visible) {
+        .alert("Delete Account", isPresented: $showDeleteAccountConfirmation) {
+            TextField("Type DELETE to confirm", text: $deleteConfirmationText)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
             Button("Delete Account", role: .destructive) {
                 authService.deleteAccount()
+                deleteConfirmationText = ""
                 dismiss()
             }
-            Button("Cancel", role: .cancel) {}
+            .disabled(deleteConfirmationText != "DELETE")
+            Button("Cancel", role: .cancel) {
+                deleteConfirmationText = ""
+            }
         } message: {
-            Text("This will permanently delete your account, workout history, and all associated data. This action cannot be undone.")
+            Text("This will permanently delete your account, workout history, and all associated data. This action cannot be undone.\n\nType DELETE to confirm.")
         }
         .sheet(isPresented: $showEditProfile) {
             EditProfileView()

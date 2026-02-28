@@ -121,8 +121,10 @@ struct PasswordResetRequestView: View {
     private func handleContinue() {
         showError = false
 
-        // Validate email
-        guard email.contains("@"), email.contains(".") else {
+        // Validate email with proper regex
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Z0-9a-z.-]+\\.[A-Za-z]{2,}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        guard emailPredicate.evaluate(with: email) else {
             errorMessage = String(localized: "Please enter a valid email address")
             showError = true
             return
@@ -130,7 +132,7 @@ struct PasswordResetRequestView: View {
 
         // Generate 6-digit code (in real app, this would be sent via email)
         resetCode = String(format: "%06d", Int.random(in: 0...999999))
-        AppLogger.logAuth("[PASSWORD RESET] Reset code generated for \(email): \(resetCode)")
+        AppLogger.logAuth("[PASSWORD RESET] Reset code sent to: \(email)")
 
         // Show code entry modal
         withAnimation {

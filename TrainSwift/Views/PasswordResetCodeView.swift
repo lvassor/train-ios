@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct PasswordResetCodeView: View {
     let email: String
@@ -17,6 +18,10 @@ struct PasswordResetCodeView: View {
     @FocusState private var focusedField: Int?
     @State private var showError: Bool = false
     @State private var navigateToNewPassword: Bool = false
+    @State private var shakeOffset: CGFloat = 0
+    @State private var showSuccess: Bool = false
+    @State private var resendCooldown: Int = 0
+    @State private var resendTimer: Timer?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -74,6 +79,7 @@ struct PasswordResetCodeView: View {
                             }
                     }
                 }
+                .offset(x: shakeOffset)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.vertical, Spacing.md)
 
@@ -82,11 +88,32 @@ struct PasswordResetCodeView: View {
                         .font(.trainCaption)
                         .foregroundColor(.trainError)
                 }
+
+                // Resend code option
+                if resendCooldown > 0 {
+                    Text("Resend code in \(resendCooldown)s")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+                } else {
+                    Button(action: resendCode) {
+                        Text("Resend Code")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainPrimary)
+                    }
+                }
             }
             .frame(maxWidth: .infinity)
             .appCard()
             .cornerRadius(20, corners: [.topLeft, .topRight])
             .shadowStyle(.modal)
+            .overlay {
+                if showSuccess {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.trainSuccess)
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
         }
         .sheet(isPresented: $navigateToNewPassword, onDismiss: {
             onSuccess()
@@ -132,12 +159,25 @@ struct PasswordResetCodeView: View {
             // Code is correct
             AppLogger.logAuth("[PASSWORD RESET] Code verified successfully")
             showError = false
-            onDismiss()
-            navigateToNewPassword = true
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            withAnimation(.spring()) {
+                showSuccess = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                onDismiss()
+                navigateToNewPassword = true
+            }
         } else {
             // Code is incorrect
             AppLogger.logAuth("[PASSWORD RESET] Invalid code entered", level: .error)
             showError = true
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            withAnimation(.default.repeatCount(3, autoreverses: true).speed(6)) {
+                shakeOffset = 10
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                shakeOffset = 0
+            }
 
             // Clear all fields and refocus first
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -145,6 +185,19 @@ struct PasswordResetCodeView: View {
                 focusedField = 0
             }
         }
+    }
+
+    private func resendCode() {
+        resendCooldown = 60
+        resendTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+            if resendCooldown > 0 {
+                resendCooldown -= 1
+            } else {
+                timer.invalidate()
+                resendTimer = nil
+            }
+        }
+        AppLogger.logAuth("[PASSWORD RESET] Resend code requested for email: \(email)")
     }
 }
 

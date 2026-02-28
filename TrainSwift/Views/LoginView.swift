@@ -172,19 +172,25 @@ struct LoginView: View {
             if isSigningInWithApple || isSigningInWithGoogle {
                 Color.black.opacity(0.3)
                     .ignoresSafeArea()
+                    .transition(.opacity)
                 ProgressView()
                     .tint(.white)
                     .scaleEffect(1.5)
+                    .transition(.opacity)
             }
         }
     }
 
     private func handleAppleSignIn() {
-        isSigningInWithApple = true
+        withAnimation(.easeInOut(duration: 0.3)) {
+            isSigningInWithApple = true
+        }
         showError = false
 
         authService.signInWithApple { result in
-            isSigningInWithApple = false
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isSigningInWithApple = false
+            }
 
             switch result {
             case .success(_):
@@ -199,11 +205,15 @@ struct LoginView: View {
     }
 
     private func handleGoogleSignIn() {
-        isSigningInWithGoogle = true
+        withAnimation(.easeInOut(duration: 0.3)) {
+            isSigningInWithGoogle = true
+        }
         showError = false
 
         authService.signInWithGoogle { result in
-            isSigningInWithGoogle = false
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isSigningInWithGoogle = false
+            }
 
             switch result {
             case .success(_):

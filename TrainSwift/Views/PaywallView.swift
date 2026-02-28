@@ -31,6 +31,7 @@ struct PaywallView: View {
     @State private var isLoading = true
     @State private var purchaseInProgress = false
     @State private var errorMessage: String?
+    @State private var showCards: Bool = false
 
     var body: some View {
         ZStack {
@@ -154,7 +155,7 @@ struct PaywallView: View {
 
     private var pricingTiersSection: some View {
         HStack(spacing: Spacing.sm) {
-            ForEach(SubscriptionProduct.displayOrder, id: \.rawValue) { tier in
+            ForEach(Array(SubscriptionProduct.displayOrder.enumerated()), id: \.element.rawValue) { index, tier in
                 let product = products.first { $0.id == tier.rawValue }
                 PricingTierCard(
                     tier: tier,
@@ -166,7 +167,13 @@ struct PaywallView: View {
                         }
                     }
                 )
+                .offset(y: showCards ? 0 : 30)
+                .opacity(showCards ? 1 : 0)
+                .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.1), value: showCards)
             }
+        }
+        .onAppear {
+            showCards = true
         }
     }
 

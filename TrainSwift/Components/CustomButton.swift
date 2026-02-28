@@ -20,7 +20,15 @@ struct CustomButton: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        buttonContent
+            .disabled(!isEnabled)
+            .scaleEffect(isEnabled ? 1.0 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isEnabled)
+    }
+
+    @ViewBuilder
+    private var buttonContent: some View {
+        let button = Button(action: action) {
             Text(title)
                 .font(.trainBodyMedium)  // 18px Medium from Figma
                 .foregroundColor(textColor)
@@ -29,9 +37,13 @@ struct CustomButton: View {
                 .background(backgroundColor)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
         }
-        .disabled(!isEnabled)
-        .scaleEffect(isEnabled ? 1.0 : 1.0)
-        .animation(.easeInOut(duration: 0.2), value: isEnabled)
+
+        if style == .primary {
+            button
+                .keyboardShortcut(.defaultAction)
+        } else {
+            button
+        }
     }
 
     private var backgroundColor: Color {

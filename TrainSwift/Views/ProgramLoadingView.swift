@@ -111,7 +111,14 @@ struct ProgramLoadingView: View {
     private func startLoading() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
             if progress < 1.0 {
-                progress += 0.01
+                // Non-linear progress: fast 0-30%, slow 30-80%, fast 80-100%
+                if progress < 0.3 {
+                    progress += 0.015  // Fast start
+                } else if progress < 0.8 {
+                    progress += 0.005  // Slow middle
+                } else {
+                    progress += 0.02   // Fast finish
+                }
 
                 // Update stage based on progress
                 if progress > 0.33 && currentStage == 0 {
@@ -127,7 +134,7 @@ struct ProgramLoadingView: View {
                         currentStage = 3
                     }
                     timer.invalidate()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         onComplete()
                     }
                 }

@@ -348,7 +348,8 @@ struct HistorySessionCard: View {
     }
 }
 
-// MARK: - Legacy History Entry Card (kept for backward compatibility)
+// MARK: - DEPRECATED: Legacy History Entry Card — no longer referenced; kept for reference only
+// TODO: Remove in a future cleanup pass
 
 struct HistoryEntryCard: View {
     let entry: ExerciseHistoryView.WorkoutHistoryEntry

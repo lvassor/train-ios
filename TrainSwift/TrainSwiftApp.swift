@@ -42,6 +42,9 @@ struct TrainSwiftApp: App {
         // NUCLEAR: Set the window background to clear
         UITableView.appearance().backgroundColor = .clear
         UICollectionView.appearance().backgroundColor = .clear
+
+        // Register Siri Shortcut for "Start my workout"
+        SpotlightIndexer.shared.registerStartWorkoutShortcut()
     }
 
     var body: some Scene {

@@ -33,11 +33,15 @@ struct PostQuestionnaireSignupView: View {
     init(onSignupSuccess: @escaping () -> Void, onSignupCancel: (() -> Void)? = nil) {
         self.onSignupSuccess = onSignupSuccess
         self.onSignupCancel = onSignupCancel
+        #if DEBUG
         AppLogger.logAuth("[SIGNUP VIEW] NEW PostQuestionnaireSignupView created - ID: \(viewID.uuidString.prefix(8))")
+        #endif
     }
 
     var body: some View {
+        #if DEBUG
         let _ = AppLogger.logAuth("[SIGNUP VIEW] body executed - ID: \(viewID.uuidString.prefix(8)), showEmailSignup: \(viewModel.showEmailSignup)")
+        #endif
         ScrollView {
             VStack(spacing: Spacing.xl) {
                 Spacer()
@@ -89,17 +93,17 @@ struct PostQuestionnaireSignupView: View {
 
                     // Sign up with Email Button
                     Button(action: {
-                        AppLogger.logAuth("[SIGNUP BUTTONS] 'Sign up with Email' tapped, BEFORE: showEmailSignup = \(viewModel.showEmailSignup)")
                         viewModel.showEmailSignup = true
-                        AppLogger.logAuth("[SIGNUP BUTTONS] AFTER: showEmailSignup = \(viewModel.showEmailSignup)")
-
-                        // Add a small delay to see if something changes it back immediately
+                        #if DEBUG
+                        AppLogger.logAuth("[SIGNUP BUTTONS] 'Sign up with Email' tapped, showEmailSignup = \(viewModel.showEmailSignup)")
+                        // Delayed checks to detect if something resets the flag
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             AppLogger.logAuth("[SIGNUP BUTTONS] 0.1s later check: showEmailSignup = \(viewModel.showEmailSignup)")
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             AppLogger.logAuth("[SIGNUP BUTTONS] 0.5s later check: showEmailSignup = \(viewModel.showEmailSignup)")
                         }
+                        #endif
                     }) {
                         HStack(spacing: Spacing.md) {
                             Image(systemName: "envelope.fill")
@@ -177,7 +181,9 @@ struct PostQuestionnaireSignupView: View {
             PrivacyPolicySheet()
         }
         .sheet(isPresented: $viewModel.showEmailSignup, onDismiss: {
+            #if DEBUG
             AppLogger.logAuth("[SHEET] Sheet dismissed via onDismiss, showEmailSignup: \(viewModel.showEmailSignup)")
+            #endif
         }) {
             EmailSignupSheet(
                 onSignupSuccess: {
@@ -190,12 +196,14 @@ struct PostQuestionnaireSignupView: View {
                 questionnaireData: viewModel.questionnaireData,
                 generatedProgram: viewModel.generatedProgram
             )
+            #if DEBUG
             .onAppear {
                 AppLogger.logAuth("[EMAIL SHEET] onAppear - parent ID: \(viewID.uuidString.prefix(8)), showEmailSignup: \(viewModel.showEmailSignup)")
             }
             .onDisappear {
                 AppLogger.logAuth("[EMAIL SHEET] onDisappear - showEmailSignup: \(viewModel.showEmailSignup)")
             }
+            #endif
         }
         .sheet(isPresented: $showLogin) {
             LoginView(

@@ -77,11 +77,12 @@ struct WeeklyCalendarView: View {
                     }) {
                         Image(systemName: "chevron.right")
                             .font(.trainCaption).fontWeight(.medium)
-                            .foregroundColor(.trainTextPrimary)
+                            .foregroundColor(isCurrentMonthOrLater ? .trainTextSecondary.opacity(0.3) : .trainTextPrimary)
                             .frame(width: IconSize.lg, height: IconSize.lg)
                             .background(Color.white.opacity(0.1))
                             .clipShape(Circle())
                     }
+                    .disabled(isCurrentMonthOrLater)
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.top, Spacing.sm)
@@ -188,6 +189,16 @@ struct WeeklyCalendarView: View {
     }
 
     // MARK: - Helper Methods
+
+    /// Returns true when the displayed month is the current month or later, preventing forward navigation
+    private var isCurrentMonthOrLater: Bool {
+        let now = Date()
+        let displayedMonth = calendar.component(.month, from: currentDate)
+        let displayedYear = calendar.component(.year, from: currentDate)
+        let currentMonth = calendar.component(.month, from: now)
+        let currentYear = calendar.component(.year, from: now)
+        return displayedYear > currentYear || (displayedYear == currentYear && displayedMonth >= currentMonth)
+    }
 
     private var completedThisWeek: Int {
         // Count how many days this week have a workout logged

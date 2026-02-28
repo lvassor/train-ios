@@ -50,8 +50,10 @@ struct PasswordResetNewPasswordView: View {
                                 TextField("Enter new password", text: $newPassword)
                                     .autocorrectionDisabled()
                                     .textInputAutocapitalization(.never)
+                                    .textContentType(.newPassword)
                             } else {
                                 SecureField("Enter new password", text: $newPassword)
+                                    .textContentType(.newPassword)
                             }
 
                             Button(action: { showNewPassword.toggle() }) {
@@ -74,8 +76,10 @@ struct PasswordResetNewPasswordView: View {
                                 TextField("Confirm new password", text: $confirmPassword)
                                     .autocorrectionDisabled()
                                     .textInputAutocapitalization(.never)
+                                    .textContentType(.newPassword)
                             } else {
                                 SecureField("Confirm new password", text: $confirmPassword)
+                                    .textContentType(.newPassword)
                             }
 
                             Button(action: { showConfirmPassword.toggle() }) {

@@ -527,7 +527,8 @@ struct ExerciseLoggerInfoSection: View {
     }
 }
 
-// MARK: - Legacy Info Card (kept for backward compatibility)
+// MARK: - DEPRECATED: Legacy Info Card — no longer referenced; kept for reference only
+// TODO: Remove in a future cleanup pass
 
 struct ExerciseLoggerInfoCard: View {
     let exercise: ProgramExercise
@@ -819,7 +820,8 @@ struct SimplifiedSetRow: View {
     }
 }
 
-// MARK: - Legacy Set Logging Section (kept for backward compatibility)
+// MARK: - DEPRECATED: Legacy Set Logging Section — no longer referenced; kept for reference only
+// TODO: Remove in a future cleanup pass
 
 struct SetLoggingSection: View {
     let exercise: ProgramExercise
@@ -915,7 +917,8 @@ struct SetLoggingSection: View {
     }
 }
 
-// MARK: - Set Input Row
+// MARK: - DEPRECATED: Set Input Row — only used by deprecated SetLoggingSection above
+// TODO: Remove in a future cleanup pass
 
 struct SetInputRow: View {
     let setNumber: Int

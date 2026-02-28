@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct MultiSelectCard: View {
     let title: String
@@ -25,7 +26,10 @@ struct MultiSelectCard: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        }) {
             HStack(spacing: Spacing.md) {
                 // Checkbox icon
                 Image(systemName: isSelected ? "checkmark.square.fill" : "square")

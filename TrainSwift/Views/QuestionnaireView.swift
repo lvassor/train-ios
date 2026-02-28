@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct QuestionnaireView: View {
     @ObservedObject var viewModel = WorkoutViewModel.shared
@@ -565,6 +566,7 @@ struct QuestionnaireView: View {
     }
 
     private func nextStep() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
 
         questionnaireDebugLog("NAV", "nextStep.called", [
@@ -638,6 +640,7 @@ struct QuestionnaireView: View {
                 "instanceId": String(instanceId),
                 "action": "Starting program loading"
             ])
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
             showingProgramLoading = true
             QuestionnaireStateManager.clear()
         } else {
