@@ -66,6 +66,19 @@ struct OptionCard: View {
                 }
             )
             .modifier(ConditionalGlassModifier(isSelected: isSelected))
+            .overlay(alignment: .topTrailing) {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                        .background(
+                            Circle()
+                                .fill(Color.trainPrimary)
+                                .frame(width: 20, height: 20)
+                        )
+                        .offset(x: -8, y: 8)
+                }
+            }
         }
         .buttonStyle(ScaleButtonStyle())
     }

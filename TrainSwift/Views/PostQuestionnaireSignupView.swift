@@ -323,6 +323,9 @@ struct EmailSignupSheet: View {
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
     @State private var showTermsAndConditions: Bool = false
+    @State private var showPassword: Bool = false
+    @State private var emailError: String? = nil
+    @State private var passwordError: String? = nil
 
     let onSignupSuccess: () -> Void
     let questionnaireData: QuestionnaireData
@@ -375,6 +378,17 @@ struct EmailSignupSheet: View {
                                 .padding(Spacing.md)
                                 .appCard()
                                 .cornerRadius(CornerRadius.md)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                                        .stroke(emailError != nil ? Color.trainError : Color.clear, lineWidth: 1)
+                                )
+                                .onChange(of: email) { _, _ in validateEmail() }
+
+                            if let error = emailError {
+                                Text(error)
+                                    .font(.trainCaptionSmall)
+                                    .foregroundColor(.trainError)
+                            }
                         }
 
                         // Password
@@ -383,14 +397,37 @@ struct EmailSignupSheet: View {
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.trainTextPrimary)
 
-                            SecureField("Create a password", text: $password)
-                                .padding(Spacing.md)
-                                .appCard()
-                                .cornerRadius(CornerRadius.md)
+                            HStack {
+                                if showPassword {
+                                    TextField("Create a password", text: $password)
+                                        .textContentType(.password)
+                                } else {
+                                    SecureField("Create a password", text: $password)
+                                }
 
-                            Text("Min 6 chars with a number and special character")
-                                .font(.trainCaption)
-                                .foregroundColor(.trainTextSecondary)
+                                Button(action: { showPassword.toggle() }) {
+                                    Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                        .foregroundColor(.trainTextSecondary)
+                                }
+                            }
+                            .padding(Spacing.md)
+                            .appCard()
+                            .cornerRadius(CornerRadius.md)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: CornerRadius.md)
+                                    .stroke(passwordError != nil ? Color.trainError : Color.clear, lineWidth: 1)
+                            )
+                            .onChange(of: password) { _, _ in validatePassword() }
+
+                            if let error = passwordError {
+                                Text(error)
+                                    .font(.trainCaptionSmall)
+                                    .foregroundColor(.trainError)
+                            } else {
+                                Text("Min 6 chars with a number and special character")
+                                    .font(.trainCaption)
+                                    .foregroundColor(.trainTextSecondary)
+                            }
                         }
 
                         // Terms and Conditions
@@ -472,6 +509,30 @@ struct EmailSignupSheet: View {
         let hasNumber = password.rangeOfCharacter(from: .decimalDigits) != nil
         let hasSpecial = password.rangeOfCharacter(from: CharacterSet(charactersIn: "!@#$%^&*()_+-=[]{}|;:',.<>?/~`")) != nil
         return hasNumber && hasSpecial
+    }
+
+    private func validateEmail() {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Z0-9a-z.-]+\\.[A-Za-z]{2,}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        if email.isEmpty {
+            emailError = nil
+        } else if !emailPredicate.evaluate(with: email) {
+            emailError = "Please enter a valid email address"
+        } else {
+            emailError = nil
+        }
+    }
+
+    private func validatePassword() {
+        if password.isEmpty {
+            passwordError = nil
+        } else if password.count < 6 {
+            passwordError = "Password must be at least 6 characters"
+        } else if !isValidPassword(password) {
+            passwordError = "Password must contain a number and special character"
+        } else {
+            passwordError = nil
+        }
     }
 
     private func handleSignup() {

@@ -26,16 +26,25 @@ struct MultiSelectCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text(title)
-                    .font(isCompact ? .trainBodyMedium : .trainHeadline)  // Smaller font for compact mode
-                    .foregroundColor(isSelected ? .white : .trainTextPrimary)
+            HStack(spacing: Spacing.md) {
+                // Checkbox icon
+                Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 22))
+                    .foregroundColor(isSelected ? .white : .trainPrimary)
 
-                if let subtitle = subtitle {
-                    Text(subtitle)
-                        .font(.trainBody)  // 16px Light from Figma
-                        .foregroundColor(isSelected ? .white.opacity(0.9) : .trainTextSecondary)
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text(title)
+                        .font(isCompact ? .trainBodyMedium : .trainHeadline)  // Smaller font for compact mode
+                        .foregroundColor(isSelected ? .white : .trainTextPrimary)
+
+                    if let subtitle = subtitle {
+                        Text(subtitle)
+                            .font(.trainBody)  // 16px Light from Figma
+                            .foregroundColor(isSelected ? .white.opacity(0.9) : .trainTextSecondary)
+                    }
                 }
+
+                Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(isCompact ? Spacing.md : Spacing.lg)  // Smaller padding for compact

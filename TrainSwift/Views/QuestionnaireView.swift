@@ -16,6 +16,7 @@ struct QuestionnaireView: View {
     @State private var showingEquipmentWarning = false
     @State private var hasSeenEquipmentWarning = false
     @State private var isSignupInProgress = false  // Safeguard to prevent state conflicts during signup
+    @State private var slideDirection: Edge = .trailing
 
     let onComplete: () -> Void
     var onBack: (() -> Void)? = nil
@@ -25,7 +26,7 @@ struct QuestionnaireView: View {
 
     // Total steps: Main questionnaire flow (referral moved to post-signup)
     var totalSteps: Int {
-        return 14  // Steps 0-13: Goal → Name → HealthProfile → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → TrainingPlace → Equipment → [Interstitial2] → Muscles → Injuries
+        return 15  // Steps 0-14: Goal → Name → HealthProfile → [HeightWeight] → Experience → [Interstitial1] → Days → Split → Duration → TrainingPlace → Equipment → [Interstitial2] → Muscles → Injuries → Review
         // Referral tracking happens after signup in the post-questionnaire flow
     }
 
@@ -182,6 +183,11 @@ struct QuestionnaireView: View {
                         ScrollView(showsIndicators: false) {
                             VStack(spacing: Spacing.xl) {
                                 currentStepView
+                                    .id(currentStep)
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: slideDirection),
+                                        removal: .move(edge: slideDirection == .trailing ? .leading : .trailing)
+                                    ))
                             }
                             .padding(.horizontal, Spacing.md)
                             .padding(.top, Spacing.md)
@@ -204,6 +210,18 @@ struct QuestionnaireView: View {
         }
         .charcoalGradientBackground()
         .onAppear {
+            // Restore saved questionnaire state if available
+            if let savedStep = QuestionnaireStateManager.savedStep() {
+                currentStep = savedStep
+                if let savedData = QuestionnaireStateManager.savedData() {
+                    viewModel.questionnaireData = savedData
+                }
+                questionnaireDebugLog("VIEW", "QuestionnaireView.stateRestored", [
+                    "instanceId": String(instanceId),
+                    "restoredStep": "\(savedStep)"
+                ])
+            }
+
             questionnaireDebugLog("VIEW", "QuestionnaireView.onAppear", [
                 "instanceId": String(instanceId),
                 "currentStep": "\(currentStep)",
@@ -211,7 +229,7 @@ struct QuestionnaireView: View {
                 "showingProgramLoading": "\(showingProgramLoading)",
                 "showingProgramReady": "\(showingProgramReady)",
                 "isSignupInProgress": "\(isSignupInProgress)",
-                "status": "✅ QUESTIONNAIRE IS VISIBLE (Step 0 = Goal)"
+                "status": "QUESTIONNAIRE IS VISIBLE"
             ])
         }
         .alert(viewModel.warningAlertTitle, isPresented: $viewModel.showWarningAlert) {
@@ -252,7 +270,9 @@ struct QuestionnaireView: View {
     }
 
     private var buttonTitle: String {
-        if currentStep == 13 { // Injuries step (final step)
+        let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
+        let finalStep = skipHeightWeight ? 13 : 14
+        if currentStep == finalStep { // Review step (final step)
             return "Generate Your Program"
         }
         return "Continue"
@@ -390,8 +410,34 @@ struct QuestionnaireView: View {
             } else {
                 InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
             }
-        case 13: // Injuries (final step)
-            InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+        case 13: // Injuries
+            if !skipHeightWeight {
+                InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+            } else {
+                // If skipHeightWeight, step 13 is already beyond injuries (which is step 12)
+                // so step 13 becomes the Review step
+                ReviewSummaryStepView(
+                    questionnaireData: viewModel.questionnaireData,
+                    onEdit: { step in
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            slideDirection = .leading
+                            currentStep = step
+                        }
+                        QuestionnaireStateManager.save(step: step, data: viewModel.questionnaireData)
+                    }
+                )
+            }
+        case 14: // Review Summary (final step before generation)
+            ReviewSummaryStepView(
+                questionnaireData: viewModel.questionnaireData,
+                onEdit: { step in
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        slideDirection = .leading
+                        currentStep = step
+                    }
+                    QuestionnaireStateManager.save(step: step, data: viewModel.questionnaireData)
+                }
+            )
         default:
             EmptyView()
         }
@@ -487,8 +533,10 @@ struct QuestionnaireView: View {
             } else {
                 return true // Injuries optional
             }
-        case 13: // Injuries (final step)
-            return true // Injuries optional
+        case 13: // Injuries OR Review (skip path)
+            return true // Injuries optional, Review always valid
+        case 14: // Review Summary (non-skip path)
+            return true // Review always valid
         default:
             return true
         }
@@ -506,6 +554,11 @@ struct QuestionnaireView: View {
         // Health profile step (step 2) may need scrolling for Apple Health UI
         if currentStep == 2 {
             return false  // Enable scrolling for health profile
+        }
+
+        // Review summary step needs scrolling for multiple review rows
+        if (!skipHeightWeight && currentStep == 14) || (skipHeightWeight && currentStep == 13) {
+            return false  // Enable scrolling for review summary
         }
 
         return true  // All other pages are non-scrollable
@@ -561,10 +614,13 @@ struct QuestionnaireView: View {
     }
 
     private func proceedToNextStep() {
+        let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
+        let finalStep = skipHeightWeight ? 13 : 14
+
         questionnaireDebugLog("NAV", "proceedToNextStep", [
             "instanceId": String(instanceId),
             "fromStep": "\(currentStep)",
-            "toStep": currentStep == 13 ? "LOADING" : "\(currentStep + 1)",
+            "toStep": currentStep == finalStep ? "LOADING" : "\(currentStep + 1)",
             "isSignupInProgress": "\(isSignupInProgress)"
         ])
 
@@ -577,15 +633,19 @@ struct QuestionnaireView: View {
             return
         }
 
-        // Removed withAnimation for instant, smooth transitions especially for video interstitials
-        if currentStep == 13 {
+        if currentStep == finalStep {
             questionnaireDebugLog("NAV", "finalStep.reached", [
                 "instanceId": String(instanceId),
                 "action": "Starting program loading"
             ])
             showingProgramLoading = true
+            QuestionnaireStateManager.clear()
         } else {
-            currentStep += 1
+            slideDirection = .trailing
+            withAnimation(.easeInOut(duration: 0.3)) {
+                currentStep += 1
+            }
+            QuestionnaireStateManager.save(step: currentStep, data: viewModel.questionnaireData)
             questionnaireDebugLog("NAV", "step.advanced", [
                 "instanceId": String(instanceId),
                 "newStep": "\(currentStep)",
@@ -599,17 +659,20 @@ struct QuestionnaireView: View {
         let skipHeightWeight = viewModel.questionnaireData.skipHeightWeight
         let names: [String]
         if skipHeightWeight {
-            names = ["Goal", "Name", "HealthProfile", "Experience", "Interstitial1", "Days", "Split", "Duration", "TrainingPlace", "Equipment", "Interstitial2", "Muscles", "Injuries", "FINAL"]
+            names = ["Goal", "Name", "HealthProfile", "Experience", "Interstitial1", "Days", "Split", "Duration", "TrainingPlace", "Equipment", "Interstitial2", "Muscles", "Injuries", "Review"]
         } else {
-            names = ["Goal", "Name", "HealthProfile", "HeightWeight", "Experience", "Interstitial1", "Days", "Split", "Duration", "TrainingPlace", "Equipment", "Interstitial2", "Muscles", "Injuries"]
+            names = ["Goal", "Name", "HealthProfile", "HeightWeight", "Experience", "Interstitial1", "Days", "Split", "Duration", "TrainingPlace", "Equipment", "Interstitial2", "Muscles", "Injuries", "Review"]
         }
         return step < names.count ? names[step] : "Unknown(\(step))"
     }
 
     private func previousStep() {
-        // Removed withAnimation for instant, smooth transitions
         if currentStep > 0 {
-            currentStep -= 1
+            slideDirection = .leading
+            withAnimation(.easeInOut(duration: 0.3)) {
+                currentStep -= 1
+            }
+            QuestionnaireStateManager.save(step: currentStep, data: viewModel.questionnaireData)
         } else {
             // Go back to home screen
             onBack?()

@@ -92,3 +92,27 @@ Each line documents a single UX/UI change made during the overhaul.
 - Replaced 4 local `getAbbreviation` methods with `SessionNameFormatter.abbreviation(for:)` in WeeklyCalendarView, WeeklyProgressCard, DashboardCarouselView, DashboardView
 - Changed "Recommended Learning" label to "Prepare for your next session" in LearningRecommendationCard
 - Rewrote `createLearningRecommendationData()` to fetch next incomplete session's exercises, pick lowest-volume exercise instead of random
+
+## Phase 6: Onboarding & Auth
+- Created `QuestionnaireStateManager.swift` — persists step index + answers to UserDefaults on each Continue; restores on relaunch; clears on completion
+- Added slide transition animation on questionnaire step changes — `.asymmetric` move with `.easeInOut(duration: 0.3)`
+- Added `ReviewSummaryStepView` before program generation — shows goals, experience, days, split, duration, equipment with Edit links back to each step
+- Increased questionnaire `totalSteps` from 14 to 15 to accommodate review summary step
+- Made TrainingDaysStepView day number labels tappable `Button`s + added `.accessibilityAdjustableAction` for VoiceOver
+- Fixed InjuriesStepView "No injuries" appearing pre-selected — added `hasExplicitlyChosen` state; requires explicit tap
+- Changed EquipmentStepView subtitle to show dynamic count: "We pre-selected X items based on your gym type. Tap to adjust."
+- Added checkmark icon overlay on `OptionCard` when selected — colour-blind accessible selection indicator
+- Added checkbox icon (empty square / filled square) to `MultiSelectCard` for multi-select affordance
+- Changed NameStepView subtitle from "Please enter your username" to "Please enter your name"
+- Fixed name sanitization to allow apostrophes and hyphens — O'Brien, Mary-Jane now accepted
+- Changed SessionDurationStepView subtitles from biased ("Quick and efficient") to neutral time ranges
+- Updated ReferralStepView SF Symbols — TikTok → `music.note`, Friend → `person.2.fill`
+- Added "Unlocks X+ exercises" social proof subtitle to each equipment category heading
+- Promoted LoginView "Create an Account" button with branded `.trainPrimary` color and 2pt border
+- Added password visibility toggle (eye icon) to LoginView and PostQuestionnaireSignupView password fields
+- Added inline form validation to PostQuestionnaireSignupView — red border + error text for invalid email/short password
+- Fixed PasswordResetCodeView race condition — removed `asyncAfter` delay, moved navigation to `.sheet(onDismiss:)`
+- Added `.textContentType(.oneTimeCode)` to password reset code inputs for iMessage auto-fill
+- Added notification type bullet list to NotificationPermissionView — rest timer, workout reminders, streak updates
+- Added "You can enable notifications anytime in Settings → train." subtitle below Maybe Later button
+- Added notification denied state handling — shows "Open Settings" button when permissions previously denied

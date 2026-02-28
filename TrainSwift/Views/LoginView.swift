@@ -130,13 +130,13 @@ struct LoginView: View {
                     // Sign Up Button for new users
                     Button(action: { showSignup = true }) {
                         Text("Create an Account")
-                            .font(.trainBody).fontWeight(.medium)
-                            .foregroundColor(.trainTextPrimary)
+                            .font(.trainBodyMedium)
+                            .foregroundColor(.trainPrimary)
                             .frame(maxWidth: .infinity)
                             .frame(height: ButtonHeight.standard)
                             .overlay(
                                 RoundedRectangle(cornerRadius: CornerRadius.md)
-                                    .stroke(Color.trainTextSecondary.opacity(0.5), lineWidth: 1)
+                                    .stroke(Color.trainPrimary, lineWidth: 2)
                             )
                     }
                 }
@@ -243,6 +243,7 @@ struct EmailLoginSheet: View {
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
     @State private var showPasswordReset: Bool = false
+    @State private var showPassword: Bool = false
 
     let onLoginSuccess: () -> Void
 
@@ -295,10 +296,22 @@ struct EmailLoginSheet: View {
                                 }
                             }
 
-                            SecureField("Enter your password", text: $password)
-                                .padding(Spacing.md)
-                                .appCard()
-                                .cornerRadius(CornerRadius.md)
+                            HStack {
+                                if showPassword {
+                                    TextField("Enter your password", text: $password)
+                                        .textContentType(.password)
+                                } else {
+                                    SecureField("Enter your password", text: $password)
+                                }
+
+                                Button(action: { showPassword.toggle() }) {
+                                    Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                        .foregroundColor(.trainTextSecondary)
+                                }
+                            }
+                            .padding(Spacing.md)
+                            .appCard()
+                            .cornerRadius(CornerRadius.md)
                         }
 
                         if showError {

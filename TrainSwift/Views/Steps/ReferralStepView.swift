@@ -11,11 +11,11 @@ struct ReferralStepView: View {
     @Binding var selectedReferral: String
 
     private let referralOptions = [
-        ReferralOption(id: "tiktok", title: "TikTok", icon: "play.rectangle.fill"),
+        ReferralOption(id: "tiktok", title: "TikTok", icon: "music.note"),
         ReferralOption(id: "instagram", title: "Instagram", icon: "camera"),
         ReferralOption(id: "chatgpt", title: "ChatGPT", icon: "message"),
         ReferralOption(id: "google", title: "Google", icon: "magnifyingglass"),
-        ReferralOption(id: "friend", title: "Friend", icon: "person.2"),
+        ReferralOption(id: "friend", title: "Friend", icon: "person.2.fill"),
         ReferralOption(id: "influencer", title: "Influencer", icon: "star"),
         ReferralOption(id: "app_store", title: "App Store", icon: "square.stack.3d.down.right"),
         ReferralOption(id: "other", title: "Other", icon: "ellipsis")

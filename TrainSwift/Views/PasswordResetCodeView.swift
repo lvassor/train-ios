@@ -57,6 +57,7 @@ struct PasswordResetCodeView: View {
                 HStack(spacing: Spacing.sm) {
                     ForEach(0..<6, id: \.self) { index in
                         TextField("", text: $code[index])
+                            .textContentType(.oneTimeCode)
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.center)
                             .frame(width: 48, height: 56)
@@ -86,14 +87,13 @@ struct PasswordResetCodeView: View {
             .appCard()
             .cornerRadius(20, corners: [.topLeft, .topRight])
             .shadowStyle(.modal)
-
-            if navigateToNewPassword {
-                Color.clear
-                    .frame(height: 0)
-                    .sheet(isPresented: $navigateToNewPassword) {
-                        PasswordResetNewPasswordView(onSuccess: onSuccess)
-                    }
-            }
+        }
+        .sheet(isPresented: $navigateToNewPassword, onDismiss: {
+            onSuccess()
+        }) {
+            PasswordResetNewPasswordView(onSuccess: {
+                navigateToNewPassword = false
+            })
         }
         .onAppear {
             // Auto-focus first field
@@ -133,11 +133,7 @@ struct PasswordResetCodeView: View {
             AppLogger.logAuth("[PASSWORD RESET] Code verified successfully")
             showError = false
             onDismiss()
-
-            // Navigate to new password screen
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                navigateToNewPassword = true
-            }
+            navigateToNewPassword = true
         } else {
             // Code is incorrect
             AppLogger.logAuth("[PASSWORD RESET] Invalid code entered", level: .error)
