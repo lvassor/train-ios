@@ -13,8 +13,10 @@ struct FeedbackModalOverlay: View {
     let title: String
     let message: String
     let type: ExerciseLoggerView.FeedbackType
+    var nextExerciseName: String? = nil
     let onPrimaryAction: () -> Void
     let onSecondaryAction: () -> Void
+    var onNextExercise: (() -> Void)? = nil
 
     var body: some View {
         ZStack {
@@ -58,6 +60,24 @@ struct FeedbackModalOverlay: View {
                             .frame(minHeight: ElementHeight.button)
                             .background(type.color)
                             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
+                    }
+                }
+
+                // Next Exercise button (only if there is a next exercise)
+                if let nextName = nextExerciseName {
+                    Button(action: { onNextExercise?() }) {
+                        HStack {
+                            Text("Next: \(nextName)")
+                                .font(.trainBody).fontWeight(.medium)
+                                .foregroundColor(.trainPrimary)
+                            Image(systemName: "arrow.right")
+                                .font(.trainCaption)
+                                .foregroundColor(.trainPrimary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: ElementHeight.touchTarget)
+                        .background(Color.trainPrimary.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
                 }
             }

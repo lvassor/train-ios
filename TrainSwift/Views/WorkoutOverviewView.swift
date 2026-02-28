@@ -117,6 +117,8 @@ struct WorkoutOverviewView: View {
                         sessionName: validSession.dayName,
                         elapsedTime: elapsedTimeFormatted,
                         isEditing: isEditing,
+                        completedCount: completedExercises.count,
+                        totalCount: sessionExercises.count,
                         onCancel: { showCancelConfirmation = true },
                         onEditToggle: { isEditing.toggle() }
                     )
@@ -260,6 +262,7 @@ struct WorkoutOverviewView: View {
         .navigationDestination(item: $selectedExerciseIndex) { index in
             if index < sessionExercises.count {
                 let exercise = sessionExercises[index]
+                let nextName: String? = (index + 1 < sessionExercises.count) ? sessionExercises[index + 1].exerciseName : nil
                 ExerciseLoggerView(
                     exercise: exercise,
                     exerciseIndex: index,
@@ -276,7 +279,8 @@ struct WorkoutOverviewView: View {
                     },
                     onCancel: {
                         selectedExerciseIndex = nil
-                    }
+                    },
+                    nextExerciseName: nextName
                 )
             }
         }
@@ -511,12 +515,26 @@ struct WorkoutOverviewView: View {
     }
 
     private func initializeLoggedExercises() {
+        let programId = userProgram?.id?.uuidString ?? ""
         for exercise in sessionExercises {
             // Only create logged exercise if one doesn't already exist (prevents overwriting data)
             if loggedExercises[exercise.id] == nil {
+                var sets = (0..<exercise.sets).map { _ in LoggedSet() }
+
+                // Pre-populate weight/reps from previous session data
+                if let previousSets = authService.getPreviousSessionData(
+                    programId: programId,
+                    exerciseName: exercise.exerciseName
+                ) {
+                    for i in 0..<min(sets.count, previousSets.count) {
+                        sets[i].weight = previousSets[i].weight
+                        sets[i].reps = previousSets[i].reps
+                    }
+                }
+
                 loggedExercises[exercise.id] = LoggedExercise(
                     exerciseName: exercise.exerciseName,
-                    sets: (0..<exercise.sets).map { _ in LoggedSet() },
+                    sets: sets,
                     notes: ""
                 )
             }
@@ -624,6 +642,8 @@ struct WorkoutOverviewHeader: View {
     let sessionName: String
     let elapsedTime: String  // Kept for reference but not displayed per design
     let isEditing: Bool
+    let completedCount: Int
+    let totalCount: Int
     let onCancel: () -> Void
     let onEditToggle: () -> Void
 
@@ -640,10 +660,17 @@ struct WorkoutOverviewHeader: View {
 
             Spacer()
 
-            // Title
-            Text(sessionName)
-                .font(.trainBodyMedium)
-                .foregroundColor(.trainTextPrimary)
+            // Title with progress indicator
+            VStack(spacing: 2) {
+                Text(sessionName)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+
+                // Progress pill
+                Text("\(completedCount)/\(totalCount) exercises")
+                    .font(.trainCaptionSmall)
+                    .foregroundColor(.trainTextSecondary)
+            }
 
             Spacer()
 
@@ -663,6 +690,7 @@ struct WorkoutOverviewHeader: View {
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.md)
+        .accessibilityElement(children: .combine)
     }
 }
 

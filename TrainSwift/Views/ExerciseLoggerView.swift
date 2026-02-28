@@ -9,6 +9,7 @@
 import SwiftUI
 import Combine
 import ActivityKit
+import UIKit
 
 // MARK: - Logger Tab Options
 
@@ -34,6 +35,13 @@ enum LoggerTabOption: String, CaseIterable, Hashable {
     }
 }
 
+// MARK: - Focus Chain Enum
+
+enum SetField: Hashable {
+    case weight(Int)
+    case reps(Int)
+}
+
 struct ExerciseLoggerView: View {
     @Environment(\.dismiss) var dismiss
 
@@ -46,6 +54,7 @@ struct ExerciseLoggerView: View {
     @Binding var loggedExercise: LoggedExercise
     let onComplete: (LoggedExercise) -> Void
     let onCancel: () -> Void
+    let nextExerciseName: String?
 
     @State private var selectedTab: LoggerTabOption = .logger
     @State private var weightUnit: WeightUnit = .kg
@@ -54,6 +63,9 @@ struct ExerciseLoggerView: View {
     @State private var feedbackTitle: String = ""
     @State private var feedbackMessage: String = ""
     @State private var feedbackType: FeedbackType = .success
+    @State private var showInlineCard = false
+    @State private var inlineCardMessage = ""
+    @State private var showProgressionBanner = false
     @StateObject private var restTimerController = RestTimerController()
 
     // Live Activity Manager
@@ -115,6 +127,17 @@ struct ExerciseLoggerView: View {
                             loadExerciseDetails()
                         }
                     }
+
+                // Progression banner (WHOOP-style) - between tab selector and info section
+                if showProgressionBanner {
+                    ProgressionBannerView(
+                        exerciseName: exercise.exerciseName,
+                        isVisible: $showProgressionBanner
+                    )
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.sm)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
 
                 // Inline rest timer - persists across tab switches
                 InlineRestTimer(
@@ -203,12 +226,13 @@ struct ExerciseLoggerView: View {
             }
             .toolbar(.hidden, for: .tabBar)
 
-            // Feedback notification (central modal overlay)
+            // Feedback notification (central modal overlay) - now ONLY for regression
             if showFeedbackNotification {
                 FeedbackModalOverlay(
                     title: feedbackTitle,
                     message: feedbackMessage,
                     type: feedbackType,
+                    nextExerciseName: nextExerciseName,
                     onPrimaryAction: {
                         withAnimation {
                             showFeedbackNotification = false
@@ -220,13 +244,50 @@ struct ExerciseLoggerView: View {
                             showFeedbackNotification = false
                         }
                         // Stay on page to edit
+                    },
+                    onNextExercise: {
+                        withAnimation {
+                            showFeedbackNotification = false
+                        }
+                        onComplete(loggedExercise)
                     }
                 )
                 .transition(.opacity)
                 .animation(.easeInOut(duration: 0.2), value: showFeedbackNotification)
             }
+
+            // Inline highlight card (for non-regression outcomes)
+            if showInlineCard {
+                VStack {
+                    Spacer()
+                    InlineHighlightCard(
+                        message: inlineCardMessage,
+                        nextExerciseName: nextExerciseName,
+                        onDismiss: {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                showInlineCard = false
+                            }
+                            onComplete(loggedExercise)
+                        },
+                        onNextExercise: {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                showInlineCard = false
+                            }
+                            onComplete(loggedExercise)
+                        }
+                    )
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.bottom, Spacing.xxl)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showInlineCard)
+            }
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            loadExerciseDetails()
+            checkForProgressionBanner()
+        }
     }
 
     private func loadExerciseDetails() {
@@ -247,41 +308,97 @@ struct ExerciseLoggerView: View {
     private func submitExercise() {
         // Evaluate performance and show feedback
         let completedSets = loggedExercise.sets.filter { $0.completed }
-        let totalReps = completedSets.reduce(0) { $0 + $1.reps }
 
         // Parse target reps
         let repComponents = exercise.repRange.split(separator: "-").compactMap { Int($0) }
         let targetMin = repComponents.first ?? 8
         let targetMax = repComponents.last ?? 12
-        let targetTotal = exercise.sets * targetMax
-        let averageRepsPerSet = completedSets.isEmpty ? 0 : totalReps / completedSets.count
 
-        // Generate feedback with progressive overload suggestions
-        if totalReps >= targetTotal {
-            // Hit max reps - suggest weight increase
-            feedbackTitle = String(localized: "Time to Progress!")
-            feedbackMessage = String(localized: "You've hit \(targetMax) reps consistently. Consider increasing the weight by 2.5-5kg next session.")
-            feedbackType = .success
-        } else if averageRepsPerSet >= targetMax {
-            // Averaging at top of range
-            feedbackTitle = String(localized: "Strong Performance!")
-            feedbackMessage = String(localized: "You're ready to increase the weight. Add 2.5kg and aim for \(targetMin) reps.")
-            feedbackType = .success
-        } else if totalReps >= exercise.sets * targetMin {
-            // Within target range - stay the course
-            feedbackTitle = String(localized: "On Track")
-            feedbackMessage = String(localized: "Keep this weight until you can hit \(targetMax) reps on all sets, then increase.")
-            feedbackType = .info
-        } else {
-            // Below target - maintain or slightly reduce
+        // Check for regression: Set 1 reps < targetMin OR Set 2 reps < targetMin
+        let isRegression: Bool = {
+            guard completedSets.count >= 2 else { return false }
+            return completedSets[0].reps < targetMin || completedSets[1].reps < targetMin
+        }()
+
+        if isRegression {
+            // REGRESSION -> Show modal (current behavior)
             feedbackTitle = String(localized: "Building Strength")
             feedbackMessage = String(localized: "Focus on hitting \(targetMin)-\(targetMax) reps before increasing weight. You've got this!")
             feedbackType = .warning
+            withAnimation {
+                showFeedbackNotification = true
+            }
+        } else {
+            // NOT REGRESSION -> Show inline highlight card
+            let message = buildInlineCardMessage(completedSets: completedSets)
+            inlineCardMessage = message
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                showInlineCard = true
+            }
+
+            // Auto-dismiss after 2.5 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                guard showInlineCard else { return }
+                withAnimation(.easeOut(duration: 0.3)) {
+                    showInlineCard = false
+                }
+                onComplete(loggedExercise)
+            }
+        }
+    }
+
+    private func buildInlineCardMessage(completedSets: [LoggedSet]) -> String {
+        // Compare with previous session data
+        let programId = AuthService.shared.getCurrentProgram()?.id?.uuidString ?? ""
+        let previousSets = AuthService.shared.getPreviousSessionData(
+            programId: programId,
+            exerciseName: exercise.exerciseName
+        )
+
+        if let prevSets = previousSets, !prevSets.isEmpty {
+            // Check if weight increased
+            let currentMaxWeight = completedSets.map { $0.weight }.max() ?? 0
+            let previousMaxWeight = prevSets.map { $0.weight }.max() ?? 0
+            if currentMaxWeight > previousMaxWeight {
+                let diff = currentMaxWeight - previousMaxWeight
+                return String(localized: "You lifted \(String(format: "%.1f", diff))kg more!")
+            }
+
+            // Check if reps increased
+            let currentTotalReps = completedSets.reduce(0) { $0 + $1.reps }
+            let previousTotalReps = prevSets.reduce(0) { $0 + $1.reps }
+            if currentTotalReps > previousTotalReps {
+                let diff = currentTotalReps - previousTotalReps
+                return String(localized: "+\(diff) reps across sets!")
+            }
         }
 
-        // Show modal overlay (user dismisses manually)
-        withAnimation {
-            showFeedbackNotification = true
+        return String(localized: "You showed up!")
+    }
+
+    private func checkForProgressionBanner() {
+        let programId = AuthService.shared.getCurrentProgram()?.id?.uuidString ?? ""
+        let previousSets = AuthService.shared.getPreviousSessionData(
+            programId: programId,
+            exerciseName: exercise.exerciseName
+        )
+
+        guard let prevSets = previousSets, prevSets.count >= 3 else { return }
+
+        // Parse target reps
+        let repComponents = exercise.repRange.split(separator: "-").compactMap { Int($0) }
+        let targetMin = repComponents.first ?? 8
+        let targetMax = repComponents.last ?? 12
+
+        // Check progression criteria: Set 1 >= targetMax AND Set 2 >= targetMax AND Set 3 >= targetMin
+        let set1Reps = prevSets[0].reps
+        let set2Reps = prevSets[1].reps
+        let set3Reps = prevSets[2].reps
+
+        if set1Reps >= targetMax && set2Reps >= targetMax && set3Reps >= targetMin {
+            withAnimation {
+                showProgressionBanner = true
+            }
         }
     }
 
@@ -464,6 +581,8 @@ struct SetLoggingCard: View {
     @ObservedObject var liveActivityManager: WorkoutLiveActivityManager
     let onSetCompleted: () -> Void
 
+    @FocusState private var focusedField: SetField?
+
     // Calculate progressive overload rep difference
     private var totalRepsDifference: Int? {
         let completedSets = loggedExercise.sets.filter { $0.completed && $0.reps > 0 }
@@ -514,6 +633,9 @@ struct SetLoggingCard: View {
                     setNumber: setIndex + 1,
                     set: bindingForSet(setIndex),
                     weightUnit: weightUnit,
+                    focusedField: $focusedField,
+                    setIndex: setIndex,
+                    totalSets: loggedExercise.sets.count,
                     onComplete: {
                         if exercise.restSeconds > 0 {
                             restTimerController.triggerRest(seconds: exercise.restSeconds)
@@ -567,12 +689,13 @@ struct SimplifiedSetRow: View {
     let setNumber: Int
     @Binding var set: LoggedSet
     let weightUnit: ExerciseLoggerView.WeightUnit
+    var focusedField: FocusState<SetField?>.Binding
+    let setIndex: Int
+    let totalSets: Int
     let onComplete: () -> Void
 
     @State private var repsText: String = ""
     @State private var weightText: String = ""
-    @FocusState private var isRepsFieldFocused: Bool
-    @FocusState private var isWeightFieldFocused: Bool
 
     var body: some View {
         HStack(spacing: Spacing.smd) {
@@ -589,7 +712,7 @@ struct SimplifiedSetRow: View {
                 .foregroundColor(weightText.isEmpty ? .trainTextSecondary.opacity(0.4) : .trainTextPrimary)
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 70, maxWidth: .infinity, minHeight: 35)
-                .focused($isWeightFieldFocused)
+                .focused(focusedField, equals: .weight(setIndex))
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
                         .stroke(Color.trainBorderStrong, lineWidth: 1)
@@ -607,7 +730,7 @@ struct SimplifiedSetRow: View {
                 .foregroundColor(repsText.isEmpty ? .trainTextSecondary.opacity(0.4) : .trainTextPrimary)
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 70, maxWidth: .infinity, minHeight: 35)
-                .focused($isRepsFieldFocused)
+                .focused(focusedField, equals: .reps(setIndex))
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
                         .stroke(Color.trainBorderStrong, lineWidth: 1)
@@ -648,9 +771,17 @@ struct SimplifiedSetRow: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
+                // Next button - advance focus chain
                 Button {
-                    isWeightFieldFocused = false
-                    isRepsFieldFocused = false
+                    advanceFocus()
+                } label: {
+                    Image(systemName: "arrow.right")
+                        .font(.trainBody).fontWeight(.medium)
+                        .foregroundColor(.trainTextPrimary)
+                }
+                // Done button - dismiss keyboard
+                Button {
+                    focusedField.wrappedValue = nil
                 } label: {
                     Image(systemName: "chevron.down")
                         .font(.trainBody).fontWeight(.medium)
@@ -660,11 +791,29 @@ struct SimplifiedSetRow: View {
         }
     }
 
+    private func advanceFocus() {
+        guard let current = focusedField.wrappedValue else { return }
+        switch current {
+        case .weight(let i):
+            // Weight -> Reps (same set)
+            focusedField.wrappedValue = .reps(i)
+        case .reps(let i):
+            // Reps -> next set's Weight, or dismiss if last set
+            if i + 1 < totalSets {
+                focusedField.wrappedValue = .weight(i + 1)
+            } else {
+                focusedField.wrappedValue = nil
+            }
+        }
+    }
+
     private func toggleCompletion() {
         let wasCompleted = set.completed
         set.completed.toggle()
 
         if !wasCompleted && set.completed {
+            // Haptic feedback on set completion
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             onComplete()
         }
     }
@@ -911,6 +1060,60 @@ struct SetInputRow: View {
     }
 }
 
+// MARK: - Inline Highlight Card (Non-regression feedback)
+
+struct InlineHighlightCard: View {
+    let message: String
+    let nextExerciseName: String?
+    let onDismiss: () -> Void
+    let onNextExercise: () -> Void
+
+    var body: some View {
+        VStack(spacing: Spacing.smd) {
+            HStack(spacing: Spacing.smd) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: IconSize.md))
+                    .foregroundColor(.trainSuccess)
+
+                Text(message)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+                    .lineLimit(2)
+
+                Spacer()
+            }
+
+            if let nextName = nextExerciseName {
+                Button(action: onNextExercise) {
+                    HStack {
+                        Text("Next: \(nextName)")
+                            .font(.trainBody).fontWeight(.medium)
+                            .foregroundColor(.trainPrimary)
+                        Image(systemName: "arrow.right")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainPrimary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: ElementHeight.touchTarget)
+                    .background(Color.trainPrimary.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
+                }
+            }
+        }
+        .padding(Spacing.lg)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.modal, style: .continuous)
+                .stroke(Color.trainSuccess.opacity(0.3), lineWidth: 1)
+        )
+        .shadowStyle(.modal)
+        .onTapGesture {
+            onDismiss()
+        }
+    }
+}
+
 // Components extracted to:
 // - Components/InlineRestTimer.swift (InlineRestTimer, RestTimerController)
 // - Views/ExerciseLoggerFeedback.swift (FeedbackModalOverlay)
@@ -941,7 +1144,8 @@ struct SetInputRow: View {
                 notes: ""
             )),
             onComplete: { _ in },
-            onCancel: {}
+            onCancel: {},
+            nextExerciseName: "Overhead Press"
         )
     }
 }

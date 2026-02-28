@@ -40,3 +40,16 @@ Each line documents a single UX/UI change made during the overhaul.
 - Added accessibility labels and hints to 5 key views: DashboardView, WorkoutOverviewView, WorkoutSummaryView, ProfileView, CalendarView
 - Converted 11 typography tokens from fixed `Font.system(size:)` to Dynamic Type-scaling built-in text styles
 - Applied `.fontDesign(.rounded)` at app root for SF Pro Rounded inheritance across all Dynamic Type tokens
+
+## Phase 3: Core Workout Loop
+- Pre-populate weight/reps from previous session in `initializeLoggedExercises()` via `getPreviousSessionData()`
+- Added focus chain across set rows — shared `SetField` enum + `@FocusState` in `SetLoggingCard` with "Next"/"Done" keyboard toolbar
+- Added `UIImpactFeedbackGenerator(style: .medium)` haptic feedback on set completion checkmark tap
+- Redesigned feedback system: regression stays as modal, non-regression shows inline highlight card (auto-dismiss 2.5s)
+- Created `ProgressionBannerView` — WHOOP-style banner at top of Logger when previous session exceeded rep range
+- Inline highlight card shows contextual messages: "You lifted Xkg more!" / "+X reps!" / "You showed up!"
+- Added "Next: [Exercise Name]" button to inline card and regression modal for quick exercise navigation
+- Added rest timer completion alert: haptic feedback + system vibration + local notification for backgrounded app
+- Pre-fetch exercise details on `ExerciseLoggerView.onAppear` instead of only on tab switch to demo/history
+- Added "X/Y exercises" progress indicator subtitle to WorkoutOverviewView header
+- Updated `new_rules.md` Section 1 to document new feedback behavior (progression banner, inline card, regression modal)

@@ -10,55 +10,70 @@
 
 ---
 
-## 1. Workout Logger - Progression/Regression Prompts
+## 1. Workout Logger - Progression/Regression Feedback
 
-After a user completes all 3 sets of an exercise, the app shows feedback on whether they should increase weight (progression), decrease weight (regression), or keep doing what you're doing (consistency).
+After a user completes an exercise, the app evaluates performance and shows feedback using three different UI mechanisms depending on the outcome.
 
-### Rules (Traffic Light System)
+### Feedback Mechanisms
+
+#### A) Regression - Modal Overlay
+When the user's first 2 sets fall below the minimum target, a modal overlay is shown with "Edit" and "Continue" buttons, plus an optional "Next Exercise" button if more exercises remain.
 
 ```
-WHEN all 3 sets are completed for an exercise:
+WHEN exercise is submitted:
 
-  GET Set 1 reps, Set 2 reps, Set 3 reps
+  GET completed sets
   GET target rep range (min and max)
 
-  // 🔴 RED LIGHT - Regression (Highest Priority)
   IF Set 1 reps < minimum target OR Set 2 reps < minimum target:
-    SHOW regression prompt
-    MESSAGE: "⚠️ Form check needed - reduce weight"
-    EXPLANATION: "Your first 2 sets fell below the target range"
-    STOP (don't check other conditions)
+    SHOW modal overlay (FeedbackModalOverlay)
+    TITLE: "Building Strength"
+    MESSAGE: "Focus on hitting {min}-{max} reps before increasing weight."
+    BUTTONS: "Edit" (stay on page), "Continue" (complete exercise), "Next: {name}" (if available)
+```
 
-  // 🟢 GREEN LIGHT - Progression (Medium Priority)
-  IF Set 1 reps >= maximum target
-     AND Set 2 reps >= maximum target
-     AND Set 3 reps >= minimum target:
-    SHOW progression prompt
-    MESSAGE: "💪 Ready to progress - increase weight next session"
-    EXPLANATION: "First 2 sets at/above max, 3rd set in range"
-    STOP
+#### B) Non-Regression - Inline Highlight Card
+When the user is NOT in regression (consistency or better), a brief inline card slides up from the bottom of the screen. It auto-dismisses after 2.5 seconds or on tap, then calls onComplete.
 
-  // 🟡 AMBER LIGHT - Consistency (Special Case)
-  IF Set 1 reps >= maximum target
-     AND Set 2 reps >= maximum target
-     AND Set 3 reps < minimum target:
-    SHOW consistency prompt
-    MESSAGE: "🎯 Great consistency - maintain and push on 3rd set"
-    EXPLANATION: "Strong start but 3rd set fell short"
-    STOP
+```
+  IF NOT regression:
+    COMPARE with previous session data:
+      IF max weight this session > max weight previous session:
+        MESSAGE: "You lifted Xkg more!"
+      ELSE IF total reps this session > total reps previous session:
+        MESSAGE: "+X reps across sets!"
+      ELSE:
+        MESSAGE: "You showed up!"
+    SHOW inline highlight card at bottom of screen
+    AUTO-DISMISS after 2.5 seconds
+    SHOW "Next: {exercise name}" button if more exercises remain
+```
 
-  // 🟡 AMBER LIGHT - Consistency (Default)
-  ELSE:
-    SHOW consistency prompt
-    MESSAGE: "🎯 Great work - maintain this weight"
-    EXPLANATION: "Everything within target range or mixed results"
+#### C) Progression - WHOOP-style Banner (Shown on Next Visit)
+Progression feedback does NOT appear at exercise completion time. Instead, the next time the user opens that exercise in the logger, a banner appears if the previous session met progression criteria.
+
+```
+ON ExerciseLoggerView.onAppear:
+  GET previous session data for this exercise
+  IF previous Set 1 reps >= target max
+     AND previous Set 2 reps >= target max
+     AND previous Set 3 reps >= target min:
+    SHOW progression banner at TOP of Logger tab
+    (between tab selector and ExerciseLoggerInfoSection)
+    MESSAGE: "You're ready to increase the weight!"
+    SUBTITLE: "You exceeded the rep range last session."
+    ICON: arrow.up.circle.fill
+    BACKGROUND: trainSuccess with opacity
+    DISMISSIBLE: X button
 ```
 
 ### Important Notes
-- Prompts only show when **all 3 sets** are completed
-- There's a 500ms delay (debounce) to prevent flickering while typing
-- Regression **always wins** if any of first 2 sets are below minimum
-- We focus on first 2 sets because set 3 is expected to be harder (fatigue)
+- Regression check always runs first (highest priority)
+- Regression is the ONLY case that shows a modal overlay
+- Non-regression always shows the inline highlight card (auto-dismiss)
+- Progression banner appears on the NEXT session, not immediately after completion
+- The inline card and next exercise button both call onComplete to navigate back
+- Previous session data is fetched via `AuthService.shared.getPreviousSessionData(programId:exerciseName:)`
 
 ---
 
