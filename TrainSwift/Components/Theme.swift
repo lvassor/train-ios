@@ -40,30 +40,47 @@ extension Color {
 // The Color extensions are applied there automatically
 
 // MARK: - Typography
-// Apple-inspired glassmorphic design system with SF Pro Rounded
+// Dynamic Type-aware typography tokens.
+// Text fonts use built-in SwiftUI text styles so they scale with the user's
+// preferred content size. Apply `.fontDesign(.rounded)` at the NavigationStack
+// or per-view level (or use the `.trainRounded()` modifier) to get the rounded
+// design system look — this keeps Dynamic Type scaling intact.
+//
+// Number fonts remain fixed-size because they are decorative / layout-critical.
 extension Font {
-    // Headers - using SF Pro Rounded for softer, more approachable feel
-    static let trainTitle = Font.system(size: 28, weight: .semibold, design: .rounded)        // Bumped for rounded design
-    static let trainTitle2 = Font.system(size: 24, weight: .semibold, design: .rounded)       // Bumped weight for presence
-    static let trainHeadline = Font.system(size: 20, weight: .semibold, design: .rounded)     // Semibold for headers
+    // Headers — scale with Dynamic Type
+    static var trainTitle: Font { .title.weight(.semibold) }                   // ~28pt base
+    static var trainTitle2: Font { .title2.weight(.semibold) }                 // ~22pt base
+    static var trainHeadline: Font { .headline }                               // ~17pt base, semibold by default
 
-    // Body - default design for better readability
-    static let trainSubtitle = Font.system(size: 16, weight: .regular)      // Regular for body text
-    static let trainBody = Font.system(size: 16, weight: .regular)          // Regular for body text
-    static let trainBodyMedium = Font.system(size: 18, weight: .medium, design: .rounded)   // Rounded for interactive elements
-    static let trainCaption = Font.system(size: 14, weight: .regular)       // Slightly smaller caption
-    static let trainCaptionLarge = Font.system(size: 15.5, weight: .regular)  // Larger caption for questionnaire descriptions
+    // Body — scale with Dynamic Type
+    static var trainSubtitle: Font { .subheadline }                            // ~15pt base
+    static var trainBody: Font { .body }                                       // ~17pt base
+    static var trainBodyMedium: Font { .body.weight(.medium) }                 // ~17pt base, medium weight
+    static var trainCaption: Font { .caption }                                 // ~12pt base
+    static var trainCaptionLarge: Font { .callout }                            // ~16pt base
 
-    // Small text
-    static let trainCaptionSmall = Font.system(size: 12, weight: .regular)    // Day labels, secondary counts
-    static let trainTag = Font.system(size: 11, weight: .medium)              // Tags, badges
-    static let trainMicro = Font.system(size: 10, weight: .regular)           // Micro labels
+    // Small text — scale with Dynamic Type
+    static var trainCaptionSmall: Font { .caption2 }                           // ~11pt base
+    static var trainTag: Font { .caption2.weight(.medium) }                    // ~11pt base, medium weight
+    static var trainMicro: Font { .caption2 }                                  // ~11pt base
 
-    // Special - rounded design for numbers
+    // Special — fixed-size rounded numbers (decorative, should NOT scale)
     static let trainLargeNumber = Font.system(size: 72, weight: .bold, design: .rounded)
     static let trainMediumNumber = Font.system(size: 48, weight: .semibold, design: .rounded)  // For stats
     static let trainSmallNumber = Font.system(size: 24, weight: .semibold, design: .rounded)   // For compact displays
     static let trainPickerNumber = Font.system(size: 56, weight: .bold, design: .rounded)      // Picker wheels
+}
+
+// MARK: - Rounded Font Design Modifier
+extension View {
+    /// Applies the SF Pro Rounded design across all descendant text in this view.
+    /// Attach at the NavigationStack or screen level so every `trainTitle`,
+    /// `trainBody`, etc. inherits the rounded design while still scaling with
+    /// Dynamic Type.
+    func trainRounded() -> some View {
+        self.fontDesign(.rounded)
+    }
 }
 
 // MARK: - Line Height
@@ -150,6 +167,67 @@ struct ThumbnailSize {
     static let width: CGFloat = 80
     static let height: CGFloat = 64
     static let cornerRadius: CGFloat = CornerRadius.xs
+}
+
+// MARK: - Shadow Tokens
+/// Standardized elevation levels — replace all ad-hoc .shadow() calls with these
+struct ShadowStyle {
+    let color: Color
+    let radius: CGFloat
+    let x: CGFloat
+    let y: CGFloat
+
+    /// No shadow
+    static let none = ShadowStyle(color: .clear, radius: 0, x: 0, y: 0)
+    /// Hairline bottom border — cards in lists, dividers
+    static let borderLine = ShadowStyle(color: .black.opacity(0.1), radius: 0, x: 0, y: 1)
+    /// Subtle lift — compact cards, tags
+    static let subtle = ShadowStyle(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+    /// Standard card elevation
+    static let card = ShadowStyle(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+    /// Elevated element — buttons, floating elements
+    static let elevated = ShadowStyle(color: .black.opacity(0.1), radius: 16, x: 0, y: 8)
+    /// Modal/overlay — heavy elevation for overlays and modals
+    static let modal = ShadowStyle(color: .black.opacity(0.15), radius: 30, x: 0, y: 10)
+    /// Carousel/media card
+    static let media = ShadowStyle(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+    /// Icon overlay on thumbnails
+    static let iconOverlay = ShadowStyle(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+    /// Drag state for reorderable elements
+    static let dragging = ShadowStyle(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+    /// Nav bar upward shadow
+    static let navBar = ShadowStyle(color: .black.opacity(0.1), radius: 8, x: 0, y: -2)
+}
+
+extension View {
+    /// Apply a standardized shadow token
+    func shadowStyle(_ style: ShadowStyle) -> some View {
+        self.shadow(color: style.color, radius: style.radius, x: style.x, y: style.y)
+    }
+}
+
+// MARK: - Border Width Tokens
+struct BorderWidth {
+    static let hairline: CGFloat = 1       // Subtle card outlines
+    static let standard: CGFloat = 1.5     // Input field borders
+    static let emphasis: CGFloat = 2       // Selected state, error borders
+    static let heavy: CGFloat = 3          // Strong visual emphasis
+}
+
+// MARK: - Opacity Tokens
+struct OpacityLevel {
+    static let disabled: Double = 0.3      // Disabled elements, inactive states
+    static let secondary: Double = 0.5     // Secondary information, subtle fills
+    static let primary: Double = 0.8       // Primary-but-translucent elements
+    static let full: Double = 1.0          // Fully opaque
+}
+
+// MARK: - Animation Duration Tokens
+struct AnimationDuration {
+    static let quick: Double = 0.15        // Micro-interactions (checkmarks, toggles)
+    static let standard: Double = 0.3      // Standard transitions
+    static let slow: Double = 0.5          // Celebration, entrance animations
+    static let celebration: Double = 0.8   // PB overlays, confetti
 }
 
 // MARK: - Centralized App Gradient

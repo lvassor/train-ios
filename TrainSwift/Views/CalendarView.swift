@@ -19,15 +19,19 @@ struct CalendarView: View {
     @FetchRequest private var workoutSessions: FetchedResults<CDWorkoutSession>
 
     init() {
-        // Initialize with empty predicate, will be updated based on current user
+        // Filter to current user's sessions only
         let request: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \CDWorkoutSession.completedAt, ascending: false)]
-        request.predicate = NSPredicate(value: true) // Placeholder
+        if let userId = AuthService.shared.currentUser?.id {
+            request.predicate = NSPredicate(format: "userId == %@", userId as CVarArg)
+        } else {
+            request.predicate = NSPredicate(value: false) // No user — show nothing
+        }
         _workoutSessions = FetchRequest(fetchRequest: request)
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                     // Month Navigation
                     MonthNavigationView(currentMonth: $currentMonth)
@@ -69,6 +73,8 @@ struct CalendarView: View {
                         Text("Done")
                             .foregroundColor(.trainPrimary)
                     }
+                    .accessibilityLabel("Done")
+                    .accessibilityHint("Close workout history")
                 }
             }
         }
@@ -120,6 +126,7 @@ struct MonthNavigationView: View {
                     .font(.title3)
                     .foregroundColor(.trainPrimary)
             }
+            .accessibilityLabel("Previous month")
 
             Spacer()
 
@@ -134,6 +141,7 @@ struct MonthNavigationView: View {
                     .font(.title3)
                     .foregroundColor(.trainPrimary)
             }
+            .accessibilityLabel("Next month")
         }
         .gesture(
             DragGesture(minimumDistance: 30, coordinateSpace: .local)
@@ -177,7 +185,7 @@ struct CalendarGridView: View {
     @Binding var selectedDate: Date?
 
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
-    private let daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    private let daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
     var body: some View {
         VStack(spacing: Spacing.sm) {
@@ -215,7 +223,8 @@ struct CalendarGridView: View {
     }
 
     private func getDaysInMonth() -> [Date?] {
-        let calendar = Calendar.current
+        var calendar = Calendar.current
+        calendar.firstWeekday = 2 // Monday start
         guard let monthInterval = calendar.dateInterval(of: .month, for: currentMonth),
               let monthFirstWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.start) else {
             return []
@@ -267,6 +276,10 @@ struct CalendarDayView: View {
     let isToday: Bool
     let onTap: () -> Void
 
+    private var dayNumber: Int {
+        Calendar.current.component(.day, from: date)
+    }
+
     var body: some View {
         Button(action: onTap) {
             ZStack {
@@ -281,7 +294,7 @@ struct CalendarDayView: View {
                 }
 
                 // Day Number
-                Text("\(Calendar.current.component(.day, from: date))")
+                Text("\(dayNumber)")
                     .font(.trainBody)
                     .foregroundColor(isSelected ? .white : .trainTextPrimary)
 
@@ -295,6 +308,8 @@ struct CalendarDayView: View {
             }
             .frame(height: ElementHeight.tabSelector)
         }
+        .accessibilityLabel("Day \(dayNumber)")
+        .accessibilityValue(hasWorkout ? "Has workout" : "No workout")
     }
 }
 
@@ -371,6 +386,8 @@ struct WorkoutHistoryCard: View {
         }
         .padding(Spacing.md)
         .glassCompactCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(workout.sessionType), \(workout.durationMinutes) minutes, \(workout.exercises.count) exercises")
     }
 }
 

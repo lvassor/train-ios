@@ -244,7 +244,7 @@ struct AlternativeExerciseCard: View {
                     Image(systemName: "play.circle.fill")
                         .font(.system(size: IconSize.lg))
                         .foregroundColor(.white.opacity(0.9))
-                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        .shadowStyle(.iconOverlay)
                 }
             }
             .frame(height: 80)

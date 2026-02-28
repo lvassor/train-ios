@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct PasswordResetCodeView: View {
     let email: String
@@ -17,6 +18,10 @@ struct PasswordResetCodeView: View {
     @FocusState private var focusedField: Int?
     @State private var showError: Bool = false
     @State private var navigateToNewPassword: Bool = false
+    @State private var shakeOffset: CGFloat = 0
+    @State private var showSuccess: Bool = false
+    @State private var resendCooldown: Int = 0
+    @State private var resendTimer: Timer?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -57,6 +62,7 @@ struct PasswordResetCodeView: View {
                 HStack(spacing: Spacing.sm) {
                     ForEach(0..<6, id: \.self) { index in
                         TextField("", text: $code[index])
+                            .textContentType(.oneTimeCode)
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.center)
                             .frame(width: 48, height: 56)
@@ -64,7 +70,7 @@ struct PasswordResetCodeView: View {
                             .cornerRadius(CornerRadius.xs)
                             .overlay(
                                 RoundedRectangle(cornerRadius: CornerRadius.xs)
-                                    .stroke(showError ? Color.red : Color.clear, lineWidth: 2)
+                                    .stroke(showError ? Color.trainError : Color.clear, lineWidth: 2)
                             )
                             .font(.trainSmallNumber).fontWeight(.bold)
                             .focused($focusedField, equals: index)
@@ -73,27 +79,48 @@ struct PasswordResetCodeView: View {
                             }
                     }
                 }
+                .offset(x: shakeOffset)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.vertical, Spacing.md)
 
                 if showError {
                     Text("Invalid code. Please try again.")
                         .font(.trainCaption)
-                        .foregroundColor(.red)
+                        .foregroundColor(.trainError)
+                }
+
+                // Resend code option
+                if resendCooldown > 0 {
+                    Text("Resend code in \(resendCooldown)s")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+                } else {
+                    Button(action: resendCode) {
+                        Text("Resend Code")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainPrimary)
+                    }
                 }
             }
             .frame(maxWidth: .infinity)
             .appCard()
             .cornerRadius(20, corners: [.topLeft, .topRight])
-            .shadow(radius: 20)
-
-            if navigateToNewPassword {
-                Color.clear
-                    .frame(height: 0)
-                    .sheet(isPresented: $navigateToNewPassword) {
-                        PasswordResetNewPasswordView(onSuccess: onSuccess)
-                    }
+            .shadowStyle(.modal)
+            .overlay {
+                if showSuccess {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.trainSuccess)
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
+        }
+        .sheet(isPresented: $navigateToNewPassword, onDismiss: {
+            onSuccess()
+        }) {
+            PasswordResetNewPasswordView(onSuccess: {
+                navigateToNewPassword = false
+            })
         }
         .onAppear {
             // Auto-focus first field
@@ -132,16 +159,25 @@ struct PasswordResetCodeView: View {
             // Code is correct
             AppLogger.logAuth("[PASSWORD RESET] Code verified successfully")
             showError = false
-            onDismiss()
-
-            // Navigate to new password screen
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            withAnimation(.spring()) {
+                showSuccess = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                onDismiss()
                 navigateToNewPassword = true
             }
         } else {
             // Code is incorrect
             AppLogger.logAuth("[PASSWORD RESET] Invalid code entered", level: .error)
             showError = true
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            withAnimation(.default.repeatCount(3, autoreverses: true).speed(6)) {
+                shakeOffset = 10
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                shakeOffset = 0
+            }
 
             // Clear all fields and refocus first
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -149,6 +185,19 @@ struct PasswordResetCodeView: View {
                 focusedField = 0
             }
         }
+    }
+
+    private func resendCode() {
+        resendCooldown = 60
+        resendTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+            if resendCooldown > 0 {
+                resendCooldown -= 1
+            } else {
+                timer.invalidate()
+                resendTimer = nil
+            }
+        }
+        AppLogger.logAuth("[PASSWORD RESET] Resend code requested for email: \(email)")
     }
 }
 

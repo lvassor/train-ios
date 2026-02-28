@@ -67,7 +67,7 @@ struct DashboardContent: View {
                             VStack(spacing: Spacing.lg) {
                                 Image(systemName: "exclamationmark.triangle")
                                     .font(.system(size: IconSize.xl))
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(.trainWarning)
 
                                 Text("No Training Program Found")
                                     .font(.trainTitle)
@@ -96,6 +96,7 @@ struct DashboardContent: View {
                     }
                     .padding(.bottom, Spacing.lg)
                 }
+                .refreshable { await reloadDashboardData() }
                 .scrollContentBackground(.hidden)
                 .edgeFadeMask(topFade: 16, bottomFade: 60)
             }
@@ -123,6 +124,14 @@ struct DashboardContent: View {
     private func calculateStreak() -> Int {
         guard let userId = user?.id else { return 0 }
         return SessionCompletionHelper.calculateStreak(userId: userId)
+    }
+
+    /// Re-fetch dashboard data on pull-to-refresh
+    private func reloadDashboardData() async {
+        // Refresh user profile and program data from the auth service
+        authService.objectWillChange.send()
+        // Small delay to allow UI to reflect the refresh indicator
+        try? await Task.sleep(nanoseconds: 300_000_000)
     }
 }
 
@@ -400,7 +409,7 @@ struct WeeklySessionsSection: View {
             }
 
             // Generate abbreviation (never numbered)
-            abbreviation = getAbbreviation(for: session.dayName)
+            abbreviation = SessionNameFormatter.abbreviation(for: session.dayName)
 
             result.append((fullName: fullName, abbreviation: abbreviation))
         }
@@ -408,17 +417,6 @@ struct WeeklySessionsSection: View {
         return result
     }
 
-    private func getAbbreviation(for dayName: String) -> String {
-        switch dayName.lowercased() {
-        case "push": return "P"
-        case "pull": return "Pu"
-        case "legs": return "L"
-        case "upper", "upper body": return "U"
-        case "lower", "lower body": return "Lo"
-        case "full body": return "FB"
-        default: return String(dayName.prefix(1)).uppercased()
-        }
-    }
 }
 
 // MARK: - Horizontal Day Buttons Row (Figma Redesign - Pill Style)
@@ -471,6 +469,8 @@ struct HorizontalDayButtonsRow: View {
                             )
                     }
                     .buttonStyle(ScaleButtonStyle())
+                    .accessibilityLabel("\(sessionNames[index].fullName) session")
+                    .accessibilityValue(isCompleted ? "Completed" : "Not started")
                 }
             }
         }
@@ -527,14 +527,14 @@ struct SessionActionButton: View {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "timer")
                         .font(.system(size: IconSize.sm))
-                        .foregroundColor(.orange)
+                        .foregroundColor(.trainWarning)
                     Text("Active workout: \(workoutState.activeWorkout?.sessionName ?? "")")
                         .font(.trainCaption)
-                        .foregroundColor(.orange)
+                        .foregroundColor(.trainWarning)
                 }
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.xs)
-                .background(Color.orange.opacity(0.1))
+                .background(Color.trainWarning.opacity(0.1))
                 .clipShape(Capsule())
             }
 
@@ -554,6 +554,8 @@ struct SessionActionButton: View {
                     .background(Color.trainPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 }
+                .accessibilityLabel("Start Workout")
+                .accessibilityHint("Opens the workout session")
             } else {
                 // Normal: no conflict, navigate directly
                 NavigationLink(destination: WorkoutOverviewView(
@@ -574,6 +576,8 @@ struct SessionActionButton: View {
                     .background(Color.trainPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 }
+                .accessibilityLabel(buttonText)
+                .accessibilityHint("Opens the workout session")
             }
 
             // Show View Completed Workout button below Start button if session has been completed this week
@@ -594,6 +598,8 @@ struct SessionActionButton: View {
                     .background(Color.trainPrimary.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 }
+                .accessibilityLabel("View Completed Workout")
+                .accessibilityHint("View details of your completed workout")
             }
         }
         .navigationDestination(isPresented: $navigateToNewWorkout) {
@@ -652,6 +658,7 @@ struct ExerciseListView: View {
     // Navigation state for exercise detail
     @State private var selectedExercise: DBExercise?
     @State private var showExerciseDetail = false
+    @State private var showNavigationError = false
 
     // Thumbnail width is 80, padding is 16, so center of thumbnail is at 16 + 40 = 56
     private let lineXOffset: CGFloat = 56
@@ -695,6 +702,11 @@ struct ExerciseListView: View {
                 ExerciseDemoHistoryView(exercise: exercise)
             }
         }
+        .alert("Exercise Not Found", isPresented: $showNavigationError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("This exercise could not be loaded. Please try again.")
+        }
     }
 
     private func navigateToExerciseDetail(_ exercise: ProgramExercise) {
@@ -702,9 +714,12 @@ struct ExerciseListView: View {
             if let dbExercise = try ExerciseDatabaseManager.shared.fetchExercise(byId: exercise.exerciseId) {
                 selectedExercise = dbExercise
                 showExerciseDetail = true
+            } else {
+                showNavigationError = true
             }
         } catch {
             AppLogger.logDatabase("Error fetching exercise: \(error)", level: .error)
+            showNavigationError = true
         }
     }
 }
@@ -715,25 +730,46 @@ struct CompletedSessionSummaryCard: View {
     let userProgram: WorkoutProgram
     let sessionIndex: Int
 
-    // TODO: These would come from Core Data in a real implementation
+    @ObservedObject private var authService = AuthService.shared
+
+    /// Find the most recent completed session matching this session index
+    private var completedSession: CDWorkoutSession? {
+        guard let userId = authService.currentUser?.id,
+              let programData = userProgram.getProgram() else { return nil }
+
+        let sessions = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
+        guard sessionIndex < sessions.count else { return nil }
+        let sessionName = sessions[sessionIndex].dayName
+
+        let thisWeek = SessionCompletionHelper.sessionsCompletedThisWeek(userId: userId)
+        return thisWeek.filter { $0.sessionName == sessionName }
+            .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
+            .first
+    }
+
     private var completionDate: Date {
-        // Placeholder - would retrieve from stored workout session
-        Date()
+        completedSession?.completedAt ?? Date()
     }
 
     private var duration: String {
-        // Placeholder - would calculate from stored data
-        "47:20"
+        guard let seconds = completedSession?.durationSeconds, seconds > 0 else { return "--" }
+        let mins = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return String(format: "%d:%02d", mins, secs)
     }
 
-    private var increasedReps: Int {
-        // Placeholder - would calculate comparing to previous session
-        12
+    private var totalWeight: Double {
+        guard let data = completedSession?.exercisesData,
+              let exercises = try? JSONDecoder().decode([LoggedExercise].self, from: data) else { return 0 }
+        return exercises.reduce(0) { total, ex in
+            total + ex.sets.filter { $0.completed }.reduce(0) { $0 + ($1.weight * Double($1.reps)) }
+        }
     }
 
-    private var increasedLoad: Double {
-        // Placeholder - would calculate comparing to previous session
-        25.0
+    private var exerciseCount: Int {
+        guard let data = completedSession?.exercisesData,
+              let exercises = try? JSONDecoder().decode([LoggedExercise].self, from: data) else { return 0 }
+        return exercises.count
     }
 
     var body: some View {
@@ -759,7 +795,7 @@ struct CompletedSessionSummaryCard: View {
                     SummaryStatItem(
                         icon: "calendar",
                         label: "Completed",
-                        value: formatDate(completionDate)
+                        value: Self.formatDate(completionDate)
                     )
 
                     SummaryStatItem(
@@ -771,16 +807,15 @@ struct CompletedSessionSummaryCard: View {
 
                 HStack(spacing: Spacing.lg) {
                     SummaryStatItem(
-                        icon: "arrow.up.circle.fill",
-                        label: "Extra Reps",
-                        value: "+\(increasedReps)",
-                        valueColor: .trainPrimary
+                        icon: "dumbbell.fill",
+                        label: "Exercises",
+                        value: "\(exerciseCount)"
                     )
 
                     SummaryStatItem(
                         icon: "scalemass.fill",
-                        label: "Extra Load",
-                        value: "+\(String(format: "%.1f", increasedLoad))kg",
+                        label: "Total Volume",
+                        value: totalWeight > 0 ? "\(Int(totalWeight))kg" : "--",
                         valueColor: .trainPrimary
                     )
                 }
@@ -789,13 +824,17 @@ struct CompletedSessionSummaryCard: View {
         .padding(Spacing.lg)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 16, x: 0, y: 8)
+        .shadowStyle(.elevated)
     }
 
-    private func formatDate(_ date: Date) -> String {
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd/MM/yy"
-        return formatter.string(from: date)
+        return formatter
+    }()
+
+    private static func formatDate(_ date: Date) -> String {
+        dateFormatter.string(from: date)
     }
 }
 
@@ -850,7 +889,7 @@ struct SessionBubble: View {
         .padding(Spacing.md)
         .background(isCompleted ? Color.trainPrimary : Color.trainSurface)
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+        .shadowStyle(.card)
     }
 }
 
@@ -895,7 +934,7 @@ struct ExpandedSessionBubble: View {
         .padding(Spacing.md)
         .appCard()
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+        .shadowStyle(.card)
     }
 }
 
@@ -1020,7 +1059,7 @@ struct UpcomingWorkoutCard: View {
             Spacer()
         }
         .padding(Spacing.md)
-        .glassCompactCard(cornerRadius: 15)
+        .glassCompactCard(cornerRadius: CornerRadius.md)
     }
 }
 
@@ -1060,7 +1099,7 @@ struct BottomNavigationBar: View {
         }
         .frame(height: ElementHeight.tabBar)
         .appCard()
-        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
+        .shadowStyle(.navBar)
     }
 }
 
@@ -1153,6 +1192,9 @@ struct ActiveWorkoutTimerView: View {
                 .padding(.horizontal, Spacing.lg)
             }
             .buttonStyle(PlainButtonStyle())
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Active workout, \(elapsedTimeFormatted) elapsed")
+            .accessibilityHint("Continue your active workout")
             .onAppear {
                 startTimer()
             }
@@ -1180,17 +1222,21 @@ struct ActiveWorkoutTimerView: View {
 struct TopHeaderView: View {
     @ObservedObject var authService = AuthService.shared
     @State private var currentStreak: Int = 0
+    @State private var showProfile = false
 
     var body: some View {
         HStack {
             // Streak indicator - Figma style
             HStack(spacing: Spacing.xs) {
-                Text("🔥")
+                Text("\u{1F525}")
                     .font(.trainBody)
-                Text("\(currentStreak)")
+                    .opacity(currentStreak > 0 ? 1.0 : 0.3)
+                Text(currentStreak > 0 ? "\(currentStreak)" : "-")
                     .font(.trainBody).fontWeight(.medium)
                     .foregroundColor(.trainTextPrimary)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(currentStreak > 0 ? "Current streak: \(currentStreak) days" : "No active streak")
 
             Spacer()
 
@@ -1202,18 +1248,22 @@ struct TopHeaderView: View {
 
             Spacer()
 
-            // Settings icon (replaces QR scanner per Figma)
+            // Settings icon - navigates to ProfileView
             Button(action: {
-                // TODO: Implement settings navigation
-                AppLogger.logUI("Settings tapped")
+                showProfile = true
             }) {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextPrimary)
             }
+            .accessibilityLabel("Settings")
+            .accessibilityHint("Opens account settings")
         }
         .padding(.horizontal, Layout.horizontalPadding)
         .padding(.vertical, Spacing.smd)
+        .sheet(isPresented: $showProfile) {
+            ProfileView()
+        }
         .onAppear {
             currentStreak = calculateStreak()
         }

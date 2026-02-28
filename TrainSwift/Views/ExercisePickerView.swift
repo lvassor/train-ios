@@ -260,7 +260,7 @@ private struct ExercisePickerCard: View {
                         if isAboveUserLevel {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(.trainCaptionSmall)
-                                .foregroundColor(.orange)
+                                .foregroundColor(.trainWarning)
                         }
                     }
 

@@ -174,7 +174,7 @@ struct HealthProfileStepView: View {
                 // Success message
                 HStack(spacing: Spacing.sm) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundColor(.trainSuccess)
                     Text("Data synced from Apple Health")
                         .font(.trainCaption)
                         .foregroundColor(.trainTextSecondary)

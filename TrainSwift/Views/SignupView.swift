@@ -82,7 +82,7 @@ struct SignupView: View {
                             if showError {
                                 Text(errorMessage)
                                     .font(.trainCaption)
-                                    .foregroundColor(.red)
+                                    .foregroundColor(.trainError)
                                     .padding(.horizontal, Spacing.sm)
                             }
 

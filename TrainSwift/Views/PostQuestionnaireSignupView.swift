@@ -33,11 +33,15 @@ struct PostQuestionnaireSignupView: View {
     init(onSignupSuccess: @escaping () -> Void, onSignupCancel: (() -> Void)? = nil) {
         self.onSignupSuccess = onSignupSuccess
         self.onSignupCancel = onSignupCancel
+        #if DEBUG
         AppLogger.logAuth("[SIGNUP VIEW] NEW PostQuestionnaireSignupView created - ID: \(viewID.uuidString.prefix(8))")
+        #endif
     }
 
     var body: some View {
+        #if DEBUG
         let _ = AppLogger.logAuth("[SIGNUP VIEW] body executed - ID: \(viewID.uuidString.prefix(8)), showEmailSignup: \(viewModel.showEmailSignup)")
+        #endif
         ScrollView {
             VStack(spacing: Spacing.xl) {
                 Spacer()
@@ -89,17 +93,17 @@ struct PostQuestionnaireSignupView: View {
 
                     // Sign up with Email Button
                     Button(action: {
-                        AppLogger.logAuth("[SIGNUP BUTTONS] 'Sign up with Email' tapped, BEFORE: showEmailSignup = \(viewModel.showEmailSignup)")
                         viewModel.showEmailSignup = true
-                        AppLogger.logAuth("[SIGNUP BUTTONS] AFTER: showEmailSignup = \(viewModel.showEmailSignup)")
-
-                        // Add a small delay to see if something changes it back immediately
+                        #if DEBUG
+                        AppLogger.logAuth("[SIGNUP BUTTONS] 'Sign up with Email' tapped, showEmailSignup = \(viewModel.showEmailSignup)")
+                        // Delayed checks to detect if something resets the flag
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             AppLogger.logAuth("[SIGNUP BUTTONS] 0.1s later check: showEmailSignup = \(viewModel.showEmailSignup)")
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             AppLogger.logAuth("[SIGNUP BUTTONS] 0.5s later check: showEmailSignup = \(viewModel.showEmailSignup)")
                         }
+                        #endif
                     }) {
                         HStack(spacing: Spacing.md) {
                             Image(systemName: "envelope.fill")
@@ -177,7 +181,9 @@ struct PostQuestionnaireSignupView: View {
             PrivacyPolicySheet()
         }
         .sheet(isPresented: $viewModel.showEmailSignup, onDismiss: {
+            #if DEBUG
             AppLogger.logAuth("[SHEET] Sheet dismissed via onDismiss, showEmailSignup: \(viewModel.showEmailSignup)")
+            #endif
         }) {
             EmailSignupSheet(
                 onSignupSuccess: {
@@ -190,12 +196,14 @@ struct PostQuestionnaireSignupView: View {
                 questionnaireData: viewModel.questionnaireData,
                 generatedProgram: viewModel.generatedProgram
             )
+            #if DEBUG
             .onAppear {
                 AppLogger.logAuth("[EMAIL SHEET] onAppear - parent ID: \(viewID.uuidString.prefix(8)), showEmailSignup: \(viewModel.showEmailSignup)")
             }
             .onDisappear {
                 AppLogger.logAuth("[EMAIL SHEET] onDisappear - showEmailSignup: \(viewModel.showEmailSignup)")
             }
+            #endif
         }
         .sheet(isPresented: $showLogin) {
             LoginView(
@@ -323,6 +331,9 @@ struct EmailSignupSheet: View {
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
     @State private var showTermsAndConditions: Bool = false
+    @State private var showPassword: Bool = false
+    @State private var emailError: String? = nil
+    @State private var passwordError: String? = nil
 
     let onSignupSuccess: () -> Void
     let questionnaireData: QuestionnaireData
@@ -375,6 +386,17 @@ struct EmailSignupSheet: View {
                                 .padding(Spacing.md)
                                 .appCard()
                                 .cornerRadius(CornerRadius.md)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                                        .stroke(emailError != nil ? Color.trainError : Color.clear, lineWidth: 1)
+                                )
+                                .onChange(of: email) { _, _ in validateEmail() }
+
+                            if let error = emailError {
+                                Text(error)
+                                    .font(.trainCaptionSmall)
+                                    .foregroundColor(.trainError)
+                            }
                         }
 
                         // Password
@@ -383,14 +405,37 @@ struct EmailSignupSheet: View {
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.trainTextPrimary)
 
-                            SecureField("Create a password", text: $password)
-                                .padding(Spacing.md)
-                                .appCard()
-                                .cornerRadius(CornerRadius.md)
+                            HStack {
+                                if showPassword {
+                                    TextField("Create a password", text: $password)
+                                        .textContentType(.password)
+                                } else {
+                                    SecureField("Create a password", text: $password)
+                                }
 
-                            Text("Min 6 chars with a number and special character")
-                                .font(.trainCaption)
-                                .foregroundColor(.trainTextSecondary)
+                                Button(action: { showPassword.toggle() }) {
+                                    Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                        .foregroundColor(.trainTextSecondary)
+                                }
+                            }
+                            .padding(Spacing.md)
+                            .appCard()
+                            .cornerRadius(CornerRadius.md)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: CornerRadius.md)
+                                    .stroke(passwordError != nil ? Color.trainError : Color.clear, lineWidth: 1)
+                            )
+                            .onChange(of: password) { _, _ in validatePassword() }
+
+                            if let error = passwordError {
+                                Text(error)
+                                    .font(.trainCaptionSmall)
+                                    .foregroundColor(.trainError)
+                            } else {
+                                Text("Min 6 chars with a number and special character")
+                                    .font(.trainCaption)
+                                    .foregroundColor(.trainTextSecondary)
+                            }
                         }
 
                         // Terms and Conditions
@@ -420,7 +465,7 @@ struct EmailSignupSheet: View {
                         if showError {
                             Text(errorMessage)
                                 .font(.trainCaption)
-                                .foregroundColor(.red)
+                                .foregroundColor(.trainError)
                                 .padding(.horizontal, Spacing.sm)
                         }
 
@@ -472,6 +517,30 @@ struct EmailSignupSheet: View {
         let hasNumber = password.rangeOfCharacter(from: .decimalDigits) != nil
         let hasSpecial = password.rangeOfCharacter(from: CharacterSet(charactersIn: "!@#$%^&*()_+-=[]{}|;:',.<>?/~`")) != nil
         return hasNumber && hasSpecial
+    }
+
+    private func validateEmail() {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Z0-9a-z.-]+\\.[A-Za-z]{2,}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        if email.isEmpty {
+            emailError = nil
+        } else if !emailPredicate.evaluate(with: email) {
+            emailError = "Please enter a valid email address"
+        } else {
+            emailError = nil
+        }
+    }
+
+    private func validatePassword() {
+        if password.isEmpty {
+            passwordError = nil
+        } else if password.count < 6 {
+            passwordError = "Password must be at least 6 characters"
+        } else if !isValidPassword(password) {
+            passwordError = "Password must contain a number and special character"
+        } else {
+            passwordError = nil
+        }
     }
 
     private func handleSignup() {

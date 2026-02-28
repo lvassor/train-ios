@@ -10,25 +10,12 @@ import SwiftUI
 
 struct CombinedLibraryView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var selectedTab: LibraryTab = .exercises
     @State private var showSearch: Bool = false
     @State private var searchText: String = ""
 
-    enum LibraryTab: String, CaseIterable, Hashable {
-        case exercises = "Exercises"
-        case education = "Education"
-
-        var icon: String {
-            switch self {
-            case .exercises: return "dumbbell.fill"
-            case .education: return "book.fill"
-            }
-        }
-    }
-
     var body: some View {
         VStack(spacing: 0) {
-                // Toolbar area - switches between tabs and search
+                // Toolbar area - search toggle
                 if showSearch {
                     // Inline search bar (replaces toolbar)
                     HStack(spacing: Spacing.sm) {
@@ -67,7 +54,7 @@ struct CombinedLibraryView: View {
                     .padding(.top, Spacing.md)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 } else {
-                    // Compact toolbar with native segmented picker
+                    // Compact toolbar with search button
                     HStack(spacing: Spacing.sm) {
                         // Search button
                         Button(action: {
@@ -83,31 +70,19 @@ struct CombinedLibraryView: View {
                                 .clipShape(Circle())
                         }
 
-                        // Tab picker with native segmented control
-                        Picker("Library", selection: $selectedTab) {
-                            ForEach(LibraryTab.allCases, id: \.self) { tab in
-                                Label(tab.rawValue, systemImage: tab.icon)
-                                    .tag(tab)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 200)
+                        Spacer()
                     }
                     .padding(.horizontal, Spacing.lg)
                     .padding(.top, Spacing.md)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
 
-            // Content
-            if selectedTab == .exercises {
-                ExerciseLibraryContent(showSearch: showSearch, searchText: $searchText)
-            } else {
-                EducationLibraryContent()
-            }
+            // Content - Exercises only (Education tab hidden until content exists)
+            ExerciseLibraryContent(showSearch: showSearch, searchText: $searchText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.thinMaterial)
-        .navigationTitle("Library")
+        .navigationTitle("Exercises")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

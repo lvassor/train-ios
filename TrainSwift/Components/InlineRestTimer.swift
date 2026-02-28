@@ -7,6 +7,8 @@
 
 import SwiftUI
 import Combine
+import AudioToolbox
+import UserNotifications
 
 // MARK: - Inline Rest Timer (Non-blocking)
 
@@ -55,6 +57,7 @@ struct InlineRestTimer: View {
                         .background(Color.white.opacity(0.15))
                         .clipShape(Circle())
                 }
+                .accessibilityLabel("Dismiss rest timer")
             }
             .padding(.horizontal, Spacing.md)
             .padding(.vertical, Spacing.sm)
@@ -64,13 +67,21 @@ struct InlineRestTimer: View {
                 insertion: .scale(scale: 0.8).combined(with: .opacity),
                 removal: .scale(scale: 0.8).combined(with: .opacity)
             ))
-            .onAppear { startTimer() }
-            .onDisappear { stopTimer() }
+            .onAppear {
+                startTimer()
+                scheduleLocalNotification()
+            }
+            .onDisappear {
+                stopTimer()
+                cancelPendingNotification()
+            }
             .onChange(of: isActive) { _, newValue in
                 if newValue {
                     resetAndStartTimer()
+                    scheduleLocalNotification()
                 } else {
                     stopTimer()
+                    cancelPendingNotification()
                 }
             }
         }
@@ -93,6 +104,8 @@ struct InlineRestTimer: View {
             if timeRemaining > 0 {
                 timeRemaining -= 1
             } else {
+                // Timer completed — trigger haptic + vibration alert
+                triggerTimerCompletionAlert()
                 withAnimation(.easeOut(duration: 0.3)) {
                     isActive = false
                 }
@@ -103,6 +116,7 @@ struct InlineRestTimer: View {
 
     private func resetAndStartTimer() {
         stopTimer()
+        cancelPendingNotification()
         startTimer()
     }
 
@@ -116,6 +130,57 @@ struct InlineRestTimer: View {
             isActive = false
         }
         stopTimer()
+        cancelPendingNotification()
+    }
+
+    // MARK: - Timer Completion Alert
+
+    /// Triggers haptic feedback and system vibration when rest timer completes
+    private func triggerTimerCompletionAlert() {
+        // Haptic notification feedback (success pattern)
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+
+        // System vibration for stronger alert
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+    }
+
+    // MARK: - Local Notification (for when app is backgrounded)
+
+    private static let notificationIdentifier = "restTimerComplete"
+
+    /// Schedules a local notification so the user gets alerted even if app is backgrounded
+    private func scheduleLocalNotification() {
+        let center = UNUserNotificationCenter.current()
+
+        // Request permission if not yet granted
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            guard granted else { return }
+
+            let content = UNMutableNotificationContent()
+            content.title = "Rest Complete"
+            content.body = "Time to start your next set!"
+            content.sound = .default
+
+            let trigger = UNTimeIntervalNotificationTrigger(
+                timeInterval: TimeInterval(totalSeconds),
+                repeats: false
+            )
+
+            let request = UNNotificationRequest(
+                identifier: Self.notificationIdentifier,
+                content: content,
+                trigger: trigger
+            )
+
+            center.add(request)
+        }
+    }
+
+    /// Cancels the pending notification (timer dismissed early or reset)
+    private func cancelPendingNotification() {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: [Self.notificationIdentifier])
     }
 }
 

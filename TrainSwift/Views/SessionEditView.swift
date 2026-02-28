@@ -306,7 +306,7 @@ struct EditableExerciseCard: View {
             }
             .background(Color.trainSurface)
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-            .shadow(color: .black.opacity(0.1), radius: 0, x: 0, y: 1)
+            .shadowStyle(.borderLine)
         }
         .sheet(isPresented: $showSetsPicker) {
             SetsPicker(selectedSets: Binding(

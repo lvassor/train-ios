@@ -21,7 +21,7 @@ struct NameStepView: View {
                     .font(.trainTitle2)
                     .foregroundColor(.trainTextPrimary)
 
-                Text("Please enter your username")
+                Text("Please enter your name")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -67,7 +67,7 @@ struct NameStepView: View {
     /// Sanitize username to prevent SQL injection and other issues
     private func sanitizeUsername(_ input: String) -> String {
         // Remove SQL injection characters and limit length
-        let dangerous = CharacterSet(charactersIn: "';\"\\--/*<>")
+        let dangerous = CharacterSet(charactersIn: ";\"\\/*<>")
         var sanitized = input.components(separatedBy: dangerous).joined()
 
         // Remove excessive whitespace
@@ -260,7 +260,7 @@ struct AgeStepView: View {
             if age < 18 {
                 Text("You must be at least 18 years old")
                     .font(.trainCaption)
-                    .foregroundColor(.red)
+                    .foregroundColor(.trainError)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, Spacing.lg)
             }
@@ -1004,13 +1004,35 @@ struct EquipmentGroupSection: View {
         max(0, allItems.count - 2)
     }
 
+    private var exerciseCountLabel: String {
+        switch categoryKey {
+        case "barbells": return "Unlocks 30+ exercises"
+        case "dumbbells": return "Unlocks 40+ exercises"
+        case "kettlebells": return "Unlocks 15+ exercises"
+        case "cable_machines": return "Unlocks 25+ exercises"
+        case "pin_loaded": return "Unlocks 20+ exercises"
+        case "plate_loaded": return "Unlocks 15+ exercises"
+        case "other": return "Unlocks 10+ exercises"
+        case "attachments": return "Unlocks 20+ exercises"
+        default: return ""
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // Category heading
-            Text(title)
-                .font(.trainHeadline)
-                .foregroundColor(.trainTextPrimary)
-                .padding(.leading, Spacing.xs)
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                Text(title)
+                    .font(.trainHeadline)
+                    .foregroundColor(.trainTextPrimary)
+
+                if !exerciseCountLabel.isEmpty {
+                    Text(exerciseCountLabel)
+                        .font(.trainCaptionSmall)
+                        .foregroundColor(.trainTextSecondary)
+                }
+            }
+            .padding(.leading, Spacing.xs)
 
             // Equipment cards (max 2)
             VStack(spacing: Spacing.sm) {
@@ -1217,6 +1239,18 @@ struct EquipmentStepView: View {
         ])
     ]
 
+    private var totalSelectedCount: Int {
+        selectedEquipment.count + selectedDetailedEquipment.values.reduce(0) { $0 + $1.count }
+    }
+
+    private var equipmentSubtitle: String {
+        if totalSelectedCount == 0 {
+            return "Select your available equipment"
+        } else {
+            return "We pre-selected \(totalSelectedCount) items based on your gym type. Tap to adjust."
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
@@ -1225,7 +1259,7 @@ struct EquipmentStepView: View {
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Pre-selected based on your gym type")
+                Text(equipmentSubtitle)
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -1365,7 +1399,7 @@ struct EquipmentInfoModal: View {
             .frame(width: 320, height: 480)
             .background(.regularMaterial)
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))
-            .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 15)
+            .shadowStyle(.modal)
             .overlay(
                 // Close button with glassmorphic style
                 Button(action: onDismiss) {
@@ -1542,13 +1576,17 @@ struct TrainingDaysStepView: View {
                 }
                 .frame(height: ElementHeight.tabSelector)
 
-                // Days numbers
+                // Days numbers (tappable)
                 HStack {
                     ForEach(1...6, id: \.self) { day in
-                        Text("\(day)")
-                            .font(.trainBodyMedium)
-                            .foregroundColor(trainingDays == day ? .trainPrimary : .trainTextSecondary)
-                            .frame(maxWidth: .infinity)
+                        Button(action: { trainingDays = day }) {
+                            Text("\(day)")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(trainingDays == day ? .trainPrimary : .trainTextSecondary)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("\(day) \(day == 1 ? "day" : "days") per week")
                     }
                 }
                 .padding(.top, Spacing.xs)
@@ -1591,6 +1629,19 @@ struct TrainingDaysStepView: View {
                     }
                 }
                 .frame(height: 30)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Training days slider, \(trainingDays) \(trainingDays == 1 ? "day" : "days") per week")
+                .accessibilityValue("\(trainingDays)")
+                .accessibilityAdjustableAction { direction in
+                    switch direction {
+                    case .increment:
+                        if trainingDays < 6 { trainingDays += 1 }
+                    case .decrement:
+                        if trainingDays > 1 { trainingDays -= 1 }
+                    @unknown default:
+                        break
+                    }
+                }
             }
 
             // Warning box for out-of-range selections
@@ -1599,11 +1650,11 @@ struct TrainingDaysStepView: View {
                     HStack(spacing: Spacing.sm) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.trainCaption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.trainWarning)
 
                         Text("Training Frequency Warning")
                             .font(.trainCaption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.trainWarning)
 
                         Spacer()
                     }
@@ -1614,7 +1665,7 @@ struct TrainingDaysStepView: View {
                         .multilineTextAlignment(.leading)
                 }
                 .padding(Spacing.md)
-                .background(Color.orange.opacity(0.1))
+                .background(Color.trainWarning.opacity(0.1))
                 .appCard()
             }
 
@@ -1855,9 +1906,9 @@ struct SessionDurationStepView: View {
     @Binding var sessionDuration: String
 
     let durations = [
-        ("30-45 min", "30-45 minutes", "Quick and efficient"),
-        ("45-60 min", "45-60 minutes", "Balanced approach"),
-        ("60-90 min", "60-90 minutes", "Maximum volume")
+        ("30-45 min", "30-45 minutes", "30-45 min"),
+        ("45-60 min", "45-60 minutes", "45-60 min"),
+        ("60-90 min", "60-90 minutes", "60-90 min")
     ]
 
     var body: some View {
@@ -1894,6 +1945,7 @@ struct SessionDurationStepView: View {
 // MARK: - Q12: Injuries/Limitations
 struct InjuriesStepView: View {
     @Binding var injuries: [String]
+    @State private var hasExplicitlyChosen: Bool = false
 
     // Muscle group injury options - matches database injury_type values
     // These correspond to primary_muscle values in exercises table
@@ -1944,13 +1996,16 @@ struct InjuriesStepView: View {
                 }
 
                 // None option - spans full width
-                Button(action: { injuries = [] }) {
+                Button(action: {
+                    injuries = []
+                    hasExplicitlyChosen = true
+                }) {
                     Text("No injuries")
                         .font(.trainBodyMedium)
-                        .foregroundColor(injuries.isEmpty ? .white : .trainTextPrimary)
+                        .foregroundColor(injuries.isEmpty && hasExplicitlyChosen ? .white : .trainTextPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(Spacing.md)
-                        .background(injuries.isEmpty ? Color.trainPrimary : .clear)
+                        .background(injuries.isEmpty && hasExplicitlyChosen ? Color.trainPrimary : .clear)
                         .appCard(cornerRadius: CornerRadius.md)
                 }
                 .buttonStyle(ScaleButtonStyle())
@@ -1961,6 +2016,7 @@ struct InjuriesStepView: View {
     }
 
     private func toggleInjury(_ injury: String) {
+        hasExplicitlyChosen = true
         if injuries.contains(injury) {
             injuries.removeAll { $0 == injury }
         } else {

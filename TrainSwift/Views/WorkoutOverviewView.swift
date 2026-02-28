@@ -47,6 +47,8 @@ struct WorkoutOverviewView: View {
     @State private var selectedExerciseIndex: Int? = nil
     @State private var showCancelConfirmation = false
     @State private var showCompletionView = false
+    @State private var showCelebration = false
+    @State private var celebrationData: PBCelebrationOverlay.CelebrationData?
     @State private var showInjuryWarning: String? = nil
     @State private var exerciseToSwap: ProgramExercise? = nil
     @State private var sessionExercises: [ProgramExercise] = [] // Mutable copy for swapping
@@ -117,6 +119,8 @@ struct WorkoutOverviewView: View {
                         sessionName: validSession.dayName,
                         elapsedTime: elapsedTimeFormatted,
                         isEditing: isEditing,
+                        completedCount: completedExercises.count,
+                        totalCount: sessionExercises.count,
                         onCancel: { showCancelConfirmation = true },
                         onEditToggle: { isEditing.toggle() }
                     )
@@ -177,6 +181,8 @@ struct WorkoutOverviewView: View {
                                     .background(Color.trainPrimary.opacity(0.1))
                                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                                 }
+                                .accessibilityLabel("Add exercise")
+                                .accessibilityHint("Add a new exercise to this workout")
                                 .padding(.horizontal, Spacing.lg)
                             }
                         }
@@ -196,7 +202,7 @@ struct WorkoutOverviewView: View {
                         .frame(height: 100)
                         .allowsHitTesting(false)
 
-                        Button(action: { showCompletionView = true }) {
+                        Button(action: { triggerCelebration() }) {
                             Text("Complete Workout")
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.white)
@@ -206,6 +212,8 @@ struct WorkoutOverviewView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                         }
                         .disabled(!canCompleteWorkout)
+                        .accessibilityLabel("Complete workout")
+                        .accessibilityHint("Saves your workout and shows summary")
                         .padding(.horizontal, Spacing.lg)
                         .padding(.bottom, Spacing.md)
                     }
@@ -227,6 +235,19 @@ struct WorkoutOverviewView: View {
                         showInjuryWarning = nil
                     }
                 )
+            }
+
+            // Celebration overlay (shown before workout summary)
+            if showCelebration, let celebrationData = celebrationData {
+                PBCelebrationOverlay(
+                    data: celebrationData,
+                    onDismiss: {
+                        showCelebration = false
+                        self.celebrationData = nil
+                        showCompletionView = true
+                    }
+                )
+                .zIndex(100)
             }
 
             // Exercise swap carousel
@@ -256,6 +277,7 @@ struct WorkoutOverviewView: View {
         .navigationDestination(item: $selectedExerciseIndex) { index in
             if index < sessionExercises.count {
                 let exercise = sessionExercises[index]
+                let nextName: String? = (index + 1 < sessionExercises.count) ? sessionExercises[index + 1].exerciseName : nil
                 ExerciseLoggerView(
                     exercise: exercise,
                     exerciseIndex: index,
@@ -272,7 +294,8 @@ struct WorkoutOverviewView: View {
                     },
                     onCancel: {
                         selectedExerciseIndex = nil
-                    }
+                    },
+                    nextExerciseName: nextName
                 )
             }
         }
@@ -507,12 +530,26 @@ struct WorkoutOverviewView: View {
     }
 
     private func initializeLoggedExercises() {
+        let programId = userProgram?.id?.uuidString ?? ""
         for exercise in sessionExercises {
             // Only create logged exercise if one doesn't already exist (prevents overwriting data)
             if loggedExercises[exercise.id] == nil {
+                var sets = (0..<exercise.sets).map { _ in LoggedSet() }
+
+                // Pre-populate weight/reps from previous session data
+                if let previousSets = authService.getPreviousSessionData(
+                    programId: programId,
+                    exerciseName: exercise.exerciseName
+                ) {
+                    for i in 0..<min(sets.count, previousSets.count) {
+                        sets[i].weight = previousSets[i].weight
+                        sets[i].reps = previousSets[i].reps
+                    }
+                }
+
                 loggedExercises[exercise.id] = LoggedExercise(
                     exerciseName: exercise.exerciseName,
-                    sets: (0..<exercise.sets).map { _ in LoggedSet() },
+                    sets: sets,
                     notes: ""
                 )
             }
@@ -584,6 +621,20 @@ struct WorkoutOverviewView: View {
         }
     }
 
+    private func triggerCelebration() {
+        // Calculate celebration data from logged exercises vs previous session
+        let completedLoggedExercises = Array(loggedExercises.values).filter { logged in
+            completedExercises.contains(where: { id in
+                sessionExercises.first(where: { $0.id == id })?.exerciseName == logged.exerciseName
+            })
+        }
+        celebrationData = PBCelebrationOverlay.CelebrationData.calculate(
+            loggedExercises: completedLoggedExercises,
+            authService: authService
+        )
+        showCelebration = true
+    }
+
     private func saveWorkout() {
         guard authService.currentUser != nil else { return }
         guard let validSession = session else { return }
@@ -599,6 +650,15 @@ struct WorkoutOverviewView: View {
             sessionName: validSession.dayName,
             weekNumber: weekNumber,
             exercises: exercisesToSave,
+            durationMinutes: duration
+        )
+
+        // Index completed workout in Spotlight
+        SpotlightIndexer.shared.indexWorkoutSession(
+            id: UUID(),
+            sessionName: validSession.dayName,
+            completedAt: Date(),
+            exerciseCount: exercisesToSave.count,
             durationMinutes: duration
         )
 
@@ -620,6 +680,8 @@ struct WorkoutOverviewHeader: View {
     let sessionName: String
     let elapsedTime: String  // Kept for reference but not displayed per design
     let isEditing: Bool
+    let completedCount: Int
+    let totalCount: Int
     let onCancel: () -> Void
     let onEditToggle: () -> Void
 
@@ -632,13 +694,21 @@ struct WorkoutOverviewHeader: View {
                     .foregroundColor(.trainTextPrimary)
             }
             .frame(width: 24, height: 24)
+            .accessibilityLabel("Cancel workout")
 
             Spacer()
 
-            // Title
-            Text(sessionName)
-                .font(.trainBodyMedium)
-                .foregroundColor(.trainTextPrimary)
+            // Title with progress indicator
+            VStack(spacing: 2) {
+                Text(sessionName)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+
+                // Progress pill
+                Text("\(completedCount)/\(totalCount) exercises")
+                    .font(.trainCaptionSmall)
+                    .foregroundColor(.trainTextSecondary)
+            }
 
             Spacer()
 
@@ -654,9 +724,11 @@ struct WorkoutOverviewHeader: View {
                             .stroke(isEditing ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3), lineWidth: 1)
                     )
             }
+            .accessibilityLabel(isEditing ? "Done editing" : "Edit exercises")
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.md)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -705,7 +777,7 @@ struct WarmUpCard: View {
                             .font(.trainBody).fontWeight(.medium)
                             .foregroundColor(.trainTextPrimary)
 
-                        Text("X exercises • X minutes")
+                        Text("5 exercises • 5 minutes")
                             .font(.trainCaption).fontWeight(.light)
                             .foregroundColor(.trainTextSecondary)
                     }
@@ -723,13 +795,15 @@ struct WarmUpCard: View {
                             .clipShape(Capsule())
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .accessibilityLabel("Skip warm-up")
                 }
                 .padding(Spacing.md)
                 .background(Color.trainSurface)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-                .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 1)
+                .shadowStyle(.borderLine)
             }
             .buttonStyle(ScaleButtonStyle())
+            .accessibilityLabel("Warm-up: Upper Body Mobility, 5 exercises, 5 minutes")
         }
     }
 }
@@ -815,12 +889,7 @@ struct WorkoutExerciseList: View {
             // Edit mode: apply drag/drop modifiers
             card
                 .scaleEffect(isDragging ? 1.05 : 1.0)
-                .shadow(
-                    color: isDragging ? .black.opacity(0.3) : .black.opacity(0.1),
-                    radius: isDragging ? 10 : 0,
-                    x: 0,
-                    y: isDragging ? 5 : 1
-                )
+                .shadowStyle(isDragging ? .dragging : .borderLine)
                 .opacity(isDragging ? 0.9 : 1.0)
                 .zIndex(isDragging ? 100 : 0)
                 .background(
@@ -986,7 +1055,7 @@ struct ExerciseOverviewCard: View {
                                 Button(action: { onWarningTap?() }) {
                                     Image(systemName: "exclamationmark.triangle.fill")
                                         .font(.trainCaption)
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(.trainWarning)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
@@ -1029,11 +1098,14 @@ struct ExerciseOverviewCard: View {
                         : Color.trainSurface))
         )
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-        .shadow(color: .black.opacity(0.1), radius: 0, x: 0, y: 1)
+        .shadowStyle(.borderLine)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .stroke(isEditing ? Color.trainPrimary.opacity(0.3) : Color.clear, lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(exercise.exerciseName), \(exercise.sets) sets of \(exercise.repRange) reps")
+        .accessibilityValue(isCompleted ? "Completed" : "Not started")
     }
 
     // MARK: - Drag Handle (Double Line Indicator)
@@ -1072,10 +1144,10 @@ struct ExerciseOverviewCard: View {
             Button(action: onRemove) {
                 Text("Remove")
                     .font(.trainCaption).fontWeight(.medium)
-                    .foregroundColor(.red.opacity(0.8))
+                    .foregroundColor(.trainError.opacity(0.8))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(Color.red.opacity(0.1))
+                    .background(Color.trainError.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
             }
         }
@@ -1113,7 +1185,7 @@ struct InjuryWarningOverlay: View {
                 // Warning icon
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: IconSize.xl))
-                    .foregroundColor(.orange)
+                    .foregroundColor(.trainWarning)
 
                 // Title
                 Text("Injury Warning")

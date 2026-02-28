@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AuthenticationServices
 
 struct LoginView: View {
     @ObservedObject var authService = AuthService.shared
@@ -104,6 +105,14 @@ struct LoginView: View {
                             .cornerRadius(CornerRadius.md)
                     }
 
+                    // Error message
+                    if showError {
+                        Text(errorMessage)
+                            .font(.trainCaption)
+                            .foregroundColor(.trainError)
+                            .padding(.horizontal, Spacing.sm)
+                    }
+
                     // OR Divider
                     HStack {
                         Rectangle()
@@ -120,10 +129,15 @@ struct LoginView: View {
 
                     // Sign Up Button for new users
                     Button(action: { showSignup = true }) {
-                        Text("Sign up")
-                            .font(.trainBody).fontWeight(.medium)
-                            .foregroundColor(.trainTextSecondary)
-                            .underline()
+                        Text("Create an Account")
+                            .font(.trainBodyMedium)
+                            .foregroundColor(.trainPrimary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: ButtonHeight.standard)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: CornerRadius.md)
+                                    .stroke(Color.trainPrimary, lineWidth: 2)
+                            )
                     }
                 }
                 .padding(.horizontal, Spacing.lg)
@@ -158,19 +172,25 @@ struct LoginView: View {
             if isSigningInWithApple || isSigningInWithGoogle {
                 Color.black.opacity(0.3)
                     .ignoresSafeArea()
+                    .transition(.opacity)
                 ProgressView()
                     .tint(.white)
                     .scaleEffect(1.5)
+                    .transition(.opacity)
             }
         }
     }
 
     private func handleAppleSignIn() {
-        isSigningInWithApple = true
+        withAnimation(.easeInOut(duration: 0.3)) {
+            isSigningInWithApple = true
+        }
         showError = false
 
         authService.signInWithApple { result in
-            isSigningInWithApple = false
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isSigningInWithApple = false
+            }
 
             switch result {
             case .success(_):
@@ -185,11 +205,15 @@ struct LoginView: View {
     }
 
     private func handleGoogleSignIn() {
-        isSigningInWithGoogle = true
+        withAnimation(.easeInOut(duration: 0.3)) {
+            isSigningInWithGoogle = true
+        }
         showError = false
 
         authService.signInWithGoogle { result in
-            isSigningInWithGoogle = false
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isSigningInWithGoogle = false
+            }
 
             switch result {
             case .success(_):
@@ -229,11 +253,12 @@ struct EmailLoginSheet: View {
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
     @State private var showPasswordReset: Bool = false
+    @State private var showPassword: Bool = false
 
     let onLoginSuccess: () -> Void
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: Spacing.xl) {
                     Spacer()
@@ -274,24 +299,35 @@ struct EmailLoginSheet: View {
 
                                 Spacer()
 
-                                // Disabled for MVP - password reset not fully implemented
-                                // Button(action: { showPasswordReset = true }) {
-                                //     Text("Forgot Password?")
-                                //         .font(.trainCaption)
-                                //         .foregroundColor(.trainPrimary)
-                                // }
+                                Button(action: { showPasswordReset = true }) {
+                                    Text("Forgot Password?")
+                                        .font(.trainCaption)
+                                        .foregroundColor(.trainPrimary)
+                                }
                             }
 
-                            SecureField("Enter your password", text: $password)
-                                .padding(Spacing.md)
-                                .appCard()
-                                .cornerRadius(CornerRadius.md)
+                            HStack {
+                                if showPassword {
+                                    TextField("Enter your password", text: $password)
+                                        .textContentType(.password)
+                                } else {
+                                    SecureField("Enter your password", text: $password)
+                                }
+
+                                Button(action: { showPassword.toggle() }) {
+                                    Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                        .foregroundColor(.trainTextSecondary)
+                                }
+                            }
+                            .padding(Spacing.md)
+                            .appCard()
+                            .cornerRadius(CornerRadius.md)
                         }
 
                         if showError {
                             Text(errorMessage)
                                 .font(.trainCaption)
-                                .foregroundColor(.red)
+                                .foregroundColor(.trainError)
                                 .padding(.horizontal, Spacing.sm)
                         }
 
@@ -325,7 +361,7 @@ struct EmailLoginSheet: View {
             }
         }
         .sheet(isPresented: $showPasswordReset) {
-            // PasswordResetRequestView() // Uncomment when password reset is implemented
+            PasswordResetRequestView()
         }
     }
 

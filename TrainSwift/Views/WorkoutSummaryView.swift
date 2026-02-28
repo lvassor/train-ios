@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct WorkoutSummaryView: View {
     let sessionName: String
@@ -21,6 +22,7 @@ struct WorkoutSummaryView: View {
     @State private var workoutStats: [WorkoutSummaryStat] = []
     @State private var personalBests: [PersonalBest] = []
     @State private var currentStreak: Int = 0
+    @State private var showMilestones = false
 
     var body: some View {
         ZStack {
@@ -100,13 +102,35 @@ struct WorkoutSummaryView: View {
                             .tabViewStyle(.page(indexDisplayMode: .always))
                             .frame(height: 140)
                             .padding(.horizontal, Spacing.lg)
+
+                            // Deep link to milestones
+                            Button(action: { showMilestones = true }) {
+                                HStack(spacing: Spacing.sm) {
+                                    Image(systemName: "trophy.fill")
+                                        .font(.trainCaption)
+                                        .foregroundColor(.trainPrimary)
+                                    Text("View Your Milestones")
+                                        .font(.trainBodyMedium)
+                                        .foregroundColor(.trainPrimary)
+                                    Image(systemName: "arrow.right")
+                                        .font(.trainCaptionSmall).fontWeight(.semibold)
+                                        .foregroundColor(.trainPrimary)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, Spacing.smd)
+                                .background(Color.trainPrimary.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                            }
+                            .padding(.horizontal, Spacing.lg)
+                            .accessibilityLabel("View Your Milestones")
+                            .accessibilityHint("Opens your milestones and achievements")
                         }
                     }
 
                     // Streak Increase Section
                     HStack {
                         VStack(alignment: .leading, spacing: Spacing.sm) {
-                            Text("Streak Increase")
+                            Text(currentStreak > 0 ? "Streak Increase" : "Streak")
                                 .font(.trainHeadline)
                                 .foregroundColor(.trainTextPrimary)
                             Text(streakMessage)
@@ -114,8 +138,9 @@ struct WorkoutSummaryView: View {
                                 .foregroundColor(.trainTextSecondary)
                         }
                         Spacer()
-                        Text("🔥")
+                        Text("\u{1F525}")
                             .font(.system(size: 40))
+                            .opacity(currentStreak > 0 ? 1.0 : 0.3)
                     }
                     .padding(Spacing.lg)
                     .appCard()
@@ -124,6 +149,38 @@ struct WorkoutSummaryView: View {
                             .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
                     )
                     .padding(.horizontal, Spacing.lg)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(currentStreak > 0 ? "Streak increase, \(streakMessage)" : "No active streak")
+
+                    // Streak milestone celebration
+                    if let streakMilestone = streakMilestoneReached {
+                        VStack(spacing: Spacing.md) {
+                            Text(streakMilestone.emoji)
+                                .font(.trainMediumNumber)
+
+                            Text(streakMilestone.title)
+                                .font(.trainTitle2).fontWeight(.bold)
+                                .foregroundColor(.white)
+
+                            Text(streakMilestone.message)
+                                .font(.trainBody)
+                                .foregroundColor(.white.opacity(0.85))
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(Spacing.xl)
+                        .background(
+                            LinearGradient(
+                                colors: [.trainPrimary, .trainPrimary.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous))
+                        .padding(.horizontal, Spacing.lg)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("\(streakMilestone.title), \(streakMilestone.message)")
+                    }
 
                     Spacer().frame(height: 100)
                 }
@@ -153,6 +210,8 @@ struct WorkoutSummaryView: View {
                                 .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
                         )
                     }
+                    .accessibilityLabel("Share workout")
+                    .accessibilityHint("Share your workout results")
 
                     // Done Button
                     Button(action: onDone) {
@@ -164,6 +223,8 @@ struct WorkoutSummaryView: View {
                             .background(Color.trainPrimary)
                             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                     }
+                    .accessibilityLabel("Done")
+                    .accessibilityHint("Close workout summary and return to dashboard")
                 }
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.lg)
@@ -171,6 +232,11 @@ struct WorkoutSummaryView: View {
         }
         .onAppear {
             loadCelebrationData()
+        }
+        .sheet(isPresented: $showMilestones) {
+            NavigationStack {
+                MilestonesView()
+            }
         }
     }
 
@@ -191,26 +257,23 @@ struct WorkoutSummaryView: View {
     }
 
     private func generateCelebrationContent() -> CelebrationContent {
-        let emojis = ["⭐", "🎉", "💪", "🏆", "🏋️", "💯"]
-        let headlines = [
-            "You smashed this workout!",
-            "Another one for the books",
-            "Great progress today!",
-            "You're getting stronger!",
-            "Outstanding effort!",
-            "Fantastic session!"
-        ]
+        // Select emoji based on context (deterministic, not random)
+        let selectedEmoji: String
+        let selectedHeadline: String
 
-        // Select emoji based on context
-        var selectedEmoji = emojis.randomElement() ?? "💪"
         if !personalBests.isEmpty {
-            selectedEmoji = "🏆" // Trophy for PB achievements
+            selectedEmoji = "🏆"
+            selectedHeadline = "You hit a new PB!"
         } else if currentStreak >= 7 {
-            selectedEmoji = "🔥" // Fire for strong streaks
+            selectedEmoji = "🔥"
+            selectedHeadline = "You're on fire!"
+        } else if completedExercises == totalExercises {
+            selectedEmoji = "💪"
+            selectedHeadline = "You smashed this workout!"
+        } else {
+            selectedEmoji = "⭐"
+            selectedHeadline = "Another one for the books"
         }
-
-        // Select headline
-        let selectedHeadline = headlines.randomElement() ?? "Great workout!"
 
         // Generate contextual support message
         let supportMessage = generateSupportMessage()
@@ -291,11 +354,23 @@ struct WorkoutSummaryView: View {
     // MARK: - Computed Properties
 
     private var streakMessage: String {
-        if currentStreak == 1 {
+        if currentStreak == 0 {
+            return "Complete a workout to start your streak!"
+        } else if currentStreak == 1 {
             return "You're on a 1-day streak!"
         } else {
             return "You're on a \(currentStreak)-day streak!"
         }
+    }
+
+    /// Check if the current streak has hit a celebration milestone (7, 30, 100 days)
+    private var streakMilestoneReached: StreakMilestone? {
+        let milestones: [StreakMilestone] = [
+            StreakMilestone(threshold: 100, emoji: "\u{1F525}", title: "100-Day Streak!", message: "Incredible dedication! You've trained for 100 days. You're unstoppable."),
+            StreakMilestone(threshold: 30, emoji: "\u{1F525}", title: "30-Day Streak!", message: "A full month of consistency. Your discipline is paying off."),
+            StreakMilestone(threshold: 7, emoji: "\u{1F525}", title: "7-Day Streak!", message: "One full week of training! Great habit building.")
+        ]
+        return milestones.first { currentStreak >= $0.threshold && currentStreak < $0.threshold + 1 }
     }
 
     // MARK: - Helper Functions
@@ -312,10 +387,28 @@ struct WorkoutSummaryView: View {
     }
 
     private func calculateRepsIncrease() -> Int {
-        // Mock calculation - in real app, compare with previous session
-        return loggedExercises.reduce(0) { total, exercise in
-            total + exercise.sets.filter { $0.completed }.count * 2 // Approximate increase
+        // Compare current session reps with previous session reps for each exercise
+        var totalIncrease = 0
+
+        guard let programId = authService.getCurrentProgram()?.id?.uuidString else {
+            return 0
         }
+
+        for exercise in loggedExercises {
+            guard let previousSets = authService.getPreviousSessionData(
+                programId: programId,
+                exerciseName: exercise.exerciseName
+            ) else { continue }
+
+            let currentReps = exercise.sets.filter { $0.completed }.reduce(0) { $0 + $1.reps }
+            let previousReps = previousSets.filter { $0.completed }.reduce(0) { $0 + $1.reps }
+            let diff = currentReps - previousReps
+            if diff > 0 {
+                totalIncrease += diff
+            }
+        }
+
+        return totalIncrease
     }
 
     private func calculateTotalWeight() -> Double {
@@ -325,22 +418,37 @@ struct WorkoutSummaryView: View {
     }
 
     private func calculateCurrentStreak() -> Int {
-        // Mock implementation - replace with actual streak calculation
-        return Int.random(in: 1...14)
+        guard let userId = authService.currentUser?.id else { return 0 }
+        return SessionCompletionHelper.calculateStreak(userId: userId)
     }
 
     private func getTotalSessionCount() -> Int {
-        // Mock implementation - replace with actual session count
-        return Int.random(in: 10...200)
+        return authService.getWorkoutHistory().count
     }
 
     private func getSessionsThisWeek() -> Int {
-        // Mock implementation - replace with actual weekly count
-        return Int.random(in: 1...5)
+        guard let userId = authService.currentUser?.id else { return 0 }
+        return SessionCompletionHelper.sessionsCompletedThisWeek(userId: userId).count
     }
 
     private func shareWorkout() {
-        // TODO: Implement share functionality
+        // Build PB tuples from detected personal bests
+        let pbTuples = personalBests.map { pb in
+            (exerciseName: pb.exerciseName,
+             previousWeight: Double(pb.previousWeight),
+             newWeight: Double(pb.newWeight))
+        }
+
+        // Assemble share data using the share service
+        let shareData = WorkoutShareService.buildShareData(
+            sessionName: sessionName,
+            durationMinutes: duration,
+            exercises: loggedExercises,
+            pbs: pbTuples
+        )
+
+        // Present the branded share card + text via share sheet
+        WorkoutShareService.presentShareSheet(data: shareData)
     }
 }
 
@@ -362,6 +470,13 @@ struct PersonalBest {
     let previousWeight: Int
     let newWeight: Int
     let bestSetSummary: String
+}
+
+struct StreakMilestone {
+    let threshold: Int
+    let emoji: String
+    let title: String
+    let message: String
 }
 
 // MARK: - PB Card View
@@ -395,6 +510,8 @@ struct PBCardView: View {
             RoundedRectangle(cornerRadius: CornerRadius.md)
                 .stroke(Color.trainPrimary.opacity(0.5), lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(pb.exerciseName) personal best, \(pb.previousWeight) to \(pb.newWeight) kilograms")
     }
 }
 

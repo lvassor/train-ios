@@ -79,3 +79,41 @@ extension Color {
     /// Tab selector background (light mode)
     static let trainTabBackground = Color(hex: "E2E3E4")
 }
+
+// MARK: - On-Primary / Contrast Colors
+
+extension Color {
+    /// Dark text color for use ON primary (orange) backgrounds — ensures WCAG AA contrast
+    static let trainTextOnPrimary = Color(hex: "1a1a2e")
+}
+
+// MARK: - Component-Specific Colors
+
+extension Color {
+    /// Muscle diagram — default unselected fill
+    static let trainMuscleDefault = Color(hex: "3f3f3f")
+    /// Muscle diagram — inactive/non-highlighted parts
+    static let trainMuscleInactive = Color(hex: "8a8a8a")
+}
+
+// MARK: - Confetti Colors
+
+extension Color {
+    /// Decorative confetti palette for celebrations
+    static let trainConfetti: [Color] = [
+        Color(hex: "FF6B6B"),   // coral red
+        Color(hex: "4ECDC4"),   // teal
+        Color(hex: "FFE66D"),   // golden yellow
+        Color(hex: "95E1D3"),   // mint
+        Color(hex: "F38181"),   // salmon pink
+    ]
+}
+
+// MARK: - Input Border Colors (adaptive — replaces manual colorScheme branching)
+
+extension Color {
+    /// Input field border — light mode: dark, dark mode: translucent white
+    static let trainInputBorder = Color(.trainBorderDefault)
+    /// Input field border (subtle) — for dashed/secondary borders
+    static let trainInputBorderSubtle = Color(.trainBorderSubtle)
+}

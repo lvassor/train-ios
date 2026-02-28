@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ProgramReadyView: View {
     @ObservedObject var viewModel = WorkoutViewModel.shared  // Add WorkoutViewModel for safe navigation
@@ -97,6 +98,7 @@ struct ProgramReadyView: View {
                     .onAppear {
                         AppLogger.logUI("[PROGRAM READY] VIEW STATE: Showing Program Ready content with confetti")
                         // Trigger confetti animation when view appears
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
                         withAnimation {
                             showConfetti = true
                         }
@@ -164,9 +166,9 @@ struct ProgramReadyView: View {
 
                 // Start button
                 CustomButton(
-                    title: "Start Training Now!",
+                    title: "Create Your Account",
                     action: {
-                        AppLogger.logUI("[PROGRAM READY] 'Start Training Now!' button tapped, isAuthenticated: \(AuthService.shared.isAuthenticated)")
+                        AppLogger.logUI("[PROGRAM READY] 'Create Your Account' button tapped, isAuthenticated: \(AuthService.shared.isAuthenticated)")
 
                         // If already authenticated (e.g., retaking questionnaire), skip signup and go directly to post-signup flow
                         if AuthService.shared.isAuthenticated {
@@ -220,14 +222,7 @@ struct ProgramInfoCard: View {
 
 struct ConfettiView: View {
     @State private var confettiPieces: [ConfettiPiece] = []
-    private let confettiColors: [Color] = [
-        .red, .orange, .yellow, .green, .blue, .purple, .pink,
-        Color(hex: "#FF6B6B") ?? .red,
-        Color(hex: "#4ECDC4") ?? .teal,
-        Color(hex: "#FFE66D") ?? .yellow,
-        Color(hex: "#95E1D3") ?? .mint,
-        Color(hex: "#F38181") ?? .pink
-    ]
+    private let confettiColors: [Color] = Color.trainConfetti
 
     var body: some View {
         GeometryReader { geometry in

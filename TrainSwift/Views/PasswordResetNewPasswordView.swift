@@ -50,8 +50,10 @@ struct PasswordResetNewPasswordView: View {
                                 TextField("Enter new password", text: $newPassword)
                                     .autocorrectionDisabled()
                                     .textInputAutocapitalization(.never)
+                                    .textContentType(.newPassword)
                             } else {
                                 SecureField("Enter new password", text: $newPassword)
+                                    .textContentType(.newPassword)
                             }
 
                             Button(action: { showNewPassword.toggle() }) {
@@ -74,8 +76,10 @@ struct PasswordResetNewPasswordView: View {
                                 TextField("Confirm new password", text: $confirmPassword)
                                     .autocorrectionDisabled()
                                     .textInputAutocapitalization(.never)
+                                    .textContentType(.newPassword)
                             } else {
                                 SecureField("Confirm new password", text: $confirmPassword)
+                                    .textContentType(.newPassword)
                             }
 
                             Button(action: { showConfirmPassword.toggle() }) {
@@ -91,7 +95,7 @@ struct PasswordResetNewPasswordView: View {
                     if showError {
                         Text(errorMessage)
                             .font(.trainCaption)
-                            .foregroundColor(.red)
+                            .foregroundColor(.trainError)
                     }
                 }
                 .padding(.horizontal, Spacing.lg)
@@ -120,7 +124,7 @@ struct PasswordResetNewPasswordView: View {
                 VStack(spacing: Spacing.lg) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: IconSize.display))
-                        .foregroundColor(.green)
+                        .foregroundColor(.trainSuccess)
 
                     Text("Password Updated Successfully")
                         .font(.trainTitle)
@@ -130,7 +134,7 @@ struct PasswordResetNewPasswordView: View {
                 .padding(Spacing.xl)
                 .appCard()
                 .cornerRadius(CornerRadius.modal)
-                .shadow(radius: 20)
+                .shadowStyle(.modal)
                 .padding(.horizontal, Spacing.xl)
             }
         }

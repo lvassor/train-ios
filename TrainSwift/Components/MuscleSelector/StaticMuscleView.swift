@@ -100,14 +100,14 @@ struct StaticMuscleView: View {
 
         // When useUniformBaseColor is true, all non-highlighted parts use the same light gray
         if useUniformBaseColor {
-            return Color(hex: "#8a8a8a") ?? .gray
+            return Color.trainMuscleInactive
         }
 
         if !part.slug.isSelectable {
             return Color(hex: part.defaultColor) ?? .gray
         }
 
-        return Color(hex: "#3f3f3f") ?? .gray
+        return Color.trainMuscleDefault
     }
 }
 

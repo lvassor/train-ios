@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct OptionCard: View {
     let title: String
@@ -27,7 +28,10 @@ struct OptionCard: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        }) {
             HStack(spacing: Spacing.md) {
                 if let icon = icon {
                     Image(systemName: icon)
@@ -66,6 +70,19 @@ struct OptionCard: View {
                 }
             )
             .modifier(ConditionalGlassModifier(isSelected: isSelected))
+            .overlay(alignment: .topTrailing) {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                        .background(
+                            Circle()
+                                .fill(Color.trainPrimary)
+                                .frame(width: 20, height: 20)
+                        )
+                        .offset(x: -8, y: 8)
+                }
+            }
         }
         .buttonStyle(ScaleButtonStyle())
     }

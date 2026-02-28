@@ -6,12 +6,12 @@
 //
 
 import SwiftUI
+import UIKit
 
 // MARK: - Exercise Demo Tab (Redesigned)
 
 struct ExerciseDemoTab: View {
     let exercise: DBExercise
-    @Environment(\.colorScheme) var colorScheme
 
     private static let stepPrefixRegex = try? NSRegularExpression(pattern: "^Step\\s*\\d+\\s*:\\s*", options: .caseInsensitive)
 
@@ -95,7 +95,6 @@ struct ExerciseDemoTab: View {
 
 struct DemoVideoPlayerCard: View {
     let exerciseId: String
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         ZStack {
@@ -105,7 +104,7 @@ struct DemoVideoPlayerCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                        .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+                        .stroke(Color.trainBorderDefault, lineWidth: 1)
                 )
         }
     }
@@ -122,18 +121,17 @@ struct DemoInfoSection: View {
     let title: String
     let items: [String]
     let sectionType: DemoSectionType
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.smd) {
+        VStack(spacing: Spacing.smd) {
             Text(title)
                 .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(.trainTextPrimary)
-                .padding(.horizontal, 50)
 
             HStack(spacing: 35) {
                 ForEach(items.prefix(4), id: \.self) { item in
-                    DemoPlaceholderTile(label: item, iconName: equipmentIcon(for: item))
+                    let image = EquipmentImageMapping.image(for: item)
+                    DemoPlaceholderTile(label: item, iconName: equipmentIcon(for: item), equipmentImage: image)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -158,22 +156,30 @@ struct DemoInfoSection: View {
 struct DemoPlaceholderTile: View {
     let label: String
     let iconName: String
-    @Environment(\.colorScheme) var colorScheme
+    var equipmentImage: UIImage? = nil
 
     var body: some View {
         VStack(spacing: Spacing.xs) {
             ZStack {
                 RoundedRectangle(cornerRadius: CornerRadius.xxs, style: .continuous)
-                    .fill(colorScheme == .dark ? Color.white.opacity(0.1) : Color.white)
+                    .fill(Color.trainSurface)
                     .frame(width: 70, height: 70)
                     .overlay(
                         RoundedRectangle(cornerRadius: CornerRadius.xxs, style: .continuous)
-                            .stroke(colorScheme == .dark ? Color.white.opacity(0.2) : Color.black.opacity(0.1), lineWidth: 1)
+                            .stroke(Color.trainBorderSubtle, lineWidth: 1)
                     )
 
-                Image(systemName: iconName)
-                    .font(.system(size: IconSize.md))
-                    .foregroundColor(.trainTextPrimary)
+                if let equipmentImage {
+                    Image(uiImage: equipmentImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 70, height: 70)
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xxs, style: .continuous))
+                } else {
+                    Image(systemName: iconName)
+                        .font(.system(size: IconSize.md))
+                        .foregroundColor(.trainTextPrimary)
+                }
             }
 
             Text(label)
@@ -189,14 +195,12 @@ struct DemoPlaceholderTile: View {
 struct DemoMuscleGroupsSection: View {
     let title: String
     let muscleGroups: [String]
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.smd) {
+        VStack(spacing: Spacing.smd) {
             Text(title)
                 .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(.trainTextPrimary)
-                .padding(.horizontal, 50)
 
             HStack(spacing: Spacing.lg) {
                 ForEach(muscleGroups.prefix(3), id: \.self) { muscleGroup in
@@ -226,7 +230,6 @@ struct DemoMuscleGroupsSection: View {
 
 struct DemoInstructionsCard: View {
     let instructions: [String]
-    @Environment(\.colorScheme) var colorScheme
 
     private static let stepPrefixRegex = try? NSRegularExpression(pattern: "^Step\\s*\\d+\\s*:\\s*", options: .caseInsensitive)
 
@@ -264,7 +267,7 @@ struct DemoInstructionsCard: View {
         .padding(Spacing.lg)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
+                .stroke(Color.trainBorderDefault, lineWidth: 1)
         )
     }
 

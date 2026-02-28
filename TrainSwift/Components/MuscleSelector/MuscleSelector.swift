@@ -189,7 +189,7 @@ struct MuscleSelector: View {
             return Color(hex: part.defaultColor) ?? .gray
         }
 
-        return Color(hex: "#3f3f3f") ?? .gray
+        return Color.trainMuscleDefault
     }
 
     private func toggleMuscle(_ muscle: String) {
@@ -307,7 +307,7 @@ struct CompactMuscleSelector: View {
         if !part.slug.isSelectable || !isSelectable {
             return Color(hex: part.defaultColor) ?? .gray
         }
-        return Color(hex: "#3f3f3f") ?? .gray
+        return Color.trainMuscleDefault
     }
 
     private func toggleMuscle(_ muscle: String) {

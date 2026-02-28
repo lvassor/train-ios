@@ -77,11 +77,12 @@ struct WeeklyCalendarView: View {
                     }) {
                         Image(systemName: "chevron.right")
                             .font(.trainCaption).fontWeight(.medium)
-                            .foregroundColor(.trainTextPrimary)
+                            .foregroundColor(isCurrentMonthOrLater ? .trainTextSecondary.opacity(0.3) : .trainTextPrimary)
                             .frame(width: IconSize.lg, height: IconSize.lg)
                             .background(Color.white.opacity(0.1))
                             .clipShape(Circle())
                     }
+                    .disabled(isCurrentMonthOrLater)
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.top, Spacing.sm)
@@ -98,7 +99,7 @@ struct WeeklyCalendarView: View {
                     .padding(.bottom, Spacing.smd)
             }
         }
-        .appCard(cornerRadius: 20)
+        .appCard(cornerRadius: CornerRadius.modal)
     }
 
     // MARK: - Week Row
@@ -164,7 +165,7 @@ struct WeeklyCalendarView: View {
 
                     Text(workoutLetter)
                         .font(.system(size: isCompact ? 14 : 16, weight: .bold))
-                        .foregroundColor(Color(hex: "#1a1a2e")) // Dark background color for contrast
+                        .foregroundColor(Color.trainTextOnPrimary) // Dark background color for contrast
                 } else if dayInfo.isToday {
                     // Today without workout - hollow orange ring (empty inside)
                     Circle()
@@ -189,6 +190,16 @@ struct WeeklyCalendarView: View {
 
     // MARK: - Helper Methods
 
+    /// Returns true when the displayed month is the current month or later, preventing forward navigation
+    private var isCurrentMonthOrLater: Bool {
+        let now = Date()
+        let displayedMonth = calendar.component(.month, from: currentDate)
+        let displayedYear = calendar.component(.year, from: currentDate)
+        let currentMonth = calendar.component(.month, from: now)
+        let currentYear = calendar.component(.year, from: now)
+        return displayedYear > currentYear || (displayedYear == currentYear && displayedMonth >= currentMonth)
+    }
+
     private var completedThisWeek: Int {
         // Count how many days this week have a workout logged
         let weekDays = getWeekDays()
@@ -209,11 +220,15 @@ struct WeeklyCalendarView: View {
         let weekday = calendar.component(.weekday, from: today)
         let daysFromMonday = (weekday == 1) ? 6 : weekday - 2 // If Sunday, go back 6 days; otherwise weekday - 2
         let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today)!
+        let sunday = calendar.date(byAdding: .day, value: 7, to: monday)!
+
+        // Batch-fetch all sessions for the visible week
+        let sessionsByDay = batchFetchSessions(from: monday, to: sunday)
 
         // Generate 7 days starting from Monday
         for i in 0..<7 {
             if let date = calendar.date(byAdding: .day, value: i, to: monday) {
-                days.append(getDayInfo(for: date))
+                days.append(getDayInfo(for: date, sessionsByDay: sessionsByDay))
             }
         }
 
@@ -227,17 +242,21 @@ struct WeeklyCalendarView: View {
         let components = calendar.dateComponents([.year, .month], from: date)
         guard let firstOfMonth = calendar.date(from: components) else { return [] }
 
-        // Find the Sunday that starts the calendar
+        // Find the Monday that starts the calendar
         let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
-        let daysToSubtract = (firstWeekday - 1) // Sunday = 1
+        let daysToSubtract = (firstWeekday == 1) ? 6 : firstWeekday - 2 // Monday = 2, Sunday wraps to 6
         let calendarStart = calendar.date(byAdding: .day, value: -daysToSubtract, to: firstOfMonth)!
+
+        // Batch-fetch all sessions for the visible month range (up to 6 weeks = 42 days)
+        let calendarEnd = calendar.date(byAdding: .day, value: 42, to: calendarStart)!
+        let sessionsByDay = batchFetchSessions(from: calendarStart, to: calendarEnd)
 
         // Generate up to 6 weeks
         var currentDay = calendarStart
         for _ in 0..<6 {
             var week: [DayInfo] = []
             for _ in 0..<7 {
-                week.append(getDayInfo(for: currentDay))
+                week.append(getDayInfo(for: currentDay, sessionsByDay: sessionsByDay))
                 currentDay = calendar.date(byAdding: .day, value: 1, to: currentDay)!
             }
             weeks.append(week)
@@ -276,6 +295,10 @@ struct WeeklyCalendarView: View {
         let daysBetween = calendar.dateComponents([.day], from: monthStart, to: currentWeekStart).day ?? 0
         let weeksBefore = daysBetween / 7
 
+        // Batch-fetch all sessions for the visible range (up to 6 weeks = 42 days)
+        let monthEnd = calendar.date(byAdding: .day, value: 42, to: monthStart)!
+        let sessionsByDay = batchFetchSessions(from: monthStart, to: monthEnd)
+
         // Generate all weeks in the month
         var weeks: [[DayInfo]] = []
         var weekStart = monthStart
@@ -285,7 +308,7 @@ struct WeeklyCalendarView: View {
             var dayInWeek = weekStart
 
             for _ in 0..<7 {
-                week.append(getDayInfo(for: dayInWeek))
+                week.append(getDayInfo(for: dayInWeek, sessionsByDay: sessionsByDay))
                 dayInWeek = calendar.date(byAdding: .day, value: 1, to: dayInWeek)!
             }
 
@@ -303,7 +326,7 @@ struct WeeklyCalendarView: View {
         return weeks
     }
 
-    private func getDayInfo(for date: Date) -> DayInfo {
+    private func getDayInfo(for date: Date, sessionsByDay: [Date: String]) -> DayInfo {
         let day = calendar.component(.day, from: date)
         let isToday = calendar.isDateInToday(date)
         let isCurrentMonth = true // This will be determined in the view where needed
@@ -313,8 +336,9 @@ struct WeeklyCalendarView: View {
         let weekday = calendar.component(.weekday, from: date)  // 1=Sunday, 2=Monday, ..., 7=Saturday
         let weekdayLetter = weekdaySymbols[weekday - 1]
 
-        // Check if there's a completed workout for this day
-        let workoutLetter = getWorkoutLetter(for: date)
+        // Look up workout letter from batch-fetched sessions
+        let startOfDay = calendar.startOfDay(for: date)
+        let workoutLetter = sessionsByDay[startOfDay]
 
         return DayInfo(
             date: date,
@@ -326,45 +350,38 @@ struct WeeklyCalendarView: View {
         )
     }
 
-    private func getWorkoutLetter(for date: Date) -> String? {
-        guard let userId = AuthService.shared.currentUser?.id else { return nil }
+    /// Batch-fetch all workout sessions in the given date range and return a dictionary keyed by start-of-day
+    private func batchFetchSessions(from startDate: Date, to endDate: Date) -> [Date: String] {
+        guard let userId = AuthService.shared.currentUser?.id else { return [:] }
 
         let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
-        let startOfDay = calendar.startOfDay(for: date)
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-
         fetchRequest.predicate = NSPredicate(
             format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
             userId as CVarArg,
-            startOfDay as NSDate,
-            endOfDay as NSDate
+            startDate as NSDate,
+            endDate as NSDate
         )
-        fetchRequest.fetchLimit = 1
+
+        var sessionsByDay: [Date: String] = [:]
 
         do {
             let sessions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
-            if let session = sessions.first,
-               let sessionName = session.sessionName {
-                return getAbbreviation(for: sessionName)
+            for session in sessions {
+                guard let completedAt = session.completedAt,
+                      let sessionName = session.sessionName else { continue }
+                let dayKey = calendar.startOfDay(for: completedAt)
+                // Keep the first session found for each day
+                if sessionsByDay[dayKey] == nil {
+                    sessionsByDay[dayKey] = SessionNameFormatter.abbreviation(for: sessionName)
+                }
             }
         } catch {
-            AppLogger.logDatabase("Failed to fetch workout for date: \(error)", level: .error)
+            AppLogger.logDatabase("Failed to batch-fetch workouts: \(error)", level: .error)
         }
 
-        return nil
+        return sessionsByDay
     }
 
-    private func getAbbreviation(for sessionType: String) -> String {
-        switch sessionType.lowercased() {
-        case "push": return "P"
-        case "pull": return "Pu"
-        case "legs": return "L"
-        case "upper", "upper body": return "U"
-        case "lower", "lower body": return "Lo"
-        case "full body": return "FB"
-        default: return String(sessionType.prefix(1)).uppercased()
-        }
-    }
 }
 
 // MARK: - Supporting Types
