@@ -45,6 +45,11 @@ struct TrainSwiftApp: App {
 
         // Register Siri Shortcut for "Start my workout"
         SpotlightIndexer.shared.registerStartWorkoutShortcut()
+
+        // Seed test accounts for TestFlight (compiles to nothing without flag)
+        #if SEED_TEST_DATA
+        TestDataSeeder.seedIfNeeded(context: PersistenceController.shared.container.viewContext)
+        #endif
     }
 
     var body: some Scene {
