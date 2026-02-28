@@ -47,7 +47,7 @@ struct MuscleSelector: View {
                             gender = bodyGender
                         }) {
                             Image(systemName: bodyGender == .male ? "figure.stand" : "figure.stand.dress")
-                                .font(.system(size: 16))
+                                .font(.system(size: IconSize.sm))
                                 .foregroundColor(gender == bodyGender ? .white : .trainTextPrimary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Spacing.sm)
@@ -102,19 +102,19 @@ struct MuscleSelector: View {
                     if !selectedMuscles.isEmpty {
                         HStack(spacing: Spacing.sm) {
                             ForEach(selectedMuscles, id: \.self) { muscle in
-                                HStack(spacing: 4) {
+                                HStack(spacing: Spacing.xs) {
                                     Text(muscle)
                                         .font(.trainCaption)
                                         .foregroundColor(.white)
 
                                     Button(action: { removeMuscle(muscle) }) {
                                         Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 14))
+                                            .font(.trainCaption)
                                             .foregroundColor(.white.opacity(0.8))
                                     }
                                 }
                                 .padding(.horizontal, Spacing.sm)
-                                .padding(.vertical, 4)
+                                .padding(.vertical, Spacing.xs)
                                 .background(Color.trainPrimary)
                                 .cornerRadius(CornerRadius.sm)
                             }
@@ -226,7 +226,7 @@ struct CompactMuscleSelector: View {
         // Side by side body diagrams - front and back (gender inherited from questionnaire)
         HStack(spacing: Spacing.sm) {
             // Front view
-            VStack(spacing: 4) {
+            VStack(spacing: Spacing.xs) {
                 Text("Front")
                     .font(.trainCaption)
                     .foregroundColor(.trainTextSecondary)
@@ -235,7 +235,7 @@ struct CompactMuscleSelector: View {
             }
 
             // Back view
-            VStack(spacing: 4) {
+            VStack(spacing: Spacing.xs) {
                 Text("Back")
                     .font(.trainCaption)
                     .foregroundColor(.trainTextSecondary)

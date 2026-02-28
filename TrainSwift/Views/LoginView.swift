@@ -31,7 +31,7 @@ struct LoginView: View {
                         Button(action: { onBack?() }) {
                             HStack(spacing: Spacing.xs) {
                                 Image(systemName: "chevron.left")
-                                    .font(.system(size: 16, weight: .medium))
+                                    .font(.trainBody).fontWeight(.medium)
                                 Text("Back")
                                     .font(.trainBodyMedium)
                             }
@@ -58,16 +58,16 @@ struct LoginView: View {
                 }
 
                 Spacer()
-                    .frame(height: 40)
+                    .frame(height: ElementHeight.tabSelector)
 
                 VStack(spacing: Spacing.lg) {
                     // Log in with Apple Button
                     Button(action: handleAppleSignIn) {
                         HStack(spacing: Spacing.md) {
                             Image(systemName: "apple.logo")
-                                .font(.system(size: 18, weight: .medium))
+                                .font(.trainBodyMedium)
                             Text("Log in with Apple")
-                                .font(.system(size: 17, weight: .medium))
+                                .font(.trainBody).fontWeight(.medium)
                         }
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
@@ -82,9 +82,9 @@ struct LoginView: View {
                             Image("google")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 18, height: 18)
+                                .frame(width: IconSize.sm, height: IconSize.sm)
                             Text("Log in with Google")
-                                .font(.system(size: 17, weight: .medium))
+                                .font(.trainBody).fontWeight(.medium)
                         }
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
@@ -96,7 +96,7 @@ struct LoginView: View {
                     // Continue with Email Button
                     Button(action: { showEmailLogin = true }) {
                         Text("Continue with Email")
-                            .font(.system(size: 17, weight: .medium))
+                            .font(.trainBody).fontWeight(.medium)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: ButtonHeight.standard)
@@ -121,7 +121,7 @@ struct LoginView: View {
                     // Sign Up Button for new users
                     Button(action: { showSignup = true }) {
                         Text("Sign up")
-                            .font(.system(size: 17, weight: .medium))
+                            .font(.trainBody).fontWeight(.medium)
                             .foregroundColor(.trainTextSecondary)
                             .underline()
                     }

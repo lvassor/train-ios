@@ -213,7 +213,7 @@ struct SessionSummaryHeader: View {
             // Date
             HStack {
                 Image(systemName: "calendar")
-                    .font(.system(size: 16))
+                    .font(.system(size: IconSize.sm))
                     .foregroundColor(.trainTextSecondary)
                 Text(formattedDate)
                     .font(.trainBody)
@@ -223,7 +223,7 @@ struct SessionSummaryHeader: View {
             // Duration
             HStack {
                 Image(systemName: "timer")
-                    .font(.system(size: 16))
+                    .font(.system(size: IconSize.sm))
                     .foregroundColor(.trainTextSecondary)
                 Text("Duration: \(formattedDuration)")
                     .font(.trainBody)
@@ -233,7 +233,7 @@ struct SessionSummaryHeader: View {
             // Increased reps
             HStack {
                 Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 16))
+                    .font(.system(size: IconSize.sm))
                     .foregroundColor(.trainPrimary)
                 Text("Total increased reps: \(stats.increasedReps)")
                     .font(.trainBody)
@@ -243,7 +243,7 @@ struct SessionSummaryHeader: View {
             // Increased load
             HStack {
                 Image(systemName: "scalemass.fill")
-                    .font(.system(size: 16))
+                    .font(.system(size: IconSize.sm))
                     .foregroundColor(.trainPrimary)
                 Text("Total increased load: \(String(format: "%.1f", stats.increasedLoad))kg")
                     .font(.trainBody)
@@ -306,13 +306,13 @@ struct ExerciseLogCard: View {
 
                 if isPersonalBest {
                     Image(systemName: "rosette")
-                        .font(.system(size: 20))
+                        .font(.system(size: IconSize.md))
                         .foregroundColor(.trainTextPrimary)
                 }
             }
 
             // Sets
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 ForEach(Array(exercise.sets.enumerated()), id: \.offset) { index, set in
                     HStack {
                         Text("Set \(index + 1):")
@@ -330,10 +330,10 @@ struct ExerciseLogCard: View {
                             Text("+\(repIncrease)")
                                 .font(.trainCaption)
                                 .foregroundColor(.green)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.xxs)
                                 .background(Color.green.opacity(0.1))
-                                .cornerRadius(4)
+                                .cornerRadius(CornerRadius.xxs)
                         }
                     }
                 }
@@ -362,7 +362,7 @@ struct EmptySessionView: View {
     var body: some View {
         VStack(spacing: Spacing.lg) {
             Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 48))
+                .font(.system(size: IconSize.xl))
                 .foregroundColor(.trainTextSecondary)
 
             Text("No workout data found")

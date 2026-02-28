@@ -146,10 +146,10 @@ struct MilestonesView: View {
             ZStack {
                 Circle()
                     .fill(Color.trainPrimary.opacity(0.1))
-                    .frame(width: 100, height: 100)
+                    .frame(width: IconSize.display, height: IconSize.display)
 
                 Image(systemName: "trophy.fill")
-                    .font(.system(size: 44))
+                    .font(.system(size: IconSize.xl))
                     .foregroundColor(.trainPrimary)
             }
 
@@ -194,19 +194,19 @@ private struct StatBox: View {
     let icon: String
 
     var body: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 4) {
+        VStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.xs) {
                 Image(systemName: icon)
-                    .font(.system(size: 12))
+                    .font(.trainCaptionSmall)
                     .foregroundColor(.trainPrimary)
 
                 Text(value)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.trainSmallNumber).fontWeight(.bold)
                     .foregroundColor(.trainTextPrimary)
             }
 
             Text(label)
-                .font(.system(size: 12))
+                .font(.trainCaptionSmall)
                 .foregroundColor(.trainTextSecondary)
         }
         .frame(maxWidth: .infinity)
@@ -226,18 +226,18 @@ private struct StreakStatBox: View {
     let label: String
 
     var body: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 4) {
+        VStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.xs) {
                 FlameView()
-                    .frame(width: 18, height: 18)
+                    .frame(width: IconSize.sm, height: IconSize.sm)
 
                 Text(value)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.trainSmallNumber).fontWeight(.bold)
                     .foregroundColor(.trainTextPrimary)
             }
 
             Text(label)
-                .font(.system(size: 12))
+                .font(.trainCaptionSmall)
                 .foregroundColor(.trainTextSecondary)
         }
         .frame(maxWidth: .infinity)
@@ -263,31 +263,31 @@ private struct MilestoneCard: View {
         HStack(spacing: Spacing.md) {
             // Category icon
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
                     .fill(categoryColor.opacity(0.15))
-                    .frame(width: 40, height: 40)
+                    .frame(width: IconSize.xl, height: IconSize.xl)
 
                 Image(systemName: milestone.category.icon)
-                    .font(.system(size: 16))
+                    .font(.system(size: IconSize.sm))
                     .foregroundColor(categoryColor)
             }
 
             // Content
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack {
                     Text(milestone.title)
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.trainCaptionLarge).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
 
                     Spacer()
 
                     if milestone.isCompleted {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 16))
+                            .font(.system(size: IconSize.sm))
                             .foregroundColor(categoryColor)
                     } else {
                         Text(milestone.definition.progressDescription(current: milestone.currentValue))
-                            .font(.system(size: 13))
+                            .font(.trainCaptionSmall)
                             .foregroundColor(.trainTextSecondary)
                     }
                 }
@@ -329,27 +329,27 @@ private struct RecentPBCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(pb.exerciseName)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.trainBody).fontWeight(.semibold)
                 .foregroundColor(.trainTextPrimary)
                 .lineLimit(1)
 
-            HStack(spacing: 6) {
+            HStack(spacing: Spacing.sm) {
                 Text("\(Int(pb.previousWeight))kg")
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.trainHeadline).fontWeight(.medium)
                     .foregroundColor(.trainTextSecondary)
 
                 Image(systemName: "arrow.right")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.trainCaption).fontWeight(.semibold)
                     .foregroundColor(MilestoneCategory.progression.color)
 
                 Text("\(Int(pb.newWeight))kg")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.trainHeadline).fontWeight(.bold)
                     .foregroundColor(MilestoneCategory.progression.color)
 
                 Spacer()
 
                 Text(pb.date.formatted(.dateTime.month(.abbreviated).day()))
-                    .font(.system(size: 13))
+                    .font(.trainCaptionSmall)
                     .foregroundColor(.trainTextSecondary)
             }
         }

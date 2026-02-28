@@ -109,36 +109,36 @@ private struct InterstitialScreen: View {
                         }
                         Spacer()
                     }
-                    .padding(16)
+                    .padding(Spacing.md)
 
                     QuestionnaireProgressBar(currentStep: currentStep, totalSteps: totalSteps)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.bottom, Spacing.md)
                 }
 
                 Spacer()
 
                 // Text content positioned above Continue button
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.md) {
                     Text(subtitle)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.trainBody).fontWeight(.medium)
                         .foregroundColor(.white.opacity(0.9))
                         .multilineTextAlignment(.center)
 
                     Text(headline)
-                        .font(.system(size: 28, weight: .bold, design: .default))
+                        .font(.trainTitle).fontWeight(.bold)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 32)  // Space between text and button
+                .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.xl)  // Space between text and button
 
                 // Continue button
                 CustomButton(title: "Continue", action: onNext, isEnabled: true)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, Spacing.md)
                     .padding(.bottom, 40)
             }
         }

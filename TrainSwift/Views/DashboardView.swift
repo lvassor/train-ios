@@ -66,7 +66,7 @@ struct DashboardContent: View {
                             // No program found - show error message
                             VStack(spacing: Spacing.lg) {
                                 Image(systemName: "exclamationmark.triangle")
-                                    .font(.system(size: 48))
+                                    .font(.system(size: IconSize.xl))
                                     .foregroundColor(.orange)
 
                                 Text("No Training Program Found")
@@ -94,7 +94,7 @@ struct DashboardContent: View {
                             .padding(.top, Spacing.xxl)
                         }
                     }
-                    .padding(.bottom, 20)
+                    .padding(.bottom, Spacing.lg)
                 }
                 .scrollContentBackground(.hidden)
                 .edgeFadeMask(topFade: 16, bottomFade: 60)
@@ -215,9 +215,9 @@ struct ProgramProgressCard: View {
                                 ZStack {
                                     Circle()
                                         .fill(Color.trainPrimary.opacity(0.3))
-                                        .frame(width: 60, height: 60)
+                                        .frame(width: IconSize.xxl, height: IconSize.xxl)
                                     Image(systemName: "heart.fill")
-                                        .font(.system(size: 28))
+                                        .font(.system(size: IconSize.lg))
                                         .foregroundColor(Color.trainPrimary)
                                 }
                                 Text("Chest")
@@ -230,9 +230,9 @@ struct ProgramProgressCard: View {
                                 ZStack {
                                     Circle()
                                         .fill(Color.trainPrimary.opacity(0.3))
-                                        .frame(width: 60, height: 60)
+                                        .frame(width: IconSize.xxl, height: IconSize.xxl)
                                     Image(systemName: "figure.walk")
-                                        .font(.system(size: 28))
+                                        .font(.system(size: IconSize.lg))
                                         .foregroundColor(Color.trainPrimary)
                                 }
                                 Text("Quads")
@@ -245,9 +245,9 @@ struct ProgramProgressCard: View {
                                 ZStack {
                                     Circle()
                                         .fill(Color.trainPrimary.opacity(0.3))
-                                        .frame(width: 60, height: 60)
+                                        .frame(width: IconSize.xxl, height: IconSize.xxl)
                                     Image(systemName: "arrow.up")
-                                        .font(.system(size: 28))
+                                        .font(.system(size: IconSize.lg))
                                         .foregroundColor(Color.trainPrimary)
                                 }
                                 Text("Shoulders")
@@ -451,18 +451,18 @@ struct HorizontalDayButtonsRow: View {
                         }
                     }) {
                         Text(displayText)
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.trainBody).fontWeight(.medium)
                             .foregroundColor(isSelected ? .trainBackground : (isCompleted ? .trainPrimary : .trainTextPrimary))
                             .lineLimit(1)
                             .frame(width: isSelected ? expandedButtonWidth : collapsedButtonWidth)
-                            .frame(height: 44)
+                            .frame(height: ElementHeight.touchTarget)
                             .background(
                                 isSelected ? AnyShapeStyle(Color.trainTextSecondary) :
                                     (isCompleted ? AnyShapeStyle(Color.trainPrimary.opacity(0.15)) : AnyShapeStyle(.ultraThinMaterial))
                             )
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                                     .stroke(
                                         isSelected ? Color.clear :
                                             (isCompleted ? Color.trainPrimary.opacity(0.3) : Color.trainTextSecondary.opacity(0.3)),
@@ -474,7 +474,7 @@ struct HorizontalDayButtonsRow: View {
                 }
             }
         }
-        .frame(height: 44)
+        .frame(height: ElementHeight.touchTarget)
     }
 
     private var sessionsCompletedThisWeek: [CDWorkoutSession] {
@@ -526,7 +526,7 @@ struct SessionActionButton: View {
             if hasConflict {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "timer")
-                        .font(.system(size: 12))
+                        .font(.system(size: IconSize.sm))
                         .foregroundColor(.orange)
                     Text("Active workout: \(workoutState.activeWorkout?.sessionName ?? "")")
                         .font(.trainCaption)
@@ -546,13 +546,13 @@ struct SessionActionButton: View {
                 }) {
                     HStack {
                         Text("Start Workout")
-                            .font(.system(size: 18, weight: .medium))
+                            .font(.trainBodyMedium)
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .padding(.vertical, Spacing.md)
                     .background(Color.trainPrimary)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 }
             } else {
                 // Normal: no conflict, navigate directly
@@ -563,16 +563,16 @@ struct SessionActionButton: View {
                     HStack {
                         if isActiveWorkout {
                             Image(systemName: "play.circle.fill")
-                                .font(.system(size: 18))
+                                .font(.trainBodyMedium)
                         }
                         Text(buttonText)
-                            .font(.system(size: 18, weight: .medium))
+                            .font(.trainBodyMedium)
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .padding(.vertical, Spacing.md)
                     .background(Color.trainPrimary)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 }
             }
 
@@ -584,15 +584,15 @@ struct SessionActionButton: View {
                 )) {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 18))
+                            .font(.trainBodyMedium)
                         Text("View Completed Workout")
-                            .font(.system(size: 16, weight: .light))
+                            .font(.trainBody).fontWeight(.light)
                     }
                     .foregroundColor(.trainPrimary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+                    .padding(.vertical, Spacing.smd)
                     .background(Color.trainPrimary.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 }
             }
         }
@@ -660,22 +660,22 @@ struct ExerciseListView: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // Section title
             Text("Workout")
-                .font(.system(size: 14, weight: .light))
+                .font(.trainCaption).fontWeight(.light)
                 .foregroundColor(.trainTextSecondary)
-                .padding(.top, 8)
+                .padding(.top, Spacing.sm)
 
             // Exercise cards with vertical line behind
             ZStack(alignment: .leading) {
                 // Vertical connector line - positioned at center of thumbnails
                 Rectangle()
                     .fill(Color.trainTextSecondary.opacity(0.2))
-                    .frame(width: 2)
+                    .frame(width: Spacing.xxs)
                     .padding(.leading, lineXOffset - 1) // Center the 2pt line at the thumbnail center
-                    .padding(.top, 48) // Start partway down the first card
-                    .padding(.bottom, 48) // End partway up the last card
+                    .padding(.top, Spacing.xxl) // Start partway down the first card
+                    .padding(.bottom, Spacing.xxl) // End partway up the last card
 
                 // Exercise cards
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.smd) {
                     ForEach(session.exercises, id: \.id) { exercise in
                         DashboardExerciseCardDarkMode(
                             exercise: exercise,
@@ -741,7 +741,7 @@ struct CompletedSessionSummaryCard: View {
             // Completion badge
             HStack {
                 Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 20))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainPrimary)
 
                 Text("Workout Complete")
@@ -808,11 +808,11 @@ struct SummaryStatItem: View {
     var body: some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: icon)
-                .font(.system(size: 16))
+                .font(.system(size: IconSize.sm))
                 .foregroundColor(.trainTextSecondary)
-                .frame(width: 24)
+                .frame(width: IconSize.md)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(label)
                     .font(.trainCaption)
                     .foregroundColor(.trainTextSecondary)
@@ -843,13 +843,13 @@ struct SessionBubble: View {
 
             if isCompleted {
                 Image(systemName: "checkmark")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.trainBody).fontWeight(.bold)
                     .foregroundColor(.white)
             }
         }
         .padding(Spacing.md)
-        .background(isCompleted ? Color.trainPrimary : Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+        .background(isCompleted ? Color.trainPrimary : Color.trainSurface)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
 }
@@ -894,7 +894,7 @@ struct ExpandedSessionBubble: View {
         }
         .padding(Spacing.md)
         .appCard()
-        .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
 }
@@ -931,10 +931,10 @@ struct NextWorkoutCard: View {
                         .foregroundColor(.trainPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.md)
-                        .background(Color.white)
-                        .cornerRadius(10)
+                        .background(Color.trainSurface)
+                        .cornerRadius(CornerRadius.sm)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: CornerRadius.sm)
                                 .stroke(Color.trainPrimary, lineWidth: 2)
                         )
                 }
@@ -945,10 +945,10 @@ struct NextWorkoutCard: View {
             }
         }
         .padding(Spacing.md)
-        .background(Color.white)
-        .cornerRadius(15)
+        .background(Color.trainSurface)
+        .cornerRadius(CornerRadius.md)
         .overlay(
-            RoundedRectangle(cornerRadius: 15)
+            RoundedRectangle(cornerRadius: CornerRadius.md)
                 .stroke(Color.trainBorder, lineWidth: 1)
         )
     }
@@ -1058,7 +1058,7 @@ struct BottomNavigationBar: View {
                 action: onAccount
             )
         }
-        .frame(height: 70)
+        .frame(height: ElementHeight.tabBar)
         .appCard()
         .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
     }
@@ -1071,13 +1071,13 @@ struct BottomNavItem: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: Spacing.xs) {
                 Image(systemName: icon)
-                    .font(.system(size: 24))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextPrimary)
 
                 Text(label)
-                    .font(.system(size: 10))
+                    .font(.trainMicro)
                     .foregroundColor(.trainTextSecondary)
             }
             .frame(maxWidth: .infinity)
@@ -1133,7 +1133,7 @@ struct ActiveWorkoutTimerView: View {
                     // Live timer
                     HStack(spacing: Spacing.xs) {
                         Image(systemName: "timer")
-                            .font(.system(size: 14))
+                            .font(.system(size: IconSize.sm))
                             .foregroundColor(.trainTextSecondary)
 
                         Text(elapsedTimeFormatted)
@@ -1184,11 +1184,11 @@ struct TopHeaderView: View {
     var body: some View {
         HStack {
             // Streak indicator - Figma style
-            HStack(spacing: 4) {
+            HStack(spacing: Spacing.xs) {
                 Text("🔥")
-                    .font(.system(size: 16))
+                    .font(.trainBody)
                 Text("\(currentStreak)")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.trainBody).fontWeight(.medium)
                     .foregroundColor(.trainTextPrimary)
             }
 
@@ -1208,12 +1208,12 @@ struct TopHeaderView: View {
                 AppLogger.logUI("Settings tapped")
             }) {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 24))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextPrimary)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.horizontal, Layout.horizontalPadding)
+        .padding(.vertical, Spacing.smd)
         .onAppear {
             currentStreak = calculateStreak()
         }

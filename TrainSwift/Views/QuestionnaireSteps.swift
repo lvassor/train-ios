@@ -40,7 +40,7 @@ struct NameStepView: View {
                 .appCard(cornerRadius: CornerRadius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                        .stroke(isTextFieldFocused ? Color.trainPrimary : Color.white.opacity(0.12), lineWidth: isTextFieldFocused ? 2 : 1)
+                        .stroke(isTextFieldFocused ? Color.trainPrimary : Color.trainBorderSubtle.opacity(0.5), lineWidth: isTextFieldFocused ? 2 : 1)
                 )
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.words)
@@ -123,7 +123,7 @@ struct GenderStepView: View {
                             ZStack {
                                 Circle()
                                     .fill(selectedGender == "Male" ? Color.white.opacity(0.3) : Color.trainHover)
-                                    .frame(width: 56, height: 56)
+                                    .frame(width: IconSize.xxl, height: IconSize.xxl)
 
                                 Image(systemName: "figure.stand")
                                     .font(.title)
@@ -147,7 +147,7 @@ struct GenderStepView: View {
                             ZStack {
                                 Circle()
                                     .fill(selectedGender == "Female" ? Color.white.opacity(0.3) : Color.trainHover)
-                                    .frame(width: 56, height: 56)
+                                    .frame(width: IconSize.xxl, height: IconSize.xxl)
 
                                 Image(systemName: "figure.stand.dress")
                                     .font(.title)
@@ -172,7 +172,7 @@ struct GenderStepView: View {
                         ZStack {
                             Circle()
                                 .fill(selectedGender == "Other / Prefer not to say" ? Color.white.opacity(0.3) : Color.trainHover)
-                                .frame(width: 48, height: 48)
+                                .frame(width: IconSize.xl, height: IconSize.xl)
 
                             Image(systemName: "person.fill")
                                 .font(.title2)
@@ -236,11 +236,11 @@ struct AgeStepView: View {
             // Age display
             HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                 Text("\(age)")
-                    .font(.system(size: 56, weight: .bold, design: .rounded))
+                    .font(.trainPickerNumber)
                     .foregroundColor(.trainPrimary)
                 Text("years old")
                     .font(.trainTitle)
-                    .foregroundColor(.white)  // Changed to white per requirements
+                    .foregroundColor(.trainTextPrimary)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, Spacing.md)
@@ -310,7 +310,7 @@ struct HeightStepView: View {
                         .warmGlassCard(cornerRadius: CornerRadius.sm)
                         .overlay(
                             RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
-                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
                         )
                 }
 
@@ -332,7 +332,7 @@ struct HeightStepView: View {
                         .warmGlassCard(cornerRadius: CornerRadius.sm)
                         .overlay(
                             RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
-                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
                         )
                 }
             }
@@ -344,13 +344,13 @@ struct HeightStepView: View {
                     // Display current value with unit on same line
                     HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                         Text("\(Int(heightCm))")
-                            .font(.system(size: 56, weight: .bold))
+                            .font(.trainPickerNumber)
                             .foregroundColor(.trainPrimary)
                         Text("cm")
                             .font(.trainTitle)
                             .foregroundColor(.trainTextSecondary)
                     }
-                    .frame(height: 80)
+                    .frame(minHeight: ElementHeight.optionCard)
 
                     // SlidingRuler - Each major tick = 10cm (e.g., 140, 150, 160)
                     SlidingRuler(
@@ -362,7 +362,7 @@ struct HeightStepView: View {
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
                     .colorScheme(.dark)  // Force dark mode for white labels
-                    .frame(height: 60)
+                    .frame(minHeight: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
                         if heightCm < 120 {
@@ -391,20 +391,20 @@ struct HeightStepView: View {
                     // Display current value as Xft Yin
                     HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                         Text("\(heightFt)")
-                            .font(.system(size: 56, weight: .bold))
+                            .font(.trainPickerNumber)
                             .foregroundColor(.trainPrimary)
                         Text("ft")
                             .font(.trainTitle)
                             .foregroundColor(.trainTextSecondary)
 
                         Text("\(heightIn)")
-                            .font(.system(size: 56, weight: .bold))
+                            .font(.trainPickerNumber)
                             .foregroundColor(.trainPrimary)
                         Text("in")
                             .font(.trainTitle)
                             .foregroundColor(.trainTextSecondary)
                     }
-                    .frame(height: 80)
+                    .frame(minHeight: ElementHeight.optionCard)
 
                     // SlidingRuler - Each major tick = 1 foot, labels show 4, 5, 6, 7
                     SlidingRuler(
@@ -416,7 +416,7 @@ struct HeightStepView: View {
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
                     .colorScheme(.dark)  // Force dark mode for white labels
-                    .frame(height: 60)
+                    .frame(minHeight: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
                         if heightFt == 0 && heightIn == 0 {
@@ -472,7 +472,7 @@ struct WeightStepView: View {
                         .warmGlassCard(cornerRadius: CornerRadius.sm)
                         .overlay(
                             RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
-                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
                         )
                 }
 
@@ -492,7 +492,7 @@ struct WeightStepView: View {
                         .warmGlassCard(cornerRadius: CornerRadius.sm)
                         .overlay(
                             RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
-                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
                         )
                 }
             }
@@ -504,13 +504,13 @@ struct WeightStepView: View {
                     // Display current value
                     HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                         Text("\(Int(weightKg))")
-                            .font(.system(size: 56, weight: .bold))
+                            .font(.trainPickerNumber)
                             .foregroundColor(.trainPrimary)
                         Text("kg")
                             .font(.trainTitle)
                             .foregroundColor(.trainTextSecondary)
                     }
-                    .frame(height: 80)
+                    .frame(minHeight: ElementHeight.optionCard)
 
                     // SlidingRuler - Each major tick = 10kg (e.g., 60, 70, 80)
                     SlidingRuler(
@@ -522,7 +522,7 @@ struct WeightStepView: View {
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
                     .colorScheme(.dark)  // Force dark mode for white labels
-                    .frame(height: 60)
+                    .frame(minHeight: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
                         if weightKg < 30 {
@@ -538,13 +538,13 @@ struct WeightStepView: View {
                     // Display current value
                     HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                         Text("\(Int(weightLbs))")
-                            .font(.system(size: 56, weight: .bold))
+                            .font(.trainPickerNumber)
                             .foregroundColor(.trainPrimary)
                         Text("lbs")
                             .font(.trainTitle)
                             .foregroundColor(.trainTextSecondary)
                     }
-                    .frame(height: 80)
+                    .frame(minHeight: ElementHeight.optionCard)
 
                     // SlidingRuler - Each major tick = 20lbs (e.g., 140, 160, 180)
                     SlidingRuler(
@@ -556,7 +556,7 @@ struct WeightStepView: View {
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
                     .colorScheme(.dark)  // Force dark mode for white labels
-                    .frame(height: 60)
+                    .frame(minHeight: 60)
                     .padding(.horizontal, Spacing.lg)
                     .onAppear {
                         if weightLbs < 65 {
@@ -666,7 +666,7 @@ struct MuscleGroupsStepView: View {
             if !selectedGroups.isEmpty {
                 HStack(spacing: Spacing.sm) {
                     ForEach(selectedGroups, id: \.self) { muscle in
-                        HStack(spacing: 6) {
+                        HStack(spacing: Spacing.sm) {
                             Text(muscle)
                                 .font(.trainCaption)
                                 .foregroundColor(.white)
@@ -675,12 +675,12 @@ struct MuscleGroupsStepView: View {
                                 selectedGroups.removeAll { $0 == muscle }
                             }) {
                                 Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 14))
+                                    .font(.trainCaption)
                                     .foregroundColor(.white.opacity(0.9))
                             }
                         }
                         .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, 6)
+                        .padding(.vertical, Spacing.sm)
                         .background(Color.trainPrimary)
                         .cornerRadius(CornerRadius.lg)
                     }
@@ -851,14 +851,14 @@ struct TrainingPlaceStepView: View {
                             ZStack {
                                 Circle()
                                     .fill(selectedTrainingPlace == value ? Color.white.opacity(0.3) : Color.trainHover)
-                                    .frame(width: 48, height: 48)
+                                    .frame(width: IconSize.xl, height: IconSize.xl)
 
                                 Image(systemName: iconName)
                                     .font(.title2)
                                     .foregroundColor(selectedTrainingPlace == value ? .white : .trainPrimary)
                             }
 
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: Spacing.xs) {
                                 Text(title)
                                     .font(.trainBodyMedium)
                                     .foregroundColor(selectedTrainingPlace == value ? .white : .trainTextPrimary)
@@ -866,7 +866,7 @@ struct TrainingPlaceStepView: View {
                                 Text(subtitle)
                                     .font(.trainCaption)
                                     .foregroundColor(selectedTrainingPlace == value ? .white.opacity(0.8) : .trainTextSecondary)
-                            }
+}
 
                             Spacer()
 
@@ -906,16 +906,16 @@ struct EquipmentCard: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
                         .fill(Color.trainPrimary.opacity(0.1))
-                        .frame(width: 64, height: 64)
+                        .frame(width: IconSize.xxl, height: IconSize.xxl)
 
                     if let uiImage = EquipmentImageMapping.image(for: equipmentName) {
                         Image(uiImage: uiImage)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 52, height: 52)
+                            .frame(width: IconSize.xl, height: IconSize.xl)
                     } else {
                         Image(systemName: equipmentIcon)
-                            .font(.system(size: 24))
+                            .font(.system(size: IconSize.md))
                             .foregroundColor(.trainPrimary.opacity(0.6))
                     }
                 }
@@ -934,15 +934,15 @@ struct EquipmentCard: View {
                 ZStack {
                     Circle()
                         .stroke(isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.4), lineWidth: 2)
-                        .frame(width: 24, height: 24)
+                        .frame(width: IconSize.md, height: IconSize.md)
 
                     if isSelected {
                         Circle()
                             .fill(Color.trainPrimary)
-                            .frame(width: 24, height: 24)
+                            .frame(width: IconSize.md, height: IconSize.md)
 
                         Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.trainCaptionSmall).fontWeight(.bold)
                             .foregroundColor(.white)
                     }
                 }
@@ -950,7 +950,7 @@ struct EquipmentCard: View {
             .padding(.leading, Spacing.sm)
             .padding(.trailing, 28) // Matches vertical spacing: (80 - 24) / 2
             .padding(.vertical, Spacing.sm)
-            .frame(height: 80)
+            .frame(minHeight: ElementHeight.optionCard)
             .appCard(cornerRadius: CornerRadius.md)
         }
         .buttonStyle(ScaleButtonStyle())
@@ -1038,7 +1038,7 @@ struct EquipmentGroupSection: View {
                         Spacer()
 
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(.trainCaptionSmall).fontWeight(.medium)
                             .foregroundColor(.trainPrimary)
                     }
                     .padding(.horizontal, Spacing.sm)
@@ -1103,10 +1103,10 @@ struct SimpleEquipmentToggleCard: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
                         .fill(Color.trainPrimary.opacity(0.1))
-                        .frame(width: 64, height: 64)
+                        .frame(width: IconSize.xxl, height: IconSize.xxl)
 
                     Image(systemName: iconName)
-                        .font(.system(size: 24))
+                        .font(.system(size: IconSize.md))
                         .foregroundColor(.trainPrimary.opacity(0.6))
                 }
 
@@ -1122,15 +1122,15 @@ struct SimpleEquipmentToggleCard: View {
                 ZStack {
                     Circle()
                         .stroke(isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.4), lineWidth: 2)
-                        .frame(width: 24, height: 24)
+                        .frame(width: IconSize.md, height: IconSize.md)
 
                     if isSelected {
                         Circle()
                             .fill(Color.trainPrimary)
-                            .frame(width: 24, height: 24)
+                            .frame(width: IconSize.md, height: IconSize.md)
 
                         Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.trainCaptionSmall).fontWeight(.bold)
                             .foregroundColor(.white)
                     }
                 }
@@ -1138,7 +1138,7 @@ struct SimpleEquipmentToggleCard: View {
             .padding(.leading, Spacing.sm)
             .padding(.trailing, 28) // Matches vertical spacing: (80 - 24) / 2
             .padding(.vertical, Spacing.sm)
-            .frame(height: 80)
+            .frame(minHeight: ElementHeight.optionCard)
             .appCard(cornerRadius: CornerRadius.md)
         }
         .buttonStyle(ScaleButtonStyle())
@@ -1338,7 +1338,7 @@ struct EquipmentInfoModal: View {
                             .frame(height: 160)
                     } else {
                         Image(systemName: equipmentIcon)
-                            .font(.system(size: 80))
+                            .font(.system(size: IconSize.display))
                             .foregroundColor(.trainPrimary)
                     }
                 }
@@ -1370,9 +1370,9 @@ struct EquipmentInfoModal: View {
                 // Close button with glassmorphic style
                 Button(action: onDismiss) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.trainCaption).fontWeight(.semibold)
                         .foregroundColor(.trainTextPrimary)
-                        .frame(width: 28, height: 28)
+                        .frame(width: IconSize.lg, height: IconSize.lg)
                         .background(.ultraThinMaterial)
                         .clipShape(Circle())
                 }
@@ -1482,13 +1482,13 @@ struct TrainingDaysStepView: View {
                         .foregroundColor(.trainPrimary)
                     Text(trainingDays == 1 ? "day" : "days")
                         .font(.trainTitle)
-                        .foregroundColor(.white)  // Changed to white per requirements
+                        .foregroundColor(.trainTextPrimary)
                 }
                 .frame(maxWidth: .infinity)
 
                 Text("per week")
                     .font(.trainBody)
-                    .foregroundColor(.white)  // Changed to white per requirements
+                    .foregroundColor(.trainTextPrimary)
             }
             .padding(.vertical, Spacing.md)
 
@@ -1500,7 +1500,7 @@ struct TrainingDaysStepView: View {
                     let rangeStart = (CGFloat(recommendedRange.lowerBound - 1) * segmentWidth)
                     let rangeWidth = (CGFloat(recommendedRange.upperBound - recommendedRange.lowerBound + 1) * segmentWidth)
 
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         // "Recommended" label at top - centered above bracket
                         HStack {
                             Spacer()
@@ -1540,7 +1540,7 @@ struct TrainingDaysStepView: View {
                         .stroke(Color.trainPrimary, lineWidth: 2)
                     }
                 }
-                .frame(height: 40)
+                .frame(height: ElementHeight.tabSelector)
 
                 // Days numbers
                 HStack {
@@ -1563,18 +1563,18 @@ struct TrainingDaysStepView: View {
                         Rectangle()
                             .fill(Color.trainBorder)
                             .frame(height: 4)
-                            .cornerRadius(2)
+                            .cornerRadius(Spacing.xxs)
 
                         // Orange filled portion up to selected value
                         Rectangle()
                             .fill(Color.trainPrimary)
                             .frame(width: circlePosition, height: 4)
-                            .cornerRadius(2)
+                            .cornerRadius(Spacing.xxs)
 
                         // Draggable circle
                         Circle()
                             .fill(Color.trainPrimary)
-                            .frame(width: 24, height: 24)
+                            .frame(width: IconSize.md, height: IconSize.md)
                             .offset(x: circlePosition - 12)
                             .gesture(
                                 DragGesture(minimumDistance: 0)
@@ -1598,7 +1598,7 @@ struct TrainingDaysStepView: View {
                 VStack(spacing: Spacing.sm) {
                     HStack(spacing: Spacing.sm) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 14))
+                            .font(.trainCaption)
                             .foregroundColor(.orange)
 
                         Text("Training Frequency Warning")
@@ -1622,7 +1622,7 @@ struct TrainingDaysStepView: View {
             VStack(spacing: Spacing.sm) {
                 HStack(spacing: Spacing.sm) {
                     Image(systemName: "info.circle.fill")
-                        .font(.system(size: 14))
+                        .font(.trainCaption)
                         .foregroundColor(.trainPrimary)
 
                     Text("Your program will be:")
@@ -1841,9 +1841,9 @@ struct SplitOptionCard: View {
                     .font(.trainCaption)
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, Spacing.xs)
                     .background(Color.trainPrimary)
-                    .cornerRadius(8)
+                    .cornerRadius(CornerRadius.xs)
                     .offset(x: 12, y: -8)
             }
         }

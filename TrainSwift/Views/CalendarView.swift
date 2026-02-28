@@ -55,7 +55,7 @@ struct CalendarView: View {
                             }
 
                             Spacer()
-                                .frame(height: 40)
+                                .frame(height: ElementHeight.tabSelector)
                         }
                     }
                 }
@@ -205,7 +205,7 @@ struct CalendarGridView: View {
                     } else {
                         // Empty cell for alignment
                         Color.clear
-                            .frame(height: 40)
+                            .frame(height: ElementHeight.tabSelector)
                     }
                 }
             }
@@ -293,7 +293,7 @@ struct CalendarDayView: View {
                         .offset(y: 12)
                 }
             }
-            .frame(height: 40)
+            .frame(height: ElementHeight.tabSelector)
         }
     }
 }

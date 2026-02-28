@@ -24,7 +24,7 @@ struct WelcomeView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     // Header with centered logo and sign in
-                    VStack(spacing: 16) {
+                    VStack(spacing: Spacing.md) {
                         HStack {
                             Spacer()
 
@@ -35,8 +35,8 @@ struct WelcomeView: View {
                                     .foregroundColor(.white)
                             }
                         }
-                        .padding(.horizontal, 24)
-                        .padding(.top, 12)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.top, Spacing.smd)
 
                         // Centered larger logo (cropped SVG) - 75% of original size
                         Image("TrainLogoWithText")
@@ -48,32 +48,32 @@ struct WelcomeView: View {
                     Spacer().frame(height: 32)
 
                     // Updated headlines with brand messaging - line break after "Expert Programs."
-                    VStack(alignment: .center, spacing: 4) {
+                    VStack(alignment: .center, spacing: Spacing.xs) {
                         Text("Expert Programs.")
-                            .font(.system(size: 28, weight: .bold))
+                            .font(.trainTitle).fontWeight(.bold)
                             .foregroundColor(.trainPrimary) // Brand orange highlighting
 
                         Text("Built Around You.")
-                            .font(.system(size: 28, weight: .bold))
+                            .font(.trainTitle).fontWeight(.bold)
                             .foregroundColor(.white)
                     }
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, Spacing.lg)
 
                     // Updated subtitle with proper line breaking
                     Text("Train uses programming and training principles from professional personal trainers to help you master weight lifting and hit your goals.")
-                        .font(.system(size: 16))
+                        .font(.trainBody)
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 24)
-                        .padding(.top, 16)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.top, Spacing.md)
 
                     // Cover Flow carousel with center stage scaling - reduced to 75% size
                     Group {
                         if #available(iOS 17.0, *) {
                             ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 4) {
+                                HStack(spacing: Spacing.xs) {
                                     ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
                                         GeometryReader { geometry in
                                             let midX = geometry.frame(in: .global).midX
@@ -88,7 +88,7 @@ struct WelcomeView: View {
                                             Image(screenshot)
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fit)
-                                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal))
                                                 .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
                                                 .scaleEffect(scale)
                                                 .opacity(opacity)
@@ -97,7 +97,7 @@ struct WelcomeView: View {
                                         .frame(width: UIScreen.main.bounds.width * 0.45, height: 300) // Reduced from 60% to 45%
                                     }
                                 }
-                                .padding(.horizontal, 20)
+                                .padding(.horizontal, Layout.horizontalPadding)
                                 .scrollTargetLayout()
                             }
                             .scrollTargetBehavior(.viewAligned)
@@ -105,20 +105,20 @@ struct WelcomeView: View {
                         } else {
                             // Fallback for iOS 16 and earlier
                             ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 4) {
+                                HStack(spacing: Spacing.xs) {
                                     ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
                                         Image(screenshot)
                                             .resizable()
                                             .aspectRatio(contentMode: .fit)
                                             .frame(width: UIScreen.main.bounds.width * 0.45)
                                             .frame(height: 300) // Reduced from 60% to 45%
-                                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal))
                                             .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
                                             .scaleEffect(index == currentIndex ? 1.2 : 0.8)
                                             .opacity(index == currentIndex ? 1.0 : 0.6)
                                     }
                                 }
-                                .padding(.horizontal, 20)
+                                .padding(.horizontal, Layout.horizontalPadding)
                             }
                             .scrollIndicators(.hidden)
                         }
@@ -128,12 +128,12 @@ struct WelcomeView: View {
 
                     // Updated caption moved above the carousel for better layout
                     Text("Join Train to get personalized workouts and hit your goals faster.")
-                        .font(.system(size: 16))
+                        .font(.trainBody)
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 24)
-                        .padding(.top, 32)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.top, Spacing.xl)
 
                     // Add bottom padding so content scrolls behind the floating button
                     Spacer()
@@ -144,7 +144,7 @@ struct WelcomeView: View {
             .edgeFadeMask(topFade: 16, bottomFade: 60) // Visual gradients like questionnaire screens
 
             // Floating CTA button at bottom - matches questionnaire pattern
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.md) {
                 // Get Started button - floating and fixed in Z-plane
                 Button(action: onContinue) {
                     Text("Get Started")
@@ -155,9 +155,9 @@ struct WelcomeView: View {
                         .background(Color.trainPrimary)
                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)) // 16px - matches Continue button
                 }
-                .padding(.horizontal, 16) // Match questionnaire horizontal padding
+                .padding(.horizontal, Spacing.md) // Match questionnaire horizontal padding
             }
-            .padding(.bottom, 16) // Match questionnaire bottom padding
+            .padding(.bottom, Spacing.md) // Match questionnaire bottom padding
         }
         .charcoalGradientBackground()
         .onAppear {

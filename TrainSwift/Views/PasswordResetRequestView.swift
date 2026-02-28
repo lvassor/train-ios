@@ -27,7 +27,7 @@ struct PasswordResetRequestView: View {
                         .foregroundColor(.trainPrimary)
 
                     Spacer()
-                        .frame(height: 40)
+                        .frame(height: ElementHeight.tabSelector)
 
                     // Title
                     Text("Reset Password")
@@ -42,7 +42,7 @@ struct PasswordResetRequestView: View {
                             .autocorrectionDisabled()
                             .padding(Spacing.md)
                             .appCard()
-                            .cornerRadius(10)
+                            .cornerRadius(CornerRadius.sm)
 
                         Text("Enter your email and we'll send you a reset code")
                             .font(.trainBody)
@@ -63,7 +63,7 @@ struct PasswordResetRequestView: View {
 
                     // Bottom section
                     VStack(spacing: Spacing.md) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: Spacing.xs) {
                             Text("Remember your password?")
                                 .font(.trainBody)
                                 .foregroundColor(.trainTextSecondary)
@@ -82,7 +82,7 @@ struct PasswordResetRequestView: View {
                                 .frame(maxWidth: .infinity)
                                 .frame(height: ButtonHeight.standard)
                                 .background(Color.trainPrimary)
-                                .cornerRadius(30)
+                                .cornerRadius(CornerRadius.pill)
                         }
                         .disabled(email.isEmpty)
                         .opacity(email.isEmpty ? 0.6 : 1.0)

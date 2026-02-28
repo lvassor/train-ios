@@ -26,7 +26,7 @@ struct MultiSelectCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(title)
                     .font(isCompact ? .trainBodyMedium : .trainHeadline)  // Smaller font for compact mode
                     .foregroundColor(isSelected ? .white : .trainTextPrimary)

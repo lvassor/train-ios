@@ -22,9 +22,9 @@ struct LearningRecommendationCard: View {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 64)
+                            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
                             .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous))
                     case .failure:
                         thumbnailPlaceholder
                     case .empty:
@@ -45,16 +45,16 @@ struct LearningRecommendationCard: View {
                         showVideoPlayer = true
                     }) {
                         Image(systemName: "play.fill")
-                            .font(.system(size: 10))
+                            .font(.trainMicro)
                             .foregroundColor(.white)
-                            .padding(6)
+                            .padding(Spacing.sm)
                             .background(Color.black.opacity(0.6))
                             .clipShape(Circle())
                     }
                     .offset(x: 4, y: -4)
                 }
             }
-            .frame(width: 80, height: 64)
+            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
 
             // Content
             VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -68,7 +68,7 @@ struct LearningRecommendationCard: View {
                     .lineLimit(1)
 
                 Text(data.description)
-                    .font(.system(size: 12, weight: .regular))
+                    .font(.trainCaptionSmall)
                     .foregroundColor(.trainTextSecondary)
                     .lineLimit(2)
             }
@@ -85,12 +85,12 @@ struct LearningRecommendationCard: View {
     }
 
     private var thumbnailPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
+        RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
             .fill(Color.trainPlaceholder)
-            .frame(width: 80, height: 64)
+            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
             .overlay {
                 Image(systemName: "photo")
-                    .font(.system(size: 20))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextSecondary.opacity(0.5))
             }
     }

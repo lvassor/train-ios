@@ -43,28 +43,28 @@ struct ExerciseDemoTab: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Exercise Info (same as Logger tab - centered, no container)
-                VStack(spacing: 4) {
+                VStack(spacing: Spacing.xs) {
                     Text(exercise.displayName)
-                        .font(.system(size: 20, weight: .medium))
+                        .font(.trainHeadline).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
                         .multilineTextAlignment(.center)
 
                     // Equipment tag
                     Text(exercise.equipmentCategory)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.trainBody).fontWeight(.medium)
                         .foregroundColor(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.sm)
                         .background(Color.trainTag)
                         .clipShape(Capsule())
-                        .padding(.top, 4)
+                        .padding(.top, Spacing.xs)
                 }
-                .padding(.top, 20)
+                .padding(.top, Spacing.lg)
 
                 // Video Player Card
                 DemoVideoPlayerCard(exerciseId: exercise.exerciseId)
-                    .padding(.horizontal, 18)
-                    .padding(.top, 24)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.lg)
 
                 // Equipment Section - horizontal row of placeholder tiles
                 DemoInfoSection(
@@ -72,19 +72,19 @@ struct ExerciseDemoTab: View {
                     items: equipmentItems,
                     sectionType: .equipment
                 )
-                .padding(.top, 24)
+                .padding(.top, Spacing.lg)
 
                 // Active Muscle Groups Section - with body diagrams
                 DemoMuscleGroupsSection(
                     title: "Active Muscle Groups",
                     muscleGroups: muscleGroups
                 )
-                .padding(.top, 16)
+                .padding(.top, Spacing.md)
 
                 // Instructions Card
                 DemoInstructionsCard(instructions: exercise.instructionSteps)
-                    .padding(.horizontal, 18)
-                    .padding(.top, 16)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.md)
                     .padding(.bottom, 100)
             }
         }
@@ -102,9 +102,9 @@ struct DemoVideoPlayerCard: View {
             // Use existing ExerciseMediaPlayer
             ExerciseMediaPlayer(exerciseId: exerciseId)
                 .frame(height: 192)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                         .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
                 )
         }
@@ -125,9 +125,9 @@ struct DemoInfoSection: View {
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.smd) {
             Text(title)
-                .font(.system(size: 16, weight: .medium))
+                .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(.trainTextPrimary)
                 .padding(.horizontal, 50)
 
@@ -161,23 +161,23 @@ struct DemoPlaceholderTile: View {
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: Spacing.xs) {
             ZStack {
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                RoundedRectangle(cornerRadius: CornerRadius.xxs, style: .continuous)
                     .fill(colorScheme == .dark ? Color.white.opacity(0.1) : Color.white)
                     .frame(width: 70, height: 70)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        RoundedRectangle(cornerRadius: CornerRadius.xxs, style: .continuous)
                             .stroke(colorScheme == .dark ? Color.white.opacity(0.2) : Color.black.opacity(0.1), lineWidth: 1)
                     )
 
                 Image(systemName: iconName)
-                    .font(.system(size: 24))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextPrimary)
             }
 
             Text(label)
-                .font(.system(size: 12, weight: .regular))
+                .font(.trainCaptionSmall)
                 .foregroundColor(.trainTextSecondary)
                 .lineLimit(1)
         }
@@ -192,9 +192,9 @@ struct DemoMuscleGroupsSection: View {
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.smd) {
             Text(title)
-                .font(.system(size: 16, weight: .medium))
+                .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(.trainTextPrimary)
                 .padding(.horizontal, 50)
 
@@ -231,39 +231,39 @@ struct DemoInstructionsCard: View {
     private static let stepPrefixRegex = try? NSRegularExpression(pattern: "^Step\\s*\\d+\\s*:\\s*", options: .caseInsensitive)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("Instructions")
-                .font(.system(size: 16, weight: .medium))
+                .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(.trainTextPrimary)
 
             if instructions.isEmpty {
                 Text("Instructions coming soon")
-                    .font(.system(size: 14, weight: .regular))
+                    .font(.trainCaption)
                     .foregroundColor(.trainTextSecondary)
                     .opacity(0.8)
-                    .padding(.top, 4)
+                    .padding(.top, Spacing.xs)
             } else {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(Array(instructions.enumerated()), id: \.offset) { index, instruction in
-                        HStack(alignment: .top, spacing: 8) {
+                        HStack(alignment: .top, spacing: Spacing.sm) {
                             Text("\(index + 1).")
-                                .font(.system(size: 14, weight: .regular))
+                                .font(.trainCaption)
                                 .foregroundColor(.trainTextPrimary)
                                 .opacity(0.8)
                             Text(cleanStepText(instruction))
-                                .font(.system(size: 14, weight: .regular))
+                                .font(.trainCaption)
                                 .foregroundColor(.trainTextPrimary)
                                 .opacity(0.8)
                         }
                     }
                 }
-                .padding(.top, 4)
+                .padding(.top, Spacing.xs)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(20)
+        .padding(Spacing.lg)
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
         )
     }

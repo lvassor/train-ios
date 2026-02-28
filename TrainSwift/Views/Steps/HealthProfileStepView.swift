@@ -55,7 +55,7 @@ struct HealthProfileStepView: View {
                                 .foregroundColor(.red)
                                 .font(.title3)
 
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: Spacing.xxs) {
                                 Text("Sync with Apple Health")
                                     .font(.trainBodyMedium)
                                     .foregroundColor(.white)

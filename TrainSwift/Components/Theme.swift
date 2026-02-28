@@ -54,10 +54,16 @@ extension Font {
     static let trainCaption = Font.system(size: 14, weight: .regular)       // Slightly smaller caption
     static let trainCaptionLarge = Font.system(size: 15.5, weight: .regular)  // Larger caption for questionnaire descriptions
 
+    // Small text
+    static let trainCaptionSmall = Font.system(size: 12, weight: .regular)    // Day labels, secondary counts
+    static let trainTag = Font.system(size: 11, weight: .medium)              // Tags, badges
+    static let trainMicro = Font.system(size: 10, weight: .regular)           // Micro labels
+
     // Special - rounded design for numbers
     static let trainLargeNumber = Font.system(size: 72, weight: .bold, design: .rounded)
     static let trainMediumNumber = Font.system(size: 48, weight: .semibold, design: .rounded)  // For stats
     static let trainSmallNumber = Font.system(size: 24, weight: .semibold, design: .rounded)   // For compact displays
+    static let trainPickerNumber = Font.system(size: 56, weight: .bold, design: .rounded)      // Picker wheels
 }
 
 // MARK: - Line Height
@@ -70,10 +76,14 @@ extension Text {
 }
 
 // MARK: - Spacing
-// Based on Figma design system
+// Baseline values — used for VStack/HStack spacing: parameters and static contexts.
+// These are the design-system foundation; views needing Dynamic Type scaling
+// can use @ScaledMetric with these as default values.
 struct Spacing {
+    static let xxs: CGFloat = 2       // Ultra-tight pairs (stat value + unit)
     static let xs: CGFloat = 4        // Gap between progress segments, small gaps
     static let sm: CGFloat = 8        // Internal padding for compact elements
+    static let smd: CGFloat = 12      // Compact lists, form field spacing
     static let md: CGFloat = 16       // Standard spacing between elements
     static let lg: CGFloat = 24       // Card padding, larger spacing
     static let xl: CGFloat = 32       // Section spacing
@@ -81,24 +91,34 @@ struct Spacing {
 }
 
 // MARK: - Corner Radius
-// Apple glassmorphic design system - continuous curves
+// Fixed tokens — corner radii don't need to scale with Dynamic Type.
+// Figma-confirmed: 8px thumbnails, 16px cards, 40px containers. No 10px exists.
 struct CornerRadius {
-    static let sm: CGFloat = 12       // Small elements
+    static let xxs: CGFloat = 4       // Progress bars, thin elements
+    static let xs: CGFloat = 8        // Tags, badges, thumbnails
+    static let sm: CGFloat = 12       // Small elements, filter chips
     static let md: CGFloat = 16       // Standard cards and buttons
-    static let lg: CGFloat = 16       // Large cards - unified to 16pt
-    static let xl: CGFloat = 40       // Main container/screen (from Figma)
+    static let lg: CGFloat = 16       // Large cards — unified with md
+    static let modal: CGFloat = 20    // Modals, success overlays
+    static let pill: CGFloat = 30     // Fully-rounded pill buttons
+    static let xl: CGFloat = 40       // Main container/screen
 
     // Continuous corner style for Apple aesthetic
     static let continuousStyle: RoundedCornerStyle = .continuous
 }
 
 // MARK: - Element Heights
-// Based on Figma design system
+// Baseline heights — use .frame(minHeight:) in views so content can grow with Dynamic Type.
+// Use .frame(height:) only for decorative elements (progress bars).
 struct ElementHeight {
-    static let button: CGFloat = 50           // Standard button height (from Figma)
-    static let optionCard: CGFloat = 80       // Option card height (from Figma)
+    static let button: CGFloat = 50           // Standard button height
+    static let optionCard: CGFloat = 80       // Option card height
     static let optionCardCompact: CGFloat = 56  // Compact option card for dense lists
-    static let progressBar: CGFloat = 4       // Progress bar height (from Figma)
+    static let progressBar: CGFloat = 4       // Progress bar height (decorative — fixed)
+    static let touchTarget: CGFloat = 44      // iOS HIG minimum touch target
+    static let tabSelector: CGFloat = 40      // Tab/segment controls
+    static let tabBar: CGFloat = 70           // Bottom navigation bar
+    static let chart: CGFloat = 180           // Chart containers
 }
 
 // MARK: - Button Heights (kept for backward compatibility)
@@ -108,97 +128,61 @@ struct ButtonHeight {
 }
 
 // MARK: - Layout
-// Based on Figma design system (393px viewport)
+// Screen-edge constants. Content should use .frame(maxWidth: .infinity) + horizontal padding
+// to adapt to any screen width — never hardcode content widths.
 struct Layout {
-    static let screenWidth: CGFloat = 393           // Figma viewport width
-    static let contentWidth: CGFloat = 340          // Standard content width from Figma
-    static let horizontalPadding: CGFloat = 20      // Side padding: (393-340)/2 ≈ 26.5, but Figma uses 20
+    static let horizontalPadding: CGFloat = 20      // Screen-edge inset (safe across all iPhones)
+}
+
+// MARK: - Icon Sizes
+struct IconSize {
+    static let sm: CGFloat = 16       // Chevrons, tiny indicators
+    static let md: CGFloat = 24       // Navigation/action icons
+    static let lg: CGFloat = 32       // Option card icons
+    static let xl: CGFloat = 48       // Feature icons, empty states
+    static let xxl: CGFloat = 56      // Avatars (questionnaire goals)
+    static let display: CGFloat = 80  // Celebration emojis, loading
+}
+
+// MARK: - Thumbnail Size
+// Figma-confirmed: exercise video thumbnails at 80×64 rounded-8
+struct ThumbnailSize {
+    static let width: CGFloat = 80
+    static let height: CGFloat = 64
+    static let cornerRadius: CGFloat = CornerRadius.xs
 }
 
 // MARK: - Centralized App Gradient
 
-/// Centralized gradient/background configuration - supports theme switching
+/// Centralized gradient/background — colours resolve light/dark from Asset Catalog
 struct AppGradient {
-    /// The main app background stops based on theme
-    static func stops(for theme: ThemeVariant) -> [Gradient.Stop] {
-        switch theme {
-        case .gold, .orange:
-            // Dark mode: diagonal gradient with charcoal tones
-            return [
-                .init(color: .trainGradientLight(theme: theme), location: 0.0),
-                .init(color: .trainGradientMid(theme: theme), location: 0.45),
-                .init(color: .trainGradientDark(theme: theme), location: 1.0)
-            ]
-        case .light:
-            // Light mode: Train Pearl diagonal gradient
-            return [
-                .init(color: .trainGradientLight(theme: theme), location: 0.0),
-                .init(color: .trainGradientMid(theme: theme), location: 0.30),
-                .init(color: .trainGradientDark(theme: theme), location: 1.0)
-            ]
-        }
+    static var stops: [Gradient.Stop] {
+        [
+            .init(color: .trainGradientLight, location: 0.0),
+            .init(color: .trainGradientMid, location: 0.45),
+            .init(color: .trainGradientDark, location: 1.0)
+        ]
     }
-
-    /// The main app background gradient based on theme
-    static func background(for theme: ThemeVariant) -> LinearGradient {
-        LinearGradient(
-            stops: stops(for: theme),
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+    static var background: LinearGradient {
+        LinearGradient(stops: stops, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
-
-    /// Solid color for sheets, toolbars, etc.
-    static func solid(for theme: ThemeVariant) -> Color {
-        .trainGradientMid(theme: theme)
-    }
-
-    /// Legacy compatibility - uses orange theme by default
-    static var stops: [Gradient.Stop] { stops(for: .orange) }
-    static var background: LinearGradient { background(for: .orange) }
-    static var solid: Color { solid(for: .orange) }
+    static var solid: Color { .trainGradientMid }
     static var simple: LinearGradient {
-        LinearGradient(
-            colors: [solid(for: .orange), solid(for: .orange)],
-            startPoint: .top,
-            endPoint: .bottom
-        )
+        LinearGradient(colors: [solid, solid], startPoint: .top, endPoint: .bottom)
     }
 }
 
 // MARK: - Background Gradients
 
 extension View {
-    /// Theme-aware app background - applies appropriate gradient based on theme
-    /// Use ONLY for full-screen view backgrounds, NOT for scroll content or cards
-    func appThemeBackground(theme: ThemeVariant) -> some View {
-        ZStack {
-            // Gradient MUST be the first layer to ensure it's always visible
-            AppGradient.background(for: theme)
-                .ignoresSafeArea()
-
-            // Content on top of gradient
-            self
-        }
-    }
-
-    /// Main app background - applies charcoal gradient from ColorPalette (legacy)
+    /// Adaptive app background — gradient colours resolve from Asset Catalog
     /// Use ONLY for full-screen view backgrounds, NOT for scroll content or cards
     func charcoalGradientBackground() -> some View {
         ZStack {
-            // Gradient MUST be the first layer to ensure it's always visible
             AppGradient.background
                 .ignoresSafeArea()
-
-            // Content on top of gradient
             self
         }
-    }
-
-    /// Legacy alias - will be removed
-    @available(*, deprecated, renamed: "charcoalGradientBackground")
-    func warmDarkGradientBackground() -> some View {
-        charcoalGradientBackground()
     }
 }
 
@@ -237,7 +221,7 @@ extension View {
 
     /// Neutral frosted glass card for Train Dark Mode
     /// Uses ultraThinMaterial for consistent blur across all card elements
-    func warmGlassCard(cornerRadius: CGFloat = 16) -> some View {
+    func warmGlassCard(cornerRadius: CGFloat = CornerRadius.md) -> some View {
         self
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .overlay(
@@ -283,14 +267,6 @@ extension View {
     /// Accent glow effect for active/selected states
     func accentGlow(color: Color = .green, intensity: Double = 0.6) -> some View {
         self.shadow(color: color.opacity(intensity), radius: 16, x: 0, y: 0)
-    }
-
-    /// White card with subtle shadow - for workout logger and other white-on-grey contexts
-    func whiteCard(cornerRadius: CGFloat = CornerRadius.lg) -> some View {
-        self
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-            .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
     }
 
     /// Semantic app card - uses environment-based card style

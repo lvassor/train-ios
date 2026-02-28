@@ -21,7 +21,7 @@ struct QuestionnaireProgressBar: View {
             ZStack(alignment: .leading) {
                 // Background track
                 Capsule()
-                    .fill(Color.white.opacity(0.2))
+                    .fill(Color.trainBorderSubtle.opacity(0.5))
                     .frame(height: ElementHeight.progressBar)
 
                 // Progress fill - accent color (orange)

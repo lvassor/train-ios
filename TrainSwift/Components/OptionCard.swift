@@ -33,10 +33,10 @@ struct OptionCard: View {
                     Image(systemName: icon)
                         .font(.title2)
                         .foregroundColor(isSelected ? .white : .trainPrimary)
-                        .frame(width: 32, height: 32)
+                        .frame(width: IconSize.lg, height: IconSize.lg)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(title)
                         .font(.trainHeadline)  // 20px Medium from Figma
                         .foregroundColor(isSelected ? .white : .trainTextPrimary)

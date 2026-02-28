@@ -65,11 +65,11 @@ struct ReferralStepView: View {
         return Button(action: { selectedReferral = option.id }) {
             VStack(spacing: Spacing.xs) {
                 Image(systemName: option.icon)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.trainHeadline).fontWeight(.medium)
                     .foregroundColor(isSelected ? .white : .trainPrimary)
 
                 Text(option.title)
-                    .font(.system(size: 11, weight: .regular))
+                    .font(.trainTag).fontWeight(.regular)
                     .foregroundColor(isSelected ? .white : .trainTextPrimary)
                     .multilineTextAlignment(.center)
                     .lineLimit(1)
@@ -86,16 +86,16 @@ struct ReferralStepView: View {
     @ViewBuilder
     private func tileBackground(isSelected: Bool) -> some View {
         if isSelected {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .fill(Color.trainPrimary)
         } else {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .fill(.ultraThinMaterial)
         }
     }
 
     private func tileOverlay(isSelected: Bool) -> some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
             .stroke(
                 isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3),
                 lineWidth: 1

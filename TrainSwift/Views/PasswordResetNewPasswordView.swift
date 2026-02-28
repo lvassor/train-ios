@@ -61,7 +61,7 @@ struct PasswordResetNewPasswordView: View {
                         }
                         .padding(Spacing.md)
                         .appCard()
-                        .cornerRadius(10)
+                        .cornerRadius(CornerRadius.sm)
                     }
 
                     VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -85,7 +85,7 @@ struct PasswordResetNewPasswordView: View {
                         }
                         .padding(Spacing.md)
                         .appCard()
-                        .cornerRadius(10)
+                        .cornerRadius(CornerRadius.sm)
                     }
 
                     if showError {
@@ -105,7 +105,7 @@ struct PasswordResetNewPasswordView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
                         .background(Color.trainPrimary)
-                        .cornerRadius(30)
+                        .cornerRadius(CornerRadius.pill)
                 }
                 .disabled(newPassword.isEmpty || confirmPassword.isEmpty)
                 .opacity(newPassword.isEmpty || confirmPassword.isEmpty ? 0.6 : 1.0)
@@ -119,7 +119,7 @@ struct PasswordResetNewPasswordView: View {
 
                 VStack(spacing: Spacing.lg) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 60))
+                        .font(.system(size: IconSize.display))
                         .foregroundColor(.green)
 
                     Text("Password Updated Successfully")
@@ -129,7 +129,7 @@ struct PasswordResetNewPasswordView: View {
                 }
                 .padding(Spacing.xl)
                 .appCard()
-                .cornerRadius(20)
+                .cornerRadius(CornerRadius.modal)
                 .shadow(radius: 20)
                 .padding(.horizontal, Spacing.xl)
             }

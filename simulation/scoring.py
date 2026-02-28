@@ -1,5 +1,7 @@
 """
 scoring.py - Exercise scoring logic mirroring Swift implementation
+
+Updated for normalised equipment schema (equipment_id_1/equipment_id_2).
 """
 
 from dataclasses import dataclass
@@ -9,14 +11,14 @@ import random
 
 @dataclass
 class Exercise:
-    """Represents an exercise from the database (updated for new schema)"""
+    """Represents an exercise from the database (normalised equipment schema)"""
     exercise_id: str
     canonical_name: str
     display_name: str
-    equipment_category: str
-    equipment_specific: Optional[str]
-    complexity_level: int  # Converted from TEXT ("all"=0, "1"=1, "2"=2)
-    canonical_rating: int  # 0-100 score for MCV heuristic (replaces is_isolation)
+    equipment_id_1: str          # FK to equipment table (required)
+    equipment_id_2: Optional[str]  # FK to equipment table (nullable)
+    complexity_level: int  # Converted from TEXT ("All"=0, "1"=1, "2"=2)
+    canonical_rating: int  # 0-100 score for MCV heuristic
     primary_muscle: str
     secondary_muscle: Optional[str]
     is_in_programme: bool
@@ -42,21 +44,10 @@ class ScoredExercise:
 
 def calculate_score(exercise: Exercise, experience_level: str) -> int:
     """
-    Calculate score for an exercise based on business rules.
-
-    Compounds (is_isolation = False):
-        - Level 4 = 20
-        - Level 3 = 15
-        - Level 2 = 10
-        - Level 1 = 5
-
-    Isolations (is_isolation = True):
-        - Advanced: 8
-        - Intermediate: 6
-        - Beginner/No Experience: 4
+    Calculate score for an exercise.
+    Uses canonical_rating directly as the scoring mechanism (matching Swift).
+    Higher canonical_rating = more important/compound exercises get higher scores.
     """
-    # Use canonical_rating directly as the scoring mechanism (matching Swift)
-    # Higher canonical_rating = more important/compound exercises get higher scores
     return exercise.canonical_rating
 
 
@@ -179,7 +170,6 @@ def score_and_select_exercises(
         # Apply complexity cap if we already have a complexity-4
         has_complexity_4 = any(s.exercise.complexity_level == 4 for s in selected_exercises)
         if has_complexity_4:
-            # Only allow up to complexity 3 for remaining (unless isolation)
             filtered_candidates = [
                 s for s in candidates
                 if s.exercise.complexity_level <= 3 or s.exercise.is_isolation

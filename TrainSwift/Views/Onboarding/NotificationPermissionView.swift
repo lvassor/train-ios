@@ -19,7 +19,7 @@ struct NotificationPermissionView: View {
             AppGradient.background
                 .ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            VStack(spacing: Spacing.xl) {
                 Spacer()
 
                 // Bell icon
@@ -29,12 +29,12 @@ struct NotificationPermissionView: View {
                         .frame(width: 100, height: 100)
 
                     Image(systemName: "bell.fill")
-                        .font(.system(size: 40))
+                        .font(.system(size: IconSize.xl))
                         .foregroundColor(.trainPrimary)
                 }
 
                 // Title and description
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.md) {
                     Text("Stay on Track")
                         .font(.trainTitle)
                         .foregroundColor(.trainTextPrimary)
@@ -44,13 +44,13 @@ struct NotificationPermissionView: View {
                         .font(.trainBody)
                         .foregroundColor(.trainTextSecondary)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+                        .padding(.horizontal, Spacing.xl)
                 }
 
                 Spacer()
 
                 // Buttons
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.md) {
                     // Enable Notifications Button
                     Button(action: requestNotificationPermission) {
                         HStack {
@@ -82,7 +82,7 @@ struct NotificationPermissionView: View {
                             .frame(height: ButtonHeight.standard)
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, 50)
             }
         }

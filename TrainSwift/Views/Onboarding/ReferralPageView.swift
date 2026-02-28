@@ -41,7 +41,7 @@ struct ReferralPageView: View {
                 .ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: 32) {
+                VStack(spacing: Spacing.xl) {
                     backButtonSection
                     headerSection
                     referralGrid
@@ -63,7 +63,7 @@ struct ReferralPageView: View {
                     AppLogger.logUI("[REFERRAL] Back button tapped")
                     onBack()
                 }) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.sm) {
                         Image(systemName: "chevron.left")
                             .font(.title3)
                             .foregroundColor(.trainTextPrimary)
@@ -74,15 +74,15 @@ struct ReferralPageView: View {
                 }
                 Spacer()
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
+            .padding(.horizontal, Spacing.lg)
+            .padding(.top, Spacing.md)
         } else {
             Spacer().frame(height: 60)
         }
     }
 
     private var headerSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.md) {
             Text("How did you hear about us?")
                 .font(.trainTitle)
                 .foregroundColor(.trainTextPrimary)
@@ -92,7 +92,7 @@ struct ReferralPageView: View {
                 .font(.trainBody)
                 .foregroundColor(.trainTextSecondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+                .padding(.horizontal, Spacing.xl)
         }
     }
 
@@ -102,7 +102,7 @@ struct ReferralPageView: View {
                 referralTile(for: option)
             }
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, Spacing.lg)
     }
 
     private var gridColumns: [GridItem] {
@@ -122,11 +122,11 @@ struct ReferralPageView: View {
         }) {
             VStack(spacing: Spacing.xs) {
                 Image(systemName: option.icon)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.trainHeadline).fontWeight(.medium)
                     .foregroundColor(isSelected ? .white : .trainPrimary)
 
                 Text(option.title)
-                    .font(.system(size: 11, weight: .regular))
+                    .font(.trainTag).fontWeight(.regular)
                     .foregroundColor(isSelected ? .white : .trainTextPrimary)
                     .multilineTextAlignment(.center)
                     .lineLimit(1)
@@ -143,16 +143,16 @@ struct ReferralPageView: View {
     @ViewBuilder
     private func tileBackground(isSelected: Bool) -> some View {
         if isSelected {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .fill(Color.trainPrimary)
         } else {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .fill(.ultraThinMaterial)
         }
     }
 
     private func tileOverlay(isSelected: Bool) -> some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
             .stroke(
                 isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.3),
                 lineWidth: 1
@@ -179,7 +179,7 @@ struct ReferralPageView: View {
                 .background(Color.trainPrimary)
                 .cornerRadius(CornerRadius.md)
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, Spacing.lg)
         .padding(.bottom, 50)
     }
 }

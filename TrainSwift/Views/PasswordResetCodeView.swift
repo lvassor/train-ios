@@ -27,10 +27,10 @@ struct PasswordResetCodeView: View {
                 ZStack {
                     Circle()
                         .fill(Color.trainPrimary.opacity(0.1))
-                        .frame(width: 80, height: 80)
+                        .frame(width: IconSize.display, height: IconSize.display)
 
                     Image(systemName: "envelope.fill")
-                        .font(.system(size: 40))
+                        .font(.system(size: IconSize.xl))
                         .foregroundColor(.trainPrimary)
                 }
                 .padding(.top, Spacing.xl)
@@ -54,19 +54,19 @@ struct PasswordResetCodeView: View {
                     .padding(.horizontal, Spacing.lg)
 
                 // Code input boxes
-                HStack(spacing: 8) {
+                HStack(spacing: Spacing.sm) {
                     ForEach(0..<6, id: \.self) { index in
                         TextField("", text: $code[index])
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.center)
                             .frame(width: 48, height: 56)
                             .appCard()
-                            .cornerRadius(8)
+                            .cornerRadius(CornerRadius.xs)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 8)
+                                RoundedRectangle(cornerRadius: CornerRadius.xs)
                                     .stroke(showError ? Color.red : Color.clear, lineWidth: 2)
                             )
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.trainSmallNumber).fontWeight(.bold)
                             .focused($focusedField, equals: index)
                             .onChange(of: code[index]) { oldValue, newValue in
                                 handleCodeInput(index: index, oldValue: oldValue, newValue: newValue)

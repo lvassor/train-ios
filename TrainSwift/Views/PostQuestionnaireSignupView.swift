@@ -59,9 +59,9 @@ struct PostQuestionnaireSignupView: View {
                     Button(action: handleAppleSignIn) {
                         HStack(spacing: Spacing.md) {
                             Image(systemName: "apple.logo")
-                                .font(.system(size: 18, weight: .medium))
+                                .font(.trainBodyMedium)
                             Text("Sign up with Apple")
-                                .font(.system(size: 17, weight: .medium))
+                                .font(.trainBody).fontWeight(.medium)
                         }
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
@@ -76,9 +76,9 @@ struct PostQuestionnaireSignupView: View {
                             Image("google")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 18, height: 18)
+                                .frame(width: IconSize.sm, height: IconSize.sm)
                             Text("Sign up with Google")
-                                .font(.system(size: 17, weight: .medium))
+                                .font(.trainBody).fontWeight(.medium)
                         }
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
@@ -103,9 +103,9 @@ struct PostQuestionnaireSignupView: View {
                     }) {
                         HStack(spacing: Spacing.md) {
                             Image(systemName: "envelope.fill")
-                                .font(.system(size: 18, weight: .medium))
+                                .font(.trainBodyMedium)
                             Text("Sign up with Email")
-                                .font(.system(size: 17, weight: .medium))
+                                .font(.trainBody).fontWeight(.medium)
                         }
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -131,7 +131,7 @@ struct PostQuestionnaireSignupView: View {
                     // Log in with existing account Button
                     Button(action: { showLogin = true }) {
                         Text("Log in with existing account")
-                            .font(.system(size: 17, weight: .medium))
+                            .font(.trainBody).fontWeight(.medium)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: ButtonHeight.standard)

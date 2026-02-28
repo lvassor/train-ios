@@ -32,7 +32,7 @@ struct PaywallView: View {
                             .frame(width: 100, height: 100)
 
                         Image(systemName: "dumbbell.fill")
-                            .font(.system(size: 48))
+                            .font(.system(size: IconSize.xl))
                             .foregroundColor(.trainPrimary)
                     }
 
@@ -260,7 +260,7 @@ struct ProductCard: View {
                             .fontWeight(.bold)
                             .foregroundColor(.trainPrimary)
                             .padding(.horizontal, Spacing.sm)
-                            .padding(.vertical, 4)
+                            .padding(.vertical, Spacing.xs)
                             .background(Color.trainPrimary.opacity(0.1))
                             .cornerRadius(CornerRadius.sm)
                         Spacer()
@@ -268,7 +268,7 @@ struct ProductCard: View {
                 }
 
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(product.displayName)
                             .font(.trainHeadline)
                             .foregroundColor(.trainTextPrimary)
@@ -314,7 +314,7 @@ struct SubscriptionCard: View {
                         .fontWeight(.bold)
                         .foregroundColor(.trainPrimary)
                         .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, 4)
+                        .padding(.vertical, Spacing.xs)
                         .background(Color.trainPrimary.opacity(0.1))
                         .cornerRadius(CornerRadius.sm)
                     Spacer()
@@ -322,7 +322,7 @@ struct SubscriptionCard: View {
             }
 
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(title)
                         .font(.trainHeadline)
                         .foregroundColor(.trainTextPrimary)

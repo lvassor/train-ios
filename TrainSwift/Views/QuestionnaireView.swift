@@ -137,22 +137,22 @@ struct QuestionnaireView: View {
                             }
                             Spacer()
                         }
-                        .padding(16)
+                        .padding(Spacing.md)
 
                         QuestionnaireProgressBar(currentStep: currentStep + 1, totalSteps: totalSteps)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.bottom, Spacing.md)
                     }
 
                     // Content + Button in ZStack so content scrolls behind button
                     ZStack(alignment: .bottom) {
                         // Content area - fills available space
                         ScrollView(showsIndicators: false) {
-                            VStack(spacing: 32) {
+                            VStack(spacing: Spacing.xl) {
                                 currentStepView
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.top, Spacing.md)
                             .padding(.bottom, 100)
                         }
                         .scrollDisabled(shouldDisableScrollForCurrentStep())
@@ -164,8 +164,8 @@ struct QuestionnaireView: View {
                             action: nextStep,
                             isEnabled: isCurrentStepValid
                         )
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.bottom, Spacing.md)
                     }
                 }
             }

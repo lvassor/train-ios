@@ -24,22 +24,22 @@ struct ProfileView: View {
                         // User Info
                         VStack(spacing: Spacing.md) {
                             Circle()
-                                .fill(Color.trainPrimary(theme: themeManager.activeTheme).opacity(0.2))
-                                .frame(width: 80, height: 80)
+                                .fill(Color.trainPrimary.opacity(0.2))
+                                .frame(width: IconSize.display, height: IconSize.display)
                                 .overlay(
                                     Image(systemName: "person.fill")
-                                        .font(.system(size: 36))
-                                        .foregroundColor(.trainPrimary(theme: themeManager.activeTheme))
+                                        .font(.system(size: IconSize.lg))
+                                        .foregroundColor(.trainPrimary)
                                 )
 
                             Text(authService.currentUser?.name ?? "User")
                                 .font(.trainHeadline)
-                                .foregroundColor(.trainTextPrimary(theme: themeManager.activeTheme))
+                                .foregroundColor(.trainTextPrimary)
 
                             if let user = authService.currentUser {
                                 Text("Member since \(formatDate(user.createdAt ?? Date()))")
                                     .font(.trainCaption)
-                                    .foregroundColor(.trainTextSecondary(theme: themeManager.activeTheme))
+                                    .foregroundColor(.trainTextSecondary)
                             }
                         }
                         .padding(.top, Spacing.xl)
@@ -119,7 +119,7 @@ struct ProfileView: View {
                         .foregroundColor(.trainPrimary)
                     }
                 }
-        .appThemeBackground(theme: themeManager.activeTheme)
+        .charcoalGradientBackground()
         .confirmationDialog("Log Out", isPresented: $showLogoutConfirmation, titleVisibility: .visible) {
             Button("Log Out", role: .destructive) {
                 authService.logout()
@@ -181,10 +181,10 @@ struct EditProfileView: View {
                     // Profile Avatar
                     Circle()
                         .fill(Color.trainPrimary.opacity(0.2))
-                        .frame(width: 100, height: 100)
+                        .frame(width: IconSize.display, height: IconSize.display)
                         .overlay(
                             Image(systemName: "person.fill")
-                                .font(.system(size: 44))
+                                .font(.system(size: IconSize.xl))
                                 .foregroundColor(.trainPrimary)
                         )
                         .padding(.top, Spacing.xl)
@@ -201,7 +201,7 @@ struct EditProfileView: View {
                                 .textInputAutocapitalization(.words)
                                 .autocorrectionDisabled()
                                 .padding(Spacing.md)
-                                .background(Color.white.opacity(0.08))
+                                .background(Color.trainSurface.opacity(0.5))
                                 .cornerRadius(CornerRadius.md)
                                 .onChange(of: name) { _, _ in
                                     checkForChanges()
@@ -219,7 +219,7 @@ struct EditProfileView: View {
                                 .foregroundColor(.trainTextSecondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(Spacing.md)
-                                .background(Color.white.opacity(0.04))
+                                .background(Color.trainSurface.opacity(0.3))
                                 .cornerRadius(CornerRadius.md)
 
                             Text("Email cannot be changed")
@@ -292,7 +292,7 @@ struct ProfileMenuItem: View {
                 Image(systemName: icon)
                     .font(.title3)
                     .foregroundColor(isDestructive ? .red : .trainPrimary)
-                    .frame(width: 28)
+                    .frame(width: IconSize.lg)
 
                 Text(title)
                     .font(.trainBody)
@@ -321,7 +321,7 @@ struct SubscriptionInfoCard: View {
                 .foregroundColor(.trainTextPrimary)
 
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Annual Plan")
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
@@ -350,7 +350,7 @@ struct SubscriptionInfoCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
                     .background(Color.trainPrimary)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
             }
         }
         .padding(Spacing.md)
@@ -383,14 +383,14 @@ struct ProgramCard: View {
                     }
                 }) {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.trainCaptionSmall).fontWeight(.medium)
                         .foregroundColor(.trainTextSecondary)
                 }
             }
 
             if !isExpanded {
                 // Collapsed: Show summary
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(authService.getCurrentProgram()?.getProgram()?.type.description ?? "No Program")
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
@@ -491,7 +491,7 @@ struct ProgramCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
                     .background(Color.trainPrimary)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous))
             }
         }
         .padding(Spacing.md)
@@ -650,7 +650,7 @@ struct ProgramSelectorView: View {
                         // No previous programs message
                         VStack(spacing: Spacing.md) {
                             Image(systemName: "doc.text.magnifyingglass")
-                                .font(.system(size: 40))
+                                .font(.system(size: IconSize.xl))
                                 .foregroundColor(.trainTextSecondary.opacity(0.5))
 
                             Text("No Previous Programs")
@@ -726,7 +726,7 @@ struct ProgramSelectionCard: View {
                             .font(.trainCaption)
                             .foregroundColor(.white)
                             .padding(.horizontal, Spacing.sm)
-                            .padding(.vertical, 2)
+                            .padding(.vertical, Spacing.xxs)
                             .background(Color.trainPrimary)
                             .clipShape(Capsule())
                     } else if onSelect != nil {
@@ -791,12 +791,12 @@ struct ThemeToggleRow: View {
         HStack(spacing: Spacing.md) {
             Image(systemName: themeManager.currentMode == .light ? "sun.max.fill" : "moon.fill")
                 .font(.title3)
-                .foregroundColor(.trainPrimary(theme: themeManager.activeTheme))
-                .frame(width: 28)
+                .foregroundColor(.trainPrimary)
+                .frame(width: IconSize.lg)
 
             Text("Appearance")
                 .font(.trainBody)
-                .foregroundColor(.trainTextPrimary(theme: themeManager.activeTheme))
+                .foregroundColor(.trainTextPrimary)
 
             Spacer()
 

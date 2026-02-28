@@ -62,7 +62,7 @@ struct ProgramOverviewView: View {
                         }
 
                         Spacer()
-                            .frame(height: 40)
+                            .frame(height: ElementHeight.tabSelector)
                     }
             }
             .scrollContentBackground(.hidden)
@@ -126,7 +126,7 @@ struct WeekSection: View {
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, 4)
+                        .padding(.vertical, Spacing.xs)
                         .background(Color.trainPrimary)
                         .cornerRadius(CornerRadius.sm)
                 }
@@ -188,7 +188,7 @@ struct SessionRow: View {
                 ZStack {
                     Circle()
                         .stroke(isCompleted ? Color.trainPrimary : Color.trainBorder, lineWidth: 2)
-                        .frame(width: 24, height: 24)
+                        .frame(width: IconSize.md, height: IconSize.md)
 
                     if isCompleted {
                         Image(systemName: "checkmark")
@@ -198,7 +198,7 @@ struct SessionRow: View {
                 }
 
                 // Session info
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(session.dayName)
                         .font(.trainBodyMedium)
                         .foregroundColor(.trainTextPrimary)
@@ -217,7 +217,7 @@ struct SessionRow: View {
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, 4)
+                        .padding(.vertical, Spacing.xs)
                         .background(Color.trainPrimary)
                         .cornerRadius(CornerRadius.sm)
                 } else {

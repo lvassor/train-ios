@@ -115,12 +115,12 @@ struct SessionDetailView: View {
                 }
 
                     Spacer()
-                        .frame(height: 40)
+                        .frame(height: ElementHeight.tabSelector)
                 } else {
                     // Error state
                     VStack(spacing: Spacing.lg) {
                         Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 50))
+                            .font(.system(size: IconSize.xxl))
                             .foregroundColor(.trainTextSecondary)
                         Text("Unable to load session")
                             .font(.trainHeadline)
@@ -201,12 +201,12 @@ struct ExerciseCard: View {
                 .font(.trainBodyMedium)
                 .fontWeight(.bold)
                 .foregroundColor(.trainPrimary)
-                .frame(width: 32, height: 32)
+                .frame(width: IconSize.lg, height: IconSize.lg)
                 .background(Color.trainPrimary.opacity(0.1))
                 .clipShape(Circle())
 
             // Exercise info - exercise name aligns with top of orange node
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(exercise.exerciseName)
                     .font(.trainBodyMedium)
                     .foregroundColor(.trainTextPrimary)
@@ -228,13 +228,13 @@ struct ExerciseCard: View {
             Spacer()
 
             // Rest time
-            VStack(spacing: 2) {
+            VStack(spacing: Spacing.xxs) {
                 Text("\(exercise.restSeconds)s")
                     .font(.trainCaption)
                     .fontWeight(.medium)
                     .foregroundColor(.trainTextPrimary)
                 Text("rest")
-                    .font(.system(size: 10))
+                    .font(.trainMicro)
                     .foregroundColor(.trainTextSecondary)
             }
         }

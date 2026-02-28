@@ -18,17 +18,17 @@ struct WeeklyProgressCard: View {
     private let calendar = Calendar.current
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.smd) {
             // Header with expand/collapse
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(isExpanded ? currentMonthTitle : "This Week")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.trainCaption).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
 
                     if !isExpanded {
                         Text("\(data.completedSessions)/\(data.targetSessions) Sessions Complete")
-                            .font(.system(size: 12, weight: .light))
+                            .font(.trainCaptionSmall).fontWeight(.light)
                             .foregroundColor(.trainTextSecondary)
                     }
                 }
@@ -45,7 +45,7 @@ struct WeeklyProgressCard: View {
                     }
                 }) {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.trainCaptionSmall).fontWeight(.medium)
                         .foregroundColor(.trainTextSecondary)
                 }
             }
@@ -59,7 +59,7 @@ struct WeeklyProgressCard: View {
                 weekRow
             }
         }
-        .padding(24)
+        .padding(Spacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -75,11 +75,11 @@ struct WeeklyProgressCard: View {
     // MARK: - Week Row (Collapsed View)
 
     private var weekRow: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.smd) {
             ForEach(data.days) { dayInfo in
-                VStack(spacing: 6) {
+                VStack(spacing: Spacing.sm) {
                     Text(dayInfo.weekdayLetter)
-                        .font(.system(size: 12, weight: .light))
+                        .font(.trainCaptionSmall).fontWeight(.light)
                         .foregroundColor(.trainTextSecondary)
 
                     dayCircle(for: dayInfo)
@@ -91,7 +91,7 @@ struct WeeklyProgressCard: View {
     // MARK: - Expanded Month View with Horizontal Scrolling
 
     private var expandedMonthView: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.smd) {
             // Month navigation
             HStack {
                 Button(action: {
@@ -100,9 +100,9 @@ struct WeeklyProgressCard: View {
                     }
                 }) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.trainCaption).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
-                        .frame(width: 32, height: 32)
+                        .frame(width: IconSize.lg, height: IconSize.lg)
                         .background(Color.trainTextPrimary.opacity(0.1))
                         .clipShape(Circle())
                 }
@@ -117,16 +117,16 @@ struct WeeklyProgressCard: View {
                         }
                     }) {
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.trainCaption).fontWeight(.medium)
                             .foregroundColor(.trainTextPrimary)
-                            .frame(width: 32, height: 32)
+                            .frame(width: IconSize.lg, height: IconSize.lg)
                             .background(Color.trainTextPrimary.opacity(0.1))
                             .clipShape(Circle())
                     }
                 } else {
                     // Placeholder to maintain layout
                     Color.clear
-                        .frame(width: 32, height: 32)
+                        .frame(width: IconSize.lg, height: IconSize.lg)
                 }
             }
 
@@ -134,7 +134,7 @@ struct WeeklyProgressCard: View {
             HStack(spacing: 0) {
                 ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) { letter in
                     Text(letter)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.trainTag)
                         .foregroundColor(.trainTextSecondary)
                         .frame(maxWidth: .infinity)
                 }
@@ -161,21 +161,21 @@ struct WeeklyProgressCard: View {
                 // Completed workout - filled orange circle with letter
                 Circle()
                     .fill(Color.trainPrimary)
-                    .frame(width: 32, height: 32)
+                    .frame(width: IconSize.lg, height: IconSize.lg)
 
                 Text(workoutLetter)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.trainCaptionSmall).fontWeight(.bold)
                     .foregroundColor(Color(hex: "#1a1a2e"))
             } else if dayInfo.isToday {
                 // Today - orange stroke ring
                 Circle()
                     .stroke(Color.trainPrimary, lineWidth: 2)
-                    .frame(width: 32, height: 32)
+                    .frame(width: IconSize.lg, height: IconSize.lg)
             } else {
                 // Default - outline only
                 Circle()
                     .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
-                    .frame(width: 32, height: 32)
+                    .frame(width: IconSize.lg, height: IconSize.lg)
             }
         }
     }
@@ -185,7 +185,7 @@ struct WeeklyProgressCard: View {
     private func expandedDayCell(for dayInfo: DayProgress) -> some View {
         let isCurrentMonth = calendar.component(.month, from: dayInfo.date) == calendar.component(.month, from: calendar.date(byAdding: .month, value: currentMonthOffset, to: Date()) ?? Date())
 
-        return VStack(spacing: 2) {
+        return VStack(spacing: Spacing.xxs) {
             ZStack {
                 if let workoutLetter = dayInfo.workoutLetter {
                     // Completed workout - filled orange circle with letter
@@ -194,7 +194,7 @@ struct WeeklyProgressCard: View {
                         .frame(width: 28, height: 28)
 
                     Text(workoutLetter)
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.trainMicro).fontWeight(.bold)
                         .foregroundColor(Color(hex: "#1a1a2e"))
                 } else if dayInfo.isToday {
                     // Today - orange stroke ring
@@ -211,7 +211,7 @@ struct WeeklyProgressCard: View {
 
             // Date number
             Text("\(calendar.component(.day, from: dayInfo.date))")
-                .font(.system(size: 10, weight: .medium))
+                .font(.trainMicro).fontWeight(.medium)
                 .foregroundColor(.trainTextSecondary)
         }
         .opacity(isCurrentMonth ? 1.0 : 0.3)

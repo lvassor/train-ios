@@ -111,14 +111,14 @@ struct ProgramReadyView: View {
             AppGradient.background
                 .ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            VStack(spacing: Spacing.xl) {
                 Spacer()
 
                 // Success icon
                 ZStack {
                     Circle()
                         .fill(Color.trainPrimary)
-                        .frame(width: 80, height: 80)
+                        .frame(width: IconSize.display, height: IconSize.display)
 
                     Image(systemName: "checkmark")
                         .font(.system(size: 40, weight: .bold))
@@ -126,7 +126,7 @@ struct ProgramReadyView: View {
                 }
 
                 // Title
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.sm) {
                     Text("Program Ready!")
                         .font(.trainTitle)
                         .foregroundColor(.trainTextPrimary)
@@ -137,7 +137,7 @@ struct ProgramReadyView: View {
                 }
 
                 // Program details - reordered as requested
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.smd) {
                     ProgramInfoCard(
                         label: "Workout Split",
                         value: program.type.description
@@ -158,7 +158,7 @@ struct ProgramReadyView: View {
                         value: program.sessionDuration.rawValue
                     )
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, Spacing.lg)
 
                 Spacer()
 
@@ -189,8 +189,8 @@ struct ProgramReadyView: View {
                         }
                     }
                 )
-                .padding(.horizontal, 24)
-                .padding(.bottom, 32)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.xl)
             }
         }
     }

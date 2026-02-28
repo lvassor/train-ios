@@ -190,15 +190,15 @@ struct ExerciseLoggerView: View {
 
                     Button(action: submitExercise) {
                         Text("Complete Exercise")
-                            .font(.system(size: 18, weight: .medium))
+                            .font(.trainBodyMedium)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 56)
+                            .frame(minHeight: ElementHeight.optionCardCompact)
                             .background(atLeastOneSetCompleted ? Color.trainPrimary : Color.trainDisabled)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
                     }
                     .disabled(!atLeastOneSetCompleted)
-                    .padding(.horizontal, 18)
+                    .padding(.horizontal, Spacing.md)
                     .padding(.bottom, Spacing.md)
                 }
             }
@@ -314,7 +314,7 @@ struct ExerciseLoggerHeader: View {
             // Back button (just chevron)
             Button(action: onBack) {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: IconSize.md))
                     .foregroundColor(.trainTextPrimary)
             }
 
@@ -322,18 +322,18 @@ struct ExerciseLoggerHeader: View {
 
             // Session name centered
             Text(sessionName)
-                .font(.system(size: 18, weight: .medium))
+                .font(.trainBodyMedium)
                 .foregroundColor(.trainTextPrimary)
 
             Spacer()
 
             // Exercise counter (e.g., "1/5")
             Text("\(exerciseNumber)/\(totalExercises)")
-                .font(.system(size: 16, weight: .medium))
+                .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(.trainTextPrimary)
         }
-        .padding(.horizontal, 18)
-        .padding(.top, 8)
+        .padding(.horizontal, Spacing.md)
+        .padding(.top, Spacing.sm)
     }
 }
 
@@ -346,11 +346,9 @@ struct LoggerTabSelector: View {
     var body: some View {
         ZStack {
             // Background pill
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(colorScheme == .dark
-                    ? Color.white.opacity(0.1)
-                    : Color.trainTabBackground)
-                .frame(height: 40)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                .fill(Color.trainSurface.opacity(0.5))
+                .frame(height: ElementHeight.tabSelector)
 
             HStack(spacing: 0) {
                 ForEach(LoggerTabOption.allCases, id: \.self) { tab in
@@ -360,18 +358,16 @@ struct LoggerTabSelector: View {
                         }
                     }) {
                         Text(tab.localizedName)
-                            .font(.system(size: 16, weight: .regular))
+                            .font(.trainBody)
                             .foregroundColor(.trainTextPrimary)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 40)
+                            .frame(height: ElementHeight.tabSelector)
                             .background(
                                 selectedTab == tab ?
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .fill(colorScheme == .dark
-                                            ? Color.white.opacity(0.15)
-                                            : Color.white)
+                                    RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                                        .fill(Color.trainSurface)
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                                                 .stroke(colorScheme == .dark
                                                     ? Color.white.opacity(0.3)
                                                     : Color.black.opacity(0.47), lineWidth: 1)
@@ -382,8 +378,8 @@ struct LoggerTabSelector: View {
                 }
             }
         }
-        .frame(height: 40)
-        .padding(.horizontal, 18)
+        .frame(height: ElementHeight.tabSelector)
+        .padding(.horizontal, Spacing.md)
     }
 }
 
@@ -397,24 +393,24 @@ struct ExerciseLoggerInfoSection: View {
         VStack(spacing: 4) {
             // Exercise name
             Text(exercise.exerciseName)
-                .font(.system(size: 20, weight: .medium))
+                .font(.trainHeadline).fontWeight(.medium)
                 .foregroundColor(.trainTextPrimary)
                 .multilineTextAlignment(.center)
 
             // Target sets and reps
             Text("Target: \(exercise.sets) sets • \(exercise.repRange) reps")
-                .font(.system(size: 16, weight: .medium))
+                .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(.trainTextPrimary)
 
             // Equipment tag
             Text(exercise.equipmentType)
-                .font(.system(size: 16, weight: .medium))
+                .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 6)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.sm)
                 .background(Color.trainTag)
                 .clipShape(Capsule())
-                .padding(.top, 4)
+                .padding(.top, Spacing.xs)
         }
     }
 }
@@ -493,16 +489,16 @@ struct SetLoggingCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.smd) {
             // Warm-up suggestion header with rep counter
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Suggested warm-up set")
-                        .font(.system(size: 14, weight: .regular))
+                        .font(.trainCaption)
                         .foregroundColor(.trainTextSecondary)
                         .opacity(0.8)
                     Text("\(Int(suggestedWarmupWeight)) \(weightUnit.rawValue) (50-70%) • 10 reps")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.trainCaption).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
                         .opacity(0.8)
                 }
@@ -512,11 +508,11 @@ struct SetLoggingCard: View {
                 // Progressive overload indicator (green +X)
                 if let diff = totalRepsDifference, diff > 0 {
                     Text("+ \(diff)")
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.trainSmallNumber).fontWeight(.bold)
                         .foregroundColor(Color.trainSuccess)
                 }
             }
-            .padding(.bottom, 8)
+            .padding(.bottom, Spacing.sm)
 
             // Set rows (no headers - simplified design)
             ForEach(0..<loggedExercise.sets.count, id: \.self) { setIndex in
@@ -539,21 +535,21 @@ struct SetLoggingCard: View {
             // Add Set button (dashed border)
             Button(action: addSet) {
                 Text("Add Set")
-                    .font(.system(size: 14, weight: .regular))
+                    .font(.trainCaption)
                     .foregroundColor(.trainTextPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .frame(height: 40)
+                    .padding(.horizontal, Spacing.md)
+                    .frame(height: ElementHeight.tabSelector)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                             .stroke(style: StrokeStyle(lineWidth: 1, dash: [5]))
                             .foregroundColor(colorScheme == .dark ? .white.opacity(0.5) : .black)
                     )
             }
         }
-        .padding(24)
+        .padding(Spacing.lg)
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .stroke(colorScheme == .dark ? Color.white.opacity(0.3) : Color.black, lineWidth: 1)
         )
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: restTimerController.isActive)
@@ -586,23 +582,23 @@ struct SimplifiedSetRow: View {
     @FocusState private var isWeightFieldFocused: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.smd) {
             // Set number
             Text("\(setNumber)")
-                .font(.system(size: 20, weight: .regular))
+                .font(.trainHeadline).fontWeight(.regular)
                 .foregroundColor(.trainTextPrimary)
                 .frame(width: 20)
 
             // Weight input
             TextField(weightUnit.rawValue, text: $weightText)
                 .keyboardType(.decimalPad)
-                .font(.system(size: 16, weight: .medium))
+                .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(weightText.isEmpty ? .trainTextSecondary.opacity(0.4) : .trainTextPrimary)
                 .multilineTextAlignment(.center)
-                .frame(width: 98, height: 35)
+                .frame(minWidth: 70, maxWidth: .infinity, minHeight: 35)
                 .focused($isWeightFieldFocused)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
                         .stroke(colorScheme == .dark ? Color.white.opacity(0.5) : Color.black, lineWidth: 1)
                 )
                 .onChange(of: weightText) { _, newValue in
@@ -614,13 +610,13 @@ struct SimplifiedSetRow: View {
             // Reps input
             TextField("reps", text: $repsText)
                 .keyboardType(.numberPad)
-                .font(.system(size: 16, weight: .medium))
+                .font(.trainBody).fontWeight(.medium)
                 .foregroundColor(repsText.isEmpty ? .trainTextSecondary.opacity(0.4) : .trainTextPrimary)
                 .multilineTextAlignment(.center)
-                .frame(width: 98, height: 35)
+                .frame(minWidth: 70, maxWidth: .infinity, minHeight: 35)
                 .focused($isRepsFieldFocused)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
                         .stroke(colorScheme == .dark ? Color.white.opacity(0.5) : Color.black, lineWidth: 1)
                 )
                 .onChange(of: repsText) { _, newValue in
@@ -635,10 +631,10 @@ struct SimplifiedSetRow: View {
             Button(action: toggleCompletion) {
                 Circle()
                     .fill(set.completed ? Color.trainPrimary : Color.gray.opacity(0.4))
-                    .frame(width: 30, height: 30)
+                    .frame(width: IconSize.lg, height: IconSize.lg)
                     .overlay(
                         Image(systemName: "checkmark")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.trainCaption).fontWeight(.medium)
                             .foregroundColor(.white)
                     )
             }
@@ -664,7 +660,7 @@ struct SimplifiedSetRow: View {
                     isRepsFieldFocused = false
                 } label: {
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.trainBody).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
                 }
             }
@@ -709,8 +705,8 @@ struct SetLoggingSection: View {
                                 .font(.trainCaption)
                                 .fontWeight(.medium)
                                 .foregroundColor(weightUnit == unit ? .white : .trainTextSecondary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
+                                .padding(.horizontal, Spacing.smd)
+                                .padding(.vertical, Spacing.sm)
                                 .background(weightUnit == unit ? Color.trainPrimary : Color.clear)
                         }
                     }
@@ -718,7 +714,7 @@ struct SetLoggingSection: View {
                 .glassCompactCard(cornerRadius: CornerRadius.sm)
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
-                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                        .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
                 )
             }
 
@@ -835,10 +831,10 @@ struct SetInputRow: View {
                 // Progressive overload indicator (green +X)
                 if let diff = repsDifference, diff > 0 {
                     Text("+\(diff)")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(.trainTag).fontWeight(.bold)
                         .foregroundColor(.green)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, Spacing.xs)
+                        .padding(.vertical, Spacing.xxs)
                         .background(Color.green.opacity(0.15))
                         .clipShape(Capsule())
                         .offset(x: 20, y: -12)
@@ -866,7 +862,7 @@ struct SetInputRow: View {
                 // Weight increase indicator
                 if weightIncreased {
                     Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 14))
+                        .font(.trainCaption)
                         .foregroundColor(.green)
                         .offset(x: 20, y: -12)
                 }
@@ -905,7 +901,7 @@ struct SetInputRow: View {
                     isRepsFieldFocused = false
                 } label: {
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.trainBody).fontWeight(.medium)
                         .foregroundColor(.trainTextPrimary)
                 }
             }

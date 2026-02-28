@@ -26,13 +26,13 @@ struct FeedbackModalOverlay: View {
             VStack(spacing: Spacing.lg) {
                 // Title
                 Text(title)
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.trainHeadline).fontWeight(.bold)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
                 // Message
                 Text(message)
-                    .font(.system(size: 16))
+                    .font(.trainBody)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
 
@@ -41,32 +41,32 @@ struct FeedbackModalOverlay: View {
                     // Secondary button (translucent)
                     Button(action: onSecondaryAction) {
                         Text("Edit")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.trainBody).fontWeight(.semibold)
                             .foregroundColor(.trainTextPrimary)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(Color.white.opacity(0.15))
-                            .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+                            .frame(minHeight: ElementHeight.button)
+                            .background(Color.trainSurface.opacity(0.5))
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
 
                     // Primary button (accent color)
                     Button(action: onPrimaryAction) {
                         Text("Continue")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.trainBody).fontWeight(.semibold)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 50)
+                            .frame(minHeight: ElementHeight.button)
                             .background(type.color)
-                            .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
                 }
             }
             .padding(Spacing.xl)
             .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                RoundedRectangle(cornerRadius: CornerRadius.modal, style: .continuous)
+                    .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
             )
             .shadow(color: .black.opacity(0.25), radius: 30, x: 0, y: 10)
             .padding(.horizontal, Spacing.xl)

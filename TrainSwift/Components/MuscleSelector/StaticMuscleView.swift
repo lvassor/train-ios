@@ -132,8 +132,8 @@ struct StaticMusclePathView: View {
 // MARK: - Preview
 
 #Preview {
-    VStack(spacing: 20) {
-        HStack(spacing: 20) {
+    VStack(spacing: Spacing.lg) {
+        HStack(spacing: Spacing.lg) {
             VStack {
                 StaticMuscleView(muscleGroup: "Chest", gender: .male)
                 Text("Chest")
@@ -150,7 +150,7 @@ struct StaticMusclePathView: View {
                     .font(.caption)
             }
         }
-        HStack(spacing: 20) {
+        HStack(spacing: Spacing.lg) {
             VStack {
                 StaticMuscleView(muscleGroup: "Quads", gender: .female)
                 Text("Quads")

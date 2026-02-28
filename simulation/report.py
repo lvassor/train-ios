@@ -1,5 +1,7 @@
 """
 report.py - Summary report generation for simulation results
+
+Updated for normalised equipment schema (equipment_id_1/equipment_id_2).
 """
 
 from typing import List, Dict, Any
@@ -87,7 +89,7 @@ def generate_summary_report(results: List[Dict[str, Any]]) -> str:
     if failures:
         lines.extend([
             "",
-            "Most common failure equipment combinations:"
+            "Most common failure equipment sets:"
         ])
         for equip, count in equipment_failures.most_common(5):
             lines.append(f"  [{equip}]: {count} failures")

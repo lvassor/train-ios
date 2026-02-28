@@ -81,23 +81,23 @@ struct DemoHistoryHeader: View {
             // Back button
             Button(action: onBack) {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.trainBodyMedium).fontWeight(.semibold)
                     .foregroundColor(.trainTextPrimary)
-                    .frame(width: 44, height: 44)
+                    .frame(width: ElementHeight.touchTarget, height: ElementHeight.touchTarget)
             }
 
             Spacer()
 
             // Title
             Text("Exercise Details")
-                .font(.system(size: 17, weight: .semibold))
+                .font(.trainBody).fontWeight(.semibold)
                 .foregroundColor(.trainTextPrimary)
 
             Spacer()
 
             // Placeholder for balance
             Color.clear
-                .frame(width: 44, height: 44)
+                .frame(width: ElementHeight.touchTarget, height: ElementHeight.touchTarget)
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.sm)
@@ -113,11 +113,9 @@ struct DemoHistoryTabSelector: View {
     var body: some View {
         ZStack {
             // Background pill - sized for 2 tabs
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(colorScheme == .dark
-                    ? Color.white.opacity(0.1)
-                    : Color.trainTabBackground)
-                .frame(height: 40)
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                .fill(Color.trainSurface.opacity(0.5))
+                .frame(height: ElementHeight.tabSelector)
 
             HStack(spacing: 0) {
                 ForEach(DemoHistoryTabOption.allCases, id: \.self) { tab in
@@ -127,21 +125,17 @@ struct DemoHistoryTabSelector: View {
                         }
                     }) {
                         Text(tab.localizedName)
-                            .font(.system(size: 16, weight: .regular))
+                            .font(.trainBody)
                             .foregroundColor(.trainTextPrimary)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 40)
+                            .frame(height: ElementHeight.tabSelector)
                             .background(
                                 selectedTab == tab ?
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .fill(colorScheme == .dark
-                                            ? Color.white.opacity(0.15)
-                                            : Color.white)
+                                    RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                                        .fill(Color.trainSurface)
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                .stroke(colorScheme == .dark
-                                                    ? Color.white.opacity(0.3)
-                                                    : Color.black.opacity(0.47), lineWidth: 1)
+                                            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                                                .stroke(Color.trainBorderSubtle.opacity(0.5), lineWidth: 1)
                                         )
                                 : nil
                             )
@@ -149,7 +143,7 @@ struct DemoHistoryTabSelector: View {
                 }
             }
         }
-        .frame(width: 200, height: 40) // Compact width for 2 tabs
+        .frame(width: 200, height: ElementHeight.tabSelector) // Compact width for 2 tabs
     }
 }
 

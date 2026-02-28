@@ -28,7 +28,7 @@ struct EngagementPromptCard: View {
 
             // Action indicator
             Image(systemName: "arrow.right.circle.fill")
-                .font(.system(size: 20))
+                .font(.system(size: IconSize.md))
                 .foregroundColor(.trainPrimary)
         }
         .padding(Spacing.lg)

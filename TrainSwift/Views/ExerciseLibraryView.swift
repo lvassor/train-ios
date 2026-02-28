@@ -48,7 +48,7 @@ struct ExerciseLibraryView: View {
                 }
                 .padding(Spacing.md)
                 .appCard()
-                .cornerRadius(10)
+                .cornerRadius(CornerRadius.sm)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.md)
 
@@ -60,7 +60,7 @@ struct ExerciseLibraryView: View {
                         .fixedSize()
 
                     Button(action: { showMuscleFilter = true }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: Spacing.xs) {
                             Text("Muscle")
                                 .font(.trainBody)
                             if !selectedMuscles.isEmpty {
@@ -68,19 +68,19 @@ struct ExerciseLibraryView: View {
                                     .font(.trainCaption)
                             }
                             Image(systemName: "chevron.down")
-                                .font(.system(size: 10))
+                                .font(.trainMicro)
                         }
                         .foregroundColor(selectedMuscles.isEmpty ? .trainTextPrimary : .trainPrimary)
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, Spacing.sm)
                         .background(selectedMuscles.isEmpty ? Color.clear : Color.trainPrimary.opacity(0.1))
                         .appCard()
-                        .cornerRadius(10)
+                        .cornerRadius(CornerRadius.sm)
                     }
                     .fixedSize()
 
                     Button(action: { showEquipmentFilter = true }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: Spacing.xs) {
                             Text("Equipment")
                                 .font(.trainBody)
                             if !selectedEquipment.isEmpty {
@@ -88,14 +88,14 @@ struct ExerciseLibraryView: View {
                                     .font(.trainCaption)
                             }
                             Image(systemName: "chevron.down")
-                                .font(.system(size: 10))
+                                .font(.trainMicro)
                         }
                         .foregroundColor(selectedEquipment.isEmpty ? .trainTextPrimary : .trainPrimary)
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, Spacing.sm)
                         .background(selectedEquipment.isEmpty ? Color.clear : Color.trainPrimary.opacity(0.1))
                         .appCard()
-                        .cornerRadius(10)
+                        .cornerRadius(CornerRadius.sm)
                     }
                     .fixedSize()
 
@@ -133,7 +133,7 @@ struct ExerciseLibraryView: View {
                     Spacer()
                     VStack(spacing: Spacing.md) {
                         Image(systemName: "magnifyingglass")
-                            .font(.system(size: 48))
+                            .font(.system(size: IconSize.xl))
                             .foregroundColor(.trainTextSecondary)
 
                         Text("No exercises found")
@@ -253,17 +253,17 @@ struct ExerciseLibraryCard: View {
         HStack(spacing: Spacing.md) {
             // Thumbnail placeholder
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: CornerRadius.sm)
                     .fill(Color.trainPrimary.opacity(0.1))
                     .frame(width: 80, height: 80)
 
                 Image(systemName: "figure.strengthtraining.traditional")
-                    .font(.system(size: 32))
+                    .font(.system(size: IconSize.lg))
                     .foregroundColor(.trainPrimary)
             }
 
             // Exercise info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(exercise.displayName)
                     .font(.trainBodyMedium)
                     .foregroundColor(.trainTextPrimary)
@@ -271,36 +271,36 @@ struct ExerciseLibraryCard: View {
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
 
-                HStack(spacing: 6) {
+                HStack(spacing: Spacing.sm) {
                     // Muscle tag
                     Text(exercise.primaryMuscle)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.trainTag)
                         .foregroundColor(.trainPrimary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.xs)
                         .background(Color.trainPrimary.opacity(0.1))
-                        .cornerRadius(20)
+                        .cornerRadius(CornerRadius.modal)
 
                     // Equipment tag
                     Text(exercise.equipmentType)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.trainTag)
                         .foregroundColor(.trainTextSecondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.xs)
                         .background(Color.trainTextSecondary.opacity(0.1))
-                        .cornerRadius(20)
+                        .cornerRadius(CornerRadius.modal)
                 }
             }
 
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 14))
+                .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
         }
         .padding(Spacing.md)
         .appCard()
-        .cornerRadius(15)
+        .cornerRadius(CornerRadius.md)
     }
 }
 
@@ -339,9 +339,9 @@ struct FilterSheet: View {
                                 }
                                 .padding(Spacing.md)
                                 .appCard()
-                                .cornerRadius(10)
+                                .cornerRadius(CornerRadius.sm)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
+                                    RoundedRectangle(cornerRadius: CornerRadius.sm)
                                         .stroke(selected.contains(option) ? Color.trainPrimary : Color.clear, lineWidth: selected.contains(option) ? 2 : 1)
                                 )
                             }

@@ -42,18 +42,18 @@ struct WorkoutSummaryView: View {
                     if let content = celebrationContent {
                         VStack(spacing: Spacing.lg) {
                             Text(content.emoji)
-                                .font(.system(size: 48))
-                                .padding(.top, 8)
+                                .font(.trainMediumNumber)
+                                .padding(.top, Spacing.sm)
 
                             // Strong Completion Message
                             Text(content.headline)
-                                .font(.system(size: 28, weight: .bold))
+                                .font(.trainTitle).fontWeight(.bold)
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.trainTextPrimary)
 
                             // Quick Support Message
                             Text(content.supportMessage)
-                                .font(.system(size: 17))
+                                .font(.trainBody)
                                 .foregroundColor(.trainTextSecondary)
                                 .multilineTextAlignment(.center)
                         }
@@ -62,7 +62,7 @@ struct WorkoutSummaryView: View {
 
                     // Workout Summary Card
                     if !workoutStats.isEmpty {
-                        VStack(spacing: 16) {
+                        VStack(spacing: Spacing.md) {
                             ForEach(workoutStats, id: \.label) { stat in
                                 HStack {
                                     Text(stat.label)
@@ -75,10 +75,10 @@ struct WorkoutSummaryView: View {
                                 }
                             }
                         }
-                        .padding(20)
+                        .padding(Spacing.lg)
                         .appCard()
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16)
+                            RoundedRectangle(cornerRadius: CornerRadius.md)
                                 .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
                         )
                         .padding(.horizontal, Spacing.lg)
@@ -86,7 +86,7 @@ struct WorkoutSummaryView: View {
 
                     // PB Carousel (Weight Increases Only)
                     if !personalBests.isEmpty {
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: Spacing.md) {
                             Text("Today's Personal Bests")
                                 .font(.trainHeadline)
                                 .foregroundColor(.trainTextPrimary)
@@ -105,22 +105,22 @@ struct WorkoutSummaryView: View {
 
                     // Streak Increase Section
                     HStack {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Streak Increase")
-                                .font(.system(size: 20, weight: .semibold))
+                                .font(.trainHeadline)
                                 .foregroundColor(.trainTextPrimary)
                             Text(streakMessage)
-                                .font(.system(size: 16))
+                                .font(.trainBody)
                                 .foregroundColor(.trainTextSecondary)
                         }
                         Spacer()
                         Text("🔥")
                             .font(.system(size: 40))
                     }
-                    .padding(20)
+                    .padding(Spacing.lg)
                     .appCard()
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: CornerRadius.md)
                             .stroke(Color.trainTextPrimary.opacity(0.3), lineWidth: 1)
                     )
                     .padding(.horizontal, Spacing.lg)
@@ -139,7 +139,7 @@ struct WorkoutSummaryView: View {
                     Button(action: shareWorkout) {
                         HStack {
                             Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 16))
+                                .font(.system(size: IconSize.sm))
                             Text("Share")
                                 .font(.trainBodyMedium)
                         }
@@ -370,29 +370,29 @@ struct PBCardView: View {
     let pb: PersonalBest
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.smd) {
             Text(pb.exerciseName)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.trainBodyMedium).fontWeight(.semibold)
                 .foregroundColor(.trainTextPrimary)
 
-            HStack(spacing: 8) {
+            HStack(spacing: Spacing.sm) {
                 Text("\(pb.previousWeight)kg → \(pb.newWeight)kg")
-                    .font(.system(size: 22, weight: .bold))
+                    .font(.trainHeadline).fontWeight(.bold)
                     .foregroundColor(.trainPrimary)
                 Image(systemName: "arrow.up")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.trainBody).fontWeight(.bold)
                     .foregroundColor(.trainPrimary)
             }
 
             Text("Best Set \(pb.bestSetSummary)")
-                .font(.system(size: 15))
+                .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(20)
+        .padding(Spacing.lg)
         .appCard()
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: CornerRadius.md)
                 .stroke(Color.trainPrimary.opacity(0.5), lineWidth: 1)
         )
     }

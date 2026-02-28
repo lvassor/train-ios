@@ -24,7 +24,7 @@ struct ProgramLoadingView: View {
             AppGradient.background
                 .ignoresSafeArea()
 
-            VStack(spacing: 48) {
+            VStack(spacing: Spacing.xxl) {
                 Spacer()
 
                 // Static Train logo (cropped SVG)
@@ -42,7 +42,7 @@ struct ProgramLoadingView: View {
                     .foregroundColor(.trainTextPrimary)
 
                 // Progress bar with percentage
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.sm) {
                     HStack {
                         Text("Progress")
                             .font(.trainCaption)
@@ -61,7 +61,7 @@ struct ProgramLoadingView: View {
                             Rectangle()
                                 .fill(Color.trainBorder)
                                 .frame(height: 8)
-                                .cornerRadius(4)
+                                .cornerRadius(CornerRadius.xxs)
 
                             Rectangle()
                                 .fill(
@@ -72,16 +72,16 @@ struct ProgramLoadingView: View {
                                     )
                                 )
                                 .frame(width: geometry.size.width * progress, height: 8)
-                                .cornerRadius(4)
+                                .cornerRadius(CornerRadius.xxs)
                                 .animation(.linear(duration: 0.3), value: progress)
                         }
                     }
                     .frame(height: 8)
                 }
-                .padding(.horizontal, 32)
+                .padding(.horizontal, Spacing.xl)
 
                 // Checklist
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.smd) {
                     ForEach(Array(stages.enumerated()), id: \.offset) { index, stage in
                         ChecklistItem(
                             title: stage,
@@ -93,7 +93,7 @@ struct ProgramLoadingView: View {
                         ))
                     }
                 }
-                .padding(.horizontal, 32)
+                .padding(.horizontal, Spacing.xl)
 
                 Spacer()
             }
@@ -146,7 +146,7 @@ struct ChecklistItem: View {
             ZStack {
                 Circle()
                     .fill(statusColor)
-                    .frame(width: 24, height: 24)
+                    .frame(width: IconSize.md, height: IconSize.md)
 
                 if status == .completed {
                     Image(systemName: "checkmark")

@@ -35,17 +35,17 @@ struct CombinedLibraryView: View {
                         // Search field
                         HStack(spacing: Spacing.sm) {
                             Image(systemName: "magnifyingglass")
-                                .font(.system(size: 16))
+                                .font(.system(size: IconSize.sm))
                                 .foregroundColor(.trainTextSecondary)
 
                             TextField("Search", text: $searchText)
-                                .font(.system(size: 16))
+                                .font(.trainBody)
                                 .foregroundColor(.trainTextPrimary)
                                 .autocorrectionDisabled()
                         }
                         .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, 12)
-                        .background(Color.white.opacity(0.08))
+                        .padding(.vertical, Spacing.smd)
+                        .background(Color.trainSurface.opacity(0.5))
                         .clipShape(Capsule())
 
                         // Dismiss button
@@ -56,10 +56,10 @@ struct CombinedLibraryView: View {
                             }
                         }) {
                             Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .medium))
+                                .font(.trainCaption).fontWeight(.medium)
                                 .foregroundColor(.trainTextSecondary)
                                 .frame(width: 36, height: 36)
-                                .background(Color.white.opacity(0.08))
+                                .background(Color.trainSurface.opacity(0.5))
                                 .clipShape(Circle())
                         }
                     }
@@ -76,10 +76,10 @@ struct CombinedLibraryView: View {
                             }
                         }) {
                             Image(systemName: "magnifyingglass")
-                                .font(.system(size: 16, weight: .medium))
+                                .font(.trainBody).fontWeight(.medium)
                                 .foregroundColor(.trainTextSecondary)
                                 .frame(width: 40, height: 40)
-                                .background(Color.white.opacity(0.08))
+                                .background(Color.trainSurface.opacity(0.5))
                                 .clipShape(Circle())
                         }
 
@@ -138,7 +138,7 @@ struct ExerciseLibraryContent: View {
                     .fixedSize()
 
                 Button(action: { showMuscleFilter = true }) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.xs) {
                         Text("Muscle")
                             .font(.trainBody)
                         if !selectedMuscles.isEmpty {
@@ -146,19 +146,19 @@ struct ExerciseLibraryContent: View {
                                 .font(.trainCaption)
                         }
                         Image(systemName: "chevron.down")
-                            .font(.system(size: 10))
+                            .font(.trainMicro)
                     }
                     .foregroundColor(selectedMuscles.isEmpty ? .trainTextPrimary : .trainPrimary)
                     .padding(.horizontal, Spacing.md)
                     .padding(.vertical, Spacing.sm)
                     .background(selectedMuscles.isEmpty ? Color.clear : Color.trainPrimary.opacity(0.1))
                     .appCard()
-                    .cornerRadius(10)
+                    .cornerRadius(CornerRadius.sm)
                 }
                 .fixedSize()
 
                 Button(action: { showEquipmentFilter = true }) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.xs) {
                         Text("Equipment")
                             .font(.trainBody)
                         if !selectedEquipment.isEmpty {
@@ -166,14 +166,14 @@ struct ExerciseLibraryContent: View {
                                 .font(.trainCaption)
                         }
                         Image(systemName: "chevron.down")
-                            .font(.system(size: 10))
+                            .font(.trainMicro)
                     }
                     .foregroundColor(selectedEquipment.isEmpty ? .trainTextPrimary : .trainPrimary)
                     .padding(.horizontal, Spacing.md)
                     .padding(.vertical, Spacing.sm)
                     .background(selectedEquipment.isEmpty ? Color.clear : Color.trainPrimary.opacity(0.1))
                     .appCard()
-                    .cornerRadius(10)
+                    .cornerRadius(CornerRadius.sm)
                 }
                 .fixedSize()
 
@@ -277,7 +277,7 @@ struct EducationLibraryContent: View {
                     .frame(width: 120, height: 120)
 
                 Image(systemName: "book.fill")
-                    .font(.system(size: 50))
+                    .font(.system(size: IconSize.xxl))
                     .foregroundColor(.trainPrimary)
             }
 
@@ -306,7 +306,7 @@ struct ExerciseRowCard: View {
 
     var body: some View {
         HStack(spacing: Spacing.md) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(exercise.displayName)
                     .font(.trainBodyMedium)
                     .foregroundColor(.trainTextPrimary)
@@ -329,7 +329,7 @@ struct ExerciseRowCard: View {
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 14))
+                .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
         }
         .padding(Spacing.md)

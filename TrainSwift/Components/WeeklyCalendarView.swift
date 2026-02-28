@@ -22,15 +22,15 @@ struct WeeklyCalendarView: View {
         VStack(spacing: 0) {
             // Header row with session counter
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: Spacing.xxs) {
                     Text(isExpanded ? monthYearString.uppercased() : "THIS WEEK")
-                        .font(.system(size: 11, weight: .semibold, design: .default))
+                        .font(.trainTag).fontWeight(.semibold)
                         .tracking(1.5)
                         .foregroundColor(warmSecondaryText)
 
                     if !isExpanded {
                         Text("\(completedThisWeek)/\(Int(userProgram.daysPerWeek)) sessions complete")
-                            .font(.system(size: 10, weight: .regular))
+                            .font(.trainMicro)
                             .foregroundColor(.white)
                     }
                 }
@@ -44,13 +44,13 @@ struct WeeklyCalendarView: View {
                     }
                 }) {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.trainCaptionSmall).fontWeight(.medium)
                         .foregroundColor(warmSecondaryText)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 14)
+            .padding(.horizontal, Spacing.md)
+            .padding(.top, Spacing.smd)
+            .padding(.bottom, Spacing.smd)
 
             if isExpanded {
                 // Month navigation controls
@@ -61,9 +61,9 @@ struct WeeklyCalendarView: View {
                         }
                     }) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.trainCaption).fontWeight(.medium)
                             .foregroundColor(.trainTextPrimary)
-                            .frame(width: 32, height: 32)
+                            .frame(width: IconSize.lg, height: IconSize.lg)
                             .background(Color.white.opacity(0.1))
                             .clipShape(Circle())
                     }
@@ -76,26 +76,26 @@ struct WeeklyCalendarView: View {
                         }
                     }) {
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.trainCaption).fontWeight(.medium)
                             .foregroundColor(.trainTextPrimary)
-                            .frame(width: 32, height: 32)
+                            .frame(width: IconSize.lg, height: IconSize.lg)
                             .background(Color.white.opacity(0.1))
                             .clipShape(Circle())
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.horizontal, Spacing.md)
+                .padding(.top, Spacing.sm)
 
                 // Expanded month view - dynamically builds around current date
                 expandedMonthView
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 14)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.bottom, Spacing.smd)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             } else {
                 // Collapsed week row
                 weekRow
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 14)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.bottom, Spacing.smd)
             }
         }
         .appCard(cornerRadius: 20)
@@ -119,12 +119,12 @@ struct WeeklyCalendarView: View {
     private var expandedMonthView: some View {
         let monthData = getMonthData(for: currentDate)
 
-        return VStack(spacing: 8) {
+        return VStack(spacing: Spacing.sm) {
             // Day headers (M T W T F S S - Monday to Sunday)
             HStack(spacing: 0) {
                 ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) { letter in
                     Text(letter)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.trainTag)
                         .foregroundColor(warmSecondaryText)
                         .frame(maxWidth: .infinity)
                 }
@@ -151,7 +151,7 @@ struct WeeklyCalendarView: View {
         return VStack(spacing: isCompact ? 2 : 4) {
             // Show day letter above circle (for both collapsed and expanded views)
             Text(dayInfo.weekdayLetter)
-                .font(.system(size: 11, weight: .medium))
+                .font(.trainTag)
                 .foregroundColor(warmSecondaryText)
                 .opacity(isCompact ? 0 : 1) // Hide in expanded view (headers already shown)
 
@@ -181,7 +181,7 @@ struct WeeklyCalendarView: View {
             // Show date number below circle in expanded (compact) view only
             if isCompact {
                 Text("\(dayInfo.day)")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.trainCaptionSmall).fontWeight(.medium)
                     .foregroundColor(.white)
             }
         }
