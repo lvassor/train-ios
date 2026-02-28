@@ -53,3 +53,22 @@ Each line documents a single UX/UI change made during the overhaul.
 - Pre-fetch exercise details on `ExerciseLoggerView.onAppear` instead of only on tab switch to demo/history
 - Added "X/Y exercises" progress indicator subtitle to WorkoutOverviewView header
 - Updated `new_rules.md` Section 1 to document new feedback behavior (progression banner, inline card, regression modal)
+
+## Phase 4: Gamification & Celebrations
+- Created `PBCelebrationOverlay.swift` — full-screen animated overlay with 3 modes: weight PB (trophy + confetti), rep record (flexed bicep + light confetti), no improvement (book + session count)
+- Confetti particle system using `TimelineView` + `Canvas` — 40 particles for PBs, 25 for rep records, sinusoidal drift, opacity fade
+- Celebration overlay triggers from "Complete Workout" button before `WorkoutSummaryView` — auto-dismiss 3s or tap
+- Created `WorkoutShareCardGenerator.swift` — renders branded 1080×1920 SwiftUI view to `UIImage` via `ImageRenderer` for Instagram Stories / general sharing
+- Share card includes: dark gradient background, train. logo watermark, session name, date/duration, PB callouts, full exercise list, streak count
+- Created `WorkoutShareService.swift` — assembles share data, builds formatted text payload, presents `UIActivityViewController` with image + text
+- Added Instagram Stories deep link support via `instagram-stories://share` URL scheme with pasteboard image handoff
+- Replaced `WorkoutSummaryView.shareWorkout()` to use `WorkoutShareService` instead of inline text-only share
+- Animated progress bars in `MilestonesView` — `@State animatedProgress` animates from 0 to actual value on `.onAppear`
+- Added questionnaire progress encouragement: "Almost there — X% complete" text on steps 8+ in `QuestionnaireView`
+- Added personalized greeting after name entry: "Nice to meet you, {name}!" on step 2 (HealthProfileStepView)
+- Added estimated time remaining: "~3 min" on step 0, dynamic "~X min remaining" on steps 1–7
+- Added X dismiss button to `EngagementPromptCard` with 7-day UserDefaults cooldown in `DashboardCarouselView`
+- Added streak celebration milestones (7-day, 30-day, 100-day) with gradient celebration card in `WorkoutSummaryView`
+- Added `StreakMilestone` data model and `streakMilestoneReached` computed property for milestone detection
+- Added "Streak Milestones" section in `MilestonesView` with animated progress bars matching existing milestone style
+- Added "View Your Milestones →" deep link button in `WorkoutSummaryView` when PBs detected — opens `MilestonesView` sheet

@@ -66,6 +66,7 @@ struct CarouselCardView: View {
     let item: CarouselItem
     let userProgram: WorkoutProgram
     @Binding var isCalendarExpanded: Bool
+    var onDismissEngagement: (() -> Void)? = nil
 
     var body: some View {
         Group {
@@ -75,7 +76,7 @@ struct CarouselCardView: View {
             case .learningRecommendation(let data):
                 LearningRecommendationCard(data: data)
             case .engagementPrompt(let data):
-                EngagementPromptCard(data: data)
+                EngagementPromptCard(data: data, onDismiss: onDismissEngagement)
             }
         }
         .appCard()

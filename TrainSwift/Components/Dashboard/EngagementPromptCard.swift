@@ -9,33 +9,48 @@ import SwiftUI
 
 struct EngagementPromptCard: View {
     let data: EngagementPromptData
+    var onDismiss: (() -> Void)? = nil
 
     var body: some View {
-        HStack(spacing: Spacing.md) {
-            // Content
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text(data.title)
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.trainTextPrimary)
+        ZStack(alignment: .topTrailing) {
+            HStack(spacing: Spacing.md) {
+                // Content
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text(data.title)
+                        .font(.trainBodyMedium)
+                        .foregroundColor(.trainTextPrimary)
 
-                Text(data.description)
-                    .font(.trainCaption)
-                    .foregroundColor(.trainTextSecondary)
-                    .lineLimit(3)
+                    Text(data.description)
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+                        .lineLimit(3)
+                }
+
+                Spacer()
+
+                // Action indicator
+                Image(systemName: "arrow.right.circle.fill")
+                    .font(.system(size: IconSize.md))
+                    .foregroundColor(.trainPrimary)
+            }
+            .padding(Spacing.lg)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                data.action?()
             }
 
-            Spacer()
-
-            // Action indicator
-            Image(systemName: "arrow.right.circle.fill")
-                .font(.system(size: IconSize.md))
-                .foregroundColor(.trainPrimary)
-        }
-        .padding(Spacing.lg)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            data.action?()
+            // Dismiss button
+            if let onDismiss = onDismiss {
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.trainCaptionSmall).fontWeight(.semibold)
+                        .foregroundColor(.trainTextSecondary)
+                        .frame(width: IconSize.md, height: IconSize.md)
+                }
+                .padding(Spacing.sm)
+                .accessibilityLabel("Dismiss prompt")
+            }
         }
     }
 }

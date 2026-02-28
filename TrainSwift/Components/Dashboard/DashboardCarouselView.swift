@@ -19,6 +19,30 @@ struct DashboardCarouselView: View {
     private let collapsedHeight: CGFloat = 148  // Increased to prevent TabView clipping the card border
     private let expandedHeight: CGFloat = 420
 
+    // MARK: - Engagement Prompt Dismiss Logic
+
+    private var shouldShowEngagementPrompt: Bool {
+        let defaults = UserDefaults.standard
+        guard let dismissedDate = defaults.object(forKey: "engagementPromptDismissedDate") as? Date else {
+            return true // Never dismissed
+        }
+        // 7-day cooldown
+        let daysSinceDismiss = Calendar.current.dateComponents([.day], from: dismissedDate, to: Date()).day ?? 0
+        return daysSinceDismiss >= 7
+    }
+
+    private func dismissEngagementPrompt() {
+        UserDefaults.standard.set(true, forKey: "engagementPromptDismissed")
+        UserDefaults.standard.set(Date(), forKey: "engagementPromptDismissedDate")
+        // Remove engagement prompt from carousel
+        withAnimation(.easeOut(duration: AnimationDuration.standard)) {
+            carouselItems.removeAll { item in
+                if case .engagementPrompt = item.type { return true }
+                return false
+            }
+        }
+    }
+
     var body: some View {
         VStack(spacing: Spacing.md) {
             // Carousel - when expanded, show only the current card without TabView swiping
@@ -28,7 +52,8 @@ struct DashboardCarouselView: View {
                     CarouselCardView(
                         item: carouselItems[currentPage],
                         userProgram: userProgram,
-                        isCalendarExpanded: $isCalendarExpanded
+                        isCalendarExpanded: $isCalendarExpanded,
+                        onDismissEngagement: dismissEngagementPrompt
                     )
                     .padding(.horizontal, Spacing.xs) // Prevent edge clipping of rounded corners
                     .padding(.vertical, Spacing.xxs) // Prevent top/bottom border clipping
@@ -40,7 +65,8 @@ struct DashboardCarouselView: View {
                         CarouselCardView(
                             item: item,
                             userProgram: userProgram,
-                            isCalendarExpanded: $isCalendarExpanded
+                            isCalendarExpanded: $isCalendarExpanded,
+                            onDismissEngagement: dismissEngagementPrompt
                         )
                         .padding(.horizontal, Spacing.xs) // Prevent edge clipping of rounded corners
                         .padding(.vertical, Spacing.xxs) // Prevent top/bottom border clipping
@@ -90,8 +116,8 @@ struct DashboardCarouselView: View {
             items.append(CarouselItem(type: .learningRecommendation(learningData)))
         }
 
-        // Always add engagement prompt for testing
-        if let engagementData = createEngagementPromptData() {
+        // Add engagement prompt if not dismissed (with 7-day cooldown)
+        if shouldShowEngagementPrompt, let engagementData = createEngagementPromptData() {
             items.append(CarouselItem(type: .engagementPrompt(engagementData)))
         }
 
@@ -274,11 +300,6 @@ struct DashboardCarouselView: View {
         } catch {
             return false
         }
-    }
-
-    private func shouldShowEngagementPrompt() -> Bool {
-        // Always show engagement prompt for testing - in production this should be 30% chance
-        return true
     }
 
     private func handleEngagementAction(title: String) {

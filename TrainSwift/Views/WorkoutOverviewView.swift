@@ -47,6 +47,8 @@ struct WorkoutOverviewView: View {
     @State private var selectedExerciseIndex: Int? = nil
     @State private var showCancelConfirmation = false
     @State private var showCompletionView = false
+    @State private var showCelebration = false
+    @State private var celebrationData: PBCelebrationOverlay.CelebrationData?
     @State private var showInjuryWarning: String? = nil
     @State private var exerciseToSwap: ProgramExercise? = nil
     @State private var sessionExercises: [ProgramExercise] = [] // Mutable copy for swapping
@@ -200,7 +202,7 @@ struct WorkoutOverviewView: View {
                         .frame(height: 100)
                         .allowsHitTesting(false)
 
-                        Button(action: { showCompletionView = true }) {
+                        Button(action: { triggerCelebration() }) {
                             Text("Complete Workout")
                                 .font(.trainBodyMedium)
                                 .foregroundColor(.white)
@@ -233,6 +235,19 @@ struct WorkoutOverviewView: View {
                         showInjuryWarning = nil
                     }
                 )
+            }
+
+            // Celebration overlay (shown before workout summary)
+            if showCelebration, let celebrationData = celebrationData {
+                PBCelebrationOverlay(
+                    data: celebrationData,
+                    onDismiss: {
+                        showCelebration = false
+                        self.celebrationData = nil
+                        showCompletionView = true
+                    }
+                )
+                .zIndex(100)
             }
 
             // Exercise swap carousel
@@ -604,6 +619,20 @@ struct WorkoutOverviewView: View {
         } catch {
             return nil
         }
+    }
+
+    private func triggerCelebration() {
+        // Calculate celebration data from logged exercises vs previous session
+        let completedLoggedExercises = Array(loggedExercises.values).filter { logged in
+            completedExercises.contains(where: { id in
+                sessionExercises.first(where: { $0.id == id })?.exerciseName == logged.exerciseName
+            })
+        }
+        celebrationData = PBCelebrationOverlay.CelebrationData.calculate(
+            loggedExercises: completedLoggedExercises,
+            authService: authService
+        )
+        showCelebration = true
     }
 
     private func saveWorkout() {

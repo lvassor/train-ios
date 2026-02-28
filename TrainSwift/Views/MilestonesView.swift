@@ -53,6 +53,11 @@ struct MilestonesView: View {
                     milestoneSection(title: "Upcoming Milestones", milestones: upcoming)
                 }
 
+                // Streak Milestones
+                if isLoaded {
+                    streakMilestonesSection
+                }
+
                 // Recent PBs
                 if !recentPBs.isEmpty {
                     recentPBsSection
@@ -113,6 +118,41 @@ struct MilestonesView: View {
             VStack(spacing: Spacing.sm) {
                 ForEach(milestones) { milestone in
                     MilestoneCard(milestone: milestone)
+                }
+            }
+            .padding(.horizontal, Spacing.lg)
+        }
+    }
+
+    // MARK: - Streak Milestones
+
+    private var streakMilestonesSection: some View {
+        let streakThresholds: [(days: Int, title: String, icon: String)] = [
+            (7, "7-Day Streak", "flame.fill"),
+            (30, "30-Day Streak", "flame.fill"),
+            (100, "100-Day Streak", "flame.fill")
+        ]
+        let currentStreakValue = topStats.progressionStreak
+
+        return VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Streak Milestones")
+                .font(.trainHeadline)
+                .foregroundColor(.trainTextPrimary)
+                .padding(.horizontal, Spacing.lg)
+
+            VStack(spacing: Spacing.sm) {
+                ForEach(streakThresholds, id: \.days) { milestone in
+                    let progress = min(1.0, Double(currentStreakValue) / Double(milestone.days))
+                    let isAchieved = currentStreakValue >= milestone.days
+
+                    StreakMilestoneCard(
+                        title: milestone.title,
+                        icon: milestone.icon,
+                        progress: progress,
+                        isAchieved: isAchieved,
+                        currentValue: currentStreakValue,
+                        targetValue: milestone.days
+                    )
                 }
             }
             .padding(.horizontal, Spacing.lg)
@@ -255,6 +295,8 @@ private struct StreakStatBox: View {
 private struct MilestoneCard: View {
     let milestone: MilestoneProgress
 
+    @State private var animatedProgress: Double = 0
+
     private var categoryColor: Color {
         milestone.category.color
     }
@@ -292,7 +334,7 @@ private struct MilestoneCard: View {
                     }
                 }
 
-                // Progress bar
+                // Progress bar (animated)
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: CornerRadius.xxs)
@@ -301,7 +343,7 @@ private struct MilestoneCard: View {
 
                         RoundedRectangle(cornerRadius: CornerRadius.xxs)
                             .fill(categoryColor.opacity(0.75))
-                            .frame(width: geometry.size.width * milestone.progress, height: 6)
+                            .frame(width: geometry.size.width * animatedProgress, height: 6)
                     }
                 }
                 .frame(height: 6)
@@ -318,6 +360,11 @@ private struct MilestoneCard: View {
                     lineWidth: 1
                 )
         )
+        .onAppear {
+            withAnimation(.easeOut(duration: AnimationDuration.celebration)) {
+                animatedProgress = milestone.progress
+            }
+        }
     }
 }
 
@@ -360,6 +407,87 @@ private struct RecentPBCard: View {
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .stroke(MilestoneCategory.progression.color.opacity(0.3), lineWidth: 1)
         )
+    }
+}
+
+// MARK: - Streak Milestone Card
+
+private struct StreakMilestoneCard: View {
+    let title: String
+    let icon: String
+    let progress: Double
+    let isAchieved: Bool
+    let currentValue: Int
+    let targetValue: Int
+
+    @State private var animatedProgress: Double = 0
+
+    private let streakColor = MilestoneCategory.streak.color
+
+    var body: some View {
+        HStack(spacing: Spacing.md) {
+            // Streak icon
+            ZStack {
+                RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
+                    .fill(streakColor.opacity(0.15))
+                    .frame(width: IconSize.xl, height: IconSize.xl)
+
+                Image(systemName: icon)
+                    .font(.system(size: IconSize.sm))
+                    .foregroundColor(streakColor)
+            }
+
+            // Content
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                HStack {
+                    Text(title)
+                        .font(.trainCaptionLarge).fontWeight(.medium)
+                        .foregroundColor(.trainTextPrimary)
+
+                    Spacer()
+
+                    if isAchieved {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: IconSize.sm))
+                            .foregroundColor(streakColor)
+                    } else {
+                        Text("\(currentValue)/\(targetValue) days")
+                            .font(.trainCaptionSmall)
+                            .foregroundColor(.trainTextSecondary)
+                    }
+                }
+
+                // Progress bar (animated)
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: CornerRadius.xxs)
+                            .fill(Color.trainTextSecondary.opacity(0.15))
+                            .frame(height: 6)
+
+                        RoundedRectangle(cornerRadius: CornerRadius.xxs)
+                            .fill(streakColor.opacity(0.75))
+                            .frame(width: geometry.size.width * animatedProgress, height: 6)
+                    }
+                }
+                .frame(height: 6)
+            }
+        }
+        .padding(Spacing.md)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                .stroke(
+                    isAchieved
+                        ? streakColor.opacity(0.3)
+                        : Color.trainTextSecondary.opacity(0.2),
+                    lineWidth: 1
+                )
+        )
+        .onAppear {
+            withAnimation(.easeOut(duration: AnimationDuration.celebration)) {
+                animatedProgress = progress
+            }
+        }
     }
 }
 

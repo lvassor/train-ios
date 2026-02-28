@@ -141,7 +141,39 @@ struct QuestionnaireView: View {
 
                         QuestionnaireProgressBar(currentStep: currentStep + 1, totalSteps: totalSteps)
                             .padding(.horizontal, Spacing.md)
-                            .padding(.bottom, Spacing.md)
+                            .padding(.bottom, Spacing.xs)
+
+                        // #82 - Progress encouragement on later steps
+                        if currentStep >= 8 {
+                            let percentComplete = Int(Double(currentStep + 1) / Double(totalSteps) * 100)
+                            Text("Almost there \u{2014} \(percentComplete)% complete")
+                                .font(.trainCaptionSmall)
+                                .foregroundColor(.trainTextSecondary)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.bottom, Spacing.sm)
+                                .transition(.opacity)
+                        }
+
+                        // #86 - Estimated time remaining on early steps
+                        if currentStep == 0 {
+                            Text("~3 min")
+                                .font(.trainCaptionSmall)
+                                .foregroundColor(.trainTextSecondary)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.bottom, Spacing.sm)
+                        } else if currentStep > 0 && currentStep < 8 {
+                            let remainingSteps = totalSteps - (currentStep + 1)
+                            let estimatedSeconds = remainingSteps * 15
+                            let estimatedMinutes = max(1, estimatedSeconds / 60)
+                            Text("~\(estimatedMinutes) min remaining")
+                                .font(.trainCaptionSmall)
+                                .foregroundColor(.trainTextSecondary)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.bottom, Spacing.sm)
+                        }
                     }
 
                     // Content + Button in ZStack so content scrolls behind button
@@ -237,12 +269,22 @@ struct QuestionnaireView: View {
         case 1: // Name
             NameStepView(name: $viewModel.questionnaireData.name)
         case 2: // Health Profile (age/gender + Apple Health)
-            HealthProfileStepView(
-                dateOfBirth: $viewModel.questionnaireData.dateOfBirth,
-                selectedGender: $viewModel.questionnaireData.gender,
-                skipHeightWeight: $viewModel.questionnaireData.skipHeightWeight,
-                healthKitSynced: $viewModel.questionnaireData.healthKitSynced
-            )
+            VStack(spacing: Spacing.md) {
+                // #83 - Personalized greeting after name entry
+                if !viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("Nice to meet you, \(viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines))!")
+                        .font(.trainSubtitle)
+                        .foregroundColor(.trainPrimary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+
+                HealthProfileStepView(
+                    dateOfBirth: $viewModel.questionnaireData.dateOfBirth,
+                    selectedGender: $viewModel.questionnaireData.gender,
+                    skipHeightWeight: $viewModel.questionnaireData.skipHeightWeight,
+                    healthKitSynced: $viewModel.questionnaireData.healthKitSynced
+                )
+            }
         case 3: // Height/Weight (conditional) OR Experience (if height/weight skipped)
             if !skipHeightWeight {
                 HeightWeightStepView(
