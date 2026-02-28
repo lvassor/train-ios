@@ -13,32 +13,33 @@ struct EngagementPromptCard: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            HStack(spacing: Spacing.md) {
-                // Content
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text(data.title)
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.trainTextPrimary)
+            Button(action: { data.action?() }) {
+                HStack(spacing: Spacing.md) {
+                    // Content
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text(data.title)
+                            .font(.trainBodyMedium)
+                            .foregroundColor(.trainTextPrimary)
 
-                    Text(data.description)
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-                        .lineLimit(3)
+                        Text(data.description)
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+                            .lineLimit(3)
+                    }
+
+                    Spacer()
+
+                    // Action indicator
+                    Image(systemName: "arrow.right.circle.fill")
+                        .font(.system(size: IconSize.md))
+                        .foregroundColor(.trainPrimary)
                 }
-
-                Spacer()
-
-                // Action indicator
-                Image(systemName: "arrow.right.circle.fill")
-                    .font(.system(size: IconSize.md))
-                    .foregroundColor(.trainPrimary)
+                .padding(Spacing.lg)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .padding(Spacing.lg)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                data.action?()
-            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(data.title)
 
             // Dismiss button
             if let onDismiss = onDismiss {

@@ -31,7 +31,7 @@ struct CalendarView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                     // Month Navigation
                     MonthNavigationView(currentMonth: $currentMonth)
@@ -185,7 +185,7 @@ struct CalendarGridView: View {
     @Binding var selectedDate: Date?
 
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
-    private let daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    private let daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
     var body: some View {
         VStack(spacing: Spacing.sm) {
@@ -223,7 +223,8 @@ struct CalendarGridView: View {
     }
 
     private func getDaysInMonth() -> [Date?] {
-        let calendar = Calendar.current
+        var calendar = Calendar.current
+        calendar.firstWeekday = 2 // Monday start
         guard let monthInterval = calendar.dateInterval(of: .month, for: currentMonth),
               let monthFirstWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.start) else {
             return []

@@ -96,6 +96,7 @@ struct DashboardContent: View {
                     }
                     .padding(.bottom, Spacing.lg)
                 }
+                .refreshable { await reloadDashboardData() }
                 .scrollContentBackground(.hidden)
                 .edgeFadeMask(topFade: 16, bottomFade: 60)
             }
@@ -123,6 +124,14 @@ struct DashboardContent: View {
     private func calculateStreak() -> Int {
         guard let userId = user?.id else { return 0 }
         return SessionCompletionHelper.calculateStreak(userId: userId)
+    }
+
+    /// Re-fetch dashboard data on pull-to-refresh
+    private func reloadDashboardData() async {
+        // Refresh user profile and program data from the auth service
+        authService.objectWillChange.send()
+        // Small delay to allow UI to reflect the refresh indicator
+        try? await Task.sleep(nanoseconds: 300_000_000)
     }
 }
 
@@ -400,7 +409,7 @@ struct WeeklySessionsSection: View {
             }
 
             // Generate abbreviation (never numbered)
-            abbreviation = getAbbreviation(for: session.dayName)
+            abbreviation = SessionNameFormatter.abbreviation(for: session.dayName)
 
             result.append((fullName: fullName, abbreviation: abbreviation))
         }
@@ -408,17 +417,6 @@ struct WeeklySessionsSection: View {
         return result
     }
 
-    private func getAbbreviation(for dayName: String) -> String {
-        switch dayName.lowercased() {
-        case "push": return "P"
-        case "pull": return "Pu"
-        case "legs": return "L"
-        case "upper", "upper body": return "U"
-        case "lower", "lower body": return "Lo"
-        case "full body": return "FB"
-        default: return String(dayName.prefix(1)).uppercased()
-        }
-    }
 }
 
 // MARK: - Horizontal Day Buttons Row (Figma Redesign - Pill Style)
@@ -1221,14 +1219,15 @@ struct TopHeaderView: View {
         HStack {
             // Streak indicator - Figma style
             HStack(spacing: Spacing.xs) {
-                Text("🔥")
+                Text("\u{1F525}")
                     .font(.trainBody)
-                Text("\(currentStreak)")
+                    .opacity(currentStreak > 0 ? 1.0 : 0.3)
+                Text(currentStreak > 0 ? "\(currentStreak)" : "-")
                     .font(.trainBody).fontWeight(.medium)
                     .foregroundColor(.trainTextPrimary)
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("Current streak: \(currentStreak) days")
+            .accessibilityLabel(currentStreak > 0 ? "Current streak: \(currentStreak) days" : "No active streak")
 
             Spacer()
 

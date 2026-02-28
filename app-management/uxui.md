@@ -72,3 +72,23 @@ Each line documents a single UX/UI change made during the overhaul.
 - Added `StreakMilestone` data model and `streakMilestoneReached` computed property for milestone detection
 - Added "Streak Milestones" section in `MilestonesView` with animated progress bars matching existing milestone style
 - Added "View Your Milestones →" deep link button in `WorkoutSummaryView` when PBs detected — opens `MilestonesView` sheet
+
+## Phase 5: Dashboard & Navigation
+- Added `.refreshable` pull-to-refresh on DashboardView ScrollView with `reloadDashboardData()` async method
+- Changed WeeklyCalendarView `getMonthData()` to start grid on Monday instead of Sunday — matches `WeeklyProgressCard`
+- Changed CalendarView day headers from `["Sun"…"Sat"]` to `["Mon"…"Sun"]` and set `calendar.firstWeekday = 2`
+- Changed DashboardView streak to show grey flame (`.opacity(0.3)`) + "-" when no sessions exist instead of "0"
+- Changed WorkoutSummaryView streak section to show "Complete a workout to start your streak!" for zero-streak users
+- Replaced per-day Core Data fetch in WeeklyCalendarView with single `batchFetchSessions(from:to:)` returning `[Date: String]` dictionary
+- Moved two `DateFormatter` instances in ExerciseHistoryView `HistorySessionCard` from computed properties to `static let`
+- Fixed ProgramLoadingView timer leak — added `@State var timer`, stored reference, added `.onDisappear { timer?.invalidate() }`
+- Replaced `onTapGesture` with `Button(action:)` wrapper on EngagementPromptCard for accessibility and press feedback
+- Changed ProgramReadyView CTA from "Start Training Now!" to "Create Your Account" — honest labelling since it leads to signup
+- Replaced deprecated `NavigationView` with `NavigationStack` in CalendarView and LoginView `EmailLoginSheet`
+- Replaced `UIScreen.main.bounds.width` with `GeometryReader` in WelcomeView for multi-window support
+- Hid Education "Coming Soon" tab in CombinedLibraryView — shows only Exercises list until content exists
+- Removed "Edit" toolbar button from SessionLogView — hidden until editing is implemented
+- Created `SessionNameFormatter.swift` shared utility — extracted `getAbbreviation(for:)` duplicated across 4 files
+- Replaced 4 local `getAbbreviation` methods with `SessionNameFormatter.abbreviation(for:)` in WeeklyCalendarView, WeeklyProgressCard, DashboardCarouselView, DashboardView
+- Changed "Recommended Learning" label to "Prepare for your next session" in LearningRecommendationCard
+- Rewrote `createLearningRecommendationData()` to fetch next incomplete session's exercises, pick lowest-volume exercise instead of random

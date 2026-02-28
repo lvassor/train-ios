@@ -164,9 +164,9 @@ struct ProgramReadyView: View {
 
                 // Start button
                 CustomButton(
-                    title: "Start Training Now!",
+                    title: "Create Your Account",
                     action: {
-                        AppLogger.logUI("[PROGRAM READY] 'Start Training Now!' button tapped, isAuthenticated: \(AuthService.shared.isAuthenticated)")
+                        AppLogger.logUI("[PROGRAM READY] 'Create Your Account' button tapped, isAuthenticated: \(AuthService.shared.isAuthenticated)")
 
                         // If already authenticated (e.g., retaking questionnaire), skip signup and go directly to post-signup flow
                         if AuthService.shared.isAuthenticated {

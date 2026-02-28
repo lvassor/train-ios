@@ -10,6 +10,7 @@ import SwiftUI
 struct ProgramLoadingView: View {
     @State private var progress: Double = 0.0
     @State private var currentStage = 0
+    @State private var timer: Timer?
 
     let onComplete: () -> Void
 
@@ -100,11 +101,15 @@ struct ProgramLoadingView: View {
             .onAppear {
                 startLoading()
             }
+            .onDisappear {
+                timer?.invalidate()
+                timer = nil
+            }
         }
     }
 
     private func startLoading() {
-        Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+        timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
             if progress < 1.0 {
                 progress += 0.01
 

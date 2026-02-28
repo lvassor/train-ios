@@ -295,7 +295,7 @@ struct WeeklyProgressCard: View {
             let sessions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
             if let session = sessions.first,
                let sessionName = session.sessionName {
-                return getAbbreviation(for: sessionName)
+                return SessionNameFormatter.abbreviation(for: sessionName)
             }
         } catch {
             AppLogger.logDatabase("Failed to fetch workout for date: \(error)", level: .error)
@@ -304,17 +304,6 @@ struct WeeklyProgressCard: View {
         return nil
     }
 
-    private func getAbbreviation(for sessionType: String) -> String {
-        switch sessionType.lowercased() {
-        case "push": return "P"
-        case "pull": return "Pu"
-        case "legs": return "L"
-        case "upper", "upper body": return "U"
-        case "lower", "lower body": return "Lo"
-        case "full body": return "FB"
-        default: return String(sessionType.prefix(1)).uppercased()
-        }
-    }
 }
 
 // MARK: - Preview

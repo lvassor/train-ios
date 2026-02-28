@@ -70,57 +70,59 @@ struct WelcomeView: View {
                         .padding(.top, Spacing.md)
 
                     // Cover Flow carousel with center stage scaling - reduced to 75% size
-                    Group {
-                        if #available(iOS 17.0, *) {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: Spacing.xs) {
-                                    ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
-                                        GeometryReader { geometry in
-                                            let midX = geometry.frame(in: .global).midX
-                                            let screenWidth = UIScreen.main.bounds.width
-                                            let centerX = screenWidth / 2
-                                            let distance = abs(midX - centerX)
-                                            let maxDistance = screenWidth * 0.4
+                    GeometryReader { containerGeometry in
+                        let containerWidth = containerGeometry.size.width
+                        Group {
+                            if #available(iOS 17.0, *) {
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: Spacing.xs) {
+                                        ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
+                                            GeometryReader { geometry in
+                                                let midX = geometry.frame(in: .global).midX
+                                                let centerX = containerWidth / 2
+                                                let distance = abs(midX - centerX)
+                                                let maxDistance = containerWidth * 0.4
 
-                                            let scale = max(0.8, 1.2 - (distance / maxDistance) * 0.4)
-                                            let opacity = max(0.6, 1.0 - (distance / maxDistance) * 0.4)
+                                                let scale = max(0.8, 1.2 - (distance / maxDistance) * 0.4)
+                                                let opacity = max(0.6, 1.0 - (distance / maxDistance) * 0.4)
 
+                                                Image(screenshot)
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fit)
+                                                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal))
+                                                    .shadowStyle(.media)
+                                                    .scaleEffect(scale)
+                                                    .opacity(opacity)
+                                                    .animation(.spring(response: 0.6, dampingFraction: 0.8), value: scale)
+                                            }
+                                            .frame(width: containerWidth * 0.45, height: 300) // Reduced from 60% to 45%
+                                        }
+                                    }
+                                    .padding(.horizontal, Layout.horizontalPadding)
+                                    .scrollTargetLayout()
+                                }
+                                .scrollTargetBehavior(.viewAligned)
+                                .scrollIndicators(.hidden)
+                            } else {
+                                // Fallback for iOS 16 and earlier
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: Spacing.xs) {
+                                        ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
                                             Image(screenshot)
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fit)
+                                                .frame(width: containerWidth * 0.45)
+                                                .frame(height: 300) // Reduced from 60% to 45%
                                                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal))
                                                 .shadowStyle(.media)
-                                                .scaleEffect(scale)
-                                                .opacity(opacity)
-                                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: scale)
+                                                .scaleEffect(index == currentIndex ? 1.2 : 0.8)
+                                                .opacity(index == currentIndex ? 1.0 : 0.6)
                                         }
-                                        .frame(width: UIScreen.main.bounds.width * 0.45, height: 300) // Reduced from 60% to 45%
                                     }
+                                    .padding(.horizontal, Layout.horizontalPadding)
                                 }
-                                .padding(.horizontal, Layout.horizontalPadding)
-                                .scrollTargetLayout()
+                                .scrollIndicators(.hidden)
                             }
-                            .scrollTargetBehavior(.viewAligned)
-                            .scrollIndicators(.hidden)
-                        } else {
-                            // Fallback for iOS 16 and earlier
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: Spacing.xs) {
-                                    ForEach(Array(screenshots.enumerated()), id: \.offset) { index, screenshot in
-                                        Image(screenshot)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: UIScreen.main.bounds.width * 0.45)
-                                            .frame(height: 300) // Reduced from 60% to 45%
-                                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal))
-                                            .shadowStyle(.media)
-                                            .scaleEffect(index == currentIndex ? 1.2 : 0.8)
-                                            .opacity(index == currentIndex ? 1.0 : 0.6)
-                                    }
-                                }
-                                .padding(.horizontal, Layout.horizontalPadding)
-                            }
-                            .scrollIndicators(.hidden)
                         }
                     }
                     .frame(height: 330) // 75% of 440 = 330

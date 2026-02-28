@@ -139,26 +139,89 @@ struct DashboardCarouselView: View {
     }
 
     private func createLearningRecommendationData() -> LearningRecommendationData? {
-        // Collect all exercises from the user's program
         guard let program = userProgram.getProgram() else { return nil }
 
-        let allExercises = program.sessions.flatMap { $0.exercises }
-        guard let randomExercise = allExercises.randomElement() else { return nil }
+        // Find the next incomplete session for this week
+        let sessionsToShow = Array(program.sessions.prefix(Int(userProgram.daysPerWeek)))
+        guard !sessionsToShow.isEmpty else { return nil }
 
-        // Generate learning content based on the randomly selected exercise
-        let title = randomExercise.exerciseName
-        let description = "Master proper form and technique for this key exercise"
+        let completedSessions: [CDWorkoutSession]
+        if let userId = AuthService.shared.currentUser?.id {
+            completedSessions = SessionCompletionHelper.sessionsCompletedThisWeek(userId: userId)
+        } else {
+            completedSessions = []
+        }
 
-        let videoGuid = ExerciseMediaMapping.videoGuid(for: randomExercise.exerciseId)
-        let thumbnailURL = ExerciseMediaMapping.thumbnailURL(for: randomExercise.exerciseId)
+        // Find the first incomplete session index
+        var nextSessionIndex: Int?
+        for index in 0..<sessionsToShow.count {
+            if !SessionCompletionHelper.isSessionCompleted(
+                sessionIndex: index,
+                sessions: sessionsToShow,
+                completedSessions: completedSessions
+            ) {
+                nextSessionIndex = index
+                break
+            }
+        }
+
+        // Use the next incomplete session, or fall back to first session if all are complete
+        let targetSession = sessionsToShow[nextSessionIndex ?? 0]
+        let exercises = targetSession.exercises
+        guard !exercises.isEmpty else { return nil }
+
+        // Find the exercise the user has logged least (by total volume)
+        let selectedExercise = exerciseWithLowestVolume(from: exercises)
+
+        let title = selectedExercise.exerciseName
+        let description = "Get ready for \(targetSession.dayName) — master this exercise's form"
+
+        let videoGuid = ExerciseMediaMapping.videoGuid(for: selectedExercise.exerciseId)
+        let thumbnailURL = ExerciseMediaMapping.thumbnailURL(for: selectedExercise.exerciseId)
 
         return LearningRecommendationData(
             title: title,
             description: description,
-            exerciseId: randomExercise.exerciseId,
+            exerciseId: selectedExercise.exerciseId,
             videoGuid: videoGuid,
             thumbnailURL: thumbnailURL
         )
+    }
+
+    /// Pick the exercise with the lowest total logged volume (reps x weight).
+    /// Exercises that have never been logged are prioritised first.
+    private func exerciseWithLowestVolume(from exercises: [ProgramExercise]) -> ProgramExercise {
+        guard let userId = AuthService.shared.currentUser?.id else {
+            return exercises.first!
+        }
+
+        // Fetch all past sessions to calculate per-exercise volume
+        let allSessions = CDWorkoutSession.fetchAll(forUserId: userId, context: PersistenceController.shared.container.viewContext)
+
+        // Build a set of logged exercise names and a volume map
+        var volumeByName: [String: Double] = [:]
+        for session in allSessions {
+            for logged in session.getLoggedExercises() {
+                let totalVolume = logged.sets
+                    .filter { $0.completed }
+                    .reduce(0.0) { $0 + Double($1.reps) * $1.weight }
+                volumeByName[logged.exerciseName, default: 0] += totalVolume
+            }
+        }
+
+        // Prefer exercises that have never been logged, then lowest volume
+        let sorted = exercises.sorted { a, b in
+            let volA = volumeByName[a.exerciseName]
+            let volB = volumeByName[b.exerciseName]
+
+            // Never-logged exercises come first
+            if volA == nil && volB != nil { return true }
+            if volA != nil && volB == nil { return false }
+
+            return (volA ?? 0) < (volB ?? 0)
+        }
+
+        return sorted.first!
     }
 
     private func createEngagementPromptData() -> EngagementPromptData? {
@@ -259,25 +322,13 @@ struct DashboardCarouselView: View {
             let sessions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
             if let session = sessions.first,
                let sessionName = session.sessionName {
-                return getAbbreviation(for: sessionName)
+                return SessionNameFormatter.abbreviation(for: sessionName)
             }
         } catch {
             AppLogger.logDatabase("Failed to fetch workout for date: \(error)", level: .error)
         }
 
         return nil
-    }
-
-    private func getAbbreviation(for sessionType: String) -> String {
-        switch sessionType.lowercased() {
-        case "push": return "P"
-        case "pull": return "Pu"
-        case "legs": return "L"
-        case "upper", "upper body": return "U"
-        case "lower", "lower body": return "Lo"
-        case "full body": return "FB"
-        default: return String(sessionType.prefix(1)).uppercased()
-        }
     }
 
     private func hasWorkoutOnDate(_ date: Date) -> Bool {

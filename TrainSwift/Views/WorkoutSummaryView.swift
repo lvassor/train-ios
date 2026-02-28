@@ -130,7 +130,7 @@ struct WorkoutSummaryView: View {
                     // Streak Increase Section
                     HStack {
                         VStack(alignment: .leading, spacing: Spacing.sm) {
-                            Text("Streak Increase")
+                            Text(currentStreak > 0 ? "Streak Increase" : "Streak")
                                 .font(.trainHeadline)
                                 .foregroundColor(.trainTextPrimary)
                             Text(streakMessage)
@@ -138,8 +138,9 @@ struct WorkoutSummaryView: View {
                                 .foregroundColor(.trainTextSecondary)
                         }
                         Spacer()
-                        Text("🔥")
+                        Text("\u{1F525}")
                             .font(.system(size: 40))
+                            .opacity(currentStreak > 0 ? 1.0 : 0.3)
                     }
                     .padding(Spacing.lg)
                     .appCard()
@@ -149,7 +150,7 @@ struct WorkoutSummaryView: View {
                     )
                     .padding(.horizontal, Spacing.lg)
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Streak increase, \(streakMessage)")
+                    .accessibilityLabel(currentStreak > 0 ? "Streak increase, \(streakMessage)" : "No active streak")
 
                     // Streak milestone celebration
                     if let streakMilestone = streakMilestoneReached {
@@ -353,7 +354,9 @@ struct WorkoutSummaryView: View {
     // MARK: - Computed Properties
 
     private var streakMessage: String {
-        if currentStreak == 1 {
+        if currentStreak == 0 {
+            return "Complete a workout to start your streak!"
+        } else if currentStreak == 1 {
             return "You're on a 1-day streak!"
         } else {
             return "You're on a \(currentStreak)-day streak!"

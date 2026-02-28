@@ -247,7 +247,7 @@ struct EmailLoginSheet: View {
     let onLoginSuccess: () -> Void
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: Spacing.xl) {
                     Spacer()

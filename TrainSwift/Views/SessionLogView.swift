@@ -17,7 +17,6 @@ struct SessionLogView: View {
     let sessionIndex: Int
     let sessionName: String
 
-    @State private var showEditSheet = false
     @State private var sessions: [CDWorkoutSession] = []
     @State private var currentSession: CDWorkoutSession?
     @State private var personalBests: [String: Double] = [:] // exerciseName -> max weight
@@ -69,20 +68,8 @@ struct SessionLogView: View {
         .scrollContentBackground(.hidden)
         .navigationTitle(sessionName)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showEditSheet = true }) {
-                    Text("Edit")
-                        .font(.trainBodyMedium)
-                        .foregroundColor(.trainPrimary)
-                }
-            }
-        }
         .onAppear {
             loadSessions()
-        }
-        .sheet(isPresented: $showEditSheet) {
-            EditSessionView(session: currentSession)
         }
     }
 

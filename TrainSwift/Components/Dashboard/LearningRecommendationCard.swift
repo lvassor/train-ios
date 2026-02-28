@@ -58,7 +58,7 @@ struct LearningRecommendationCard: View {
 
             // Content
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("Recommended Learning")
+                Text("Prepare for your next session")
                     .font(.trainCaption)
                     .foregroundColor(.trainTextSecondary)
 

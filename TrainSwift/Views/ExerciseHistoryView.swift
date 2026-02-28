@@ -290,16 +290,24 @@ struct HistoryProgressChart: View {
 struct HistorySessionCard: View {
     let entry: ExerciseHistoryView.WorkoutHistoryEntry
 
-    private var formattedDate: String {
+    private static let shortDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd/MM/yy"
-        return formatter.string(from: entry.date)
+        return formatter
+    }()
+
+    private static let dayOfWeekFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter
+    }()
+
+    private var formattedDate: String {
+        Self.shortDateFormatter.string(from: entry.date)
     }
 
     private var dayOfWeek: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE"
-        return formatter.string(from: entry.date)
+        Self.dayOfWeekFormatter.string(from: entry.date)
     }
 
     var body: some View {
