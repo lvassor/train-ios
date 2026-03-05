@@ -31,7 +31,7 @@ class TestDataSeeder {
                 name: "Test PPL",
                 questionnaire: makePPLQuestionnaire(),
                 daysPerWeek: 3,
-                durationRange: 48...58,
+                durationRange: 50...70,
                 context: context
             )
 
@@ -41,7 +41,7 @@ class TestDataSeeder {
                 name: "Test UL",
                 questionnaire: makeULQuestionnaire(),
                 daysPerWeek: 4,
-                durationRange: 62...85,
+                durationRange: 50...70,
                 context: context
             )
 
@@ -229,7 +229,7 @@ class TestDataSeeder {
 
             let dates = dayOffsets.map { offset -> Date in
                 var date = calendar.date(byAdding: .day, value: offset, to: weekMonday)!
-                date = calendar.date(bySettingHour: 7, minute: 30, second: 0, of: date)!
+                date = randomTimeOfDay(on: date, calendar: calendar)
                 return date
             }
             allWeeks.append(dates)
@@ -239,7 +239,7 @@ class TestDataSeeder {
         let currentWeekDates = dayOffsets.compactMap { offset -> Date? in
             var date = calendar.date(byAdding: .day, value: offset, to: thisMonday)!
             guard date <= today else { return nil }
-            date = calendar.date(bySettingHour: 7, minute: 30, second: 0, of: date)!
+            date = randomTimeOfDay(on: date, calendar: calendar)
             return date
         }
         if !currentWeekDates.isEmpty {
@@ -247,6 +247,13 @@ class TestDataSeeder {
         }
 
         return allWeeks
+    }
+
+    /// Random time of day between 8:00 AM and 9:59 PM
+    private static func randomTimeOfDay(on date: Date, calendar: Calendar) -> Date {
+        let hour = Int.random(in: 8...21)
+        let minute = Int.random(in: 0...59)
+        return calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date)!
     }
 
     // MARK: - Exercise Data Generation
