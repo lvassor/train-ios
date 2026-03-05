@@ -98,8 +98,9 @@ class TestDataSeeder {
 
         guard let programId = workoutProgram.id else { return }
 
-        // 4. Generate 3 weeks of workout sessions
+        // 4. Generate 3 past weeks + current week of workout sessions
         let weekDates = sessionDates(daysPerWeek: daysPerWeek, weeksBack: 3)
+        let totalWeeks = weekDates.count // 3 past + possibly 1 current
 
         for (weekIndex, dates) in weekDates.enumerated() {
             let weekNumber = weekIndex + 1
@@ -127,19 +128,30 @@ class TestDataSeeder {
             }
         }
 
-        // 5. Update programme state to week 4
+        // 5. Update programme state — advance past all completed weeks
         var completedSet = Set<String>()
-        for week in 1...3 {
-            for session in 0..<daysPerWeek {
-                completedSet.insert("week\(week)-session\(session)")
+        for (weekIndex, dates) in weekDates.enumerated() {
+            for sessionIndex in 0..<dates.count {
+                completedSet.insert("week\(weekIndex + 1)-session\(sessionIndex)")
             }
         }
         workoutProgram.completedSessionsSet = completedSet
-        workoutProgram.currentWeek = 4
-        workoutProgram.currentSessionIndex = 0
+
+        // Current week = next week after all generated data
+        let lastWeekSessionCount = weekDates.last?.count ?? 0
+        if lastWeekSessionCount < daysPerWeek {
+            // Still in current week (partial data)
+            workoutProgram.currentWeek = Int16(totalWeeks)
+            workoutProgram.currentSessionIndex = Int16(lastWeekSessionCount)
+        } else {
+            // Current week fully completed, advance to next
+            workoutProgram.currentWeek = Int16(totalWeeks + 1)
+            workoutProgram.currentSessionIndex = 0
+        }
 
         try context.save()
-        print("[TestDataSeeder] \(email): created \(weekDates.flatMap { $0 }.count) sessions across 3 weeks")
+        let totalSessions = weekDates.flatMap { $0 }.count
+        print("[TestDataSeeder] \(email): created \(totalSessions) sessions across \(totalWeeks) weeks (including current)")
     }
 
     // MARK: - Questionnaire Configs
@@ -190,7 +202,8 @@ class TestDataSeeder {
 
     // MARK: - Date Scheduling
 
-    /// Returns arrays of session dates for each week, going back `weeksBack` weeks from today.
+    /// Returns arrays of session dates for each week, going back `weeksBack` weeks
+    /// plus any sessions from the current week that have already passed.
     private static func sessionDates(daysPerWeek: Int, weeksBack: Int) -> [[Date]] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -200,18 +213,19 @@ class TestDataSeeder {
         let daysFromMonday = (weekday == 1) ? 6 : weekday - 2
         let thisMonday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today)!
 
+        // Mon/Wed/Fri for 3-day, Mon/Tue/Thu/Fri for 4-day
+        let dayOffsets: [Int]
+        switch daysPerWeek {
+        case 3: dayOffsets = [0, 2, 4]
+        case 4: dayOffsets = [0, 1, 3, 4]
+        default: dayOffsets = Array(0..<daysPerWeek)
+        }
+
         var allWeeks: [[Date]] = []
 
+        // Past weeks (fully completed)
         for weekOffset in (1...weeksBack).reversed() {
             let weekMonday = calendar.date(byAdding: .weekOfYear, value: -weekOffset, to: thisMonday)!
-
-            // Mon/Wed/Fri for 3-day, Mon/Tue/Thu/Fri for 4-day
-            let dayOffsets: [Int]
-            switch daysPerWeek {
-            case 3: dayOffsets = [0, 2, 4]
-            case 4: dayOffsets = [0, 1, 3, 4]
-            default: dayOffsets = Array(0..<daysPerWeek)
-            }
 
             let dates = dayOffsets.map { offset -> Date in
                 var date = calendar.date(byAdding: .day, value: offset, to: weekMonday)!
@@ -219,6 +233,17 @@ class TestDataSeeder {
                 return date
             }
             allWeeks.append(dates)
+        }
+
+        // Current week — only include days that have already passed (up to today)
+        let currentWeekDates = dayOffsets.compactMap { offset -> Date? in
+            var date = calendar.date(byAdding: .day, value: offset, to: thisMonday)!
+            guard date <= today else { return nil }
+            date = calendar.date(bySettingHour: 7, minute: 30, second: 0, of: date)!
+            return date
+        }
+        if !currentWeekDates.isEmpty {
+            allWeeks.append(currentWeekDates)
         }
 
         return allWeeks
