@@ -563,14 +563,18 @@ struct WorkoutOverviewView: View {
             if loggedExercises[exercise.id] == nil {
                 var sets = (0..<exercise.sets).map { _ in LoggedSet() }
 
-                // Pre-populate weight/reps from previous session data
+                // Store historical values as defaults + grey placeholders
                 if let previousSets = authService.getPreviousSessionData(
                     programId: programId,
                     exerciseName: exercise.exerciseName
                 ) {
                     for i in 0..<min(sets.count, previousSets.count) {
+                        // Set as default values (used if user doesn't override)
                         sets[i].weight = previousSets[i].weight
                         sets[i].reps = previousSets[i].reps
+                        // Store as previous values for grey placeholder display
+                        sets[i].previousWeight = previousSets[i].weight
+                        sets[i].previousReps = previousSets[i].reps
                     }
                 }
 

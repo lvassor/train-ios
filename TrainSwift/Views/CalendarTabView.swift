@@ -14,8 +14,9 @@ import Charts
 struct CalendarStatsData {
     let workoutsThisMonth: Int
     let trainingTimeThisMonth: Int           // total seconds
-    let topMuscleGroups: [(String, Double)]   // (muscle name, total volume) — top 3
-    let timeOfDayBreakdown: (morning: Int, afternoon: Int, night: Int) // session counts
+    let totalVolumeThisMonth: Double         // sum of weight × reps
+    let dailyVolumeData: [(Date, Double)]    // cumulative volume per day for line chart
+    let pbsThisMonth: Int
 }
 
 struct CalendarDayData: Identifiable {
@@ -65,10 +66,6 @@ struct CalendarTabView: View {
         authService.getCurrentProgram()
     }
 
-    private var daysPerWeek: Int {
-        Int(userProgram?.daysPerWeek ?? 0)
-    }
-
     private let weekdayLetters = ["M", "T", "W", "T", "F", "S", "S"]
 
     var body: some View {
@@ -103,14 +100,6 @@ struct CalendarTabView: View {
                                     .frame(maxWidth: .infinity)
                                 }
 
-                                // Weekly completion badge
-                                if daysPerWeek > 0 {
-                                    WeeklyCompletionBadge(
-                                        completed: week.completedCount,
-                                        target: daysPerWeek
-                                    )
-                                    .frame(width: 36)
-                                }
                             }
                             .frame(height: 44)
                         }
@@ -126,9 +115,12 @@ struct CalendarTabView: View {
                             spacing: gridSpacing
                         ) {
                             WorkoutsThisMonthCard(count: stats.workoutsThisMonth)
+                            TotalVolumeCard(totalVolume: stats.totalVolumeThisMonth, dailyData: stats.dailyVolumeData)
                             TrainingTimeCard(totalSeconds: stats.trainingTimeThisMonth)
-                            TopMusclesCard(muscles: stats.topMuscleGroups)
-                            TimeOfDayCard(morning: stats.timeOfDayBreakdown.morning, afternoon: stats.timeOfDayBreakdown.afternoon, night: stats.timeOfDayBreakdown.night)
+                            NavigationLink(destination: MilestonesView()) {
+                                PBsThisMonthCard(count: stats.pbsThisMonth)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -156,6 +148,7 @@ struct CalendarTabView: View {
         }
         .onChange(of: currentMonth) { _, _ in
             reloadMonth()
+            loadStatsData()
         }
     }
 
@@ -199,11 +192,6 @@ struct CalendarTabView: View {
                     .frame(maxWidth: .infinity)
             }
 
-            // Empty space for completion column
-            if daysPerWeek > 0 {
-                Color.clear
-                    .frame(width: 36)
-            }
         }
     }
 
@@ -257,16 +245,22 @@ struct CalendarTabView: View {
     private func loadStatsData() {
         guard let userId = authService.currentUser?.id else { return }
 
-        let today = Date()
-        let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: today))!
-        let tomorrow = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: today))!
+        let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: currentMonth))!
+        let monthEnd: Date
+        if calendar.isDate(currentMonth, equalTo: Date(), toGranularity: .month) {
+            // Current month: only up to tomorrow
+            monthEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: Date()))!
+        } else {
+            // Past month: full month
+            monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart)!
+        }
 
         let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
         fetchRequest.predicate = NSPredicate(
             format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
             userId as CVarArg,
             monthStart as NSDate,
-            tomorrow as NSDate
+            monthEnd as NSDate
         )
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "completedAt", ascending: true)]
 
@@ -284,41 +278,40 @@ struct CalendarTabView: View {
         // 2. Total training time
         let totalSeconds = sessions.reduce(0) { $0 + Int($1.durationSeconds) }
 
-        // 3. Top 3 muscle groups by volume
-        var muscleVolume: [String: Double] = [:]
+        // 3. Total volume + cumulative daily volume for line chart
+        var dailyVolumes: [Date: Double] = [:]
+        var totalVolume: Double = 0
         for session in sessions {
+            let dayKey = calendar.startOfDay(for: session.completedAt ?? Date())
             let exercises = session.getLoggedExercises()
-            for exercise in exercises {
-                let setVolume = exercise.sets.filter(\.completed).reduce(0.0) { $0 + $1.weight * Double($1.reps) }
-                if setVolume > 0 {
-                    // Look up primary muscle from exercise database
-                    if let dbExercise = ExerciseDatabaseManager.shared.findExercise(byName: exercise.exerciseName) {
-                        muscleVolume[dbExercise.primaryMuscle, default: 0] += setVolume
-                    }
-                }
-            }
+            let sessionVolume = exercises.flatMap { $0.sets.filter(\.completed) }
+                .reduce(0.0) { $0 + $1.weight * Double($1.reps) }
+            dailyVolumes[dayKey, default: 0] += sessionVolume
+            totalVolume += sessionVolume
         }
-        let topMuscles = muscleVolume.sorted { $0.value > $1.value }.prefix(3).map { ($0.key, $0.value) }
 
-        // 4. Time of day breakdown
-        var morning = 0, afternoon = 0, night = 0
-        for session in sessions {
-            guard let completedAt = session.completedAt else { continue }
-            let hour = calendar.component(.hour, from: completedAt)
-            if hour < 12 {
-                morning += 1
-            } else if hour < 17 {
-                afternoon += 1
-            } else {
-                night += 1
-            }
+        // Build cumulative daily data for the line chart
+        let sortedDays = dailyVolumes.keys.sorted()
+        var cumulative = 0.0
+        var cumulativeData: [(Date, Double)] = []
+        for day in sortedDays {
+            cumulative += dailyVolumes[day] ?? 0
+            cumulativeData.append((day, cumulative))
         }
+
+        // 4. PBs this month
+        let milestoneService = MilestoneService()
+        let allPBs = milestoneService.computeRecentPBs()
+        let monthPBCount = allPBs.filter { pb in
+            calendar.isDate(pb.date, equalTo: monthStart, toGranularity: .month)
+        }.count
 
         statsData = CalendarStatsData(
             workoutsThisMonth: workoutsCount,
             trainingTimeThisMonth: totalSeconds,
-            topMuscleGroups: topMuscles,
-            timeOfDayBreakdown: (morning: morning, afternoon: afternoon, night: night)
+            totalVolumeThisMonth: totalVolume,
+            dailyVolumeData: cumulativeData,
+            pbsThisMonth: monthPBCount
         )
         statsLoaded = true
     }
@@ -462,29 +455,7 @@ struct CalendarDayCell: View {
     }
 }
 
-// MARK: - Weekly Completion Badge
-
-struct WeeklyCompletionBadge: View {
-    let completed: Int
-    let target: Int
-
-    private var isComplete: Bool { completed >= target }
-
-    var body: some View {
-        Text("\(completed)/\(target)")
-            .font(.system(size: 11, weight: .semibold, design: .rounded))
-            .foregroundColor(isComplete ? .trainPrimary : .trainTextSecondary)
-            .frame(width: 32, height: 20)
-            .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(isComplete
-                        ? Color.trainPrimary.opacity(0.15)
-                        : Color.white.opacity(0.05))
-            )
-    }
-}
-
-// MARK: - Volume Stat Card
+// MARK: - Stat Cards
 
 // MARK: - Workouts This Month Card
 
@@ -522,7 +493,7 @@ struct TrainingTimeCard: View {
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
         if hours > 0 {
-            return "\(hours)h \(minutes)m"
+            return "\(hours)h\(minutes)m"
         }
         return "\(minutes)m"
     }
@@ -549,39 +520,60 @@ struct TrainingTimeCard: View {
     }
 }
 
-// MARK: - Top Muscles Card
+// MARK: - Total Volume Card
 
-struct TopMusclesCard: View {
-    let muscles: [(String, Double)]
+struct TotalVolumeCard: View {
+    let totalVolume: Double
+    let dailyData: [(Date, Double)]
+
+    private var formattedVolume: String {
+        if totalVolume >= 1000 {
+            let thousands = totalVolume / 1000
+            return String(format: "%.1fk", thousands)
+        }
+        return "\(Int(totalVolume))"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Top Muscles")
+            Text("Total Volume")
                 .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
 
-            if muscles.isEmpty {
-                Text("--")
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.trainTextMuted)
-            } else {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    ForEach(Array(muscles.enumerated()), id: \.offset) { index, muscle in
-                        HStack(spacing: Spacing.xs) {
-                            Text("\(index + 1).")
-                                .font(.trainCaptionSmall)
-                                .foregroundColor(.trainPrimary)
-                                .frame(width: 16, alignment: .leading)
-                            Text(muscle.0)
-                                .font(.trainBody)
-                                .foregroundColor(.trainTextPrimary)
-                                .lineLimit(1)
-                        }
+            Text("\(formattedVolume) kg")
+                .font(.trainSmallNumber)
+                .foregroundColor(.trainPrimary)
+
+            if dailyData.count >= 2 {
+                Chart {
+                    ForEach(dailyData, id: \.0) { date, volume in
+                        LineMark(
+                            x: .value("Day", date),
+                            y: .value("Volume", volume)
+                        )
+                        .foregroundStyle(Color.trainPrimary)
+                        .interpolationMethod(.monotone)
+
+                        AreaMark(
+                            x: .value("Day", date),
+                            y: .value("Volume", volume)
+                        )
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color.trainPrimary.opacity(0.3), Color.trainPrimary.opacity(0.05)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .interpolationMethod(.monotone)
                     }
                 }
+                .chartXAxis(.hidden)
+                .chartYAxis(.hidden)
+                .frame(height: 40)
             }
 
-            Text("by volume")
+            Text("this month")
                 .font(.trainCaptionSmall)
                 .foregroundColor(.trainTextMuted)
 
@@ -593,64 +585,35 @@ struct TopMusclesCard: View {
     }
 }
 
-// MARK: - Time of Day Card
+// MARK: - PBs This Month Card
 
-struct TimeOfDayCard: View {
-    let morning: Int
-    let afternoon: Int
-    let night: Int
-
-    private var total: Int { morning + afternoon + night }
-
-    private func percentage(_ value: Int) -> String {
-        guard total > 0 else { return "0%" }
-        return "\(Int(round(Double(value) / Double(total) * 100)))%"
-    }
-
-    private var highlightSlot: String {
-        if morning >= afternoon && morning >= night { return "morning" }
-        if afternoon >= morning && afternoon >= night { return "afternoon" }
-        return "night"
-    }
+struct PBsThisMonthCard: View {
+    let count: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Time of Day")
+            Text("PBs Achieved")
                 .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
 
-            if total == 0 {
-                Text("--")
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.trainTextMuted)
-            } else {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    timeRow(emoji: "🌅", label: "Morning", value: morning, slot: "morning")
-                    timeRow(emoji: "☀️", label: "Afternoon", value: afternoon, slot: "afternoon")
-                    timeRow(emoji: "🌙", label: "Night", value: night, slot: "night")
-                }
+            HStack(spacing: Spacing.sm) {
+                Text("\(count)")
+                    .font(.trainSmallNumber)
+                    .foregroundColor(.trainPrimary)
+                Image(systemName: "trophy.fill")
+                    .font(.title2)
+                    .foregroundColor(.trainPrimary)
             }
+
+            Text("this month")
+                .font(.trainCaptionSmall)
+                .foregroundColor(.trainTextMuted)
 
             Spacer()
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
         .appCard()
-    }
-
-    @ViewBuilder
-    private func timeRow(emoji: String, label: String, value: Int, slot: String) -> some View {
-        HStack(spacing: Spacing.xs) {
-            Text(emoji)
-                .font(.system(size: 12))
-            Text(label)
-                .font(.trainCaptionSmall)
-                .foregroundColor(slot == highlightSlot ? .trainTextPrimary : .trainTextSecondary)
-            Spacer()
-            Text(percentage(value))
-                .font(.trainCaptionSmall)
-                .fontWeight(slot == highlightSlot ? .bold : .regular)
-                .foregroundColor(slot == highlightSlot ? .trainPrimary : .trainTextSecondary)
-        }
+        .shimmerEffect()
     }
 }

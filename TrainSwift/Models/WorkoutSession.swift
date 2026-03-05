@@ -73,6 +73,14 @@ struct LoggedSet: Codable, Identifiable, Equatable {
     var weight: Double // in kg or lbs
     var completed: Bool
 
+    // Transient: historical values from previous session (not persisted)
+    var previousReps: Int = 0
+    var previousWeight: Double = 0
+
+    private enum CodingKeys: String, CodingKey {
+        case id, reps, weight, completed
+    }
+
     init(id: String = UUID().uuidString,
          reps: Int = 0,
          weight: Double = 0,
@@ -81,6 +89,11 @@ struct LoggedSet: Codable, Identifiable, Equatable {
         self.reps = reps
         self.weight = weight
         self.completed = completed
+    }
+
+    // Hashable conformance excluding transient fields
+    static func == (lhs: LoggedSet, rhs: LoggedSet) -> Bool {
+        lhs.id == rhs.id && lhs.reps == rhs.reps && lhs.weight == rhs.weight && lhs.completed == rhs.completed
     }
 }
 

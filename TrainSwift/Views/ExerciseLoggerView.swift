@@ -739,41 +739,60 @@ struct SimplifiedSetRow: View {
                 .foregroundColor(.trainTextPrimary)
                 .frame(width: 20)
 
-            // Weight input
-            TextField(weightUnit.rawValue, text: $weightText)
-                .keyboardType(.decimalPad)
-                .font(.trainBody).fontWeight(.medium)
-                .foregroundColor(weightText.isEmpty ? .trainTextSecondary.opacity(0.4) : .trainTextPrimary)
-                .multilineTextAlignment(.center)
-                .frame(minWidth: 70, maxWidth: .infinity, minHeight: 35)
-                .focused(focusedField, equals: .weight(setIndex))
-                .overlay(
-                    RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
-                        .stroke(Color.trainBorderStrong, lineWidth: 1)
-                )
-                .onChange(of: weightText) { _, newValue in
-                    if let weight = Double(newValue) {
-                        set.weight = weightUnit == .kg ? weight : weight / 2.20462
-                    }
+            // Weight input with historical placeholder
+            ZStack {
+                if weightText.isEmpty && set.previousWeight > 0 {
+                    let displayPrevious = weightUnit == .kg ? set.previousWeight : set.previousWeight * 2.20462
+                    Text(String(format: "%.1f", displayPrevious))
+                        .font(.trainBody).fontWeight(.medium)
+                        .foregroundColor(.trainTextSecondary.opacity(0.4))
                 }
+                TextField(set.previousWeight > 0 ? "" : weightUnit.rawValue, text: $weightText)
+                    .keyboardType(.decimalPad)
+                    .font(.trainBody).fontWeight(.medium)
+                    .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
+                    .focused(focusedField, equals: .weight(setIndex))
+                    .onChange(of: weightText) { _, newValue in
+                        if let weight = Double(newValue) {
+                            set.weight = weightUnit == .kg ? weight : weight / 2.20462
+                        } else if newValue.isEmpty && set.previousWeight > 0 {
+                            set.weight = set.previousWeight
+                        }
+                    }
+            }
+            .frame(minWidth: 70, maxWidth: .infinity, minHeight: 35)
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
+                    .stroke(Color.trainBorderStrong, lineWidth: 1)
+            )
 
-            // Reps input
-            TextField("reps", text: $repsText)
-                .keyboardType(.numberPad)
-                .font(.trainBody).fontWeight(.medium)
-                .foregroundColor(repsText.isEmpty ? .trainTextSecondary.opacity(0.4) : .trainTextPrimary)
-                .multilineTextAlignment(.center)
-                .frame(minWidth: 70, maxWidth: .infinity, minHeight: 35)
-                .focused(focusedField, equals: .reps(setIndex))
-                .overlay(
-                    RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
-                        .stroke(Color.trainBorderStrong, lineWidth: 1)
-                )
-                .onChange(of: repsText) { _, newValue in
-                    if let reps = Int(newValue) {
-                        set.reps = reps
-                    }
+            // Reps input with historical placeholder
+            ZStack {
+                if repsText.isEmpty && set.previousReps > 0 {
+                    Text("\(set.previousReps)")
+                        .font(.trainBody).fontWeight(.medium)
+                        .foregroundColor(.trainTextSecondary.opacity(0.4))
                 }
+                TextField(set.previousReps > 0 ? "" : "reps", text: $repsText)
+                    .keyboardType(.numberPad)
+                    .font(.trainBody).fontWeight(.medium)
+                    .foregroundColor(.trainTextPrimary)
+                    .multilineTextAlignment(.center)
+                    .focused(focusedField, equals: .reps(setIndex))
+                    .onChange(of: repsText) { _, newValue in
+                        if let reps = Int(newValue) {
+                            set.reps = reps
+                        } else if newValue.isEmpty && set.previousReps > 0 {
+                            set.reps = set.previousReps
+                        }
+                    }
+            }
+            .frame(minWidth: 70, maxWidth: .infinity, minHeight: 35)
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
+                    .stroke(Color.trainBorderStrong, lineWidth: 1)
+            )
 
             Spacer()
 
@@ -790,14 +809,20 @@ struct SimplifiedSetRow: View {
             }
         }
         .onAppear {
-            if set.reps > 0 { repsText = "\(set.reps)" }
-            if set.weight > 0 {
-                let displayWeight = weightUnit == .kg ? set.weight : set.weight * 2.20462
-                weightText = String(format: "%.1f", displayWeight)
+            // Only pre-populate text if values are NOT from history
+            // Historical values show as grey placeholders instead
+            let hasHistory = set.previousWeight > 0 || set.previousReps > 0
+            if !hasHistory {
+                if set.reps > 0 { repsText = "\(set.reps)" }
+                if set.weight > 0 {
+                    let displayWeight = weightUnit == .kg ? set.weight : set.weight * 2.20462
+                    weightText = String(format: "%.1f", displayWeight)
+                }
             }
         }
         .onChange(of: weightUnit) { _, newUnit in
-            if set.weight > 0 {
+            // Update displayed weight text when unit changes (only if user has typed)
+            if !weightText.isEmpty, set.weight > 0 {
                 let displayWeight = newUnit == .kg ? set.weight : set.weight * 2.20462
                 weightText = String(format: "%.1f", displayWeight)
             }

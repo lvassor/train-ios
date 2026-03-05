@@ -435,4 +435,50 @@ extension View {
         }
         .edgeFadeMask(topFade: topFade, bottomFade: bottomFade)
     }
+
+    /// Apply a glossy sheen animation that sweeps left-to-right
+    func shimmerEffect() -> some View {
+        modifier(ShimmerModifier())
+    }
+}
+
+// MARK: - Shimmer Modifier
+
+struct ShimmerModifier: ViewModifier {
+    @State private var phase: CGFloat = -1.5
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geometry in
+                    LinearGradient(
+                        colors: [
+                            .clear,
+                            .white.opacity(0.15),
+                            .white.opacity(0.3),
+                            .white.opacity(0.15),
+                            .clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .frame(width: geometry.size.width * 0.6)
+                    .offset(x: phase * geometry.size.width)
+                    .rotationEffect(.degrees(20))
+                }
+                .mask(
+                    RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
+                )
+                .allowsHitTesting(false)
+            )
+            .onAppear {
+                withAnimation(
+                    .linear(duration: 2.5)
+                    .repeatForever(autoreverses: false)
+                    .delay(1.0)
+                ) {
+                    phase = 1.5
+                }
+            }
+    }
 }

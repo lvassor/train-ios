@@ -557,6 +557,7 @@ struct SessionActionButton: View {
                     .padding(.vertical, Spacing.md)
                     .background(Color.trainPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                    .shimmerEffect()
                 }
                 .accessibilityLabel("Start Workout")
                 .accessibilityHint("Opens the workout session")
@@ -579,6 +580,7 @@ struct SessionActionButton: View {
                     .padding(.vertical, Spacing.md)
                     .background(Color.trainPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+                    .shimmerEffect()
                 }
                 .accessibilityLabel(buttonText)
                 .accessibilityHint("Opens the workout session")
