@@ -11,19 +11,11 @@ import Charts
 
 // MARK: - Data Models
 
-struct WeekStatPoint: Identifiable {
-    let id = UUID()
-    let weekLabel: String
-    let value: Double
-}
-
 struct CalendarStatsData {
-    let weeklyVolume: [WeekStatPoint]
-    let consistency: [WeekStatPoint]
-    let avgDuration: [WeekStatPoint]
-    let currentStreak: Int
-    let longestStreak: Int
-    let targetDaysPerWeek: Int
+    let workoutsThisMonth: Int
+    let trainingTimeThisMonth: Int           // total seconds
+    let topMuscleGroups: [(String, Double)]   // (muscle name, total volume) — top 3
+    let timeOfDayBreakdown: (morning: Int, afternoon: Int, night: Int) // session counts
 }
 
 struct CalendarDayData: Identifiable {
@@ -126,16 +118,17 @@ struct CalendarTabView: View {
                     .padding(Spacing.md)
                     .appCard()
 
-                    // Stats grid
+                    // Stats grid — equal h/v spacing for clean cross layout
                     if let stats = statsData {
+                        let gridSpacing: CGFloat = Spacing.md
                         LazyVGrid(
-                            columns: [GridItem(.flexible()), GridItem(.flexible())],
-                            spacing: Spacing.md
+                            columns: [GridItem(.flexible(), spacing: gridSpacing), GridItem(.flexible(), spacing: gridSpacing)],
+                            spacing: gridSpacing
                         ) {
-                            VolumeStatCard(data: stats.weeklyVolume)
-                            ConsistencyStatCard(data: stats.consistency, target: stats.targetDaysPerWeek)
-                            DurationStatCard(data: stats.avgDuration)
-                            StreakStatCard(currentStreak: stats.currentStreak, longestStreak: stats.longestStreak)
+                            WorkoutsThisMonthCard(count: stats.workoutsThisMonth)
+                            TrainingTimeCard(totalSeconds: stats.trainingTimeThisMonth)
+                            TopMusclesCard(muscles: stats.topMuscleGroups)
+                            TimeOfDayCard(morning: stats.timeOfDayBreakdown.morning, afternoon: stats.timeOfDayBreakdown.afternoon, night: stats.timeOfDayBreakdown.night)
                         }
                     }
                 }
@@ -264,19 +257,16 @@ struct CalendarTabView: View {
     private func loadStatsData() {
         guard let userId = authService.currentUser?.id else { return }
 
-        let today = calendar.startOfDay(for: Date())
-        let currentWeekday = calendar.component(.weekday, from: today)
-        let daysFromMonday = (currentWeekday == 1) ? 6 : currentWeekday - 2
-        let currentWeekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: today)!
-        let sixWeeksAgoStart = calendar.date(byAdding: .weekOfYear, value: -5, to: currentWeekStart)!
-        let currentWeekEnd = calendar.date(byAdding: .day, value: 7, to: currentWeekStart)!
+        let today = Date()
+        let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: today))!
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: today))!
 
         let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
         fetchRequest.predicate = NSPredicate(
             format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
             userId as CVarArg,
-            sixWeeksAgoStart as NSDate,
-            currentWeekEnd as NSDate
+            monthStart as NSDate,
+            tomorrow as NSDate
         )
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "completedAt", ascending: true)]
 
@@ -288,96 +278,49 @@ struct CalendarTabView: View {
             return
         }
 
-        // Group sessions into 6 weekly buckets
-        var weekBuckets: [(start: Date, sessions: [CDWorkoutSession])] = []
-        for weekOffset in 0..<6 {
-            let weekStart = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: sixWeeksAgoStart)!
-            let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)!
-            let weekSessions = sessions.filter { session in
-                guard let date = session.completedAt else { return false }
-                return date >= weekStart && date < weekEnd
-            }
-            weekBuckets.append((start: weekStart, sessions: weekSessions))
-        }
+        // 1. Workouts this month
+        let workoutsCount = sessions.count
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "d MMM"
+        // 2. Total training time
+        let totalSeconds = sessions.reduce(0) { $0 + Int($1.durationSeconds) }
 
-        var volumePoints: [WeekStatPoint] = []
-        var consistencyPoints: [WeekStatPoint] = []
-        var durationPoints: [WeekStatPoint] = []
-
-        for bucket in weekBuckets {
-            let label = dateFormatter.string(from: bucket.start)
-
-            // Volume: sum(weight × reps) for completed sets
-            var weekVolume: Double = 0
-            for session in bucket.sessions {
-                let exercises = session.getLoggedExercises()
-                for exercise in exercises {
-                    for set in exercise.sets where set.completed {
-                        weekVolume += set.weight * Double(set.reps)
+        // 3. Top 3 muscle groups by volume
+        var muscleVolume: [String: Double] = [:]
+        for session in sessions {
+            let exercises = session.getLoggedExercises()
+            for exercise in exercises {
+                let setVolume = exercise.sets.filter(\.completed).reduce(0.0) { $0 + $1.weight * Double($1.reps) }
+                if setVolume > 0 {
+                    // Look up primary muscle from exercise database
+                    if let dbExercise = ExerciseDatabaseManager.shared.findExercise(byName: exercise.exerciseName) {
+                        muscleVolume[dbExercise.primaryMuscle, default: 0] += setVolume
                     }
                 }
             }
-            volumePoints.append(WeekStatPoint(weekLabel: label, value: weekVolume))
-
-            // Consistency: session count
-            consistencyPoints.append(WeekStatPoint(weekLabel: label, value: Double(bucket.sessions.count)))
-
-            // Duration: avg minutes
-            let totalMinutes = bucket.sessions.reduce(0) { $0 + Int($1.durationSeconds) / 60 }
-            let avgMinutes = bucket.sessions.isEmpty ? 0.0 : Double(totalMinutes) / Double(bucket.sessions.count)
-            durationPoints.append(WeekStatPoint(weekLabel: label, value: avgMinutes))
         }
+        let topMuscles = muscleVolume.sorted { $0.value > $1.value }.prefix(3).map { ($0.key, $0.value) }
 
-        let streak = SessionCompletionHelper.calculateStreak(userId: userId)
-        let longest = calculateLongestStreak(userId: userId)
+        // 4. Time of day breakdown
+        var morning = 0, afternoon = 0, night = 0
+        for session in sessions {
+            guard let completedAt = session.completedAt else { continue }
+            let hour = calendar.component(.hour, from: completedAt)
+            if hour < 12 {
+                morning += 1
+            } else if hour < 17 {
+                afternoon += 1
+            } else {
+                night += 1
+            }
+        }
 
         statsData = CalendarStatsData(
-            weeklyVolume: volumePoints,
-            consistency: consistencyPoints,
-            avgDuration: durationPoints,
-            currentStreak: streak,
-            longestStreak: longest,
-            targetDaysPerWeek: daysPerWeek
+            workoutsThisMonth: workoutsCount,
+            trainingTimeThisMonth: totalSeconds,
+            topMuscleGroups: topMuscles,
+            timeOfDayBreakdown: (morning: morning, afternoon: afternoon, night: night)
         )
         statsLoaded = true
-    }
-
-    private func calculateLongestStreak(userId: UUID) -> Int {
-        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@", userId as CVarArg)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "completedAt", ascending: true)]
-
-        do {
-            let sessions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
-            var uniqueDays: [Date] = []
-            for session in sessions {
-                guard let date = session.completedAt else { continue }
-                let dayStart = calendar.startOfDay(for: date)
-                if uniqueDays.last != dayStart {
-                    uniqueDays.append(dayStart)
-                }
-            }
-
-            guard !uniqueDays.isEmpty else { return 0 }
-
-            var longest = 1
-            var current = 1
-            for i in 1..<uniqueDays.count {
-                let diff = calendar.dateComponents([.day], from: uniqueDays[i - 1], to: uniqueDays[i]).day ?? 0
-                if diff == 1 {
-                    current += 1
-                    longest = max(longest, current)
-                } else {
-                    current = 1
-                }
-            }
-            return longest
-        } catch {
-            return 0
-        }
     }
 
     // MARK: - Month Grid Generation
@@ -543,199 +486,171 @@ struct WeeklyCompletionBadge: View {
 
 // MARK: - Volume Stat Card
 
-struct VolumeStatCard: View {
-    let data: [WeekStatPoint]
+// MARK: - Workouts This Month Card
 
-    private var latestVolume: String {
-        guard let last = data.last, last.value > 0 else { return "--" }
-        if last.value >= 1000 {
-            return String(format: "%.1fT", last.value / 1000)
-        }
-        return "\(Int(last.value)) kg"
-    }
+struct WorkoutsThisMonthCard: View {
+    let count: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Weekly Volume")
+            Text("Workouts")
                 .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
 
-            Text(latestVolume)
-                .font(.trainHeadline)
-                .foregroundColor(.trainTextPrimary)
+            Text("\(count)")
+                .font(.trainSmallNumber)
+                .foregroundColor(.trainPrimary)
 
-            Chart(Array(data.enumerated()), id: \.element.id) { index, point in
-                BarMark(
-                    x: .value("Week", point.weekLabel),
-                    y: .value("Volume", point.value)
-                )
-                .foregroundStyle(
-                    index == data.count - 1
-                        ? Color.trainPrimary
-                        : Color.trainTextMuted.opacity(0.3)
-                )
-                .cornerRadius(CornerRadius.xxs)
-            }
-            .chartXAxis(.hidden)
-            .chartYAxis(.hidden)
-            .frame(height: 60)
+            Text("this month")
+                .font(.trainCaptionSmall)
+                .foregroundColor(.trainTextMuted)
+
+            Spacer()
         }
         .padding(Spacing.md)
-        .frame(maxWidth: .infinity, minHeight: 150, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
         .appCard()
     }
 }
 
-// MARK: - Consistency Stat Card
+// MARK: - Training Time Card
 
-struct ConsistencyStatCard: View {
-    let data: [WeekStatPoint]
-    let target: Int
+struct TrainingTimeCard: View {
+    let totalSeconds: Int
 
-    private var latestCount: String {
-        guard let last = data.last else { return "--" }
-        if target > 0 {
-            return "\(Int(last.value))/\(target)"
+    private var formattedTime: String {
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
         }
-        return "\(Int(last.value))"
+        return "\(minutes)m"
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Consistency")
+            Text("Training Time")
                 .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
 
-            Text(latestCount)
-                .font(.trainHeadline)
-                .foregroundColor(.trainTextPrimary)
+            Text(formattedTime)
+                .font(.trainSmallNumber)
+                .foregroundColor(.trainPrimary)
 
-            Chart {
-                if target > 0 {
-                    RuleMark(y: .value("Target", target))
-                        .foregroundStyle(Color.trainPrimary.opacity(0.4))
-                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
-                }
+            Text("this month")
+                .font(.trainCaptionSmall)
+                .foregroundColor(.trainTextMuted)
 
-                ForEach(Array(data.enumerated()), id: \.element.id) { index, point in
-                    BarMark(
-                        x: .value("Week", point.weekLabel),
-                        y: .value("Sessions", point.value)
-                    )
-                    .foregroundStyle(
-                        Int(point.value) >= target && target > 0
-                            ? Color.trainPrimary
-                            : Color.trainTextMuted.opacity(0.3)
-                    )
-                    .cornerRadius(CornerRadius.xxs)
-                }
-            }
-            .chartXAxis(.hidden)
-            .chartYAxis(.hidden)
-            .frame(height: 60)
+            Spacer()
         }
         .padding(Spacing.md)
-        .frame(maxWidth: .infinity, minHeight: 150, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
         .appCard()
     }
 }
 
-// MARK: - Duration Stat Card
+// MARK: - Top Muscles Card
 
-struct DurationStatCard: View {
-    let data: [WeekStatPoint]
-
-    private var latestDuration: String {
-        guard let last = data.last, last.value > 0 else { return "--" }
-        return "\(Int(last.value)) min"
-    }
+struct TopMusclesCard: View {
+    let muscles: [(String, Double)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Avg Duration")
+            Text("Top Muscles")
                 .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
 
-            Text(latestDuration)
-                .font(.trainHeadline)
-                .foregroundColor(.trainTextPrimary)
-
-            Chart(data) { point in
-                AreaMark(
-                    x: .value("Week", point.weekLabel),
-                    y: .value("Minutes", point.value)
-                )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [
-                            Color.trainPrimary.opacity(0.3),
-                            Color.trainPrimary.opacity(0.05)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .interpolationMethod(.catmullRom)
-
-                LineMark(
-                    x: .value("Week", point.weekLabel),
-                    y: .value("Minutes", point.value)
-                )
-                .foregroundStyle(Color.trainPrimary)
-                .lineStyle(StrokeStyle(lineWidth: 2))
-                .interpolationMethod(.catmullRom)
+            if muscles.isEmpty {
+                Text("--")
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextMuted)
+            } else {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    ForEach(Array(muscles.enumerated()), id: \.offset) { index, muscle in
+                        HStack(spacing: Spacing.xs) {
+                            Text("\(index + 1).")
+                                .font(.trainCaptionSmall)
+                                .foregroundColor(.trainPrimary)
+                                .frame(width: 16, alignment: .leading)
+                            Text(muscle.0)
+                                .font(.trainBody)
+                                .foregroundColor(.trainTextPrimary)
+                                .lineLimit(1)
+                        }
+                    }
+                }
             }
-            .chartXAxis(.hidden)
-            .chartYAxis(.hidden)
-            .frame(height: 60)
+
+            Text("by volume")
+                .font(.trainCaptionSmall)
+                .foregroundColor(.trainTextMuted)
+
+            Spacer()
         }
         .padding(Spacing.md)
-        .frame(maxWidth: .infinity, minHeight: 150, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
         .appCard()
     }
 }
 
-// MARK: - Streak Stat Card
+// MARK: - Time of Day Card
 
-struct StreakStatCard: View {
-    let currentStreak: Int
-    let longestStreak: Int
+struct TimeOfDayCard: View {
+    let morning: Int
+    let afternoon: Int
+    let night: Int
+
+    private var total: Int { morning + afternoon + night }
+
+    private func percentage(_ value: Int) -> String {
+        guard total > 0 else { return "0%" }
+        return "\(Int(round(Double(value) / Double(total) * 100)))%"
+    }
+
+    private var highlightSlot: String {
+        if morning >= afternoon && morning >= night { return "morning" }
+        if afternoon >= morning && afternoon >= night { return "afternoon" }
+        return "night"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Current Streak")
+            Text("Time of Day")
                 .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
 
-            HStack(spacing: Spacing.sm) {
-                if currentStreak > 0 {
-                    FlameView(size: 24)
-                        .frame(width: 24, height: 24)
+            if total == 0 {
+                Text("--")
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextMuted)
+            } else {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    timeRow(emoji: "🌅", label: "Morning", value: morning, slot: "morning")
+                    timeRow(emoji: "☀️", label: "Afternoon", value: afternoon, slot: "afternoon")
+                    timeRow(emoji: "🌙", label: "Night", value: night, slot: "night")
                 }
-
-                Text("\(currentStreak)")
-                    .font(.trainSmallNumber)
-                    .foregroundColor(.trainTextPrimary)
-
-                Text(currentStreak == 1 ? "day" : "days")
-                    .font(.trainCaption)
-                    .foregroundColor(.trainTextSecondary)
             }
 
             Spacer()
-
-            HStack(spacing: Spacing.xs) {
-                Text("Longest:")
-                    .font(.trainCaptionSmall)
-                    .foregroundColor(.trainTextMuted)
-                Text("\(longestStreak)")
-                    .font(.trainCaptionSmall)
-                    .fontWeight(.medium)
-                    .foregroundColor(.trainTextSecondary)
-            }
         }
         .padding(Spacing.md)
-        .frame(maxWidth: .infinity, minHeight: 150, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
         .appCard()
+    }
+
+    @ViewBuilder
+    private func timeRow(emoji: String, label: String, value: Int, slot: String) -> some View {
+        HStack(spacing: Spacing.xs) {
+            Text(emoji)
+                .font(.system(size: 12))
+            Text(label)
+                .font(.trainCaptionSmall)
+                .foregroundColor(slot == highlightSlot ? .trainTextPrimary : .trainTextSecondary)
+            Spacer()
+            Text(percentage(value))
+                .font(.trainCaptionSmall)
+                .fontWeight(slot == highlightSlot ? .bold : .regular)
+                .foregroundColor(slot == highlightSlot ? .trainPrimary : .trainTextSecondary)
+        }
     }
 }

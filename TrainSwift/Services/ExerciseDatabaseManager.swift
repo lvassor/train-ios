@@ -21,6 +21,10 @@ class ExerciseDatabaseManager {
     private nonisolated(unsafe) var equipmentByName: [String: DBEquipment] = [:]
     private nonisolated(unsafe) var equipmentByCategory: [String: [DBEquipment]] = [:]
 
+    // Exercise cache — loaded lazily, keyed by display name
+    private nonisolated(unsafe) var exerciseByDisplayName: [String: DBExercise] = [:]
+    private nonisolated(unsafe) var exerciseCacheLoaded = false
+
     // Video GUID cache — loaded once at startup, keyed by exercise_id
     private nonisolated(unsafe) var videoGuidByExerciseId: [String: String] = [:]
 
@@ -107,6 +111,34 @@ class ExerciseDatabaseManager {
             AppLogger.logDatabase("Equipment cache loaded: \(allEquipment.count) items, \(equipmentByCategory.count) categories")
         } catch {
             AppLogger.logDatabase("Failed to load equipment cache: \(error)", level: .error)
+        }
+    }
+
+    // MARK: - Exercise Cache
+
+    /// Look up an exercise by its display name (lazy-loaded O(1) dictionary lookup).
+    /// Used by calendar stats to resolve primary muscle from exercise name.
+    func findExercise(byName name: String) -> DBExercise? {
+        if !exerciseCacheLoaded {
+            loadExerciseCache()
+        }
+        return exerciseByDisplayName[name]
+    }
+
+    private func loadExerciseCache() {
+        guard let dbQueue = dbQueue else { return }
+
+        do {
+            let allExercises = try dbQueue.read { db in
+                try DBExercise.fetchAll(db)
+            }
+
+            exerciseByDisplayName = Dictionary(allExercises.map { ($0.displayName, $0) }, uniquingKeysWith: { first, _ in first })
+            exerciseCacheLoaded = true
+
+            AppLogger.logDatabase("Exercise cache loaded: \(exerciseByDisplayName.count) entries")
+        } catch {
+            AppLogger.logDatabase("Failed to load exercise cache: \(error)", level: .error)
         }
     }
 
