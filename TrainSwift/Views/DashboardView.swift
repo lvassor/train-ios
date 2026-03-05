@@ -55,13 +55,11 @@ struct DashboardContent: View {
                         ActiveWorkoutTimerView()
 
                         if let program = userProgram {
-                            // Carousel Section (contains expandable weekly progress calendar)
-                            DashboardCarouselView(userProgram: program)
-                                .padding(.horizontal, Spacing.lg)
-
                             // Split Selector and Sessions
-                            WeeklySessionsSection(userProgram: program)
-                                .padding(.horizontal, Spacing.lg)
+                            WeeklySessionsSection(
+                                userProgram: program
+                            )
+                            .padding(.horizontal, Spacing.lg)
                         } else {
                             // No program found - show error message
                             VStack(spacing: Spacing.lg) {
@@ -289,9 +287,13 @@ struct WeeklySessionsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             // Header
-            Text("Your Program")
-                .font(.trainBodyMedium)
-                .foregroundColor(.trainTextPrimary)
+            HStack {
+                Text("Your Program")
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+
+                Spacer()
+            }
 
             if let programData = userProgram.getProgram() {
                 let sessionsToShow = Array(programData.sessions.prefix(Int(userProgram.daysPerWeek)))
@@ -426,6 +428,7 @@ struct HorizontalDayButtonsRow: View {
     let sessionNames: [(fullName: String, abbreviation: String)]
     @Binding var selectedIndex: Int
     let userProgram: WorkoutProgram
+    var onManualSelection: (() -> Void)? = nil
 
     var body: some View {
         GeometryReader { geometry in
@@ -446,6 +449,7 @@ struct HorizontalDayButtonsRow: View {
                     Button(action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             selectedIndex = index
+                            onManualSelection?()
                         }
                     }) {
                         Text(displayText)

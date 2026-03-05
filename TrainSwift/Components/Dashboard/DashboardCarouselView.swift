@@ -10,6 +10,7 @@ import CoreData
 
 struct DashboardCarouselView: View {
     let userProgram: WorkoutProgram
+    var onCalendarSessionTapped: ((CDWorkoutSession) -> Void)? = nil
 
     @State private var carouselItems: [CarouselItem] = []
     @State private var currentPage = 0
@@ -53,7 +54,8 @@ struct DashboardCarouselView: View {
                         item: carouselItems[currentPage],
                         userProgram: userProgram,
                         isCalendarExpanded: $isCalendarExpanded,
-                        onDismissEngagement: dismissEngagementPrompt
+                        onDismissEngagement: dismissEngagementPrompt,
+                        onCalendarSessionTapped: onCalendarSessionTapped
                     )
                     .padding(.horizontal, Spacing.xs) // Prevent edge clipping of rounded corners
                     .padding(.vertical, Spacing.xxs) // Prevent top/bottom border clipping
@@ -66,7 +68,8 @@ struct DashboardCarouselView: View {
                             item: item,
                             userProgram: userProgram,
                             isCalendarExpanded: $isCalendarExpanded,
-                            onDismissEngagement: dismissEngagementPrompt
+                            onDismissEngagement: dismissEngagementPrompt,
+                            onCalendarSessionTapped: onCalendarSessionTapped
                         )
                         .padding(.horizontal, Spacing.xs) // Prevent edge clipping of rounded corners
                         .padding(.vertical, Spacing.xxs) // Prevent top/bottom border clipping
@@ -359,18 +362,17 @@ struct DashboardCarouselView: View {
             openAppStoreReview()
         case "Share your progress":
             // TODO: Implement progress sharing
-            print("Share progress tapped")
+            break
         case "Rate your experience":
             // TODO: Implement in-app rating
-            print("Rate experience tapped")
+            break
         default:
-            print("Engagement action: \(title)")
+            break
         }
     }
 
     private func openAppStoreReview() {
         // TODO: Implement App Store review request
-        print("Opening App Store review")
     }
 }
 

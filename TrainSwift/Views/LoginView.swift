@@ -49,9 +49,10 @@ struct LoginView: View {
 
                 // Logo/Title
                 VStack(spacing: Spacing.md) {
-                    Text("train.")
-                        .font(.system(size: 48, weight: .bold))
-                        .foregroundColor(.trainPrimary)
+                    Image("TrainLogoWithText")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 60)
 
                     Text("Welcome Back")
                         .font(.trainSubtitle)

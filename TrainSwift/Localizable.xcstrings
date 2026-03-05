@@ -416,6 +416,9 @@
     "Are you sure you want to log out?" : {
 
     },
+    "Avg Duration" : {
+
+    },
     "Back" : {
 
     },
@@ -438,6 +441,9 @@
 
     },
     "Built Around You." : {
+
+    },
+    "Calendar" : {
 
     },
     "Cancel" : {
@@ -503,6 +509,9 @@
     "Confirm your password" : {
 
     },
+    "Consistency" : {
+
+    },
     "Continue" : {
 
     },
@@ -546,6 +555,9 @@
 
     },
     "Current Program" : {
+
+    },
+    "Current Streak" : {
 
     },
     "Current streak: %lld days" : {
@@ -843,6 +855,9 @@
     "Logger" : {
 
     },
+    "Longest:" : {
+
+    },
     "Make sure everything looks right" : {
 
     },
@@ -862,6 +877,9 @@
 
     },
     "Min 6 chars with a number and special character" : {
+
+    },
+    "Minutes" : {
 
     },
     "Muscle" : {
@@ -1146,6 +1164,9 @@
     "Session unavailable" : {
 
     },
+    "Sessions" : {
+
+    },
     "Set" : {
 
     },
@@ -1291,6 +1312,9 @@
     "Tap anywhere to continue" : {
 
     },
+    "Target" : {
+
+    },
     "Target:" : {
 
     },
@@ -1422,6 +1446,9 @@
     "View Your Milestones" : {
 
     },
+    "Volume" : {
+
+    },
     "Warm-up: Upper Body Mobility, 5 exercises, 5 minutes" : {
 
     },
@@ -1437,6 +1464,9 @@
     "We'll avoid exercises that might aggravate these areas" : {
 
     },
+    "Week" : {
+
+    },
     "Week %d of %d" : {
       "localizations" : {
         "en" : {
@@ -1448,6 +1478,9 @@
       }
     },
     "Week %lld" : {
+
+    },
+    "Weekly Volume" : {
 
     },
     "Weight" : {
@@ -1523,9 +1556,6 @@
 
     },
     "Your Program" : {
-
-    },
-    "Your program will be:" : {
 
     }
   },

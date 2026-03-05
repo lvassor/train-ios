@@ -11,31 +11,28 @@ import Lottie
 struct FlameView: UIViewRepresentable {
     var size: CGFloat = 32
 
-    func makeUIView(context: Context) -> LottieAnimationView {
+    func makeUIView(context: Context) -> UIView {
+        let container = UIView()
+        container.backgroundColor = .clear
+
         let animationView = LottieAnimationView(name: "Fire")
         animationView.contentMode = .scaleAspectFit
         animationView.loopMode = .loop
+        animationView.backgroundBehavior = .pauseAndRestore
         animationView.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(animationView)
+
+        // Pin the Lottie view to the container edges so SwiftUI .frame() controls sizing
+        NSLayoutConstraint.activate([
+            animationView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            animationView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            animationView.topAnchor.constraint(equalTo: container.topAnchor),
+            animationView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+        ])
+
         animationView.play()
-
-        // Pause when app backgrounds to save battery
-        NotificationCenter.default.addObserver(
-            forName: UIApplication.didEnterBackgroundNotification,
-            object: nil,
-            queue: .main
-        ) { _ in
-            animationView.pause()
-        }
-        NotificationCenter.default.addObserver(
-            forName: UIApplication.willEnterForegroundNotification,
-            object: nil,
-            queue: .main
-        ) { _ in
-            animationView.play()
-        }
-
-        return animationView
+        return container
     }
 
-    func updateUIView(_ uiView: LottieAnimationView, context: Context) {}
+    func updateUIView(_ uiView: UIView, context: Context) {}
 }

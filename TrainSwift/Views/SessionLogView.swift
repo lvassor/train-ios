@@ -34,6 +34,14 @@ struct SessionLogView: View {
         }
     }
 
+    /// Initialize with a specific completed session (used for calendar date-based navigation)
+    init(completedSession: CDWorkoutSession, userProgram: WorkoutProgram) {
+        self.userProgram = userProgram
+        self.sessionIndex = 0
+        self.sessionName = completedSession.sessionName ?? "Workout"
+        self._currentSession = State(initialValue: completedSession)
+    }
+
     var body: some View {
         ScrollView {
                 VStack(spacing: Spacing.lg) {
@@ -68,6 +76,7 @@ struct SessionLogView: View {
         .scrollContentBackground(.hidden)
         .navigationTitle(sessionName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .tabBar)
         .onAppear {
             loadSessions()
         }
@@ -87,12 +96,20 @@ struct SessionLogView: View {
 
         do {
             sessions = try viewContext.fetch(request)
-            currentSession = sessions.first
+
+            // Only set currentSession if not already provided (e.g., from direct session navigation)
+            if currentSession == nil {
+                currentSession = sessions.first
+            }
+
             calculatePersonalBests()
 
-            // Pre-calculate session stats once
+            // Pre-calculate session stats
             if let current = currentSession {
-                let previous = sessions.count > 1 ? sessions[1] : nil
+                // Find the session immediately before the current one (by date)
+                let previous = sessions.first(where: {
+                    $0 != current && ($0.completedAt ?? .distantPast) < (current.completedAt ?? .distantPast)
+                })
                 sessionStats = SessionStats(current: current, previous: previous)
             }
         } catch {

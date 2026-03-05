@@ -15,7 +15,7 @@ struct ExerciseDemoTab: View {
 
     private static let stepPrefixRegex = try? NSRegularExpression(pattern: "^Step\\s*\\d+\\s*:\\s*", options: .caseInsensitive)
 
-    // Get the list of equipment items from the exercise
+    // Get the list of equipment items from the exercise (deduplicated)
     private var equipmentItems: [String] {
         // Parse equipment from category and specific fields
         var items: [String] = []
@@ -27,6 +27,9 @@ struct ExerciseDemoTab: View {
             let specificItems = specific.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }
             items.append(contentsOf: specificItems)
         }
+        // Deduplicate while preserving order
+        var seen = Set<String>()
+        items = items.filter { seen.insert($0.lowercased()).inserted }
         return items.isEmpty ? ["Equipment"] : items
     }
 
@@ -162,7 +165,7 @@ struct DemoPlaceholderTile: View {
         VStack(spacing: Spacing.xs) {
             ZStack {
                 RoundedRectangle(cornerRadius: CornerRadius.xxs, style: .continuous)
-                    .fill(Color.trainSurface)
+                    .fill(Color.white)
                     .frame(width: 70, height: 70)
                     .overlay(
                         RoundedRectangle(cornerRadius: CornerRadius.xxs, style: .continuous)
@@ -178,7 +181,7 @@ struct DemoPlaceholderTile: View {
                 } else {
                     Image(systemName: iconName)
                         .font(.system(size: IconSize.md))
-                        .foregroundColor(.trainTextPrimary)
+                        .foregroundColor(.gray)
                 }
             }
 
@@ -265,6 +268,8 @@ struct DemoInstructionsCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.lg)
+        .background(Color.white.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                 .stroke(Color.trainBorderDefault, lineWidth: 1)

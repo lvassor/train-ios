@@ -67,12 +67,18 @@ struct CarouselCardView: View {
     let userProgram: WorkoutProgram
     @Binding var isCalendarExpanded: Bool
     var onDismissEngagement: (() -> Void)? = nil
+    var onCalendarSessionTapped: ((CDWorkoutSession) -> Void)? = nil
 
     var body: some View {
         Group {
             switch item.type {
             case .weeklyProgress(let data):
-                WeeklyProgressCard(data: data, userProgram: userProgram, isExpanded: $isCalendarExpanded)
+                WeeklyProgressCard(
+                    data: data,
+                    userProgram: userProgram,
+                    isExpanded: $isCalendarExpanded,
+                    onCalendarSessionTapped: onCalendarSessionTapped
+                )
             case .learningRecommendation(let data):
                 LearningRecommendationCard(data: data)
             case .engagementPrompt(let data):

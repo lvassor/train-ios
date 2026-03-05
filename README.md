@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/train-logo-with-text_isolate_cropped.svg" alt="trAIn" width="280">
+  <img src="assets/train-logo-with-text_isolate_cropped_dark.svg" alt="trAIn" width="280">
 </p>
 
 <p align="center">
@@ -89,10 +89,12 @@ Pre-populated test accounts with 3 weeks of workout data for testing milestones,
 
 ### Credentials
 
-| Account | Email | Password | Split | Days |
-|---------|-------|----------|-------|------|
-| PPL | test-ppl@train.com | Train123! | Push/Pull/Legs | 3/week |
-| UL | test-ul@train.com | Train123! | Upper/Lower | 4/week |
+| Account | Email | Split | Days |
+|---------|-------|-------|------|
+| PPL | test-ppl@train.com | Push/Pull/Legs | 3/week |
+| UL | test-ul@train.com | Upper/Lower | 4/week |
+
+> Passwords are stored in Keychain via the seeder — see `TestDataSeeder.swift`.
 
 ### Enabling Test Data for TestFlight
 

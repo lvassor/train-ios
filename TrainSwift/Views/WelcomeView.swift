@@ -15,9 +15,6 @@ struct WelcomeView: View {
     @State private var currentIndex: Int = 0
     @State private var viewDidAppear = false
 
-    /// Unique ID for this instance to track in logs
-    private let instanceId = UUID().uuidString.prefix(8)
-
     var body: some View {
         ZStack(alignment: .bottom) {
             // Content area with ScrollView that scrolls behind the floating button
@@ -68,6 +65,15 @@ struct WelcomeView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, Spacing.lg)
                         .padding(.top, Spacing.md)
+
+                    // Caption above carousel so it's always visible
+                    Text("Join Train to get personalized workouts and hit your goals faster.")
+                        .font(.trainBody)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.top, Spacing.xl)
 
                     // Cover Flow carousel with center stage scaling - reduced to 75% size
                     GeometryReader { containerGeometry in
@@ -128,18 +134,9 @@ struct WelcomeView: View {
                     .frame(height: 330) // 75% of 440 = 330
                     .padding(.top, 22) // Reduced by 30% (32 * 0.7)
 
-                    // Updated caption moved above the carousel for better layout
-                    Text("Join Train to get personalized workouts and hit your goals faster.")
-                        .font(.trainBody)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.top, Spacing.xl)
-
                     // Add bottom padding so content scrolls behind the floating button
                     Spacer()
-                        .frame(height: 150) // Space for floating button area
+                        .frame(height: 200) // Space for floating button area + fade mask clearance
                 }
             }
             .scrollDisabled(false)
@@ -163,32 +160,9 @@ struct WelcomeView: View {
         }
         .charcoalGradientBackground()
         .onAppear {
-            welcomeDebugLog("VIEW", "WelcomeView.onAppear", [
-                "instanceId": String(instanceId),
-                "viewDidAppear": "\(viewDidAppear)",
-                "screenshotsCount": "\(screenshots.count)",
-                "status": "✅ WELCOME CAROUSEL IS RENDERING"
-            ])
             viewDidAppear = true
         }
-        .onDisappear {
-            welcomeDebugLog("VIEW", "WelcomeView.onDisappear", [
-                "instanceId": String(instanceId),
-                "reason": "User tapped Get Started or navigated away"
-            ])
-        }
     }
-}
-
-// MARK: - Debug Logging Helper
-
-private func welcomeDebugLog(_ category: String, _ action: String, _ params: [String: String] = [:]) {
-    var message = "[WELCOME-\(category)] \(action)"
-    if !params.isEmpty {
-        let paramString = params.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: " | ")
-        message += " | \(paramString)"
-    }
-    AppLogger.logUI(message)
 }
 
 #Preview {

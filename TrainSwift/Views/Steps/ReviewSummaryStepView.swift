@@ -25,7 +25,7 @@ struct ReviewSummaryStepView: View {
             .frame(maxWidth: .infinity)
 
             VStack(spacing: Spacing.sm) {
-                reviewRow(title: "Goals", value: questionnaireData.primaryGoals.joined(separator: ", "), editStep: 0)
+                reviewRow(title: "Goals", value: humanReadableGoals(questionnaireData.primaryGoals), editStep: 0)
                 reviewRow(title: "Experience", value: questionnaireData.experienceLevel.replacingOccurrences(of: "_", with: " ").capitalized, editStep: questionnaireData.skipHeightWeight ? 3 : 4)
                 reviewRow(title: "Training Days", value: "\(questionnaireData.trainingDaysPerWeek) days/week", editStep: questionnaireData.skipHeightWeight ? 5 : 6)
                 reviewRow(title: "Split", value: questionnaireData.selectedSplit, editStep: questionnaireData.skipHeightWeight ? 6 : 7)
@@ -35,6 +35,16 @@ struct ReviewSummaryStepView: View {
 
             Spacer()
         }
+    }
+
+    private func humanReadableGoals(_ goals: [String]) -> String {
+        let mapping: [String: String] = [
+            "get_stronger": "Get Stronger",
+            "build_muscle": "Build Muscle Mass",
+            "tone_up": "Tone Up"
+        ]
+        return goals.map { mapping[$0] ?? $0.replacingOccurrences(of: "_", with: " ").capitalized }
+            .joined(separator: ", ")
     }
 
     @ViewBuilder

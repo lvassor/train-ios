@@ -1,3 +1,17 @@
+<p align="center">
+  <img src="../assets/train-logo-with-text_isolate_cropped_dark.svg" alt="train" width="280">
+</p>
+
+<p align="center">
+  <em>Programme slot filling — fallback cascade and constraint relaxation</em>
+</p>
+
+<p align="center">
+  <strong>Created by</strong>: Luke Vassor & Brody Bastiman
+</p>
+
+---
+
 # Programme Slot Filling Fallback Logic (v3 - Final)
 
 ## Constraints Classification
@@ -85,3 +99,7 @@ Single consolidated warning if ANY soft constraint was relaxed:
 | 3 | Complexity level | Per-slot | Slot still unfilled after Phase 2 |
 | 4 | Canonical repeat | Per-slot | Slot still unfilled after Phase 3 |
 | 5 | Muscle assignment | Per-slot (same session) | Slot still unfilled after Phase 4 |
+
+---
+
+Made with ❤️ by Luke Vassor & Brody Bastiman

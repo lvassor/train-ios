@@ -45,6 +45,7 @@ struct WorkoutOverviewView: View {
     @State private var completedExercises: Set<String> = []
     @State private var loggedExercises: [String: LoggedExercise] = [:]
     @State private var selectedExerciseIndex: Int? = nil
+    @State private var pendingNextExerciseIndex: Int? = nil
     @State private var showCancelConfirmation = false
     @State private var showCompletionView = false
     @State private var showCelebration = false
@@ -56,6 +57,7 @@ struct WorkoutOverviewView: View {
     @State private var exerciseToRemove: ProgramExercise? = nil  // For remove confirmation
     @State private var showExercisePickerInOverview = false
     @State private var hasAddedExerciseInOverview = false
+    @State private var hasRestoredWorkoutState = false  // Prevents onAppear from overwriting state on nav pop
 
     // Live Activity Manager
     @ObservedObject private var liveActivityManager = WorkoutLiveActivityManager.shared
@@ -274,6 +276,7 @@ struct WorkoutOverviewView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .toolbar(.visible, for: .tabBar)
         .navigationDestination(item: $selectedExerciseIndex) { index in
             if index < sessionExercises.count {
                 let exercise = sessionExercises[index]
@@ -290,9 +293,23 @@ struct WorkoutOverviewView: View {
                         completedExercises.insert(exercise.id)
                         loggedExercises[exercise.id] = logged
                         updateLiveActivityForNextExercise(completedIndex: index)
+                        // Sync to global state BEFORE popping so onAppear won't overwrite
+                        if workoutState.isWorkoutActive {
+                            workoutState.updateWorkoutProgress(
+                                completedExercises: completedExercises,
+                                loggedExercises: loggedExercises,
+                                modifiedExercises: sessionExercises
+                            )
+                        }
+                        // Pop back first, then navigate to next exercise after brief delay
+                        if index + 1 < sessionExercises.count {
+                            pendingNextExerciseIndex = index + 1
+                        }
                         selectedExerciseIndex = nil
                     },
                     onCancel: {
+                        // Explicitly save partial progress before dismissing
+                        loggedExercises[exercise.id] = bindingForExercise(exercise).wrappedValue
                         selectedExerciseIndex = nil
                     },
                     nextExerciseName: nextName
@@ -377,19 +394,19 @@ struct WorkoutOverviewView: View {
             initializeSessionExercises()
             initializeLoggedExercises()
 
-            // Check if this is a continuing workout
-            if let activeWorkout = workoutState.activeWorkout,
+            // Restore workout state ONLY once (not on every nav pop back from logger)
+            if !hasRestoredWorkoutState,
+               let activeWorkout = workoutState.activeWorkout,
                activeWorkout.sessionIndex == sessionIndex {
-                // Restore workout state - calculate elapsed time immediately to prevent 00:00 flash
+                hasRestoredWorkoutState = true
                 workoutStarted = true
                 startTime = activeWorkout.startTime
-                elapsedTime = Date().timeIntervalSince(activeWorkout.startTime)  // Set immediately
+                elapsedTime = Date().timeIntervalSince(activeWorkout.startTime)
                 completedExercises = activeWorkout.completedExercises
                 loggedExercises = activeWorkout.loggedExercises
                 resumeTimer()
                 AppLogger.logWorkout("Resumed active workout: \(activeWorkout.sessionName) - elapsed: \(elapsedTimeFormatted)")
             } else if workoutStarted {
-                // Only resume timer if workout was already started (old behavior)
                 resumeTimer()
             }
         }
@@ -402,6 +419,16 @@ struct WorkoutOverviewView: View {
                     loggedExercises: loggedExercises,
                     modifiedExercises: sessionExercises
                 )
+            }
+        }
+        .onChange(of: selectedExerciseIndex) { _, newValue in
+            // When navigation pops (nil), check if we need to push to the next exercise
+            if newValue == nil, let nextIndex = pendingNextExerciseIndex {
+                pendingNextExerciseIndex = nil
+                // Brief delay so the pop animation completes before pushing
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                    selectedExerciseIndex = nextIndex
+                }
             }
         }
     }
@@ -1045,8 +1072,7 @@ struct ExerciseOverviewCard: View {
                         HStack(spacing: Spacing.xs) {
                             Text(exercise.exerciseName)
                                 .font(.trainBody).fontWeight(.medium)
-                                .foregroundColor(isCompleted ? .trainTextSecondary : .trainTextPrimary)
-                                .strikethrough(isCompleted)
+                                .foregroundColor(.trainTextPrimary)
                                 .lineLimit(2)
                                 .multilineTextAlignment(.leading)
 
@@ -1088,24 +1114,43 @@ struct ExerciseOverviewCard: View {
                 editActionButtons
             }
         }
-        .background(
-            contraindicatedInjury != nil
-                ? Color.gray.opacity(0.15)
-                : (isEditing
-                    ? Color.trainPrimary.opacity(0.08)
-                    : (isCompleted
-                        ? Color.trainPrimary.opacity(0.08)
-                        : Color.trainSurface))
-        )
+        .background(cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
-        .shadowStyle(.borderLine)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                .stroke(isEditing ? Color.trainPrimary.opacity(0.3) : Color.clear, lineWidth: 1)
+                .stroke(cardBorderColor, lineWidth: cardBorderWidth)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(exercise.exerciseName), \(exercise.sets) sets of \(exercise.repRange) reps")
         .accessibilityValue(isCompleted ? "Completed" : "Not started")
+    }
+
+    // MARK: - Card Style Helpers
+
+    private var cardBackground: Color {
+        if contraindicatedInjury != nil {
+            return Color.gray.opacity(0.15)
+        } else if isEditing {
+            return Color.trainPrimary.opacity(0.08)
+        } else if isCompleted {
+            return Color.trainPrimary.opacity(0.35)
+        } else {
+            return Color.trainSurface
+        }
+    }
+
+    private var cardBorderColor: Color {
+        if isEditing {
+            return Color.trainPrimary.opacity(0.3)
+        } else if isCompleted && contraindicatedInjury == nil {
+            return Color.trainPrimary.opacity(0.7)
+        } else {
+            return Color.clear
+        }
+    }
+
+    private var cardBorderWidth: CGFloat {
+        (isCompleted && !isEditing && contraindicatedInjury == nil) ? 1.5 : 1
     }
 
     // MARK: - Drag Handle (Double Line Indicator)

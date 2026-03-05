@@ -335,7 +335,7 @@ struct HistorySessionCard: View {
                 ForEach(Array(entry.sets.enumerated()), id: \.element.id) { index, set in
                     Text("Set \(index + 1): \(Int(set.weight)) kg • \(set.reps) reps")
                         .font(.trainBody).fontWeight(index == 0 ? .medium : .regular)
-                        .foregroundColor(.trainTextPrimary)
+                        .foregroundColor(.trainTextSecondary)
                 }
             }
         }

@@ -12,6 +12,7 @@ struct WeeklyProgressCard: View {
     let data: WeeklyProgressData
     let userProgram: WorkoutProgram
     @Binding var isExpanded: Bool
+    var onCalendarSessionTapped: ((CDWorkoutSession) -> Void)? = nil
 
     @State private var currentMonthOffset = 0 // 0 = current month, -1 = last month, etc.
 
@@ -158,14 +159,19 @@ struct WeeklyProgressCard: View {
     private func dayCircle(for dayInfo: DayProgress) -> some View {
         ZStack {
             if let workoutLetter = dayInfo.workoutLetter {
-                // Completed workout - filled orange circle with letter
-                Circle()
-                    .fill(Color.trainPrimary)
-                    .frame(width: IconSize.lg, height: IconSize.lg)
+                // Completed workout - filled orange circle with letter (tappable)
+                Button(action: { navigateToSession(for: dayInfo.date) }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.trainPrimary)
+                            .frame(width: IconSize.lg, height: IconSize.lg)
 
-                Text(workoutLetter)
-                    .font(.trainCaptionSmall).fontWeight(.bold)
-                    .foregroundColor(Color.trainTextOnPrimary)
+                        Text(workoutLetter)
+                            .font(.trainCaptionSmall).fontWeight(.bold)
+                            .foregroundColor(Color.trainTextOnPrimary)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
             } else if dayInfo.isToday {
                 // Today - orange stroke ring
                 Circle()
@@ -188,14 +194,19 @@ struct WeeklyProgressCard: View {
         return VStack(spacing: Spacing.xxs) {
             ZStack {
                 if let workoutLetter = dayInfo.workoutLetter {
-                    // Completed workout - filled orange circle with letter
-                    Circle()
-                        .fill(Color.trainPrimary)
-                        .frame(width: 28, height: 28)
+                    // Completed workout - filled orange circle with letter (tappable)
+                    Button(action: { navigateToSession(for: dayInfo.date) }) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.trainPrimary)
+                                .frame(width: 28, height: 28)
 
-                    Text(workoutLetter)
-                        .font(.trainMicro).fontWeight(.bold)
-                        .foregroundColor(Color.trainTextOnPrimary)
+                            Text(workoutLetter)
+                                .font(.trainMicro).fontWeight(.bold)
+                                .foregroundColor(Color.trainTextOnPrimary)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 } else if dayInfo.isToday {
                     // Today - orange stroke ring
                     Circle()
@@ -272,6 +283,37 @@ struct WeeklyProgressCard: View {
             workoutLetter: workoutLetter,
             date: date
         )
+    }
+
+    // MARK: - Calendar Tap Navigation
+
+    private func navigateToSession(for date: Date) {
+        if let session = fetchSession(for: date) {
+            onCalendarSessionTapped?(session)
+        }
+    }
+
+    private func fetchSession(for date: Date) -> CDWorkoutSession? {
+        guard let userId = AuthService.shared.currentUser?.id else { return nil }
+
+        let fetchRequest: NSFetchRequest<CDWorkoutSession> = CDWorkoutSession.fetchRequest()
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+        fetchRequest.predicate = NSPredicate(
+            format: "userId == %@ AND completedAt >= %@ AND completedAt < %@",
+            userId as CVarArg,
+            startOfDay as NSDate,
+            endOfDay as NSDate
+        )
+        fetchRequest.fetchLimit = 1
+
+        do {
+            return try PersistenceController.shared.container.viewContext.fetch(fetchRequest).first
+        } catch {
+            AppLogger.logDatabase("Failed to fetch session for date: \(error)", level: .error)
+            return nil
+        }
     }
 
     // MARK: - Get Workout Letter from CoreData

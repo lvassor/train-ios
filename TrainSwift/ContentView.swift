@@ -23,19 +23,20 @@ struct ContentView: View {
                     .transition(.opacity)
                     .zIndex(1)
             } else {
-                NavigationStack {
-                    if authService.isAuthenticated {
-                        DashboardView()
-                            .environmentObject(workoutViewModel)
-                    } else {
-                        OnboardingFlowView()
-                            .environmentObject(workoutViewModel)
-                            .sheet(isPresented: $showLogin) {
-                                LoginView()
-                            }
-                    }
+                // No outer NavigationStack — each tab has its own in MainTabView
+                // and OnboardingFlowView has its own NavigationStack internally.
+                // A wrapping NavigationStack here causes double-stack, which makes
+                // pushed views go full-screen and hides the tab bar.
+                if authService.isAuthenticated {
+                    DashboardView()
+                        .environmentObject(workoutViewModel)
+                } else {
+                    OnboardingFlowView()
+                        .environmentObject(workoutViewModel)
+                        .sheet(isPresented: $showLogin) {
+                            LoginView()
+                        }
                 }
-                .zIndex(0)
             }
         }
         .task {

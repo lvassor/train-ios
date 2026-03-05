@@ -1,3 +1,17 @@
+<p align="center">
+  <img src="../assets/train-logo-with-text_isolate_cropped_dark.svg" alt="train" width="280">
+</p>
+
+<p align="center">
+  <em>Pre-deployment checklist — manual actions required before App Store submission</em>
+</p>
+
+<p align="center">
+  <strong>Created by</strong>: Brody Bastiman & Luke Vassor
+</p>
+
+---
+
 # Pre-Deployment Checklist
 
 Items requiring manual action outside the codebase before App Store submission.
@@ -31,3 +45,7 @@ Items requiring manual action outside the codebase before App Store submission.
 - [ ] StoreKit sandbox: test all 3 subscription tiers, Restore Purchases, promo code redemption
 - [ ] Instagram Stories share: test on physical device with Instagram installed
 - [ ] Local notification: test rest timer notification with app backgrounded on physical device
+
+---
+
+Made with ❤️ by Brody Bastiman & Luke Vassor

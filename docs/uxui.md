@@ -1,3 +1,17 @@
+<p align="center">
+  <img src="../assets/train-logo-with-text_isolate_cropped_dark.svg" alt="train" width="280">
+</p>
+
+<p align="center">
+  <em>UX/UI improvement log — design system changes and overhaul phases</em>
+</p>
+
+<p align="center">
+  <strong>Created by</strong>: Brody Bastiman & Luke Vassor
+</p>
+
+---
+
 # UX/UI Improvement Log
 
 Each line documents a single UX/UI change made during the overhaul.
@@ -150,3 +164,7 @@ Each line documents a single UX/UI change made during the overhaul.
 - Centered "Equipment" and "Active Muscle Groups" section headings on Demo tab — removed left-alignment and hardcoded padding
 - Restructured MilestonesView top stats — Lottie flame now centered between PBs and Workouts cards as decorative element (no card background); fixed FlameView UIKit constraints
 - Added video thumbnails to `ExerciseLibraryCard` via `AsyncImage` + Bunny CDN; updated subtitle to show primary muscle + equipment info
+
+---
+
+Made with ❤️ by Brody Bastiman & Luke Vassor

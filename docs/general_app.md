@@ -1,4 +1,17 @@
-# Train App Documentation
+<p align="center">
+  <img src="../assets/train-logo-with-text_isolate_cropped_dark.svg" alt="train" width="280">
+</p>
+
+<p align="center">
+  <em>General app documentation — architecture, features, and glossary</em>
+</p>
+
+<p align="center">
+  <strong>Created by</strong>: Luke Vassor & Brody Bastiman
+</p>
+
+---
+
 ## App Mission
 
 - Train is a strength training app that has one mission: become the best training app on the market.
@@ -53,3 +66,7 @@
 **Consistency**: When you should maintain current weight
 
 **Debounce**: A small delay to prevent flickering/rapid changes (like waiting 500ms before showing a prompt)
+
+---
+
+Made with ❤️ by Luke Vassor & Brody Bastiman

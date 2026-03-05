@@ -119,7 +119,7 @@ struct ExerciseLoggerView: View {
                     onBack: onCancel
                 )
 
-                // Tab selector - full width with custom styling
+                // Tab selector - segmented picker
                 LoggerTabSelector(selectedTab: $selectedTab)
                     .padding(.top, Spacing.md)
                     .onChange(of: selectedTab) { _, newTab in
@@ -127,17 +127,6 @@ struct ExerciseLoggerView: View {
                             loadExerciseDetails()
                         }
                     }
-
-                // Progression banner (WHOOP-style) - between tab selector and info section
-                if showProgressionBanner {
-                    ProgressionBannerView(
-                        exerciseName: exercise.exerciseName,
-                        isVisible: $showProgressionBanner
-                    )
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.top, Spacing.sm)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
 
                 // Inline rest timer - persists across tab switches
                 InlineRestTimer(
@@ -152,11 +141,18 @@ struct ExerciseLoggerView: View {
                     if selectedTab == .logger {
                         ScrollView {
                             VStack(spacing: Spacing.lg) {
-                                // Exercise info - centered text layout (no container)
                                 ExerciseLoggerInfoSection(exercise: exercise)
                                     .padding(.top, Spacing.lg)
 
-                                // Set logging - redesigned with warm-up suggestion
+                                if showProgressionBanner {
+                                    ProgressionBannerView(
+                                        exerciseName: exercise.exerciseName,
+                                        isVisible: $showProgressionBanner
+                                    )
+                                    .padding(.horizontal, Spacing.lg)
+                                    .transition(.move(edge: .top).combined(with: .opacity))
+                                }
+
                                 SetLoggingCard(
                                     exercise: exercise,
                                     loggedExercise: $loggedExercise,
@@ -172,7 +168,6 @@ struct ExerciseLoggerView: View {
                         }
                         .scrollDismissesKeyboard(.interactively)
                     } else if selectedTab == .demo {
-                        // Demo view - no overlapping title
                         if let dbExercise = selectedDBExercise {
                             ExerciseDemoTab(exercise: dbExercise)
                         } else {
@@ -183,7 +178,6 @@ struct ExerciseLoggerView: View {
                             .frame(maxHeight: .infinity)
                         }
                     } else if selectedTab == .history {
-                        // History view - no overlapping title, ensure proper layout
                         if let dbExercise = selectedDBExercise {
                             ExerciseHistoryView(exercise: dbExercise)
                                 .padding(.top, Spacing.sm)
@@ -224,8 +218,6 @@ struct ExerciseLoggerView: View {
                     .padding(.bottom, Spacing.md)
                 }
             }
-            .toolbar(.hidden, for: .tabBar)
-
             // Feedback notification (central modal overlay) - now ONLY for regression
             if showFeedbackNotification {
                 FeedbackModalOverlay(
@@ -284,6 +276,7 @@ struct ExerciseLoggerView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .toolbar(.visible, for: .tabBar)
         .onAppear {
             loadExerciseDetails()
             checkForProgressionBanner()
@@ -476,40 +469,26 @@ struct LoggerTabSelector: View {
     @Binding var selectedTab: LoggerTabOption
 
     var body: some View {
-        ZStack {
-            // Background pill
-            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .frame(height: ElementHeight.tabSelector)
-
-            HStack(spacing: 0) {
-                ForEach(LoggerTabOption.allCases, id: \.self) { tab in
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedTab = tab
-                        }
-                    }) {
-                        Text(tab.localizedName)
-                            .font(.trainBody)
-                            .foregroundColor(.trainTextPrimary)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: ElementHeight.tabSelector)
-                            .background(
-                                selectedTab == tab ?
-                                    RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                                        .fill(Color.trainSurface)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
-                                                .stroke(Color.trainBorderDefault, lineWidth: 1)
-                                        )
-                                : nil
-                            )
+        HStack(spacing: 0) {
+            ForEach(LoggerTabOption.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedTab = tab
                     }
+                } label: {
+                    Text(tab.localizedName)
+                        .font(.subheadline).fontWeight(.medium)
+                        .foregroundColor(selectedTab == tab ? .trainPrimary : .trainTextSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
                 }
             }
         }
-        .frame(height: ElementHeight.tabSelector)
-        .padding(.horizontal, Spacing.md)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
+        .background(.ultraThinMaterial, in: Capsule())
+        .shadow(color: .black.opacity(0.15), radius: 8, y: 2)
+        .padding(.horizontal, Spacing.xl)
     }
 }
 
@@ -687,6 +666,43 @@ struct SetLoggingCard: View {
                 .stroke(Color.trainBorderDefault, lineWidth: 1)
         )
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: restTimerController.isActive)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                // Next button - advance focus chain
+                Button {
+                    advanceFocus()
+                } label: {
+                    Image(systemName: "arrow.right")
+                        .font(.trainBody).fontWeight(.medium)
+                        .foregroundColor(.trainTextPrimary)
+                }
+                // Done button - dismiss keyboard
+                Button {
+                    focusedField = nil
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.trainBody).fontWeight(.medium)
+                        .foregroundColor(.trainTextPrimary)
+                }
+            }
+        }
+    }
+
+    private func advanceFocus() {
+        guard let current = focusedField else { return }
+        switch current {
+        case .weight(let i):
+            // Weight -> Reps (same set)
+            focusedField = .reps(i)
+        case .reps(let i):
+            // Reps -> next set's Weight, or dismiss if last set
+            if i + 1 < loggedExercise.sets.count {
+                focusedField = .weight(i + 1)
+            } else {
+                focusedField = nil
+            }
+        }
     }
 
     private func bindingForSet(_ index: Int) -> Binding<LoggedSet> {
@@ -784,43 +800,6 @@ struct SimplifiedSetRow: View {
             if set.weight > 0 {
                 let displayWeight = newUnit == .kg ? set.weight : set.weight * 2.20462
                 weightText = String(format: "%.1f", displayWeight)
-            }
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                // Next button - advance focus chain
-                Button {
-                    advanceFocus()
-                } label: {
-                    Image(systemName: "arrow.right")
-                        .font(.trainBody).fontWeight(.medium)
-                        .foregroundColor(.trainTextPrimary)
-                }
-                // Done button - dismiss keyboard
-                Button {
-                    focusedField.wrappedValue = nil
-                } label: {
-                    Image(systemName: "chevron.down")
-                        .font(.trainBody).fontWeight(.medium)
-                        .foregroundColor(.trainTextPrimary)
-                }
-            }
-        }
-    }
-
-    private func advanceFocus() {
-        guard let current = focusedField.wrappedValue else { return }
-        switch current {
-        case .weight(let i):
-            // Weight -> Reps (same set)
-            focusedField.wrappedValue = .reps(i)
-        case .reps(let i):
-            // Reps -> next set's Weight, or dismiss if last set
-            if i + 1 < totalSets {
-                focusedField.wrappedValue = .weight(i + 1)
-            } else {
-                focusedField.wrappedValue = nil
             }
         }
     }

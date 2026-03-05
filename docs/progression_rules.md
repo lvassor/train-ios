@@ -1,4 +1,18 @@
-# Train App Documentation - Rules
+<p align="center">
+  <img src="../assets/train-logo-with-text_isolate_cropped_dark.svg" alt="train" width="280">
+</p>
+
+<p align="center">
+  <em>App rules — progression feedback, programme generation, and modal overlays</em>
+</p>
+
+<p align="center">
+  <strong>Created by</strong>: Luke Vassor & Brody Bastiman
+</p>
+
+---
+
+# App Rules
 
 ## Table of Contents
 
@@ -117,7 +131,7 @@ The questionnaire includes a Split Selection step that appears after the user se
 **When it appears:**
 - After Training Days per Week question
 - Shows splits available for the selected day count
-- Reads from `trAInSwift/resources/split_templates.json` to get available splits
+- Reads from `TrainSwift/resources/split_templates.json` to get available splits
 
 **Display order:**
 1. Recommended splits first (with "Recommended" label)
@@ -185,7 +199,7 @@ The programme uses a joint scoring system to 1. select exercises and 2. order ex
 
 ### 4.1 Split Type Selection
 
-Based on training days per week and session duration, the app selects a workout split. Splits follow the [Split Templates](trAInSwift/resources/split_templates.json) file - this file governs which spl
+Based on training days per week and session duration, the app selects a workout split. Splits follow the [Split Templates](TrainSwift/resources/split_templates.json) file - this file governs which spl
 
 **Deduplication Rules:**
 - Exercise display names do not repeat ANYWHERE within a programme
@@ -237,9 +251,9 @@ Don't generate. Show blocker modal:
 
 **Rep Ranges (based on goal):**
 
-Selected based on user’s goals. Available rep ranges (assigned randomly)
-Get Stronger: 5-8 and 6-10 for exercises >75 canonical_rating. 
-Increase Muscle: 6-10 and 8-12 for all exercises. 
+Selected based on user's goals. Available rep ranges (assigned randomly)
+Get Stronger: 5-8 and 6-10 for exercises >75 canonical_rating.
+Increase Muscle: 6-10 and 8-12 for all exercises.
 Fat Loss: 8-12 and 10-14
 Offers variance across exercises and workouts to keep user engaged.
 Additional note - allow user to select more than one goal, as a result it offers
@@ -379,8 +393,12 @@ These are inline error messages (not modal dialogs) shown on authentication scre
 
 ---
 
-**Document Version**: 4.3<br>
-**Created**: December 5, 2025<br>
-**Updated**: January 25, 2026<br>
-**Authors**: Luke Vassor & Brody Bastiman<br>
-**Applies to**: trAIn iOS (Swift)
+**Document Version**: 4.3
+**Created**: December 5, 2025
+**Updated**: January 25, 2026
+**Authors**: Luke Vassor & Brody Bastiman
+**Applies to**: train iOS (Swift)
+
+---
+
+Made with ❤️ by Luke Vassor & Brody Bastiman
