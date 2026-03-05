@@ -27,7 +27,7 @@ enum ToolbarTab: Int, CaseIterable, Hashable {
     var title: String {
         switch self {
         case .dashboard: return "Program"
-        case .calendar: return "Calendar"
+        case .calendar: return "History"
         case .milestones: return "Milestones"
         case .library: return "Library"
         case .account: return "Account"

@@ -255,6 +255,8 @@ struct AgeStepView: View {
             .datePickerStyle(.wheel)
             .labelsHidden()
             .frame(maxWidth: .infinity)
+            .frame(maxHeight: 200)
+            .clipped()
             .padding(.horizontal, Spacing.lg)
 
             if age < 18 {
@@ -692,10 +694,10 @@ struct MuscleGroupsStepView: View {
         }
     }
 
-    // Combined selection status text
+    // Combined selection status text — always 2 lines to prevent layout shift
     private var selectionStatusText: String {
         if selectedGroups.isEmpty {
-            return "Optional: Select up to 3, or skip for a balanced program"
+            return "Optional: Select up to 3\nSkip for a balanced program"
         } else {
             return "Selected \(selectedGroups.count) of 3\nTap to remove"
         }
@@ -727,10 +729,10 @@ struct ExperienceStepView: View {
 
     // Experience levels (maps to complexity constraints in BUSINESS_RULES.md Section 6)
     let experiences = [
-        ("no_experience", "No Experience", "Brand new to resistance training? We'll start with simple, effective exercises."),
+        ("no_experience", "No Experience", "Brand new to strength training? We'll start with simple, effective exercises."),
         ("beginner", "Beginner", "Getting started with lifting? We'll build your foundation with approachable movements."),
-        ("intermediate", "Intermediate", "Comfortable in the gym? We'll add variety with more compound exercises."),
-        ("advanced", "Advanced", "Confident and consistent? We'll include the full range of complex lifts.")
+        ("intermediate", "Intermediate", "Comfortable in the gym? We'll add variety with more complex exercises."),
+        ("advanced", "Advanced", "Confident and consistent? We'll include the full range of complex exercises.")
     ]
 
     var body: some View {
@@ -905,7 +907,7 @@ struct EquipmentCard: View {
                 // Equipment thumbnail (64x64)
                 ZStack {
                     RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
-                        .fill(Color.trainPrimary.opacity(0.1))
+                        .fill(Color.white)
                         .frame(width: IconSize.xxl, height: IconSize.xxl)
 
                     if let uiImage = EquipmentImageMapping.image(for: equipmentName) {
@@ -1115,21 +1117,29 @@ struct EquipmentCategorySheet: View {
 /// Simple toggle card for categories like Dumbbells/Kettlebells that don't have sub-items
 struct SimpleEquipmentToggleCard: View {
     let title: String
+    let categoryKey: String
     let isSelected: Bool
     let onToggle: () -> Void
 
     var body: some View {
         Button(action: onToggle) {
             HStack(spacing: Spacing.md) {
-                // Icon
+                // Equipment image or fallback SF Symbol
                 ZStack {
                     RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
-                        .fill(Color.trainPrimary.opacity(0.1))
+                        .fill(Color.white)
                         .frame(width: IconSize.xxl, height: IconSize.xxl)
 
-                    Image(systemName: iconName)
-                        .font(.system(size: IconSize.md))
-                        .foregroundColor(.trainPrimary.opacity(0.6))
+                    if let uiImage = EquipmentImageMapping.categoryImage(for: categoryKey) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: IconSize.xxl - 8, height: IconSize.xxl - 8)
+                    } else {
+                        Image(systemName: iconName)
+                            .font(.system(size: IconSize.md))
+                            .foregroundColor(.trainPrimary.opacity(0.6))
+                    }
                 }
 
                 // Title
@@ -1140,7 +1150,6 @@ struct SimpleEquipmentToggleCard: View {
                 Spacer()
 
                 // Selection indicator
-                // Trailing padding matches vertical spacing from tick to card edge
                 ZStack {
                     Circle()
                         .stroke(isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.4), lineWidth: 2)
@@ -1158,7 +1167,7 @@ struct SimpleEquipmentToggleCard: View {
                 }
             }
             .padding(.leading, Spacing.sm)
-            .padding(.trailing, 28) // Matches vertical spacing: (80 - 24) / 2
+            .padding(.trailing, 28)
             .padding(.vertical, Spacing.sm)
             .frame(minHeight: ElementHeight.optionCard)
             .appCard(cornerRadius: CornerRadius.md)
@@ -1273,6 +1282,7 @@ struct EquipmentStepView: View {
                         // Simple toggle for categories without sub-items (Dumbbells, Kettlebells)
                         SimpleEquipmentToggleCard(
                             title: title,
+                            categoryKey: categoryKey,
                             isSelected: selectedEquipment.contains(categoryKey),
                             onToggle: { toggleCategory(categoryKey) }
                         )
@@ -1648,13 +1658,13 @@ struct TrainingDaysStepView: View {
             if isOutsideRecommendedRange {
                 VStack(spacing: Spacing.sm) {
                     HStack(spacing: Spacing.sm) {
-                        Image(systemName: "exclamationmark.triangle.fill")
+                        Image(systemName: "dumbbell")
                             .font(.trainCaption)
-                            .foregroundColor(.trainWarning)
+                            .foregroundColor(.trainPrimary)
 
-                        Text("Training Frequency Warning")
+                        Text("Professional Recommendation")
                             .font(.trainCaption)
-                            .foregroundColor(.trainWarning)
+                            .foregroundColor(.trainPrimary)
 
                         Spacer()
                     }
@@ -1665,52 +1675,11 @@ struct TrainingDaysStepView: View {
                         .multilineTextAlignment(.leading)
                 }
                 .padding(Spacing.md)
-                .background(Color.trainWarning.opacity(0.1))
+                .background(Color.trainPrimary.opacity(0.1))
                 .appCard()
             }
 
-            // Split suggestion based on days selected
-            VStack(spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: "info.circle.fill")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainPrimary)
-
-                    Text("Your program will be:")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-
-                    Spacer()
-                }
-
-                Text(splitSuggestion)
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.trainTextPrimary)
-            }
-            .padding(Spacing.md)
-            .appCard()
-
             Spacer()
-        }
-    }
-
-    // Split suggestion text based on days selected
-    private var splitSuggestion: String {
-        switch trainingDays {
-        case 1:
-            return "Full Body (1x per week)"
-        case 2:
-            return "Upper/Lower or Full Body (2x per week)"
-        case 3:
-            return "Push/Pull/Legs (1x per week each)"
-        case 4:
-            return "Upper/Lower (2x per week each)"
-        case 5:
-            return "Push/Pull/Legs + Upper/Lower hybrid"
-        case 6:
-            return "Push/Pull/Legs (2x per week each)"
-        default:
-            return "Custom split"
         }
     }
 }
@@ -1738,24 +1707,24 @@ struct SplitSelectionStepView: View {
     private func splitExplanation(for splitName: String) -> String {
         switch splitName {
         case "Full Body":
-            return "Hit every muscle group in one efficient session. Perfect for maintaining strength and fitness with a busy schedule."
+            return "Hit every muscle group each session. Perfect for maintaining strength and fitness with a busy schedule."
         case "Full Body x2":
             return "Train your whole body twice per week for balanced development. Great for building a foundation or fitting fitness around a packed schedule."
-        case "Upper Lower":
+        case "Upper / Lower":
             return "Dedicate one day to upper body, one to lower. Allows more focus on each area while keeping things simple."
-        case "Push Pull Legs":
+        case "Push / Pull / Legs":
             return "Organise training by movement pattern: pushing, pulling, and legs. Lets you train harder on each muscle with more recovery time between sessions."
         case "Full Body x3":
             return "Hit every muscle group three times per week. Higher frequency means faster skill development and consistent progress."
-        case "2 Upper 1 Lower":
+        case "2 Upper / 1 Lower":
             return "Two upper body sessions and one lower. Ideal if building your upper body is a priority right now."
-        case "1 Upper 2 Lower":
+        case "1 Upper / 2 Lower":
             return "One upper body session and two lower. Perfect if you're focusing on building stronger legs and glutes."
-        case "Upper Lower x2":
-            return "Train upper and lower body twice each per week. A proven split that balances volume, intensity, and recovery."
-        case "PPL Upper Lower":
+        case "Upper / Lower x2":
+            return "Train upper and lower body twice each per week — two days upper body and two days lower body. A proven split that balances volume, intensity, and recovery."
+        case "Push / Pull / Legs + Upper / Lower":
             return "Combines Push/Pull/Legs with an Upper/Lower split. Gives you the best of both approaches with optimal training frequency."
-        case "Push Pull Legs x2":
+        case "Push / Pull / Legs x2":
             return "Push/Pull/Legs twice per week for maximum volume. Best suited for experienced lifters ready to commit to serious training."
         default:
             return "Balanced training split"
@@ -1769,7 +1738,7 @@ struct SplitSelectionStepView: View {
             if experience == "no_experience" || experience == "beginner" {
                 return splitName == "Full Body x2"
             } else {
-                return splitName == "Upper Lower"
+                return splitName == "Upper / Lower"
             }
         case 3:
             if experience == "no_experience" || experience == "beginner" {
@@ -1788,11 +1757,11 @@ struct SplitSelectionStepView: View {
                     targetMuscleGroups.allSatisfy { upperMuscles.contains($0) }
 
                 if allPriorityMusclesAreLower {
-                    return splitName == "1 Upper 2 Lower"
+                    return splitName == "1 Upper / 2 Lower"
                 } else if allPriorityMusclesAreUpper {
-                    return splitName == "2 Upper 1 Lower"
+                    return splitName == "2 Upper / 1 Lower"
                 } else {
-                    return splitName == "Push Pull Legs"
+                    return splitName == "Push / Pull / Legs"
                 }
             }
         default:
@@ -1906,9 +1875,10 @@ struct SessionDurationStepView: View {
     @Binding var sessionDuration: String
 
     let durations = [
-        ("30-45 min", "30-45 minutes", "30-45 min"),
-        ("45-60 min", "45-60 minutes", "45-60 min"),
-        ("60-90 min", "60-90 minutes", "60-90 min")
+        ("20-30 min", "20-30 minutes", "Quick & focused"),
+        ("30-45 min", "30-45 minutes", "Short & effective"),
+        ("45-60 min", "45-60 minutes", "Standard session"),
+        ("60-90 min", "60-90 minutes", "Extended training")
     ]
 
     var body: some View {

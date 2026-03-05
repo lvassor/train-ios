@@ -160,7 +160,7 @@ class TestDataSeeder {
         q.trainingPlace = "large_gym"
         q.equipmentAvailable = ["barbells", "dumbbells", "kettlebells", "cable_machines", "pin_loaded", "plate_loaded", "other"]
         q.trainingDaysPerWeek = 3
-        q.selectedSplit = "Push Pull Legs"
+        q.selectedSplit = "Push / Pull / Legs"
         q.sessionDuration = "45-60 min"
         q.injuries = []
         return q
@@ -182,7 +182,7 @@ class TestDataSeeder {
         q.trainingPlace = "large_gym"
         q.equipmentAvailable = ["barbells", "dumbbells", "kettlebells", "cable_machines", "pin_loaded", "plate_loaded", "other"]
         q.trainingDaysPerWeek = 4
-        q.selectedSplit = "Upper Lower"
+        q.selectedSplit = "Upper / Lower x2"
         q.sessionDuration = "60-90 min"
         q.injuries = []
         return q

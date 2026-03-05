@@ -13,7 +13,7 @@
         }
     },
     "2-day": {
-        "Upper Lower": {
+        "Upper / Lower": {
             "30-45 minutes": {
                 "Upper": { "Chest": 1, "Shoulder": 1, "Back": 1 },
                 "Lower": { "Quad": 2, "Hamstring": 1, "Glute": 1, "Core": 1 }
@@ -31,7 +31,7 @@
         }
     },
     "3-day": {
-        "Push Pull Legs": {
+        "Push / Pull / Legs": {
             "30-45 minutes": {
                 "Push": { "Chest": 1, "Shoulder": 2, "Tricep": 1 },
                 "Pull": { "Back": 2, "Bicep": 2 },
@@ -65,7 +65,7 @@
                 "Full Body 3": { "Chest": 1, "Back": 1, "Shoulder": 1, "Bicep": 1, "Tricep": 1, "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 }
             }
         },
-        "2 Upper 1 Lower": {
+        "2 Upper / 1 Lower": {
             "30-45 minutes": {
                 "Upper 1": { "Chest": 1, "Back": 1, "Shoulder": 1, "Bicep": 1 },
                 "Upper 2": { "Chest": 1, "Back": 1, "Shoulder": 1, "Tricep": 1 },
@@ -82,7 +82,7 @@
                 "Lower": { "Quad": 2, "Hamstring": 2, "Glute": 1, "Core": 1 }
             }
         },
-        "1 Upper 2 Lower": {
+        "1 Upper / 2 Lower": {
             "30-45 minutes": {
                 "Upper": { "Chest": 1, "Back": 1, "Shoulder": 1, "Bicep": 1, "Tricep": 1 },
                 "Lower 1": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
@@ -101,7 +101,7 @@
         }
     },
     "4-day": {
-        "Upper Lower": {
+        "Upper / Lower x2": {
             "30-45 minutes": {
                 "Upper 1": { "Chest": 1, "Shoulder": 1, "Back": 1 },
                 "Lower 1": { "Quad": 1, "Hamstring": 1, "Glute": 1, "Core": 1 },
@@ -123,7 +123,7 @@
         }
     },
     "5-day": {
-        "PPL Upper Lower": {
+        "Push / Pull / Legs + Upper / Lower": {
             "30-45 minutes": {
                 "Push": { "Chest": 1, "Shoulder": 2, "Tricep": 1 },
                 "Pull": { "Back": 2, "Bicep": 2 },
@@ -148,7 +148,7 @@
         }
     },
     "6-day": {
-        "Push Pull Legs x2": {
+        "Push / Pull / Legs x2": {
             "30-45 minutes": {
                 "Push 1": { "Chest": 1, "Shoulder": 2, "Tricep": 1 },
                 "Pull 1": { "Back": 2, "Bicep": 2 },

@@ -83,7 +83,7 @@ struct QuestionnaireData: Codable {
     var trainingDaysPerWeek: Int = 3
 
     // Q12: Split Selection
-    var selectedSplit: String = "" // Selected split name (e.g., "Upper Lower", "Push Pull Legs", etc.)
+    var selectedSplit: String = "" // Selected split name (e.g., "Upper / Lower", "Push / Pull / Legs", etc.)
 
     // Additional fields for program generation
     var sessionDuration: String = "" // "30-45 min", "45-60 min", "60-90 min" - no default, user must select
