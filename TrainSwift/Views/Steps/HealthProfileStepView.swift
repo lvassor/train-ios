@@ -163,9 +163,10 @@ struct HealthProfileStepView: View {
                         )
                         .datePickerStyle(.wheel)
                         .labelsHidden()
-                        .frame(height: 120)
+                        .frame(height: 150)
                         Spacer()
                     }
+                    .clipped()
                     .appCard()
                 }
             }

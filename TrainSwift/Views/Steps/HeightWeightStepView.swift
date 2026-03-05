@@ -18,7 +18,7 @@ struct HeightWeightStepView: View {
     @Binding var weightUnit: QuestionnaireData.WeightUnit
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xl) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Height & Weight")
@@ -33,7 +33,7 @@ struct HeightWeightStepView: View {
             .frame(maxWidth: .infinity)
 
             // Height Section
-            VStack(alignment: .center, spacing: Spacing.md) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Height")
                     .font(.trainBodyMedium)
                     .foregroundColor(.trainTextPrimary)
@@ -65,7 +65,7 @@ struct HeightWeightStepView: View {
                                 .foregroundColor(heightUnit == unit ? .white : .trainTextSecondary)
                                 .padding(.horizontal, Spacing.lg)
                                 .padding(.vertical, Spacing.sm)
-                                .background(heightUnit == unit ? Color.trainPrimary : Color.trainHover)
+                                .background(heightUnit == unit ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.15))
                                 .clipShape(Capsule())
                         }
                         .buttonStyle(ScaleButtonStyle())
@@ -74,10 +74,10 @@ struct HeightWeightStepView: View {
                 }
 
                 // Height input - single ruler for both units
-                VStack(spacing: Spacing.md) {
+                VStack(spacing: Spacing.sm) {
                     // Display current value
                     if heightUnit == .cm {
-                        Text("\(heightCm, specifier: "%.1f") cm")
+                        Text("\(heightCm, specifier: "%.0f") cm")
                             .font(.trainMediumNumber)
                             .foregroundColor(.trainPrimary)
                             .frame(maxWidth: .infinity)
@@ -121,12 +121,12 @@ struct HeightWeightStepView: View {
                         .frame(height: 60)
                     }
                 }
-                .padding(Spacing.lg)
+                .padding(Spacing.md)
                 .appCard()
             }
 
             // Weight Section
-            VStack(alignment: .center, spacing: Spacing.md) {
+            VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Weight")
                     .font(.trainBodyMedium)
                     .foregroundColor(.trainTextPrimary)
@@ -154,7 +154,7 @@ struct HeightWeightStepView: View {
                                 .foregroundColor(weightUnit == unit ? .white : .trainTextSecondary)
                                 .padding(.horizontal, Spacing.lg)
                                 .padding(.vertical, Spacing.sm)
-                                .background(weightUnit == unit ? Color.trainPrimary : Color.trainHover)
+                                .background(weightUnit == unit ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.15))
                                 .clipShape(Capsule())
                         }
                         .buttonStyle(ScaleButtonStyle())
@@ -163,9 +163,9 @@ struct HeightWeightStepView: View {
                 }
 
                 // Weight input - single ruler with proper conversion
-                VStack(spacing: Spacing.md) {
+                VStack(spacing: Spacing.sm) {
                     if weightUnit == .kg {
-                        Text("\(weightKg, specifier: "%.1f") kg")
+                        Text("\(weightKg, specifier: "%.0f") kg")
                             .font(.trainMediumNumber)
                             .foregroundColor(.trainPrimary)
                             .frame(maxWidth: .infinity)
@@ -183,7 +183,7 @@ struct HeightWeightStepView: View {
                             weightLbs = newValue * 2.20462
                         }
                     } else {
-                        Text("\(weightLbs, specifier: "%.1f") lbs")
+                        Text("\(weightLbs, specifier: "%.0f") lbs")
                             .font(.trainMediumNumber)
                             .foregroundColor(.trainPrimary)
                             .frame(maxWidth: .infinity)
@@ -202,7 +202,7 @@ struct HeightWeightStepView: View {
                         }
                     }
                 }
-                .padding(Spacing.lg)
+                .padding(Spacing.md)
                 .appCard()
             }
 

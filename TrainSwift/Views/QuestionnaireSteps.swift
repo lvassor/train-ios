@@ -662,7 +662,7 @@ struct MuscleGroupsStepView: View {
             // Interactive body diagram - uses gender from questionnaire, larger height after removing toggle
             CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3, gender: bodyGender)
                 .frame(maxWidth: .infinity)
-                .frame(height: 440)
+                .frame(height: 350)
 
             // Selected muscles pills (only shown when selections exist)
             if !selectedGroups.isEmpty {
