@@ -182,21 +182,32 @@ struct QuestionnaireView: View {
                     // Content + Button in ZStack so content scrolls behind button
                     ZStack(alignment: .bottom) {
                         // Content area - fills available space
-                        ScrollView(showsIndicators: false) {
-                            VStack(spacing: Spacing.xl) {
-                                currentStepView
-                                    .id(currentStep)
-                                    .transition(.asymmetric(
-                                        insertion: .move(edge: slideDirection),
-                                        removal: .move(edge: slideDirection == .trailing ? .leading : .trailing)
-                                    ))
+                        ScrollViewReader { scrollProxy in
+                            ScrollView(showsIndicators: false) {
+                                VStack(spacing: Spacing.xl) {
+                                    Color.clear
+                                        .frame(height: 0)
+                                        .id("scrollTop")
+
+                                    currentStepView
+                                        .id(currentStep)
+                                        .transition(.asymmetric(
+                                            insertion: .move(edge: slideDirection),
+                                            removal: .move(edge: slideDirection == .trailing ? .leading : .trailing)
+                                        ))
+                                }
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.top, Spacing.md)
+                                .padding(.bottom, 100)
                             }
-                            .padding(.horizontal, Spacing.md)
-                            .padding(.top, Spacing.md)
-                            .padding(.bottom, 100)
+                            .scrollDisabled(shouldDisableScrollForCurrentStep())
+                            .edgeFadeMask(topFade: 16, bottomFade: 60)
+                            .onChange(of: currentStep) { _, _ in
+                                withAnimation(nil) {
+                                    scrollProxy.scrollTo("scrollTop", anchor: .top)
+                                }
+                            }
                         }
-                        .scrollDisabled(shouldDisableScrollForCurrentStep())
-                        .edgeFadeMask(topFade: 16, bottomFade: 60)
 
                         // Continue button floating on top - NO background
                         CustomButton(

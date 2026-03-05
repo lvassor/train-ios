@@ -644,7 +644,7 @@ struct MuscleGroupsStepView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Any muscle groups you want to prioritise?")
                     .font(.trainTitle2)
@@ -662,7 +662,7 @@ struct MuscleGroupsStepView: View {
             // Interactive body diagram - uses gender from questionnaire, larger height after removing toggle
             CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3, gender: bodyGender)
                 .frame(maxWidth: .infinity)
-                .frame(height: 350)
+                .frame(height: 440)
 
             // Selected muscles pills (only shown when selections exist)
             if !selectedGroups.isEmpty {
@@ -1600,7 +1600,7 @@ struct TrainingDaysStepView: View {
 
     // Check if current selection is outside recommended range
     private var isOutsideRecommendedRange: Bool {
-        !recommendedRange.contains(trainingDays)
+        trainingDays > recommendedRange.upperBound
     }
 
     // Warning message for out-of-range selections
@@ -1812,25 +1812,25 @@ struct SplitSelectionStepView: View {
     private func splitExplanation(for splitName: String) -> String {
         switch splitName {
         case "Full Body":
-            return "Hit every muscle group each session. Perfect for maintaining strength and fitness with a busy schedule."
+            return "Hit all the main muscle groups in each of your sessions. Not suitable if you plan to train on consecutive days."
         case "Full Body x2":
             return "Train your whole body twice per week for balanced development. Great for building a foundation or fitting fitness around a packed schedule."
         case "Upper / Lower":
-            return "Dedicate one day to upper body, one to lower. Allows more focus on each area while keeping things simple."
+            return "Dedicate an even split towards your upper and lower body. Ideal if you often plan to train on consecutive days."
         case "Push / Pull / Legs":
-            return "Organise training by movement pattern: pushing, pulling, and legs. Lets you train harder on each muscle with more recovery time between sessions."
+            return "Organise training by movement patterns: pushing, pulling and leg work. Great all round choice, especially if you plan to perform 3 sessions in a row."
         case "Full Body x3":
             return "Hit every muscle group three times per week. Higher frequency means faster skill development and consistent progress."
         case "2 Upper / 1 Lower":
-            return "Two upper body sessions and one lower. Ideal if building your upper body is a priority right now."
+            return "Two upper body sessions and one lower. Excellent for those with a focus on developing a strong upper body."
         case "1 Upper / 2 Lower":
-            return "One upper body session and two lower. Perfect if you're focusing on building stronger legs and glutes."
+            return "One upper body session and two lower. Perfect if your priority is to build strong legs."
         case "Upper / Lower x2":
             return "Train upper and lower body twice each per week — two days upper body and two days lower body. A proven split that balances volume, intensity, and recovery."
         case "Push / Pull / Legs + Upper / Lower":
-            return "Combines Push/Pull/Legs with an Upper/Lower split. Gives you the best of both approaches with optimal training frequency."
+            return "Combine the movements of Push/Pull/Leg with an Upper/Lower split. Provides the best of both approaches, whilst allowing sufficient rest for all muscle groups between sessions."
         case "Push / Pull / Legs x2":
-            return "Push/Pull/Legs twice per week for maximum volume. Best suited for experienced lifters ready to commit to serious training."
+            return "Push/ Pull/ Legs twice per week for maximum volume. Best suited for experience lifters ready to commit to dedicated training."
         default:
             return "Balanced training split"
         }
