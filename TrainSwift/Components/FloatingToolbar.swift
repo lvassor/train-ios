@@ -61,11 +61,13 @@ struct MainTabView<DashboardContent: View>: View {
                 }
             }
 
-            // Library - full navigation view
-            Tab(ToolbarTab.library.title, systemImage: ToolbarTab.library.icon, value: .library) {
+            // Library - full navigation view (two-state icon: filled when active)
+            Tab(value: .library) {
                 NavigationStack {
                     CombinedLibraryView()
                 }
+            } label: {
+                Label(ToolbarTab.library.title, systemImage: selectedTab == .library ? "movieclapper.fill" : "movieclapper")
             }
 
             // Account
