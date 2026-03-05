@@ -279,13 +279,50 @@ struct EducationLibraryContent: View {
 struct ExerciseRowCard: View {
     let exercise: DBExercise
 
+    private var thumbnailURL: URL? {
+        ExerciseMediaMapping.thumbnailURL(for: exercise.id)
+    }
+
     var body: some View {
         HStack(spacing: Spacing.md) {
+            // Video thumbnail — matches DashboardExerciseCard
+            ZStack {
+                if let url = thumbnailURL {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous))
+                        case .failure:
+                            thumbnailPlaceholder
+                        case .empty:
+                            thumbnailPlaceholder
+                                .overlay {
+                                    ProgressView()
+                                        .tint(.trainTextSecondary)
+                                        .scaleEffect(0.7)
+                                }
+                        @unknown default:
+                            thumbnailPlaceholder
+                        }
+                    }
+                } else {
+                    thumbnailPlaceholder
+                }
+            }
+            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
+
+            // Exercise info
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(exercise.displayName)
-                    .font(.trainBodyMedium)
+                    .font(.trainBody).fontWeight(.medium)
                     .foregroundColor(.trainTextPrimary)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
                 HStack(spacing: Spacing.sm) {
                     Text(exercise.primaryMuscle)
@@ -295,20 +332,48 @@ struct ExerciseRowCard: View {
                     Text("•")
                         .foregroundColor(.trainTextSecondary)
 
-                    Text(exercise.equipmentType)
+                    // Show up to 2 equipment items
+                    Text(equipmentLabel)
                         .font(.trainCaption)
                         .foregroundColor(.trainTextSecondary)
+                        .lineLimit(1)
                 }
             }
-
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Image(systemName: "chevron.right")
                 .font(.trainCaption)
                 .foregroundColor(.trainTextSecondary)
         }
         .padding(Spacing.md)
-        .appCard()
+        .background(Color.trainSurface)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous))
+        .shadowStyle(.borderLine)
+    }
+
+    private var equipmentLabel: String {
+        var parts: [String] = []
+        if let e1 = exercise.equipment1 {
+            parts.append(e1.name)
+        }
+        if let e2 = exercise.equipment2 {
+            parts.append(e2.name)
+        }
+        if parts.isEmpty {
+            parts.append(exercise.equipmentType)
+        }
+        return parts.prefix(2).joined(separator: ", ")
+    }
+
+    private var thumbnailPlaceholder: some View {
+        RoundedRectangle(cornerRadius: CornerRadius.xs, style: .continuous)
+            .fill(Color.trainTextSecondary.opacity(0.2))
+            .frame(width: ThumbnailSize.width, height: ThumbnailSize.height)
+            .overlay {
+                Image(systemName: "photo")
+                    .font(.system(size: IconSize.md))
+                    .foregroundColor(.trainTextSecondary.opacity(0.5))
+            }
     }
 }
 

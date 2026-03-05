@@ -9,22 +9,25 @@ import SwiftUI
 
 enum ToolbarTab: Int, CaseIterable, Hashable {
     case dashboard = 0
-    case milestones = 1
-    case library = 2
-    case account = 3
+    case calendar = 1
+    case milestones = 2
+    case library = 3
+    case account = 4
 
     var icon: String {
         switch self {
-        case .dashboard: return "house.fill"
+        case .dashboard: return "dumbbell"
+        case .calendar: return "calendar"
         case .milestones: return "rosette"
-        case .library: return "dumbbell.fill"
-        case .account: return "person.circle.fill"
+        case .library: return "movieclapper"
+        case .account: return "person.circle"
         }
     }
 
     var title: String {
         switch self {
-        case .dashboard: return "Home"
+        case .dashboard: return "Program"
+        case .calendar: return "Calendar"
         case .milestones: return "Milestones"
         case .library: return "Library"
         case .account: return "Account"
@@ -42,6 +45,13 @@ struct MainTabView<DashboardContent: View>: View {
             // Dashboard
             Tab(ToolbarTab.dashboard.title, systemImage: ToolbarTab.dashboard.icon, value: .dashboard) {
                 dashboardContent()
+            }
+
+            // Calendar - full navigation view
+            Tab(ToolbarTab.calendar.title, systemImage: ToolbarTab.calendar.icon, value: .calendar) {
+                NavigationStack {
+                    CalendarTabView()
+                }
             }
 
             // Milestones - full navigation view
