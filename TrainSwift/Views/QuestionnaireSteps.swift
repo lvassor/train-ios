@@ -988,86 +988,142 @@ struct EquipmentGroupSection: View {
     let title: String
     let allItems: [String]
     let selectedItems: Set<String>
-    let onToggleItem: (String) -> Void
+    let onToggleAll: () -> Void
     let onSeeMore: () -> Void
 
-    /// Items to display in the preview (max 2)
-    private var previewItems: [String] {
-        Array(allItems.prefix(2))
+    private var selectedCount: Int {
+        allItems.filter { selectedItems.contains($0) }.count
     }
 
-    /// Whether there are more items beyond the preview
-    private var hasMoreItems: Bool {
-        allItems.count > 2
+    private var allSelected: Bool {
+        !allItems.isEmpty && selectedCount == allItems.count
     }
 
-    /// Count of additional items not shown in preview
-    private var moreItemsCount: Int {
-        max(0, allItems.count - 2)
+    private var someSelected: Bool {
+        selectedCount > 0 && selectedCount < allItems.count
+    }
+
+    private var noneSelected: Bool {
+        selectedCount == 0
     }
 
     private var exerciseCountLabel: String {
         switch categoryKey {
         case "barbells": return "Unlocks 30+ exercises"
-        case "dumbbells": return "Unlocks 40+ exercises"
-        case "kettlebells": return "Unlocks 15+ exercises"
-        case "cable_machines": return "Unlocks 25+ exercises"
+        case "cables_and_attachments": return "Unlocks 25+ exercises"
         case "pin_loaded": return "Unlocks 20+ exercises"
         case "plate_loaded": return "Unlocks 15+ exercises"
         case "other": return "Unlocks 10+ exercises"
-        case "attachments": return "Unlocks 20+ exercises"
         default: return ""
         }
     }
 
+    private var cardBackground: Color {
+        if allSelected {
+            return Color.trainPrimary
+        } else if someSelected {
+            return Color.trainPrimary.opacity(0.15)
+        } else {
+            return Color.clear
+        }
+    }
+
+    private var textColor: Color {
+        allSelected ? .white : .trainTextPrimary
+    }
+
+    private var subtitleColor: Color {
+        allSelected ? .white.opacity(0.8) : .trainTextSecondary
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            // Category heading
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
-                Text(title)
-                    .font(.trainHeadline)
-                    .foregroundColor(.trainTextPrimary)
+            // Parent card — tapping selects/deselects ALL children
+            Button(action: onToggleAll) {
+                HStack(spacing: Spacing.md) {
+                    // Equipment image or fallback icon
+                    ZStack {
+                        RoundedRectangle(cornerRadius: CornerRadius.sm, style: .continuous)
+                            .fill(Color.white)
+                            .frame(width: IconSize.xxl, height: IconSize.xxl)
 
-                if !exerciseCountLabel.isEmpty {
-                    Text(exerciseCountLabel)
-                        .font(.trainCaptionSmall)
-                        .foregroundColor(.trainTextSecondary)
-                }
-            }
-            .padding(.leading, Spacing.xs)
-
-            // Equipment cards (max 2)
-            VStack(spacing: Spacing.sm) {
-                ForEach(previewItems, id: \.self) { item in
-                    EquipmentCard(
-                        equipmentName: item,
-                        isSelected: selectedItems.contains(item),
-                        onToggle: { onToggleItem(item) }
-                    )
-                }
-            }
-
-            // "See more..." link if there are additional items
-            if hasMoreItems {
-                Button(action: onSeeMore) {
-                    HStack(spacing: Spacing.xs) {
-                        Text("See more...")
-                            .font(.trainBody)
-                            .foregroundColor(.trainPrimary)
-
-                        Text("(\(moreItemsCount) more)")
-                            .font(.trainCaption)
-                            .foregroundColor(.trainTextSecondary)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.trainCaptionSmall).fontWeight(.medium)
-                            .foregroundColor(.trainPrimary)
+                        if let uiImage = EquipmentImageMapping.categoryImage(for: categoryKey) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: IconSize.xxl - 8, height: IconSize.xxl - 8)
+                        } else {
+                            Image(systemName: "dumbbell.fill")
+                                .font(.system(size: IconSize.md))
+                                .foregroundColor(.trainPrimary.opacity(0.6))
+                        }
                     }
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, Spacing.sm)
+
+                    VStack(alignment: .leading, spacing: Spacing.xxs) {
+                        Text(title)
+                            .font(.trainBodyMedium)
+                            .foregroundColor(textColor)
+
+                        if !exerciseCountLabel.isEmpty {
+                            Text(exerciseCountLabel)
+                                .font(.trainCaptionSmall)
+                                .foregroundColor(subtitleColor)
+                        }
+
+                        if someSelected {
+                            Text("\(selectedCount)/\(allItems.count) selected")
+                                .font(.trainCaptionSmall)
+                                .foregroundColor(.trainPrimary)
+                        }
+                    }
+
+                    Spacer()
+
+                    // Selection indicator
+                    ZStack {
+                        Circle()
+                            .stroke(noneSelected ? Color.trainTextSecondary.opacity(0.4) : Color.trainPrimary, lineWidth: 2)
+                            .frame(width: IconSize.md, height: IconSize.md)
+
+                        if allSelected || someSelected {
+                            Circle()
+                                .fill(allSelected ? Color.white : Color.trainPrimary)
+                                .frame(width: IconSize.md, height: IconSize.md)
+
+                            Image(systemName: allSelected ? "checkmark" : "minus")
+                                .font(.trainCaptionSmall).fontWeight(.bold)
+                                .foregroundColor(allSelected ? .trainPrimary : .white)
+                        }
+                    }
                 }
+                .padding(.leading, Spacing.sm)
+                .padding(.trailing, 28)
+                .padding(.vertical, Spacing.sm)
+                .frame(minHeight: ElementHeight.optionCard)
+                .background(cardBackground)
+                .appCard(cornerRadius: CornerRadius.md)
+            }
+            .buttonStyle(ScaleButtonStyle())
+
+            // "See more..." link to open individual selection sheet
+            Button(action: onSeeMore) {
+                HStack(spacing: Spacing.xs) {
+                    Text("See more...")
+                        .font(.trainBody)
+                        .foregroundColor(.trainPrimary)
+
+                    Text("(\(allItems.count) items)")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.trainCaptionSmall).fontWeight(.medium)
+                        .foregroundColor(.trainPrimary)
+                }
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
             }
         }
     }
@@ -1184,68 +1240,47 @@ struct SimpleEquipmentToggleCard: View {
     }
 }
 
+/// Configuration for an equipment UI category.
+/// Maps UI display to DB categories and questionnaire data keys.
+struct EquipmentUIConfig: Identifiable {
+    let id: String           // UI key for identification
+    let title: String        // display title
+    let dbCategories: [String]  // DB category names to query for sub-items
+    /// Maps DB category name → detailedEquipment key for storing selections
+    let detailedKeyMapping: [String: String]
+    /// Parent-level keys added to selectedEquipment when any item is selected
+    let parentKeys: [String]
+    let isStandalone: Bool   // render as SimpleEquipmentToggleCard
+
+    /// All detailedEquipment keys affected by this category
+    var allDetailedKeys: [String] {
+        Array(Set(detailedKeyMapping.values))
+    }
+}
+
 struct EquipmentStepView: View {
     @Binding var selectedEquipment: [String]
-    @Binding var selectedDetailedEquipment: [String: Set<String>]  // Category -> selected items
-    @State private var showingCategorySheet: (key: String, title: String, items: [String])?
+    @Binding var selectedDetailedEquipment: [String: Set<String>]
+    @State private var showingCategorySheet: (config: EquipmentUIConfig, items: [String])?
+    @State private var loadedSubItems: [String: [String]] = [:]  // uiKey → item names
+    @State private var itemToDetailedKey: [String: String] = [:]  // item name → detailedEquipment key
 
-    // All equipment categories with sub-items - ordered as specified
-    // Order: Barbells, Dumbbells, Kettlebells, Cable Machines, Pin-Loaded, Plate-Loaded, Other
-    let equipmentCategories: [(String, String, [String])] = [
-        ("barbells", "Barbells", [
-            "Squat Rack",
-            "Flat Bench Press",
-            "Incline Bench Press",
-            "Decline Bench Press",
-            "Landmine Attachment",
-            "Hip Thrust Bench"
-        ]),
-        ("dumbbells", "Dumbbells", []),  // No sub-items
-        ("kettlebells", "Kettlebells", []),  // No sub-items
-        ("cable_machines", "Cable Machines", [
-            "Single Adjustable Cable Machine",
-            "Dual Cable Machine",
-            "Lat Pull Down Machine",
-            "Cable Row Machine"
-        ]),
-        ("pin_loaded", "Pin-Loaded Machines", [
-            "Leg Press Machine",
-            "Leg Extension Machine",
-            "Lying Leg Curl Machine",
-            "Seated Leg Curl Machine",
-            "Standing Calf Raise Machine",
-            "Seated Calf Raise Machine",
-            "Hip Abduction Machine",
-            "Hip Adduction Machine",
-            "Assisted Pull-Up/Dip Machine"
-        ]),
-        ("plate_loaded", "Plate-Loaded Machines", [
-            "Leg Press Machine",
-            "Hack Squat Machine",
-            "Leg Extension Machine",
-            "Lying Leg Curl Machine",
-            "Seated Leg Curl Machine",
-            "Standing Calf Raise Machine",
-            "Seated Calf Raise Machine",
-            "Glute Kickback Machine"
-        ]),
-        ("other", "Other", [
-            "Ab Wheel",
-            "Dip Station",
-            "Flat Bench",
-            "Pull-Up Bar",
-            "Roman Chair"
-        ]),
-        ("attachments", "Attachments", [
-            "Straight Bar",
-            "Rope",
-            "D-Handles",
-            "EZ-Bar",
-            "EZ-Bar Cable",
-            "Ankle Strap",
-            "Resistance Band",
-            "Weight Belt"
-        ])
+    // Display-order config — sub-items loaded from DB at runtime
+    static let categoryConfigs: [EquipmentUIConfig] = [
+        .init(id: "dumbbells", title: "Dumbbells", dbCategories: ["Dumbbells"],
+              detailedKeyMapping: ["Dumbbells": "dumbbells"], parentKeys: ["dumbbells"], isStandalone: true),
+        .init(id: "kettlebells", title: "Kettlebells", dbCategories: ["Kettlebells"],
+              detailedKeyMapping: ["Kettlebells": "kettlebells"], parentKeys: ["kettlebells"], isStandalone: true),
+        .init(id: "barbells", title: "Barbells", dbCategories: ["Barbells"],
+              detailedKeyMapping: ["Barbells": "barbells"], parentKeys: ["barbells"], isStandalone: false),
+        .init(id: "cables_and_attachments", title: "Cables & Attachments", dbCategories: ["Cables", "Attachment"],
+              detailedKeyMapping: ["Cables": "cable_machines", "Attachment": "attachments"], parentKeys: ["cable_machines"], isStandalone: false),
+        .init(id: "pin_loaded", title: "Pin-Loaded Machines", dbCategories: ["Pin-Loaded Machines"],
+              detailedKeyMapping: ["Pin-Loaded Machines": "pin_loaded"], parentKeys: ["pin_loaded"], isStandalone: false),
+        .init(id: "plate_loaded", title: "Plate-Loaded Machines", dbCategories: ["Plate-Loaded Machines"],
+              detailedKeyMapping: ["Plate-Loaded Machines": "plate_loaded"], parentKeys: ["plate_loaded"], isStandalone: false),
+        .init(id: "other", title: "Other", dbCategories: ["Other", "Bodyweight"],
+              detailedKeyMapping: ["Other": "other", "Bodyweight": "other"], parentKeys: ["other"], isStandalone: false),
     ]
 
     private var totalSelectedCount: Int {
@@ -1258,6 +1293,17 @@ struct EquipmentStepView: View {
         } else {
             return "We pre-selected \(totalSelectedCount) items based on your gym type. Tap to adjust."
         }
+    }
+
+    /// Get all selected items across all detailedEquipment keys for a given config
+    private func selectedItemsForConfig(_ config: EquipmentUIConfig) -> Set<String> {
+        var combined = Set<String>()
+        for key in config.allDetailedKeys {
+            if let items = selectedDetailedEquipment[key] {
+                combined.formUnion(items)
+            }
+        }
+        return combined
     }
 
     var body: some View {
@@ -1275,80 +1321,139 @@ struct EquipmentStepView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Equipment sections
-            VStack(spacing: Spacing.lg) {
-                ForEach(equipmentCategories, id: \.0) { categoryKey, title, subItems in
-                    if subItems.isEmpty {
-                        // Simple toggle for categories without sub-items (Dumbbells, Kettlebells)
+            // Equipment sections with conditional spacing
+            VStack(spacing: 0) {
+                ForEach(Array(Self.categoryConfigs.enumerated()), id: \.element.id) { index, config in
+                    let subItems = loadedSubItems[config.id] ?? []
+
+                    if config.isStandalone {
                         SimpleEquipmentToggleCard(
-                            title: title,
-                            categoryKey: categoryKey,
-                            isSelected: selectedEquipment.contains(categoryKey),
-                            onToggle: { toggleCategory(categoryKey) }
+                            title: config.title,
+                            categoryKey: config.id,
+                            isSelected: selectedEquipment.contains(config.id),
+                            onToggle: { toggleStandalone(config) }
                         )
                     } else {
-                        // Group section with equipment cards for categories with sub-items
                         EquipmentGroupSection(
-                            categoryKey: categoryKey,
-                            title: title,
+                            categoryKey: config.id,
+                            title: config.title,
                             allItems: subItems,
-                            selectedItems: selectedDetailedEquipment[categoryKey] ?? Set<String>(),
-                            onToggleItem: { item in toggleSubItem(category: categoryKey, subItem: item, allSubItems: subItems) },
-                            onSeeMore: { showingCategorySheet = (categoryKey, title, subItems) }
+                            selectedItems: selectedItemsForConfig(config),
+                            onToggleAll: { toggleAllItems(config, subItems: subItems) },
+                            onSeeMore: { showingCategorySheet = (config, subItems) }
                         )
+                    }
+
+                    // Spacing: standalone items get Spacing.sm, expandable items get Spacing.lg
+                    if index < Self.categoryConfigs.count - 1 {
+                        let nextConfig = Self.categoryConfigs[index + 1]
+                        let useSmallSpacing = config.isStandalone && nextConfig.isStandalone
+                        Spacer()
+                            .frame(height: useSmallSpacing ? Spacing.sm : Spacing.lg)
                     }
                 }
             }
         }
         .sheet(item: Binding(
-            get: { showingCategorySheet.map { SheetData(key: $0.key, title: $0.title, items: $0.items) } },
+            get: { showingCategorySheet.map { SheetData(config: $0.config, items: $0.items) } },
             set: { _ in showingCategorySheet = nil }
         )) { sheetData in
             EquipmentCategorySheet(
-                title: sheetData.title,
+                title: sheetData.config.title,
                 items: sheetData.items,
-                selectedItems: selectedDetailedEquipment[sheetData.key] ?? Set<String>(),
-                onToggleItem: { item in
-                    toggleSubItem(category: sheetData.key, subItem: item, allSubItems: sheetData.items)
-                },
+                selectedItems: selectedItemsForConfig(sheetData.config),
+                onToggleItem: { item in toggleSubItem(config: sheetData.config, subItem: item) },
                 onDone: { showingCategorySheet = nil }
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
+        .onAppear { loadEquipmentFromDatabase() }
     }
 
     /// Helper struct to make sheet data Identifiable
     private struct SheetData: Identifiable {
-        let key: String
-        let title: String
+        let config: EquipmentUIConfig
         let items: [String]
-        var id: String { key }
+        var id: String { config.id }
     }
 
-    private func toggleCategory(_ categoryKey: String) {
-        if selectedEquipment.contains(categoryKey) {
-            selectedEquipment.removeAll { $0 == categoryKey }
-        } else {
-            selectedEquipment.append(categoryKey)
+    // MARK: - Data Loading
+
+    private func loadEquipmentFromDatabase() {
+        for config in Self.categoryConfigs where !config.isStandalone {
+            var items: [String] = []
+            for dbCategory in config.dbCategories {
+                let dbItems = ExerciseDatabaseManager.shared.equipmentInCategory(dbCategory)
+                let detailedKey = config.detailedKeyMapping[dbCategory] ?? config.id
+                for dbItem in dbItems {
+                    items.append(dbItem.name)
+                    itemToDetailedKey[dbItem.name] = detailedKey
+                }
+            }
+            loadedSubItems[config.id] = items
         }
     }
 
-    private func toggleSubItem(category: String, subItem: String, allSubItems: [String]) {
-        var currentSet = selectedDetailedEquipment[category] ?? Set<String>()
+    // MARK: - Toggle Actions
+
+    private func toggleStandalone(_ config: EquipmentUIConfig) {
+        let key = config.parentKeys.first ?? config.id
+        if selectedEquipment.contains(key) {
+            selectedEquipment.removeAll { $0 == key }
+        } else {
+            selectedEquipment.append(key)
+        }
+    }
+
+    private func toggleAllItems(_ config: EquipmentUIConfig, subItems: [String]) {
+        let currentSelected = selectedItemsForConfig(config)
+        let allSelected = !subItems.isEmpty && currentSelected.count == subItems.count
+
+        if allSelected {
+            // Deselect all
+            for key in config.allDetailedKeys {
+                selectedDetailedEquipment[key] = nil
+            }
+            for parentKey in config.parentKeys {
+                selectedEquipment.removeAll { $0 == parentKey }
+            }
+        } else {
+            // Select all — group items by their detailedEquipment key
+            var grouped: [String: Set<String>] = [:]
+            for item in subItems {
+                let detailedKey = itemToDetailedKey[item] ?? config.allDetailedKeys.first ?? config.id
+                grouped[detailedKey, default: Set()].insert(item)
+            }
+            for (key, items) in grouped {
+                selectedDetailedEquipment[key] = items
+            }
+            for parentKey in config.parentKeys {
+                if !selectedEquipment.contains(parentKey) {
+                    selectedEquipment.append(parentKey)
+                }
+            }
+        }
+    }
+
+    private func toggleSubItem(config: EquipmentUIConfig, subItem: String) {
+        let detailedKey = itemToDetailedKey[subItem] ?? config.allDetailedKeys.first ?? config.id
+        var currentSet = selectedDetailedEquipment[detailedKey] ?? Set<String>()
         if currentSet.contains(subItem) {
             currentSet.remove(subItem)
         } else {
             currentSet.insert(subItem)
         }
-        selectedDetailedEquipment[category] = currentSet
+        selectedDetailedEquipment[detailedKey] = currentSet.isEmpty ? nil : currentSet
 
-        // If all sub-items are unchecked, uncheck the parent too
-        if currentSet.isEmpty {
-            selectedEquipment.removeAll { $0 == category }
-        } else if !selectedEquipment.contains(category) {
-            // If any sub-item is checked, ensure parent is checked
-            selectedEquipment.append(category)
+        // Sync parent key based on whether ANY items are selected across all detailed keys
+        let anySelected = config.allDetailedKeys.contains { !(selectedDetailedEquipment[$0] ?? Set()).isEmpty }
+        for parentKey in config.parentKeys {
+            if anySelected && !selectedEquipment.contains(parentKey) {
+                selectedEquipment.append(parentKey)
+            } else if !anySelected {
+                selectedEquipment.removeAll { $0 == parentKey }
+            }
         }
     }
 }
