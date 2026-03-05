@@ -1915,7 +1915,7 @@ struct SessionDurationStepView: View {
 // MARK: - Q12: Injuries/Limitations
 struct InjuriesStepView: View {
     @Binding var injuries: [String]
-    @State private var hasExplicitlyChosen: Bool = false
+    @Binding var hasExplicitlyChosenNoInjuries: Bool
 
     // Muscle group injury options - matches database injury_type values
     // These correspond to primary_muscle values in exercises table
@@ -1968,14 +1968,14 @@ struct InjuriesStepView: View {
                 // None option - spans full width
                 Button(action: {
                     injuries = []
-                    hasExplicitlyChosen = true
+                    hasExplicitlyChosenNoInjuries = true
                 }) {
                     Text("No injuries")
                         .font(.trainBodyMedium)
-                        .foregroundColor(injuries.isEmpty && hasExplicitlyChosen ? .white : .trainTextPrimary)
+                        .foregroundColor(injuries.isEmpty && hasExplicitlyChosenNoInjuries ? .white : .trainTextPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(Spacing.md)
-                        .background(injuries.isEmpty && hasExplicitlyChosen ? Color.trainPrimary : .clear)
+                        .background(injuries.isEmpty && hasExplicitlyChosenNoInjuries ? Color.trainPrimary : .clear)
                         .appCard(cornerRadius: CornerRadius.md)
                 }
                 .buttonStyle(ScaleButtonStyle())
@@ -1986,7 +1986,7 @@ struct InjuriesStepView: View {
     }
 
     private func toggleInjury(_ injury: String) {
-        hasExplicitlyChosen = true
+        hasExplicitlyChosenNoInjuries = false
         if injuries.contains(injury) {
             injuries.removeAll { $0 == injury }
         } else {

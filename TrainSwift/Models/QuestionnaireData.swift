@@ -21,7 +21,7 @@ struct QuestionnaireData: Codable {
         case name, email, password, selectedReferral, gender, dateOfBirth, heightCm, heightFt, heightIn, heightUnit
         case weightKg, weightLbs, weightUnit, primaryGoals, targetMuscleGroups, experienceLevel
         case motivations, motivationOther, trainingPlace, equipmentAvailable, detailedEquipment, trainingDaysPerWeek
-        case selectedSplit, sessionDuration, injuries
+        case selectedSplit, sessionDuration, injuries, hasExplicitlyChosenNoInjuries
         // Skip healthKitSynced and skipHeightWeight from encoding/decoding
     }
 
@@ -88,6 +88,7 @@ struct QuestionnaireData: Codable {
     // Additional fields for program generation
     var sessionDuration: String = "" // "30-45 min", "45-60 min", "60-90 min" - no default, user must select
     var injuries: [String] = [] // List of current injuries/limitations
+    var hasExplicitlyChosenNoInjuries: Bool = false
 
     enum HeightUnit: String, Codable {
         case cm, ftIn

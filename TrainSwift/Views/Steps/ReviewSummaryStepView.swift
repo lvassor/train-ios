@@ -64,7 +64,11 @@ struct ReviewSummaryStepView: View {
             Button(action: { onEdit(editStep) }) {
                 Text("Edit")
                     .font(.trainCaption)
-                    .foregroundColor(.trainPrimary)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, Spacing.smd)
+                    .padding(.vertical, Spacing.xs)
+                    .background(Color.trainPrimary)
+                    .clipShape(Capsule())
             }
         }
         .padding(Spacing.md)

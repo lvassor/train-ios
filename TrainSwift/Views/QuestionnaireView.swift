@@ -18,6 +18,7 @@ struct QuestionnaireView: View {
     @State private var hasSeenEquipmentWarning = false
     @State private var isSignupInProgress = false  // Safeguard to prevent state conflicts during signup
     @State private var slideDirection: Edge = .trailing
+    @State private var returnToReviewAfterEdit: Bool = false
 
     let onComplete: () -> Void
     var onBack: (() -> Void)? = nil
@@ -409,17 +410,18 @@ struct QuestionnaireView: View {
             if !skipHeightWeight {
                 MuscleGroupsStepView(selectedGroups: $viewModel.questionnaireData.targetMuscleGroups, gender: viewModel.questionnaireData.gender)
             } else {
-                InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+                InjuriesStepView(injuries: $viewModel.questionnaireData.injuries, hasExplicitlyChosenNoInjuries: $viewModel.questionnaireData.hasExplicitlyChosenNoInjuries)
             }
         case 13: // Injuries
             if !skipHeightWeight {
-                InjuriesStepView(injuries: $viewModel.questionnaireData.injuries)
+                InjuriesStepView(injuries: $viewModel.questionnaireData.injuries, hasExplicitlyChosenNoInjuries: $viewModel.questionnaireData.hasExplicitlyChosenNoInjuries)
             } else {
                 // If skipHeightWeight, step 13 is already beyond injuries (which is step 12)
                 // so step 13 becomes the Review step
                 ReviewSummaryStepView(
                     questionnaireData: viewModel.questionnaireData,
                     onEdit: { step in
+                        returnToReviewAfterEdit = true
                         withAnimation(.easeInOut(duration: 0.3)) {
                             slideDirection = .leading
                             currentStep = step
@@ -432,6 +434,7 @@ struct QuestionnaireView: View {
             ReviewSummaryStepView(
                 questionnaireData: viewModel.questionnaireData,
                 onEdit: { step in
+                    returnToReviewAfterEdit = true
                     withAnimation(.easeInOut(duration: 0.3)) {
                         slideDirection = .leading
                         currentStep = step
@@ -643,6 +646,19 @@ struct QuestionnaireView: View {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             showingProgramLoading = true
             QuestionnaireStateManager.clear()
+        } else if returnToReviewAfterEdit {
+            // After editing from review, return directly to review step
+            returnToReviewAfterEdit = false
+            let reviewStep = skipHeightWeight ? 13 : 14
+            slideDirection = .trailing
+            withAnimation(.easeInOut(duration: 0.3)) {
+                currentStep = reviewStep
+            }
+            QuestionnaireStateManager.save(step: currentStep, data: viewModel.questionnaireData)
+            questionnaireDebugLog("NAV", "returnToReview", [
+                "instanceId": String(instanceId),
+                "reviewStep": "\(reviewStep)"
+            ])
         } else {
             slideDirection = .trailing
             withAnimation(.easeInOut(duration: 0.3)) {
