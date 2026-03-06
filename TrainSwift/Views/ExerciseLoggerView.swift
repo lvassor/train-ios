@@ -639,6 +639,7 @@ struct SetLoggingCard: View {
                             if #available(iOS 16.1, *) {
                                 liveActivityManager.startRestTimer(seconds: exercise.restSeconds, elapsedTime: liveActivityManager.currentElapsedTime)
                             }
+                            PhoneConnectivityService.shared.sendRestStarted(seconds: exercise.restSeconds)
                         }
                         onSetCompleted()
                     }
@@ -918,6 +919,7 @@ struct SetLoggingSection: View {
                                 if #available(iOS 16.1, *) {
                                     liveActivityManager.startRestTimer(seconds: exercise.restSeconds, elapsedTime: liveActivityManager.currentElapsedTime)
                                 }
+                                PhoneConnectivityService.shared.sendRestStarted(seconds: exercise.restSeconds)
                             }
                             onSetCompleted()
                         }

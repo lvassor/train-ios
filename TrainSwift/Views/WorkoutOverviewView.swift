@@ -62,6 +62,9 @@ struct WorkoutOverviewView: View {
     // Live Activity Manager
     @ObservedObject private var liveActivityManager = WorkoutLiveActivityManager.shared
 
+    // Watch connectivity
+    private let watchConnectivity = PhoneConnectivityService.shared
+
     // Computed properties
     private var canCompleteWorkout: Bool {
         completedExercises.count >= 1
@@ -293,6 +296,7 @@ struct WorkoutOverviewView: View {
                         completedExercises.insert(exercise.id)
                         loggedExercises[exercise.id] = logged
                         updateLiveActivityForNextExercise(completedIndex: index)
+                        syncToWatch()
                         // Sync to global state BEFORE popping so onAppear won't overwrite
                         if workoutState.isWorkoutActive {
                             workoutState.updateWorkoutProgress(
@@ -342,6 +346,7 @@ struct WorkoutOverviewView: View {
                 if #available(iOS 16.1, *) {
                     liveActivityManager.endWorkoutActivity()
                 }
+                watchConnectivity.sendWorkoutEnded()
                 dismiss()
             }
             Button("Continue Workout", role: .cancel) {}
@@ -393,6 +398,7 @@ struct WorkoutOverviewView: View {
         .onAppear {
             initializeSessionExercises()
             initializeLoggedExercises()
+            setupWatchCallbacks()
 
             // Restore workout state ONLY once (not on every nav pop back from logger)
             if !hasRestoredWorkoutState,
@@ -457,6 +463,7 @@ struct WorkoutOverviewView: View {
         if !workoutStarted {
             startTimer()
             startLiveActivity()
+            syncToWatch()
 
             // Register workout in global state manager
             if let session = session {
@@ -528,6 +535,63 @@ struct WorkoutOverviewView: View {
     private func stopTimers() {
         timer?.invalidate()
         warmUpTimer?.invalidate()
+    }
+
+    // MARK: - Watch Sync
+
+    private func syncToWatch() {
+        let watchExercises = sessionExercises.enumerated().map { index, exercise in
+            let logged = loggedExercises[exercise.id]
+            return WatchExercise(
+                id: exercise.id,
+                name: exercise.exerciseName,
+                sets: logged?.sets.map { set in
+                    WatchSet(
+                        id: set.id,
+                        reps: set.reps,
+                        weight: set.weight,
+                        completed: set.completed,
+                        previousReps: set.previousReps,
+                        previousWeight: set.previousWeight
+                    )
+                } ?? [],
+                repRange: exercise.repRange,
+                restSeconds: exercise.restSeconds,
+                primaryMuscle: exercise.primaryMuscle,
+                isCompleted: completedExercises.contains(exercise.id)
+            )
+        }
+
+        let currentIndex = sessionExercises.firstIndex(where: { !completedExercises.contains($0.id) }) ?? 0
+
+        let state = WatchWorkoutState(
+            workoutName: session?.dayName ?? "",
+            weekNumber: weekNumber,
+            exercises: watchExercises,
+            currentExerciseIndex: currentIndex,
+            elapsedTime: elapsedTime,
+            isActive: workoutStarted
+        )
+
+        watchConnectivity.sendWorkoutState(state)
+        watchConnectivity.syncWorkoutContext(state)
+    }
+
+    private func setupWatchCallbacks() {
+        watchConnectivity.onSetUpdate = { update in
+            guard var logged = loggedExercises[update.exerciseId],
+                  update.setIndex < logged.sets.count else { return }
+
+            logged.sets[update.setIndex].reps = update.reps
+            logged.sets[update.setIndex].weight = update.weight
+
+            if update.action == .completeSet {
+                logged.sets[update.setIndex].completed = true
+            }
+
+            loggedExercises[update.exerciseId] = logged
+            syncToWatch()
+        }
     }
 
     // MARK: - Exercise Functions
@@ -702,6 +766,7 @@ struct WorkoutOverviewView: View {
         if #available(iOS 16.1, *) {
             liveActivityManager.endWorkoutActivity()
         }
+        watchConnectivity.sendWorkoutEnded()
     }
 }
 
