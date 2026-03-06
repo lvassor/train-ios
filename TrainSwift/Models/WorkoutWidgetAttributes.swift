@@ -17,10 +17,11 @@ struct WorkoutWidgetAttributes: ActivityAttributes {
         var elapsedTime: TimeInterval
         var isResting: Bool
         var restTimeRemaining: Int?
+        var restEndDate: Date?
+        var currentExerciseIndex: Int
     }
 
     // Static content that doesn't change during the workout
     var workoutName: String
     var totalExercises: Int
-    var currentExerciseIndex: Int
 }

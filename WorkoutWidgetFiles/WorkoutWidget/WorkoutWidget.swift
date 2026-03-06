@@ -46,10 +46,11 @@ struct WorkoutWidget: Widget {
                             .font(.caption)
                             .fontWeight(.semibold)
 
-                        if context.state.isResting, let restTime = context.state.restTimeRemaining {
-                            Text("Rest: \(restTime)s")
+                        if context.state.isResting, let restEnd = context.state.restEndDate {
+                            Text(restEnd, style: .timer)
                                 .font(.caption2)
                                 .foregroundColor(WidgetColors.accent)
+                                .multilineTextAlignment(.trailing)
                         }
                     }
                 }
@@ -68,7 +69,7 @@ struct WorkoutWidget: Widget {
                         }
 
                         ProgressView(
-                            value: Double(context.attributes.currentExerciseIndex + 1),
+                            value: Double(context.state.currentExerciseIndex + 1),
                             total: Double(context.attributes.totalExercises)
                         )
                         .tint(WidgetColors.progressTint)
@@ -123,10 +124,13 @@ struct WorkoutLockScreenView: View {
                         .fontWeight(.medium)
 
                     if context.state.isResting {
-                        if let restTime = context.state.restTimeRemaining {
-                            Text("Rest: \(restTime)s remaining")
-                                .font(.caption)
-                                .foregroundColor(WidgetColors.accent)
+                        if let restEnd = context.state.restEndDate {
+                            HStack(spacing: 4) {
+                                Text("Rest:")
+                                Text(restEnd, style: .timer)
+                            }
+                            .font(.caption)
+                            .foregroundColor(WidgetColors.accent)
                         } else {
                             Text("Resting")
                                 .font(.caption)

@@ -16,8 +16,14 @@ class WorkoutLiveActivityManager: ObservableObject {
 
     @Published var currentActivity: Activity<WorkoutWidgetAttributes>?
     @Published var isLiveActivityActive = false
+    private(set) var workoutStartTime: Date?
 
     private init() {}
+
+    var currentElapsedTime: TimeInterval {
+        guard let start = workoutStartTime else { return 0 }
+        return Date().timeIntervalSince(start)
+    }
 
     // MARK: - Start Live Activity
 
@@ -37,8 +43,7 @@ class WorkoutLiveActivityManager: ObservableObject {
 
         let attributes = WorkoutWidgetAttributes(
             workoutName: workoutName,
-            totalExercises: totalExercises,
-            currentExerciseIndex: exerciseIndex
+            totalExercises: totalExercises
         )
 
         let initialState = WorkoutWidgetAttributes.ContentState(
@@ -47,7 +52,9 @@ class WorkoutLiveActivityManager: ObservableObject {
             totalSets: currentExercise.sets.count,
             elapsedTime: 0,
             isResting: false,
-            restTimeRemaining: nil
+            restTimeRemaining: nil,
+            restEndDate: nil,
+            currentExerciseIndex: exerciseIndex
         )
 
         do {
@@ -59,6 +66,7 @@ class WorkoutLiveActivityManager: ObservableObject {
 
             currentActivity = activity
             isLiveActivityActive = true
+            workoutStartTime = Date()
 
             AppLogger.logWorkout("Started Live Activity for workout: \(workoutName)")
         } catch {
@@ -86,7 +94,9 @@ class WorkoutLiveActivityManager: ObservableObject {
             totalSets: currentExercise.sets.count,
             elapsedTime: elapsedTime,
             isResting: isResting,
-            restTimeRemaining: restTimeRemaining
+            restTimeRemaining: restTimeRemaining,
+            restEndDate: nil,
+            currentExerciseIndex: activity.content.state.currentExerciseIndex
         )
 
         Task {
@@ -106,39 +116,21 @@ class WorkoutLiveActivityManager: ObservableObject {
             return
         }
 
-        // Update attributes for new exercise
-        let newAttributes = WorkoutWidgetAttributes(
-            workoutName: activity.attributes.workoutName,
-            totalExercises: activity.attributes.totalExercises,
-            currentExerciseIndex: exerciseIndex
-        )
-
         let newState = WorkoutWidgetAttributes.ContentState(
             currentExerciseName: currentExercise.exerciseName,
             currentSet: 1,
             totalSets: currentExercise.sets.count,
             elapsedTime: elapsedTime,
             isResting: false,
-            restTimeRemaining: nil
+            restTimeRemaining: nil,
+            restEndDate: nil,
+            currentExerciseIndex: exerciseIndex
         )
 
-        // End current activity and start new one with updated attributes
         Task {
-            await activity.end(nil, dismissalPolicy: .immediate)
-
-            do {
-                let newActivity = try Activity.request(
-                    attributes: newAttributes,
-                    content: .init(state: newState, staleDate: nil),
-                    pushType: nil
-                )
-
-                currentActivity = newActivity
-
-                AppLogger.logWorkout("Updated Live Activity for new exercise: \(currentExercise.exerciseName)")
-            } catch {
-                AppLogger.logWorkout("Error updating Live Activity for new exercise: \(error)", level: .error)
-            }
+            let content = ActivityContent(state: newState, staleDate: nil)
+            await activity.update(content)
+            AppLogger.logWorkout("Updated Live Activity for new exercise: \(currentExercise.exerciseName)")
         }
     }
 
@@ -146,39 +138,46 @@ class WorkoutLiveActivityManager: ObservableObject {
         guard let activity = currentActivity else { return }
 
         let currentState = activity.content.state
+        let restEnd = Date().addingTimeInterval(Double(seconds))
+
         let newState = WorkoutWidgetAttributes.ContentState(
             currentExerciseName: currentState.currentExerciseName,
             currentSet: currentState.currentSet,
             totalSets: currentState.totalSets,
             elapsedTime: elapsedTime,
             isResting: true,
-            restTimeRemaining: seconds
+            restTimeRemaining: seconds,
+            restEndDate: restEnd,
+            currentExerciseIndex: currentState.currentExerciseIndex
+        )
+
+        Task {
+            // Set staleDate so the system knows when the rest state expires
+            let content = ActivityContent(state: newState, staleDate: restEnd)
+            await activity.update(content)
+
+            AppLogger.logWorkout("Rest timer started: \(seconds)s, ends at \(restEnd)")
+        }
+    }
+
+    func endRestTimer() {
+        guard let activity = currentActivity else { return }
+
+        let currentState = activity.content.state
+        let newState = WorkoutWidgetAttributes.ContentState(
+            currentExerciseName: currentState.currentExerciseName,
+            currentSet: currentState.currentSet,
+            totalSets: currentState.totalSets,
+            elapsedTime: currentElapsedTime,
+            isResting: false,
+            restTimeRemaining: nil,
+            restEndDate: nil,
+            currentExerciseIndex: currentState.currentExerciseIndex
         )
 
         Task {
             let content = ActivityContent(state: newState, staleDate: nil)
             await activity.update(content)
-
-            // Start countdown timer
-            for i in (1...seconds).reversed() {
-                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-
-                guard let currentActivity = currentActivity else { break }
-
-                let updatedState = WorkoutWidgetAttributes.ContentState(
-                    currentExerciseName: currentState.currentExerciseName,
-                    currentSet: currentState.currentSet,
-                    totalSets: currentState.totalSets,
-                    elapsedTime: elapsedTime + Double(seconds - i + 1),
-                    isResting: i > 1,
-                    restTimeRemaining: i > 1 ? i - 1 : nil
-                )
-
-                let content = ActivityContent(state: updatedState, staleDate: nil)
-                await currentActivity.update(content)
-            }
-
-            AppLogger.logWorkout("Rest timer completed")
         }
     }
 
@@ -192,6 +191,7 @@ class WorkoutLiveActivityManager: ObservableObject {
 
             currentActivity = nil
             isLiveActivityActive = false
+            workoutStartTime = nil
 
             AppLogger.logWorkout("Ended Live Activity")
         }

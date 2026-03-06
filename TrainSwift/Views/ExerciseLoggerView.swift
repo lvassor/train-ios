@@ -421,7 +421,7 @@ struct ExerciseLoggerView: View {
         liveActivityManager.updateWorkoutProgress(
             currentExercise: loggedExercise,
             currentSet: currentSet,
-            elapsedTime: 0, // Will be managed by the main workout view
+            elapsedTime: liveActivityManager.currentElapsedTime,
             isResting: false
         )
     }
@@ -637,7 +637,7 @@ struct SetLoggingCard: View {
                         if exercise.restSeconds > 0 {
                             restTimerController.triggerRest(seconds: exercise.restSeconds)
                             if #available(iOS 16.1, *) {
-                                liveActivityManager.startRestTimer(seconds: exercise.restSeconds, elapsedTime: 0)
+                                liveActivityManager.startRestTimer(seconds: exercise.restSeconds, elapsedTime: liveActivityManager.currentElapsedTime)
                             }
                         }
                         onSetCompleted()
@@ -916,7 +916,7 @@ struct SetLoggingSection: View {
                                 restTimerController.triggerRest(seconds: exercise.restSeconds)
                                 // Update Live Activity with rest timer
                                 if #available(iOS 16.1, *) {
-                                    liveActivityManager.startRestTimer(seconds: exercise.restSeconds, elapsedTime: 0)
+                                    liveActivityManager.startRestTimer(seconds: exercise.restSeconds, elapsedTime: liveActivityManager.currentElapsedTime)
                                 }
                             }
                             onSetCompleted()
