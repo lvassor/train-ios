@@ -13,7 +13,7 @@
     "-" : {
 
     },
-    "(%lld more)" : {
+    "(%lld items)" : {
 
     },
     "(%lld)" : {
@@ -22,10 +22,13 @@
     "(Limited in simulator)" : {
 
     },
-    "%.1f cm" : {
+    "%.0f cm" : {
 
     },
-    "%.1f kg" : {
+    "%.0f kg" : {
+
+    },
+    "%.0f lbs" : {
 
     },
     "%.1f kg • %lld reps" : {
@@ -37,9 +40,6 @@
           }
         }
       }
-    },
-    "%.1f lbs" : {
-
     },
     "%.1fkg • %lld reps" : {
       "localizations" : {
@@ -70,6 +70,9 @@
           }
         }
       }
+    },
+    "%@ kg" : {
+
     },
     "%@ personal best, %lld to %lld kilograms" : {
       "localizations" : {
@@ -257,6 +260,16 @@
         }
       }
     },
+    "%lld/%lld selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld selected"
+          }
+        }
+      }
+    },
     "%lld/%lld sessions complete" : {
       "localizations" : {
         "en" : {
@@ -416,9 +429,6 @@
     "Are you sure you want to log out?" : {
 
     },
-    "Avg Duration" : {
-
-    },
     "Back" : {
 
     },
@@ -441,9 +451,6 @@
 
     },
     "Built Around You." : {
-
-    },
-    "Calendar" : {
 
     },
     "Cancel" : {
@@ -509,9 +516,6 @@
     "Confirm your password" : {
 
     },
-    "Consistency" : {
-
-    },
     "Continue" : {
 
     },
@@ -557,9 +561,6 @@
     "Current Program" : {
 
     },
-    "Current Streak" : {
-
-    },
     "Current streak: %lld days" : {
 
     },
@@ -576,6 +577,9 @@
 
     },
     "day" : {
+
+    },
+    "Day" : {
 
     },
     "Day %lld" : {
@@ -855,9 +859,6 @@
     "Logger" : {
 
     },
-    "Longest:" : {
-
-    },
     "Make sure everything looks right" : {
 
     },
@@ -877,9 +878,6 @@
 
     },
     "Min 6 chars with a number and special character" : {
-
-    },
-    "Minutes" : {
 
     },
     "Muscle" : {
@@ -1002,6 +1000,9 @@
     "Passwords do not match" : {
 
     },
+    "PBs Achieved" : {
+
+    },
     "per week" : {
 
     },
@@ -1042,6 +1043,9 @@
 
     },
     "Processing..." : {
+
+    },
+    "Professional Recommendation" : {
 
     },
     "Program" : {
@@ -1162,9 +1166,6 @@
 
     },
     "Session unavailable" : {
-
-    },
-    "Sessions" : {
 
     },
     "Set" : {
@@ -1312,9 +1313,6 @@
     "Tap anywhere to continue" : {
 
     },
-    "Target" : {
-
-    },
     "Target:" : {
 
     },
@@ -1370,6 +1368,9 @@
     "This helps us tailor your training intensity" : {
 
     },
+    "this month" : {
+
+    },
     "This will only take a moment..." : {
 
     },
@@ -1391,6 +1392,9 @@
     "Total increased reps: %lld" : {
 
     },
+    "Total Volume" : {
+
+    },
     "Train uses programming and training principles from professional personal trainers to help you master weight lifting and hit your goals." : {
 
     },
@@ -1410,7 +1414,7 @@
         }
       }
     },
-    "Training Frequency Warning" : {
+    "Training Time" : {
 
     },
     "Try adjusting your filters" : {
@@ -1464,9 +1468,6 @@
     "We'll avoid exercises that might aggravate these areas" : {
 
     },
-    "Week" : {
-
-    },
     "Week %d of %d" : {
       "localizations" : {
         "en" : {
@@ -1478,9 +1479,6 @@
       }
     },
     "Week %lld" : {
-
-    },
-    "Weekly Volume" : {
 
     },
     "Weight" : {
@@ -1514,6 +1512,9 @@
 
     },
     "Workout History" : {
+
+    },
+    "Workouts" : {
 
     },
     "Would you like to save your current program? You can switch back to it later in 'Switch Programs'." : {
