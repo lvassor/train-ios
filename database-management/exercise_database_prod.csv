@@ -1,0 +1,231 @@
+exercise_id,canonical_name,display_name,equipment_id_1,equipment_id_2,complexity_level,canonical_rating,primary_muscle,secondary_muscle,progression_id,regression_id,is_in_programme
+EX001,Back Extension,Dumbbell Back Extension,EP010,EP047,2,60,Hamstrings,Glutes,,EX002,1
+EX002,Back Extension,Bodyweight Back Extension,EP043,EP047,1,60,Hamstrings,Glutes,EX001,EX003,1
+EX003,Back Extension,Back Extension Hold,EP043,EP047,All,60,Hamstrings,Glutes,EX002,,1
+EX004,Straight Bar Curl,Barbell Curl,EP001,,2,60,Biceps,Forearms,,,1
+EX005,Dumbbell Curl,Dumbbell Curl,EP010,,All,40,Biceps,Forearms,,,1
+EX006,Hammer Curl,Dumbbell Hammer Curl,EP010,,All,40,Biceps,Forearms,,,1
+EX007,Straight Bar Curl,Straight Bar Cable Curl,EP013,EP051,All,40,Biceps,Forearms,,,1
+EX008,Preacher Curl,EZ-Bar Spider Curl,EP008,EP054,2,40,Biceps,Forearms,,,1
+EX009,Standing Calf Raise,Standing Calf Raise,EP021,,All,20,Calves,,,,1
+EX010,Seated Calf Raise,Seated Calf Raise,EP022,,All,20,Calves,,,,1
+EX011,Standing Calf Raise,Standing Calf Raise,EP035,,All,20,Calves,,,,1
+EX012,Seated Calf Raise,Seated Calf Raise,EP036,,All,20,Calves,,,,1
+EX013,Standing Calf Raise,Elevated Dumbbell Calf Raise,EP010,,2,20,Calves,,EX015,EX014,1
+EX014,Standing Calf Raise,Kettlebell Calf Raise,EP012,,1,20,Calves,,EX013,EX019,1
+EX015,Standing Calf Raise,Single Leg Dumbbell Calf Raise,EP010,,2,20,Calves,,,EX013,1
+EX016,Standing Calf Raise,Single Leg Kettlebell Calf Raise,EP012,,2,20,Calves,,,,1
+EX017,Calf Press,Calf Press,EP017,,All,20,Calves,,,,1
+EX018,Calf Press,Calf Press,EP031,,All,20,Calves,,,,1
+EX019,Standing Calf Raise,Elevated Bodyweight Calf Raise,EP043,,1,20,Calves,,EX014,,1
+EX020,Dumbbell Fly,Dumbbell Chest Fly,EP010,EP044,All,40,Chest,Shoulders,,,1
+EX021,Cable Fly,Cable Chest Fly,EP014,EP053,All,40,Chest,Shoulders,,,1
+EX022,Bench Chest Press,Barbell Bench Press,EP001,EP003,2,100,Chest,Triceps,,,1
+EX023,Bench Chest Press,Dumbbell Bench Press,EP010,EP044,All,80,Chest,Triceps,,,1
+EX024,Bench Chest Press,Dumbbell Floor Press,EP010,,1,60,Chest,Triceps,,,1
+EX025,Cable Chest Press,Cable Chest Press,EP014,EP053,All,60,Chest,Triceps,,,1
+EX026,Bench Chest Press,Incline Barbell Bench Press,EP001,EP004,2,100,Chest,Triceps,,,1
+EX027,Bench Chest Press,Incline Dumbbell Bench Press,EP010,EP011,2,80,Chest,Triceps,,,1
+EX028,Bench Chest Press,Decline Barbell Bench Press,EP001,EP005,2,100,Chest,Triceps,,,1
+EX029,Bench Chest Press,Decline Dumbbell Bench Press,EP010,EP011,2,80,Chest,Triceps,,,1
+EX030,Bench Chest Press,Close Grip Bench Press,EP001,EP003,2,80,Triceps,Chest,,,1
+EX031,Plank,Plank,EP043,,1,20,Core,,EX161,,1
+EX032,Plank,Side Plank,EP043,,1,20,Core,,,,1
+EX033,Plank,Ab Wheel Rollout,EP043,EP048,2,60,Core,Shoulders,,EX161,1
+EX034,Reach Over,Dead Bug,EP043,,1,20,Core,,EX157,,1
+EX035,Crunch,Cable Crunch,EP013,EP052,All,40,Core,,,,1
+EX036,Hanging Raise,Hanging Knee Raise,EP043,EP045,1,40,Core,Forearms,EX162,EX164,1
+EX037,Crunch,Russian Twist,EP043,,1,20,Core,,,,1
+EX038,Lateral Cable,Cable Wood Chop,EP013,EP053,All,20,Core,,,,1
+EX039,Lateral Cable,Cable Pallof Press,EP013,EP053,All,20,Core,,,,1
+EX040,Carry,Dumbbell Farmer's Walk,EP010,,All,20,Forearms,Core,,,1
+EX041,Carry,Kettlebell Farmer's Walk,EP012,,All,20,Forearms,Core,,,1
+EX042,Carry,Dumbbell Suitcase Carry,EP010,,All,20,Core,Forearms,,,1
+EX043,Deadlift,Barbell Deadlift,EP001,,2,100,Hamstrings,Glutes,,,1
+EX044,Deadlift,Kettlebell Deadlift,EP012,,1,80,Hamstrings,Glutes,,,1
+EX045,Deadlift,Barbell Romanian Deadlift,EP001,,2,100,Hamstrings,Glutes,,,1
+EX046,Deadlift,Dumbbell Romanian Deadlift,EP010,,All,80,Hamstrings,Glutes,,,1
+EX047,Deadlift,Kettlebell Romanian Deadlift,EP012,,2,80,Hamstrings,Glutes,,,1
+EX048,Deadlift,Barbell Landmine Romanian Deadlift,EP001,EP006,2,80,Hamstrings,Glutes,,,1
+EX049,Dip,Dips,EP043,EP046,2,80,Triceps,Chest,EX207,EX208,1
+EX050,Dip,Assisted Dips,EP025,,1,60,Triceps,Chest,EX208,EX051,1
+EX051,Dip,Bench Dips,EP043,EP044,1,40,Triceps,Chest,EX050,,1
+EX052,Face Pull,Face Pull,EP013,EP052,All,40,Shoulders,Traps,,,1
+EX053,Hip Abduction,Seated Hip Abduction,EP023,,All,20,Glutes,,,,1
+EX054,Hip Abduction,Cable Hip Abduction,EP013,EP056,All,40,Glutes,,,,1
+EX055,Copenhagen Plank,Copenhagen Plank (bent knee),EP043,EP044,1,60,Adductors,Core,,,1
+EX056,Copenhagen Plank,Copenhagen Plank (straight leg),EP043,EP044,2,60,Adductors,Core,,,1
+EX057,Hip Adduction,Seated Hip Adduction,EP024,,All,40,Adductors,,,,1
+EX058,Hinge Pull Through,Kettlebell Swing,EP012,,2,80,Hamstrings,Glutes,,,1
+EX059,Hinge Pull Through,Cable Pull Through,EP014,EP053,All,40,Hamstrings,Glutes,,,1
+EX060,Hip Thrust,Barbell Hip Thrust,EP001,EP044,2,80,Glutes,Hamstrings,,EX061,1
+EX061,Hip Thrust,Dumbbell Hip Thrust,EP010,EP044,1,60,Glutes,Hamstrings,EX060,EX064,1
+EX062,Hip Thrust,Glute Bridge Hold,EP043,,1,20,Glutes,Hamstrings,EX063,,1
+EX063,Hip Thrust,Single Leg Glute Bridge Hold,EP043,,1,40,Glutes,Hamstrings,EX064,EX062,1
+EX064,Hip Thrust,Single Leg Glute Bridge,EP010,,1,60,Glutes,Hamstrings,EX061,EX063,1
+EX065,Kickback,Cable Kickback,EP013,EP056,All,40,Glutes,,,,1
+EX066,Kickback,Glute Kickback,EP038,,All,40,Glutes,,,,1
+EX067,Lying Leg Curl,Lying Leg Curl,EP019,,All,60,Hamstrings,,,,1
+EX068,Seated Leg Curl,Seated Leg Curl,EP020,,All,60,Hamstrings,,,,1
+EX069,Lying Leg Curl,Lying Leg Curl,EP033,,All,60,Hamstrings,,,,1
+EX070,Seated Leg Curl,Seated Leg Curl,EP034,,All,60,Hamstrings,,,,1
+EX071,Leg Extension,Leg Extension,EP018,,All,60,Quads,,,,1
+EX072,Leg Extension,Leg Extension,EP032,,All,60,Quads,,,,1
+EX073,Leg Press,Leg Press,EP017,,All,80,Quads,Glutes,,,1
+EX074,Leg Press,Leg Press,EP031,,All,80,Quads,Glutes,,,1
+EX075,Leg Press,Hack Squat,EP037,,2,100,Quads,Glutes,,,1
+EX076,Walking Lunge,Barbell Walking Lunge,EP001,,2,60,Quads,Glutes,,,1
+EX077,Walking Lunge,Dumbbell Walking Lunge,EP010,,All,60,Quads,Glutes,,,1
+EX078,Walking Lunge,Kettlebell Walking Lunge,EP012,,All,60,Quads,Glutes,,,1
+EX079,Reverse Lunge,Dumbbell Reverse Lunge,EP010,,1,60,Glutes,Quads,,,1
+EX080,Reverse Lunge,Kettlebell Reverse Lunge,EP012,,1,60,Glutes,Quads,,,1
+EX081,Reverse Lunge,Elevated Dumbbell Reverse Lunge,EP010,,2,60,Glutes,Quads,,,1
+EX082,Reverse Lunge,Elevated Kettlebell Reverse Lunge,EP012,,2,60,Glutes,Quads,,,1
+EX083,Push Up,Push Up,EP043,,2,60,Chest,Triceps,EX085,EX084,1
+EX084,Push Up,Incline Push Up,EP043,,1,60,Chest,Triceps,EX083,,1
+EX085,Push Up,Decline Push Up,EP043,,2,60,Chest,Triceps,EX173,EX083,1
+EX086,Push Up,Pike Push Up,EP043,,2,60,Shoulders,Triceps,,,1
+EX087,Push Up,Diamond Push Up,EP043,,2,60,Triceps,Chest,,,1
+EX088,Rear Delt Fly,Rear Delt Fly,EP014,,All,40,Rear Delts,Back,,,1
+EX089,Rear Delt Fly,Rear Delt Fly,EP010,,All,40,Rear Delts,Traps,,,1
+EX090,Bent Over Row,Barbell Bent Over Row,EP001,,All,80,Back,Biceps,,,1
+EX091,Bent Over Row,Dumbbell Bent Over Row,EP010,,All,60,Back,Biceps,,,1
+EX092,Bent Over Row,Kettlebell Bent Over Row,EP012,,All,80,Back,Biceps,,,1
+EX093,Seated Cable Row,Close Grip Seated Cable Row,EP016,EP059,All,60,Back,Biceps,,,1
+EX094,Bodyweight Row,Inverted Row,EP043,EP002,1,60,Back,Biceps,,,1
+EX095,Bench Row,Single Arm Dumbbell Row,EP010,EP044,All,60,Back,Biceps,,,1
+EX096,Bench Row,Chest Supported Dumbbell Row,EP010,EP011,All,60,Back,Biceps,,,1
+EX097,Variation Row,T-Bar Row,EP006,EP059,2,80,Back,Biceps,,,1
+EX098,Bent Over Row,Pendlay Row,EP001,,2,80,Back,Biceps,,,1
+EX099,Upright Row,Straight Bar Upright Row,EP013,EP051,All,40,Shoulders,Traps,,,1
+EX100,Upright Row,Dumbbell Upright Row,EP010,,All,40,Shoulders,Traps,,,1
+EX101,Standing Overhead Press,Barbell Overhead Press,EP001,,2,80,Shoulders,Triceps,,,1
+EX102,Seated Overhead Press,Seated Dumbbell Overhead Press,EP010,EP011,All,80,Shoulders,Triceps,,,1
+EX103,Standing Overhead Press,Kettlebell Overhead Press,EP012,,All,80,Shoulders,Triceps,,,1
+EX104,Standing Overhead Press,Landmine Press,EP001,EP006,2,60,Shoulders,Triceps,,,1
+EX105,Seated Overhead Press,Seated Arnold Press,EP010,EP011,2,60,Shoulders,Triceps,,,1
+EX106,Lateral Raise,Dumbbell Lateral Raise,EP010,,All,40,Shoulders,,,,1
+EX107,Lateral Raise,Cable Lateral Raise,EP014,EP053,All,40,Shoulders,,,,1
+EX108,Front Raise,Barbell Front Raise,EP001,,2,60,Shoulders,,,,1
+EX109,Front Raise,Dumbbell Front Raise,EP010,,All,40,Shoulders,,,,1
+EX110,Shrug,Dumbbell Shrug,EP010,,All,40,Traps,,,,1
+EX111,Shrug,Barbell Shrug,EP001,,2,60,Traps,,,,1
+EX112,Split Squat,Dumbbell Bulgarian Split Squat,EP010,EP044,2,80,Quads,Glutes,EX114,EX149,1
+EX113,Split Squat,Kettlbell Bulgarian Split Squat,EP012,EP044,2,80,Quads,Glutes,EX115,EX150,1
+EX114,Split Squat,Elevated Dumbbell Bulgarian Split Squat,EP010,EP044,2,100,Quads,Glutes,,EX112,1
+EX115,Split Squat,Elevated Kettlbell Bulgarian Split Squat,EP012,EP044,2,100,Quads,Glutes,,EX113,1
+EX116,Squat,Barbell Back Squat,EP001,EP002,2,100,Quads,Glutes,,,1
+EX117,Goblet Squat,Dumbbell Goblet Squat,EP010,,1,60,Quads,Glutes,,,1
+EX118,Goblet Squat,Kettlebell Goblet Squat,EP012,,1,60,Quads,Glutes,,,1
+EX119,Goblet Squat,Elevated Dumbbell Goblet Squat,EP010,,2,60,Quads,Glutes,,,1
+EX120,Goblet Squat,Elevated Kettlebell Goblet Squat,EP012,,2,60,Quads,Glutes,,,1
+EX121,Squat,Barbell Front Squat,EP001,EP002,2,100,Quads,Core,,,1
+EX122,Squat,Kettlebell Front Squat,EP012,,2,60,Quads,Core,,,1
+EX123,Squat,Dumbbell Front Squat,EP010,,All,60,Quads,Core,,,1
+EX124,Squat,Cable Squat,EP013,EP051,1,40,Quads,Glutes,,,1
+EX125,Cossack Squat,Dumbbell Cossack Squat,EP010,,All,60,Quads,Adductors,,,1
+EX126,Cossack Squat,Kettlebell Cossack Squat,EP012,,All,60,Quads,Adductors,,,1
+EX127,Sumo Squat,Dumbbell Sumo Squat,EP010,,All,40,Glutes,Quads,,,1
+EX128,Sumo Squat,Kettlebell Sumo Squat,EP012,,All,40,Glutes,Quads,,,1
+EX129,Step Up,Dumbbell Step-Up,EP010,EP044,All,60,Glutes,Quads,,,1
+EX130,Step Up,Kettlebell Step-Up,EP012,EP044,All,60,Glutes,Quads,,,1
+EX131,Step Up,Cable Step-Up,EP014,EP053,All,60,Glutes,Quads,,,1
+EX132,Skull Crusher,Barbell Skull Crusher,EP001,EP044,2,60,Triceps,,,,1
+EX133,Skull Crusher,Dumbbell Skull Crusher,EP010,EP044,All,40,Triceps,,,,1
+EX134,Tricep Pushdown,Straight Bar Pushdown,EP013,EP051,All,40,Triceps,,,,1
+EX135,Overhead Extension,Seated Dumbbell Extension,EP010,EP044,All,40,Triceps,,,,1
+EX136,Pull Up,Pull Up,EP043,EP045,2,100,Back,Biceps,EX189,EX137,1
+EX137,Pull Up,Chin Up,EP043,EP045,2,100,Back,Biceps,EX136,EX188,1
+EX138,Pull Up,Assisted Pull Up,EP025,,1,80,Back,Biceps,EX188,,1
+EX139,Lat Pulldown,Lat Pulldown,EP015,EP061,All,60,Back,Biceps,,,1
+EX140,Pull Up,Neutral Grip Pull Up,EP043,EP045,2,100,Back,Biceps,,,1
+EX141,Standing Calf Raise,Single Leg Bodyweight Calf Raise,EP043,,1,20,Calves,,,,1
+EX142,Standing Calf Raise,Smith Machine Calf Raise,EP001,EP009,All,20,Calves,,,,1
+EX143,Hinge Other,Barbell Good Morning,EP001,,2,60,Hamstrings,Glutes,,,1
+EX144,Hinge Other,Smith Machine Good Morning,EP001,EP009,All,60,Hamstrings,Glutes,,,1
+EX145,Squat,Elevated Smith Machine Squat,EP001,EP009,All,60,Quads,Glutes,,,1
+EX146,Split Squat,Dumbbell Split Squat,EP010,,1,80,Quads,Glutes,EX149,,1
+EX147,Split Squat,Kettlebell Split Squat,EP012,,1,80,Quads,Glutes,EX150,,1
+EX148,Split Squat,Barbell Split Squat,EP001,EP002,2,80,Quads,Glutes,,,1
+EX149,Split Squat,Dumbbell Elevated Split Squat,EP010,,All,80,Quads,Glutes,EX112,EX146,1
+EX150,Split Squat,Kettlebell Elevated Split Squat,EP012,,All,80,Quads,Glutes,EX113,EX147,1
+EX151,Squat,Landmine Squat,EP001,EP006,All,80,Quads,Glutes,,,1
+EX152,Cossack Squat,Dumbbell Lateral Lunge,EP010,,All,60,Adductors,Quads,,,1
+EX153,Cossack Squat,Kettlebell Lateral Lunge,EP012,,All,60,Adductors,Quads,,,1
+EX154,Hip Thrust,Machine Hip Thrust,EP042,,All,60,Glutes,Hamstrings,,,1
+EX155,Reverse Lunge,Smith Machine Reverse Lunge,EP001,EP009,1,60,Glutes,Quads,,,1
+EX156,Reverse Lunge,Smith Machine Elevated Reverse Lunge,EP001,EP009,2,60,Glutes,Quads,,,1
+EX157,Reach Over,Lying Reach Over,EP043,,1,40,Core,,EX158,EX034,1
+EX158,Reach Over,Weighted Lying Reach Over,EP010,,2,40,Core,,EX159,EX157,1
+EX159,Reach Over,Jack Knife,EP043,,2,40,Core,,EX160,EX158,1
+EX160,Reach Over,Weighted Jack Knife,EP010,,2,40,Core,,,EX159,1
+EX161,Plank,Extended Plank,EP043,,2,20,Core,,EX033,EX031,1
+EX162,Hanging Raise,Hanging Leg Raise,EP043,EP045,2,60,Core,,,EX036,1
+EX163,Hanging Raise,Hanging Knee Raise (Captain's Chair),EP043,EP049,1,40,Core,,EX164,,1
+EX164,Hanging Raise,Hanging Leg Raise (Captain's Chair),EP043,EP049,2,40,Core,,EX036,EX163,1
+EX165,Crunch,Weighted Russian Twist,EP010,,2,20,Core,,,,1
+EX166,Crunch,Decline Sit-Up,EP043,EP050,1,20,Core,,,,1
+EX167,Crunch,Weighted Decline Sit-Up,EP010,EP050,2,20,Core,,,,1
+EX168,Cable Hip Adduction,Cable Hip Adduction,EP013,EP056,All,20,Adductors,Glutes,,,1
+EX169,Machine Chest Press,Machine Chest Press,EP026,,All,60,Chest,Triceps,,,1
+EX170,Machine Chest Press,Machine Chest Press,EP039,,All,60,Chest,Triceps,,,1
+EX171,Dumbbell Fly,Machine Pec Deck Fly,EP027,,All,40,Chest,Shoulders,,,1
+EX172,Bench Chest Press,Smith Machine Bench Press,EP001,EP009,All,60,Chest,Triceps,,,1
+EX173,Push Up,Deficit Push Up,EP043,,2,60,Chest,Triceps,,EX085,1
+EX174,Seated Overhead Press,Machine Shoulder Press,EP028,,All,60,Shoulders,Triceps,,,1
+EX175,Seated Overhead Press,Machine Shoulder Press,EP040,,All,60,Shoulders,Triceps,,,1
+EX176,Standing Overhead Press,Single Arm Landmine Press,EP001,EP006,2,80,Shoulders,Core,,,1
+EX177,Lateral Raise,Single Arm Cable Lateral Raise,EP013,EP053,All,40,Shoulders,,,,1
+EX178,Standing Overhead Press,Standing Dumbbell Hammer Press,EP010,,All,60,Shoulders,Core,,,1
+EX179,Upright Row,Barbell Upright Row,EP001,,2,60,Shoulders,,,,1
+EX180,Seated Overhead Press,Kettlebell Z-Press,EP012,,2,60,Shoulders,Core,,,1
+EX181,Machine Row,Chest Supported Machine Row,EP029,,All,60,Back,Biceps,,,1
+EX182,Machine Row,Chest Supported Machine Row,EP041,,All,60,Back,Biceps,,,1
+EX183,Pullover,Straight Bar Lat Prayer,EP013,EP051,2,40,Back,Triceps,,,1
+EX184,Pullover,Dumbbell Pullover,EP010,EP044,All,40,Back,Chest,,,1
+EX185,Lat Pulldown,Kneeling Single Arm Lat Pulldown,EP013,EP053,All,40,Back,Biceps,,,1
+EX186,Bent Over Row,Smith Machine Bent Over Row,EP001,EP009,All,60,Back,Biceps,,,1
+EX187,Variation Row,Kettlebell Gorilla Row,EP012,,2,60,Back,Biceps,,,1
+EX188,Pull Up,Banded Pull Up,EP045,EP057,All,100,Back,Biceps,EX137,EX138,1
+EX189,Pull Up,Weighted Pull Up,EP045,EP058,2,100,Back,Biceps,,EX136,1
+EX190,Dumbbell Curl,Seated Dumbbell Curl,EP010,EP044,All,40,Biceps,Forearms,,,1
+EX191,Dumbbell Curl,Incline Dumbbell Curl,EP010,EP011,All,60,Biceps,Forearms,,,1
+EX192,Dumbbell Curl,Concentration Curl,EP010,EP044,All,40,Biceps,Forearms,,,1
+EX193,Hammer Curl,Seated Hammer Curl,EP010,EP044,All,40,Biceps,Forearms,,,1
+EX194,Reverse Curl,Reverse Straight Bar Cable Curl,EP013,EP051,All,40,Biceps,Forearms,,,1
+EX195,Reverse Curl,Reverse Barbell Curl,EP001,,All,40,Biceps,Forearms,,,1
+EX196,Reverse Curl,Reverse Kettlebell Curl,EP012,,All,40,Biceps,Forearms,,,1
+EX197,Reverse Curl,Reverse Dumbbell Curl,EP010,,All,40,Biceps,Forearms,,,1
+EX198,Straight Bar Curl,EZ-Bar Curl,EP001,EP054,2,60,Biceps,Forearms,,,1
+EX199,Straight Bar Curl,EZ-Bar Cable Curl,EP013,EP055,All,40,Biceps,Forearms,,,1
+EX200,Preacher Curl,EZ-Bar Preacher Curl,EP008,EP054,2,40,Biceps,Forearms,,,1
+EX201,Preacher Curl,Single Arm Dumbbell Preacher Curl,EP010,EP011,All,20,Biceps,Forearms,,,1
+EX202,Preacher Curl,Dumbbell Preacher Curl,EP010,EP008,All,40,Biceps,Forearms,,,1
+EX203,Preacher Curl,Machine Preacher Curl,EP030,,All,40,Biceps,Forearms,,,1
+EX204,Bicep Cable Other,Cable Bayesian Curl,EP013,EP053,All,20,Biceps,Forearms,,,1
+EX205,Bicep Cable Other,Rope Curl,EP013,EP052,All,40,Biceps,Forearms,,,1
+EX206,Bench Chest Press,Close Grip Smith Machine Bench Press,EP001,EP009,All,60,Triceps,Chest,,,1
+EX207,Dip,Weighted Dips,EP046,EP058,2,100,Triceps,Chest,,EX049,1
+EX208,Dip,Banded Dips,EP046,EP057,1,80,Triceps,Chest,EX049,EX050,1
+EX209,Overhead Extension,Seated Single Arm Dumbbell Extension,EP010,EP044,All,20,Triceps,,,,1
+EX210,Overhead Extension,Rope Overhead Extension,EP013,EP052,All,40,Triceps,,,,1
+EX211,Overhead Extension,EZ-Bar Overhead Extension,EP013,EP055,All,40,Triceps,,,,1
+EX212,Overhead Extension,Straight Bar Overhead Extension,EP013,EP051,All,40,Triceps,,,,1
+EX213,Tricep Pushdown,Rope Pushdown,EP013,EP052,All,40,Triceps,,,,1
+EX214,Tricep Pushdown,EZ-Bar Pushdown,EP013,EP055,All,40,Triceps,,,,1
+EX215,Tricep Pushdown,Single Arm Pushdown,EP013,,All,20,Triceps,,,,1
+EX216,Overhead Pushdown,Straight Bar Overhead Pushdown,EP013,EP051,All,40,Triceps,,,,1
+EX217,Overhead Pushdown,Rope Overhead Pushdown,EP013,EP052,All,40,Triceps,,,,1
+EX218,Overhead Pushdown,EZ-Bar Overhead Pushdown,EP013,EP055,All,40,Triceps,,,,1
+EX219,Skull Crusher,EZ-Bar Skull Crusher,EP044,EP054,2,60,Triceps,,,,1
+EX220,Front Raise,Straight Bar Front Raise,EP013,EP051,All,40,Shoulders,,,,1
+EX221,Lat Pulldown,Close Grip Lat Pulldown,EP015,EP059,All,60,Back,Biceps,,,1
+EX222,Lat Pulldown,Neutral Grip Lat Pulldown,EP015,EP060,All,60,Back,Biceps,,,1
+EX223,Hinge Pull Through,Rope Pull Through,EP013,EP052,All,40,Hamstrings,Glutes,,,1
+EX224,Upright Row,Rope Upright Row,EP013,EP052,All,40,Shoulders,Traps,,,1
+EX225,Upright Row,EZ-Bar Upright Row,EP013,EP055,All,40,Shoulders,Traps,,,1
+EX226,Front Raise,Rope Front Raise,EP013,EP052,All,40,Shoulders,,,,1
+EX227,Seated Cable Row,Neutral Grip Seated Cable Row,EP016,EP060,All,60,Back,Biceps,,,1
+EX228,Seated Cable Row,Wide Grip Seated Cable Row,EP016,EP061,All,60,Back,Biceps,,,1
+EX229,Pullover,Rope Lat Prayer,EP013,EP052,2,40,Back,Triceps,,,1
+EX230,Pullover,EZ-Bar Lat Prayer,EP013,EP055,2,40,Back,Triceps,,,1

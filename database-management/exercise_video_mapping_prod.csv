@@ -1,0 +1,231 @@
+exercise_id,display_name,supplier_id,filename,bunny_guid
+EX001,Dumbbell Back Extension,732812,73281201-Dumbbell-Hyperextension-(male)_Hips-FIX2_.mp4,620dd5e8-f79e-485a-89d6-ac941a2c2f5d
+EX002,Bodyweight Back Extension,581312,58131201-45-degree-Hyperextension-(arms-in-front-of-chest)-.mp4,7eddd7f4-9ac0-420a-89e4-6e758313a6d9
+EX003,Back Extension Hold,1102612,110261201-45-degree-Hyperextension-Hold-(arms-in-front-of-c.mp4,2d1347b4-4bfe-4c8a-a63d-2958774cd6fa
+EX004,Barbell Curl,003112,00311201-Barbell-Curl_Upper-Arms-FIX2_.mp4,dba1131f-e5f4-4abc-8136-9743c5ff3e95
+EX005,Dumbbell Curl,041612,04161201-Dumbbell-Standing-Biceps-Curl_Upper-Arms-FIX2_.mp4,0420576a-c724-4011-bbd5-c00697049643
+EX006,Dumbbell Hammer Curl,031312,03131201-Dumbbell-Hammer-Curl_Forearms_.mp4,06cb4735-07e1-4c3d-87d3-46abd446c33d
+EX007,Straight Bar Cable Curl,086812,08681201-Cable-Curl-(male)_Upper-Arms-FIX_.mp4,40ee99fd-e11d-482d-9d4c-d9a9da737d27
+EX008,EZ-Bar Spider Curl,162812,16281201-EZ-Barbell-Spider-Curl_Upper-Arms-FIX_.mp4,8d41279c-bb55-425c-a287-131f5bfad217
+EX009,Standing Calf Raise,060512,06051201-Lever-Standing-Calf-Raise_Calf-FIX_.mp4,67f0875f-b307-446f-81aa-287b89688563
+EX010,Seated Calf Raise,231512,23151201-Lever-Rotary-Calf_Calves.mp4,2f93371d-87e5-4d24-a3a8-d6a31acde876
+EX011,Standing Calf Raise,1102812,110281201-Lever-Standing-Calf-Raise-(plate-loaded)-(male)_C.mp4,a88d8236-0c0a-43e3-9713-1c9a6e956a02
+EX012,Seated Calf Raise,310612,31061201-Lever-Seated-Calf-Raise-(plate-loaded)-(female)_Calves.mp4,cc0ae6ec-d492-471a-8849-231be52576fc
+EX013,Elevated Dumbbell Calf Raise,041712,04171201-Dumbbell-Standing-Calf-Raise_Calves-FIX_.mp4,7177c25f-d36d-4c44-bc5c-c0639defcb4b
+EX014,Kettlebell Calf Raise,585412,58541201-Kettlebell-Standing-Calf-Raise_Calves_.mp4,9950b543-9d9d-40c6-908a-a4ad10cd8833
+EX015,Single Leg Dumbbell Calf Raise,1107512,110751201-Dumbbell-Single-Leg-Calf-Raise-Off-Step_Calves_.mp4,13fdfba5-90aa-4c2b-a081-fa05d4aa3f01
+EX016,Single Leg Kettlebell Calf Raise,1107612,110761201-Kettlebell-Single-Leg-Calf-Raise-Off-Step_Calves_.mp4,405d9b5d-8920-4634-8bee-d655f02eae1e
+EX017,Calf Press,233512,23351201-Lever-Seated-Calf-Press_Calves.mp4,81ad5bb3-862d-406b-8ca2-e20416c0915a
+EX018,Calf Press,139112,13911201-Sled-Calf-Press-On-Leg-Press_Calves-FIX_.mp4,7b945a02-7d13-49bb-81a6-0e4413a8bd68
+EX019,Elevated Bodyweight Calf Raise,106331,106331201-Bodyweight-Calf-Raise-on-a-Stepbox-(male)_Calves_.mp4,e824a58f-c337-4b3f-9856-d6a64ef6801c
+EX020,Dumbbell Chest Fly,030812,03081201-Dumbbell-Fly_Chest-FIX2_.mp4,7145dcc2-4733-49be-853c-cf9671bf1685
+EX021,Cable Chest Fly,018812,01881201-Cable-Middle-Fly_Chest-FIX_.mp4,73e59adf-2223-4c34-9b80-f2a593b19939
+EX022,Barbell Bench Press,002512,00251201-Barbell-Bench-Press_Chest-FIX2_.mp4,89f250d7-8ad7-4174-a25b-cf086f5bfa79
+EX023,Dumbbell Bench Press,028912,02891201-Dumbbell-Bench-Press_Chest-FIX_.mp4,5512984c-e3d2-4b7d-93b3-4e76c9aa6dc8
+EX024,Dumbbell Floor Press,366812,36681201-Dumbbell-Lying-on-Floor-Chest-Press_Chest.mp4,33aa6576-baab-45dd-983d-5dd58880dedc
+EX025,Cable Chest Press,335912,33591201-Cable-Standing-Chest-Press_Chest_.mp4,7ba8b6b9-b7b7-446f-8407-ca0485f245a8
+EX026,Incline Barbell Bench Press,004712,00471201-Barbell-Incline-Bench-Press_Chest-FIX2_.mp4,62fddae7-2f88-4fd4-9527-2302b210731b
+EX027,Incline Dumbbell Bench Press,031412,03141201-Dumbbell-Incline-Bench-Press_Chest-FIX2_.mp4,1db9c353-a49d-4e19-899e-d213adb637d6
+EX028,Decline Barbell Bench Press,003312,00331201-Barbell-Decline-Bench-Press_Chest-FIX_.mp4,de88e8a8-3847-4a8a-9831-7f392cd80eb9
+EX029,Decline Dumbbell Bench Press,030112,03011201-Dumbbell-Decline-Bench-Press_Chest-FIX_.mp4,705ec957-9a68-4c04-8ab7-e7d9a66b3a39
+EX030,Close Grip Bench Press,003012,00301201-Barbell-Close-Grip-Bench-Press_Upper-Arms-FIX_.mp4,11eaf796-943c-44a5-a683-222baf875cb8
+EX031,Plank,046312,04631201-Front-Elbow-Plank-(male)_Waist-FIX_.mp4,d465e73b-806f-4710-a3ea-5beb7a78cf37
+EX032,Side Plank,071512,07151201-Side-Plank-(male)_Waist-FIX_.mp4,766ecc2d-b43f-4815-b0dc-5011449262fc
+EX033,Ab Wheel Rollout,777112,77711201-Kneeling-Stay-Forward-Wheel-Rollout-(male)_Waist_.mp4,5143d7a3-9286-4b60-be4e-3bbae017fad1
+EX034,Dead Bug,027612,02761201-Dead-Bug_Waist_.mp4,2484d6fd-bb71-4b08-a79b-5f973f756bc5
+EX035,Cable Crunch,236912,23691201-Cable-Kneeling-Crunch-(female).mp4,27f6db41-69fd-46f0-9590-27ac01a3603c
+EX036,Hanging Knee Raise,212612,21261201-Captains-chair-leg-raise_Hips.mp4,22045d89-936a-45d0-b1b0-bf341f99d286
+EX037,Russian Twist,068712,06871201-Russian-Twist_waist.mp4,e17b5629-5442-497e-b928-af2d991e3bb8
+EX038,Cable Wood Chop,804712,80471201-Cable-Standing-Wood-Chopper-(female)_Waist_.mp4,354de8a8-1b91-4212-8fe1-368b7de11e7b
+EX039,Cable Pallof Press,120212,12021201-Cable-horizontal-Pallof-Press_waist.mp4,bc20c69d-0d2e-479d-a4c8-1cfd253a80b8
+EX040,Dumbbell Farmer's Walk,213312,21331201-Farmers-walk_Cardio-FIX_.mp4,b39a4691-dce5-4f26-b69f-a7822e284878
+EX041,Kettlebell Farmer's Walk,357612,35761201-Kettlebell-Farmers-Carry_Weightlifting_.mp4,34d496b2-1051-448a-a62d-07cc3973b597
+EX042,Dumbbell Suitcase Carry,291012,29101201-Dumbbell-Suitcase-Carry_Thighs_.mp4,0f73a1d8-12f6-4d6c-a6c7-f86f326653c2
+EX043,Barbell Deadlift,003212,00321201-Barbell-Deadlift_Hips-FIX.mp4,7a394e27-9afa-4055-b8e6-3cfd94b37c7c
+EX044,Kettlebell Deadlift,332212,33221201-Kettlebell-deadlift_Hips_.mp4,fd9b8717-aec9-44d5-bfe2-8d5208b94102
+EX045,Barbell Romanian Deadlift,008512,00851201-Barbell-Romanian-Deadlift_Hips-FIX_.mp4,58c59fda-40e3-42d6-9432-ad10f4bafa71
+EX046,Dumbbell Romanian Deadlift,145912,14591201-Dumbbell-Romanian-Deadlift_Hips-FIX_.mp4,2eadcfc2-f827-47bf-ac8e-7000671117da
+EX047,Kettlebell Romanian Deadlift,486112,48611201-Kettlebell-Romanian-Deadlift_Hips_.mp4,098b7e2b-3163-44c2-8855-7ac2a4c466ba
+EX048,Barbell Landmine Romanian Deadlift,424712,42471201-Landmine-Romanian-Deadlift-(VERSION-2)_Hips_.mp4,d0dfbd91-4615-4499-a76a-0a1144e1b372
+EX049,Dips,143012,14301201-Chest-Dip-(on-dip-pull-up-cage)_Chest-FIX_.mp4,3673e07a-2515-4382-ab7e-fdf0068cf95a
+EX050,Assisted Dips,000912,00091201-Assisted-Chest-Dip-(kneeling)_Chest.mp4,c17bc70d-d10e-433e-84e9-3dc66f8190e1
+EX051,Bench Dips,012912,01291201-Bench-Dip-(knees-bent)_Upper-Arms_.mp4,3cdf7c81-7b39-4f35-8b5c-207fbcd78a18
+EX052,Face Pull,774412,77441201-Cable-Standing-Supinated-Face-Pull-(with-rope)_Sho.mp4,601f2df5-12fd-40e5-9d2c-67dbefae6836
+EX053,Seated Hip Abduction,059712,05971201-Lever-Seated-Hip-Abduction_Hips-FIX_.mp4,ae569ff2-fee7-424f-b1da-d5a3667cc19b
+EX054,Cable Hip Abduction,087912,08791201-Cable-Hip-Abduction-(version-2)-(female)_Hips-FIX_.mp4,5200fdb0-f9a8-4d8c-89bd-fd2c2b165d56
+EX055,Copenhagen Plank (bent knee),346012,34601201-Side-Plank-Hip-Adduction-(bent-knee)_Hips_.mp4,eddca871-f055-4d8e-93a6-b29b8d0e2ee0
+EX056,Copenhagen Plank (straight leg),177512,17751201-Side-Plank-Hip-Adduction_Hips.mp4,3e206404-1a52-451c-8046-fbdd42759b16
+EX057,Seated Hip Adduction,059812,05981201-Lever-Seated-Hip-Adduction_Thighs-FIX_.mp4,a51b1179-407e-41db-9ae4-671e10906da6
+EX058,Kettlebell Swing,054912,05491201-Kettlebell-Swing_Hips-FIX2_.mp4,d482fcad-e4a6-42b3-8dfd-0fbe37959db5
+EX059,Cable Pull Through,019612,01961201-Cable-Pull-Through-(with-rope)_Hips_.mp4,0f47fe09-49df-4c16-bab3-16a7d4dcbc6c
+EX060,Barbell Hip Thrust,106012,10601201-Barbell-Hip-Thrust_Hips-FIX_.mp4,3061f38a-7949-4de1-acb5-0bb11f07f6a8
+EX061,Dumbbell Hip Thrust,474212,47421201-Dumbbell-Hip-Thrust_Hips_.mp4,5f8d1b77-53c8-4fa2-bb3f-c426d4159994
+EX062,Glute Bridge Hold,801512,80151201-Glute-Bridge-from-Bench-(male)_Hips_.mp4,2eb166be-2bff-41a2-8461-ae65593b1dea
+EX063,Single Leg Glute Bridge Hold,600012,60001201-Single-Leg-Bridge-with-Outstretched-Leg-(left)-(ma.mp4,25b8bf3d-1ed7-4249-94a8-b6b01af9e3bd
+EX064,Single Leg Glute Bridge,567112,56711201-Bodyweight-Single-Leg-Kas-Glute-Bridge_Hips_.mp4,97514b1c-2aeb-4c7a-8151-40f2bc53b00c
+EX065,Cable Kickback,674212,67421201-Cable-Donkey-Diagonal-Kickback-(female)_Hips_.mp4,d778a32b-867b-4bb4-9319-bed5824c7cdb
+EX066,Glute Kickback,990412,99041201-Lever-Pure-Rear-Kick-(female)_Hips_.mp4,ba62916f-c290-42b3-b802-e980fbf117d6
+EX067,Lying Leg Curl,222312,22231201-Lever-Lying-Leg-Curl-(female)_Thighs.mp4,6b7b726d-0728-437f-9d17-0f4256a875e2
+EX068,Seated Leg Curl,059912,05991201-Lever-Seated-Leg-Curl_Thighs-FIX_.mp4,29413790-5456-4725-b600-02753330113b
+EX069,Lying Leg Curl,1104612,110461201-Lever-Lying-Leg-Curl-(plate-loaded)-(male)_Thighs.mp4,713674ca-7393-4edd-8794-443ff7105d9d
+EX070,Seated Leg Curl,860412,86041201-Lever-Seated-Leg-Curl-(plate-loaded)-(male)_Thighs.mp4,386b730e-c3d7-4bf4-b063-c7b0b0209132
+EX071,Leg Extension,338612,33861201-Lever-Seated-Leg-Extension-(VERSION-2)_Thighs.mp4,fc43b133-8d99-4d19-ab42-65944b57557f
+EX072,Leg Extension,187312,18731201-Lever-Leg-Extension-(Plate-Loaded)_Thighs_.mp4,9457e0c5-8f0c-47f4-8533-07fd2ab498e3
+EX073,Leg Press,338512,33851201-Lever-Seated-Leg-Press-(VERSION-2)_Thighs_.mp4,37ff0eac-f7dc-418c-84e2-d4ae39a29f7c
+EX074,Leg Press,073912,07391201-Sled-45-degrees-Leg-Press_Hips-FIX2_.mp4,016bf619-0751-4584-92dd-5620f536f73a
+EX075,Hack Squat,199212,19921201-Sled-Full-Hack-Squat_Thighs_.mp4,66cd2ff6-715d-43e5-b153-91f6cfb0c953
+EX076,Barbell Walking Lunge,582312,58231201-Barbell-Walking-Lunge_Thighs_.mp4,2ca16e77-e7f0-4f97-8b3e-23c80a6b8147
+EX077,Dumbbell Walking Lunge,155712,15571201-Dumbbell-Walking-Lunges_Thighs_.mp4,7fae7ef3-f87c-464a-a9df-4f01a3307314
+EX078,Kettlebell Walking Lunge,1103012,110301201-Kettlebell-Walking-Lunge-(female)_Thighs_.mp4,c45b35ba-8878-4a4d-9dc2-55d7f71f7c06
+EX079,Dumbbell Reverse Lunge,038112,03811201-Dumbbell-Rear-Lunge_Thighs-FIX_.mp4,ee5f732e-119a-4e3f-a229-932690fd2008
+EX080,Kettlebell Reverse Lunge,357512,35751201-Kettlebell-Backward-Lunge_Thighs-FIX_.mp4,fea97f17-d69e-460b-8eb7-c0165f5643fa
+EX081,Elevated Dumbbell Reverse Lunge,732612,73261201-Dumbbell-Reverse-Lunge-from-Deficit-(male)_Thighs_.mp4,aad5e43b-eb21-4b0a-b49e-1d4d45b7f0c4
+EX082,Elevated Kettlebell Reverse Lunge,1103112,110311201-Kettlebell-Reverse-Lunge-from-Deficit-(male)_Hips.mp4,c0e5bb4b-7ea2-4acb-8b0e-defc5aa5f871
+EX083,Push Up,066212,06621201-Push-up-m_Chest.mp4,35212aa6-eeb0-48fd-8b02-fb3db44fcbb3
+EX084,Incline Push Up,980612,98061201-Incline-Push-up-with-Bench-(male)_Chest_.mp4,ef85db18-2bdd-4cf3-8fc2-70487ee09b6f
+EX085,Decline Push Up,027912,02791201-Decline-Push-Up_Chest-FIX_.mp4,1ca2ad1d-0fd9-4cdb-b8c5-4afb7c1f087e
+EX086,Pike Push Up,742612,74261201-Pike-Push-up-(on-Bench)-(VERSION-2)-(female)_Chest.mp4,62f99198-4d66-4535-a62f-4b74cab66f70
+EX087,Diamond Push Up,269712,26971201-Diamond-Push-up-(female)_Upper-Arms.mp4,712b3919-d696-4e29-9a8d-aac9095be531
+EX088,Rear Delt Fly,022512,02251201-Cable-Standing-Cross-over-High-Reverse-Fly_Shoulders_.mp4,ac30ddd1-fbfc-404e-b7a1-76086c2d6fb9
+EX089,Rear Delt Fly,248712,24871201-Dumbbell-Rear-Delt-Fly-(female)_Shoulders.mp4,81968290-b553-4393-953a-cdf8420cb043
+EX090,Barbell Bent Over Row,002712,00271201-Barbell-Bent-Over-Row_Back_.mp4,935074bb-d82b-4754-a56a-bddc9cb91606
+EX091,Dumbbell Bent Over Row,029312,02931201-Dumbbell-Bent-Over-Row_Back-FIX_.mp4,8a92f060-90f6-4f34-8dd0-9c4d95227e3c
+EX092,Kettlebell Bent Over Row,134512,13451201-Kettlebell-Two-Arm-Row_Back_.mp4,df6cca51-c82c-49ea-8a37-21e5dfe5f892
+EX093,Close Grip Seated Cable Row,086112,08611201-Cable-Seated-Row_Back-FIX_.mp4,203d53cb-d834-4840-b28f-f5fccee9509f
+EX094,Inverted Row,049912,04991201-Inverted-Row_Back-FIX2_.mp4,0ab9774a-27f8-44a0-ab0b-67c4ece7c9c7
+EX095,Single Arm Dumbbell Row,239312,23931201-Dumbbell-One-Arm-Bent-over-Row-(female)_Shoulders.mp4,501dedf7-6ef0-404f-a8a0-4894a09188bc
+EX096,Chest Supported Dumbbell Row,969812,96981201-Dumbbell-Row-with-Chest-Supported_Back_.mp4,7b69b019-a547-4a40-960a-67f8e84af67e
+EX097,T-Bar Row,320012,32001201-Lever-Bent-over-Row-with-V-bar-(plate-loaded)_Back.mp4,16bc9737-4226-4cfd-a9ae-1431c67de3f7
+EX098,Pendlay Row,301712,30171201-Barbell-Pendlay-Row_Back_.mp4,6b4dcbca-0633-4ef0-b6ee-d2755e23c36a
+EX099,Straight Bar Upright Row,024612,02461201-Cable-Upright-Row_Shoulders-FIX2_.mp4,5f095674-84de-4c6c-97d6-7cd94f92de79
+EX100,Dumbbell Upright Row,043712,04371201-Dumbbell-Upright-Row_Shoulders-FIX.mp4,ec9eddd6-b503-4893-9d83-c5e7dcff000c
+EX101,Barbell Overhead Press,532812,53281201-Barbell-Standing-Shoulders-Press_Shoulders_.mp4,07227228-b2fe-477f-a887-53bf6185ab60
+EX102,Seated Dumbbell Overhead Press,040512,04051201-Dumbbell-Seated-Shoulder-Press_Shoulders-FIX2_.mp4,5b3a25c0-a9d4-4633-a0e2-c27f47601014
+EX103,Kettlebell Overhead Press,984312,98431201-Kettlebell-Double-Strict-Press_Shoulders_.mp4,33d0fe4e-5cbd-4ccc-9abc-3baf30703350
+EX104,Landmine Press,507412,50741201-Landmine-Press_Shoulders_.mp4,74100a11-3677-43ec-b0b0-ca4091725e46
+EX105,Seated Arnold Press,213712,21371201-Dumbbell-Arnold-Press_Shoulders.mp4,332f77b8-3dc3-4eb7-a9ae-43b3d67bb058
+EX106,Dumbbell Lateral Raise,033412,03341201-Dumbbell-Lateral-Raise_shoulder-FIX_.mp4,bc21b6ad-9c22-4def-a4d1-446b79097531
+EX107,Cable Lateral Raise,017812,01781201-Cable-Lateral-Raise_shoulder.mp4,24111c4f-340b-4aa7-9bf7-7e067abc75d2
+EX108,Barbell Front Raise,004112,00411201-Barbell-Front-Raise_Shoulders.mp4,fa5475d7-0d6f-4423-a09f-125fb93fff8a
+EX109,Dumbbell Front Raise,031012,03101201-Dumbbell-Front-Raise_Shoulders.mp4,c28a1d66-23a2-4f96-92ea-b5872d824856
+EX110,Dumbbell Shrug,040612,04061201-Dumbbell-Shrug_Back-FIX_.mp4,4720694f-f371-45ed-9bdb-2632630be085
+EX111,Barbell Shrug,009512,00951201-Barbell-Shrug_Back.mp4,ee0ffeeb-ab05-4df4-b507-989b07fd23d5
+EX112,Dumbbell Bulgarian Split Squat,229012,22901201-Dumbbell-Bulgarian-Split-Squat-(female)_Thighs.mp4,12a67022-e4fe-46ec-9573-c4d0e5ceb783
+EX113,Kettlbell Bulgarian Split Squat,612212,61221201-Kettlebell-Single-Leg-Split-Squat_Thighs_.mp4,e939c82d-19f8-475c-9ecb-f51f56b24520
+EX114,Elevated Dumbbell Bulgarian Split Squat,755012,75501201-Dumbell-Bulgarian-Split-Squat-from-Deficit-(male)_.mp4,70d06ce3-c4ed-4a9d-93c1-19950b111528
+EX115,Elevated Kettlbell Bulgarian Split Squat,1106312,110631201-Kettlebell-Bulgarian-Split-Squat-from-Deficit-(ma.mp4,8229cfa1-9f47-44b3-bb26-2a5b1871af4c
+EX116,Barbell Back Squat,004312,00431201-Barbell-Full-Squat_Thighs-FIX_.mp4,794d396a-3f58-40ba-b1ce-4358b92ef8bf
+EX117,Dumbbell Goblet Squat,176012,17601201-Dumbbell-Goblet-Squat_Thighs-FIX_.mp4,cb206645-c891-42e7-b789-373f8c8ec4e2
+EX118,Kettlebell Goblet Squat,053412,05341201-Kettlebell-Goblet-Squat_Thighs-FIX_.mp4,03f864b1-c32a-4f77-89eb-e72e444d1182
+EX119,Elevated Dumbbell Goblet Squat,1106612,110661201-Dumbbell-Elevated-Heel-Goblet-Squat-(VERSION-2)_T.mp4,99648f6c-087e-4d62-95c0-ffb66fe191ad
+EX120,Elevated Kettlebell Goblet Squat,549612,54961201-Kettlebell-Elevated-Heel-Goblet-Squat-(VERSION-2)_.mp4,32ad9865-5c9f-4558-a0cd-8de919a33ff3
+EX121,Barbell Front Squat,004212,00421201-Barbell-Front-Squat_Hips-FIX_.mp4,3fdee683-b41b-449e-95e1-edd832361b8f
+EX122,Kettlebell Front Squat,053312,05331201-Kettlebell-Front-Squat_Thighs_.mp4,235ef777-e706-4602-865d-fc7b73322f48
+EX123,Dumbbell Front Squat,296612,29661201-Dumbbell-Front-Squat_Thighs-FIX_.mp4,80099be1-e60e-4f47-9320-34e05858a012
+EX124,Cable Squat,942312,94231201-Cable-Squat-(male)_Thighs_.mp4,a7421a37-303e-4b0c-8776-4111d03027de
+EX125,Dumbbell Cossack Squat,473212,47321201-Dumbbell-Cossack-Squats-(VERSION-2)-(male)_Thighs_.mp4,2cba696b-e936-432c-9e1c-6ff740014435
+EX126,Kettlebell Cossack Squat,619312,61931201-Kettlebell-Cossack-Squat-(male)_Thighs_.mp4,9fbf63e3-f87a-461e-8bb6-866738000aec
+EX127,Dumbbell Sumo Squat,232212,23221201-Dumbbell-Sumo-Squat-(female)_Thighs_.mp4,f4e4a095-b450-42e9-b2c0-f25c167c859c
+EX128,Kettlebell Sumo Squat,1078812,107881201-Kettlebell-Sumo-Squat-(VERSION-2)-(female)_Hips_.mp4,10230356-172a-4fec-b433-9625ca6b57b7
+EX129,Dumbbell Step-Up,043112,04311201-Dumbbell-Step-up_Hips_.mp4,41bba9cc-b46f-4fe1-a4ba-462b1fd7c65d
+EX130,Kettlebell Step-Up,444012,44401201-Kettlebell-Step-up-(VERSION-2)_Thighs_.mp4,be4e15f6-f47d-4b6c-bac2-f0aa3f9eb7c0
+EX131,Cable Step-Up,100481,100481201-Cable-Step-Up-(male)_Hips_.mp4,cea516fc-60df-47cf-9636-1c73cef71ebd
+EX132,Barbell Skull Crusher,103801,103801201-Barbell-Skull-Crusher-(VERSION-2)_Upper-Arms_.mp4,6f8d1f6d-8b0d-4684-8cd4-e9959abbc25f
+EX133,Dumbbell Skull Crusher,104321,104321201-Dumbbell-Lying-Triceps-Extension-Skull-Crusher-(V.mp4,59c00e75-3540-4eb7-b002-466a8702b468
+EX134,Straight Bar Pushdown,020112,02011201-Cable-Pushdown_Upper-Arms-FIX_.mp4,7a5f8dd1-6e6b-4d73-95e2-4b41a9ff8131
+EX135,Seated Dumbbell Extension,038912,03891201-Dumbbell-Seated-Bench-Extension_Upper-Arms_.mp4,48fbea50-441b-4030-9975-e3ab85f8e65b
+EX136,Pull Up,065212,06521201-Pull-up_Back-FIX3_.mp4,f3843304-756f-4e92-8e5d-95f5d186f3d4
+EX137,Chin Up,132612,13261201-Chin-Up_Back-FIX_.mp4,46141985-a843-4d79-8c87-925a9503d930
+EX138,Assisted Pull Up,252912,25291201-Assisted-Pull-up-(female)_Back_.mp4,5b788a83-b6ab-4c92-9373-7b40c7cb4422
+EX139,Lat Pulldown,015012,01501201-Cable-Bar-Lateral-Pulldown_Back.mp4,af6a6a91-00c5-4710-8f23-304460eaeded
+EX140,Neutral Grip Pull Up,186512,18651201-Hammer-Grip-Pull-up-on-Dip-Cage_Back.mp4,0647319a-0555-4f51-9a8e-80fb448cc445
+EX141,Single Leg Bodyweight Calf Raise,505212,50521201-Single-Leg-Calf-Raise-Off-Step_Calves_.mp4,e107190d-de93-41af-9b09-82372fce9720
+EX142,Smith Machine Calf Raise,116412,11641201-Smith-Calf-Raise-(version-2)_Calves-FIX_.mp4,555dd050-6808-4a61-a229-cc80ce72ca34
+EX143,Barbell Good Morning,004412,00441201-Barbell-Good-Morning_Thighs-FIX_.mp4,364777cf-3f0e-4b0f-8213-da7ddb4d81d9
+EX144,Smith Machine Good Morning,074912,07491201-Smith-Bent-Knee-Good-morning_Hips_.mp4,779424db-96cc-450b-82c0-ae6c7b352e14
+EX145,Elevated Smith Machine Squat,1106712,110671201-Smith-Elevated-Heel-Squat-(VERSION-2)_Thighs_.mp4,50d10dbd-1605-412f-97df-5a42c2a6e447
+EX146,Dumbbell Split Squat,296012,29601201-Dumbbell-Split-Squat_Thighs_.mp4,330d75c1-ee9d-483b-b8ef-99a68aee9ee7
+EX147,Kettlebell Split Squat,405912,40591201-Kettlebell-Split-Squat_Thighs_.mp4,272577b8-f674-475e-b527-6524ad6c2af9
+EX148,Barbell Split Squat,303012,30301201-Barbell-Split-Squat_Thighs_.mp4,4ab74b5a-dbf2-44de-afc0-d79f2ccb4a98
+EX149,Dumbbell Elevated Split Squat,778412,77841201-Dumbbell-Split-Squat-Front-Foot-Elevanted_Thighs_.mp4,beff8006-be65-48c4-a15c-d7bbe85e7de3
+EX150,Kettlebell Elevated Split Squat,1103412,110341201-Kettlebell-Split-Squat-Front-Foot-Elevanted_Thigh.mp4,268f5c0a-8c0d-463e-8661-8ca75d58bc2f
+EX151,Landmine Squat,409012,40901201-Landmine-Sumo-Squat-(male)_Hips_.mp4,c28a7b91-534e-4e8e-992b-58dcdca98ed3
+EX152,Dumbbell Lateral Lunge,344712,34471201-Dumbbell-Side-Lunge-(VERSION 3)-(female)_Thighs-FI.mp4,1d67ebca-279c-4beb-9c27-6025e0c74dd7
+EX153,Kettlebell Lateral Lunge,409812,40981201-Kettlebell-Side-Lunge-(male)_Thighs_.mp4,c4b02dec-c5ac-4ba8-aee4-f3a161c4bf1f
+EX154,Machine Hip Thrust,738412,73841201-Lever-Hip-Thrust-(plate-loaded)-(male)_Hips_.mp4,4994dbd9-75aa-4f99-a90e-9586ea560345
+EX155,Smith Machine Reverse Lunge,582512,58251201-Smith-Rear-Lunge-(version-2)-(male)_Thighs_.mp4,681acc5b-091f-4012-88df-46ebe98365bf
+EX156,Smith Machine Elevated Reverse Lunge,088712,08871201-Smith-rear-lunge-(version-2)-(female)_Thighs_.mp4,a1573656-9751-43bb-9497-2082bbaa2985
+EX157,Lying Reach Over,1103612,110361201-Bodyweight-Lying-Reach-Over-(male)_Waist_.mp4,9bb604f1-af83-430b-8927-85d61b050298
+EX158,Weighted Lying Reach Over,1103512,110351201-Weighted-Plate-Lying-Reach-Over-(male)_Waist_.mp4,7d7b4274-4fbb-4ca6-b37f-a58dfc753026
+EX159,Jack Knife,050712,05071201-Jackknife-Sit-Up_Waist_.mp4,f357c4f5-4844-4a43-bd02-f7af149c3439
+EX160,Weighted Jack Knife,1103712,110371201-Weighted-Plate-Jackknife-Sit-Up_Waist_.mp4,9cf13c89-376f-4db7-8702-513bb5858c98
+EX161,Extended Plank,1036812,103681201-45-degrees-Arms-Plank-(male)_Waist_.mp4,488bb236-2ad5-4fc9-9339-f36ac0286c85
+EX162,Hanging Leg Raise,047212,04721201-Hanging-Leg-Raise_Hips_.mp4,9abffd1d-81db-4a74-8fdc-79d92b0ade69
+EX163,Hanging Knee Raise (Captain's Chair),212612,21261201-Captains-chair-leg-raise_Hips.mp4,22045d89-936a-45d0-b1b0-bf341f99d286
+EX164,Hanging Leg Raise (Captain's Chair),461412,46141201-Captains-Chair-Straight-Leg-Raise-(female)_Waist_.mp4,abaa1e28-20f9-457b-b65c-d9a505368f63
+EX165,Weighted Russian Twist,475012,47501201-Dumbbell-Russian-Twist-with-Legs-Floor-Off_Waist_.mp4,a35bd4fd-85e5-4545-bf21-0ef14a0abd27
+EX166,Decline Sit-Up,028212,02821201-Decline-Sit-up_Hips_.mp4,43cdbca2-0524-4386-af35-01bf3308835c
+EX167,Weighted Decline Sit-Up,473512,47351201-Dumbbell-Decline-Sit-up_Waist_.mp4,5a45f1c6-3364-4ba2-9ccb-fb06af5816d5
+EX168,Cable Hip Adduction,016812,01681201-Cable-Hip-Adduction_Thighs.mp4,cf1b3b9e-fd50-4d00-89e9-0bf792bc860c
+EX169,Machine Chest Press,1067112,106711201-Lever-Stack-Seated-Chest-Press-(male)_Chest_.mp4,4dec52ce-2ed4-4e5d-959a-c2c1751ced5c
+EX170,Machine Chest Press,057612,05761201-Lever-Chest-Press-(plate-loaded)_Chest-FIX_.mp4,ad8e73e9-eca7-4f0b-8709-7c6d0de408e6
+EX171,Machine Pec Deck Fly,103012,10301201-Lever-Pec-Deck-Fly_Chest_.mp4,6aea55d0-a6d2-4329-8a25-8209ec9dc2b6
+EX172,Smith Machine Bench Press,074812,07481201-Smith-Bench-Press_Chest-FIX_.mp4,6e671f07-a1b7-4fe3-9d06-eb6bbb270b4b
+EX173,Deficit Push Up,148612,14861201-Push-up-(With-push-up-handles)_Chest_.mp4,72704cbc-94cc-4071-935a-cc1d8e002a59
+EX174,Machine Shoulder Press,145412,14541201-Lever-Seated-Shoulder-Press_Shoulders-FIX_.mp4,db938913-b47a-405b-aa31-6de610d1e25c
+EX175,Machine Shoulder Press,086912,08691201-Lever-Shoulder-Press-(plate-loaded)-(VERSION-2)_Shoulders_.mp4,118e780b-a349-4752-b825-055574a9f0a1
+EX176,Single Arm Landmine Press,509412,50941201-Landmine-Single-Arm-Press_Shoulders_.mp4,8350e43f-b492-40e4-8642-73fa8c72583c
+EX177,Single Arm Cable Lateral Raise,890112,89011201-Cable-Single-Arm-Lateral-Raise-(VERSION-2)-(male)_.mp4,35fc24ca-469b-474c-b3fd-58b1270fa1af
+EX178,Standing Dumbbell Hammer Press,042712,04271201-Dumbbell-Standing-Palms-In-Press_Shoulders-FIX_.mp4,974a753b-b7c8-4c11-9009-96e7ea300b11
+EX179,Barbell Upright Row,012112,01211201-Barbell-Upright-Row_Shoulders.mp4,fd82d974-f42d-4996-a21c-066a7f941f5f
+EX180,Kettlebell Z-Press,970312,97031201-Kettlebell-Z-Press_Shoulders_.mp4,5ca05bbe-c7c4-4ade-90e4-d7cf91f13a64
+EX181,Chest Supported Machine Row,224612,22461201-Lever-Seated-Row-(female)_Back_.mp4,775d4738-b5cd-4ae4-bfe2-8f1d8eb91f60
+EX182,Chest Supported Machine Row,544712,54471201-Lever-Pronated-Grip-Seated-Row-(plate-loaded)_Back.mp4,165cb899-211d-4cc5-8f04-1ad10264340b
+EX183,Straight Bar Lat Prayer,603612,60361201-Cable-Straight-Arm-Pulldown-(VERSION-2)_Back_.mp4,0fc73299-68fe-44ef-9de3-37b86abfe282
+EX184,Dumbbell Pullover,533012,53301201-Dumbbell-Pullover-(VERSION-2)_Back_.mp4,003009d3-2042-4d56-81dc-5cf294e20fc4
+EX185,Kneeling Single Arm Lat Pulldown,494812,49481201-Cable-Kneeling-One-Arm-Lat-Pulldown_Back_.mp4,89e9d302-7d5b-49e5-b53c-8ff7c0d077d3
+EX186,Smith Machine Bent Over Row,076212,07621201-Smith-Bent-Over-Row-(VERSION-2)_Back_.mp4,83756c26-f4c9-46a1-b177-53d9120d5e3f
+EX187,Kettlebell Gorilla Row,723012,72301201-Kettlebell-Gorilla-Row-(male)_Back_.mp4,5b756c37-610c-440c-9d2d-ec5b3e158f15
+EX188,Banded Pull Up,299712,29971201-Band-Assisted-Pull-Up-(VERSION-3)_Back.mp4,1a34c16d-ade2-45ea-a3b1-f53382a0899b
+EX189,Weighted Pull Up,084112,08411201-Weighted-Pull-Up_Back_.mp4,d4f763a7-0be2-426f-b664-39b8051234b7
+EX190,Seated Dumbbell Curl,167712,16771201-Dumbbell-Seated-Bicep-Curl_Upper-Arms_.mp4,a4333afa-2622-4896-b381-a7afbb549dd1
+EX191,Incline Dumbbell Curl,031712,03171201-Dumbbell-Incline-Curl-II_Upper-Arms.mp4,5c0ede5b-b0b0-4b29-87f6-ca7a2bce3776
+EX192,Concentration Curl,029712,02971201-Dumbbell-Concentration-Curl_Upper-Arms-FIX_.mp4,64631139-a9b0-453c-9e33-c9cbf4a68eef
+EX193,Seated Hammer Curl,167812,16781201-Dumbbell-Seated-Hammer-Curl_Upper-Arms-FIX2_.mp4,8a3908ee-2e49-4167-bed7-147b56239749
+EX194,Reverse Straight Bar Cable Curl,295412,29541201-Cable-Standing-Reverse-Grip-Curl-(Straight-bar)_Fo.mp4,5a83f604-e979-483f-8cb3-076916cf3947
+EX195,Reverse Barbell Curl,011012,01101201-Barbell-Standing-Reverse-Grip-Curl_Forearms_.mp4,01dc371e-3dfd-4ab3-864f-0a9b3b8c12fc
+EX196,Reverse Kettlebell Curl,618612,61861201-Kettlebell-Standing-Reverse-Curl_Forearms_.mp4,40742b63-98db-4edf-b714-2984bfb34ec2
+EX197,Reverse Dumbbell Curl,165412,16541201-Dumbbell-Biceps-Curl-Reverse_Upper-Arms_.mp4,faf600c1-59be-48e8-bc34-08a5bfb32392
+EX198,EZ-Bar Curl,044712,04471201-EZ-Barbell-Curl_Upper-Arms-FIX_.mp4,cedffe42-7a57-44fd-b80a-9d2f9aac4798
+EX199,EZ-Bar Cable Curl,711112,71111201-Cable-Biceps-Curl-(SZ-bar)-(female)_Upper-arms_.mp4,15186c12-6825-47d8-869b-0df03dd5969d
+EX200,EZ-Bar Preacher Curl,640612,64061201-EZ-Barbell-Preacher-Curl_Upper-Arms_.mp4,5303123b-041d-43d0-ba41-478c03d1f5c5
+EX201,Single Arm Dumbbell Preacher Curl,037212,03721201-Dumbbell-Preacher-Curl_Upper-Arms.mp4,ebae86ca-fc6c-4310-ba4c-12906eb84698
+EX202,Dumbbell Preacher Curl,040212,04021201-Dumbbell-Seated-Preacher-Curl_Upper-Arms-FIX_.mp4,44c39e6f-3ca0-4ccb-8de8-35be2735d1c5
+EX203,Machine Preacher Curl,059212,05921201-Lever-Preacher-Curl_Upper-Arms-FIX_.mp4,94605e56-c8e5-46a6-88cc-15dfd4e15989
+EX204,Cable Bayesian Curl,483812,48381201-Cable-Unilateral-Bicep-Curl_Upper-Arms_.mp4,e8c6a4c6-1a4b-4440-90f1-1dbd6573cb20
+EX205,Rope Curl,1064512,106451201-Cable-Standing-Biceps-Curl-(rope-attachment)_Uppe.mp4,82b890e8-a2c3-4a40-965f-afe2df6a6215
+EX206,Close Grip Smith Machine Bench Press,075112,07511201-Smith-Close-Grip-Bench-Press_Upper-Arms_.mp4,ddbec900-832b-4df2-9708-7a3a19b8b9e9
+EX207,Weighted Dips,175512,17551201-Weighted-Tricep-Dips_Upper-Arms_.mp4,1eb9a7f6-8995-4c74-aefd-36153ad18a1a
+EX208,Banded Dips,420512,42051201-Band-Assisted-Dip_Back_.mp4,2b6048c8-6efc-4201-bb70-65a111766447
+EX209,Seated Single Arm Dumbbell Extension,615812,61581201-Dumbbell-Seated-Single-Arm-Overhead-Triceps-Extens.mp4,1acc75c6-95d3-4eb4-aca8-284c8e141b1f
+EX210,Rope Overhead Extension,019412,01941201-Cable-Overhead-Triceps-Extension-(rope-attachment)_Upper-Arms-FIX_.mp4,505f133e-143d-4ac5-a303-9bdff188b0ee
+EX211,EZ-Bar Overhead Extension,1103812,110381201-Cable-Overhead-Tricep-Extension-SZ-Bar-(male)_Upp.mp4,c7d5ca12-770b-4f69-8058-e81445aba47a
+EX212,Straight Bar Overhead Extension,411512,41151201-Cable-Overhead-Tricep-Extension-Straight-Bar-(male.mp4,690a0497-e60d-4b46-91e5-60e88d6c6cf8
+EX213,Rope Pushdown,020012,02001201-Cable-Pushdown-(with-rope-attachment)_Upper-Arms-FIX_.mp4,0e3b854b-874f-449a-afca-41f014fa9219
+EX214,EZ-Bar Pushdown,160512,16051201-Cable-Triceps-Pushdown-(SZ-bar)_Upper-arms.mp4,d253057c-3609-4e5d-a59a-feec8e0e40fa
+EX215,Single Arm Pushdown,503312,50331201-Cable-Single-Arm-Triceps-Pushdown-(rope-attachment.mp4,f31b05e7-68b7-4b1b-8710-d63a9ae4ff3e
+EX216,Straight Bar Overhead Pushdown,1076512,107651201-Cable-Bent-Over-Overhead-Triceps-Extension-Straig.mp4,16b36beb-86e4-4c07-9827-3b0755da2f7c
+EX217,Rope Overhead Pushdown,172212,17221201-Cable-High-Pulley-Overhead-Tricep-Extension_Upper-Arms.mp4,98742137-f2ab-4e6a-9daf-b609999402ca
+EX218,EZ-Bar Overhead Pushdown,1103912,110391201-Cable-High-Pulley-Overhead-Tricep-Extension-SZ-Ba.mp4,7ac2d25b-3cac-4365-b9e7-0d7e5280d58c
+EX219,EZ-Bar Skull Crusher,1038112,103811201-EZ-Bar-Skull-Crusher-(VERSION-2)_Upper-Arms_.mp4,f7c6fca0-1c91-45ac-9276-7214e8f924c0
+EX220,Straight Bar Front Raise,016212,01621201-Cable-Front-Raise_Shoulders-FIX_.mp4,146ffade-a4f0-48b7-82c9-aa8e5b93e8c1
+EX221,Close Grip Lat Pulldown,639212,63921201-Cable-Lateral-Pulldown-with-Mag-Grip_Back_.mp4,bdbb4e0b-feaf-433f-986b-181e68d8d8ed
+EX222,Neutral Grip Lat Pulldown,758312,75831201-Cable-Neutral-Grip-Lat-Pulldown-(male)_Back_.mp4,93c4dd4c-8ef4-40d5-a26b-a76896ad6a42
+EX223,Rope Pull Through,019612,01961201-Cable-Pull-Through-(with-rope)_Hips_.mp4,0f47fe09-49df-4c16-bab3-16a7d4dcbc6c
+EX224,Rope Upright Row,1104012,110401201-Cable-Upright-Row-(rope-attachment)_Shoulders_.mp4,9ae49a56-572e-4220-918f-8c680a5369b6
+EX225,EZ-Bar Upright Row,1104112,110411201-Cable-Upright-Row-(SZ-Bar)_Shoulders_.mp4,de45a85f-9f56-4930-b1ec-c527fdc1ce28
+EX226,Rope Front Raise,737112,73711201-Cable-Front-Raise-(rope-attachment)-(male)_Shoulde.mp4,83c74a95-192d-43b9-a37f-a580663b0ec9
+EX227,Neutral Grip Seated Cable Row,123812,12381201-Cable-Seated-Row-(Bent-Bar)_Back_.mp4,059215a4-b45f-4f67-99ed-fde31cc8381b
+EX228,Wide Grip Seated Cable Row,021812,02181201-Cable-Seated-Wide-grip-Row_Back-FIX_.mp4,e0bedb1f-0c0b-47c4-a889-0add82e1078d
+EX229,Rope Lat Prayer,122912,12291201-Cable-Standing-Lat-Pushdown-(rope-equipment)_Back-.mp4,953bfbd5-b989-40f0-8dc3-e80050b009fd
+EX230,EZ-Bar Lat Prayer,1104312,110431201-Cable-Straight-Arm-Pulldown-(SZ-Bar)_Back_.mp4,6b41d52b-fbc2-496a-94a7-7f16f9b2832a

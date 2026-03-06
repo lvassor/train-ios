@@ -107,7 +107,6 @@ Config.swift
 *.pbxproj
 
 # Database management
-*.csv
 *.xls*
 *.pdf
 *.ppt*

@@ -1,0 +1,120 @@
+Days,Program,Duration,Split,Chest,Back,Shoulder,Quad,Hamstring,Core,Glute,Bicep,Tricep,Forearm,Calf
+1,Full Body,30-45 min,Full Body,1,1,1,1,1,0,0,0,0,0,0
+1,Full Body,45-60 min,Full Body,1,1,1,1,1,1,0,0,0,0,0
+1,Full Body,60-90 min,Full Body,1,1,1,1,1,1,1,0,0,0,0
+2,Upper Lower,20-30 min,Upper,1,1,1,0,0,0,0,0,0,0,0
+2,Upper Lower,20-30 min,Lower,0,0,0,1,1,1,0,0,0,0,0
+2,Upper Lower,30-45 min,Upper,1,2,1,0,0,0,0,0,0,0,0
+2,Upper Lower,30-45 min,Lower,0,0,0,1,1,1,1,0,0,0,0
+2,Full Body,45-60 min,Full Body 1,1,1,0,1,1,1,0,0,0,0,0
+2,Full Body,45-60 min,Full Body 2,0,1,1,1,1,0,1,0,0,0,0
+2,Full Body,60-90 min,Full Body 1,1,1,0,1,1,1,0,0,1,0,0
+2,Full Body,60-90 min,Full Body 2,0,1,1,1,1,0,1,1,0,0,0
+3,Push Pull Legs,20-30 min,Push,1,0,1,0,0,0,0,0,1,0,0
+3,Push Pull Legs,20-30 min,Pull,0,2,0,0,0,0,0,1,0,0,0
+3,Push Pull Legs,20-30 min,Legs,0,0,0,1,1,1,0,0,0,0,0
+3,Push Pull Legs,30-45 min,Push,1,0,2,0,0,0,0,0,1,0,0
+3,Push Pull Legs,30-45 min,Pull,0,2,0,0,0,0,0,2,0,0,0
+3,Push Pull Legs,30-45 min,Legs,0,0,0,1,1,1,1,0,0,0,0
+3,Push Pull Legs,45-60 min,Push,2,0,2,0,0,0,0,0,1,0,0
+3,Push Pull Legs,45-60 min,Pull,0,3,0,0,0,0,0,2,0,0,0
+3,Push Pull Legs,45-60 min,Legs,0,0,0,2,1,1,1,0,0,0,0
+3,Push Pull Legs,60-90 min,Push,2,0,2,0,0,0,0,0,2,0,0
+3,Push Pull Legs,60-90 min,Pull,0,3,0,0,0,0,0,3,0,0,0
+3,Push Pull Legs,60-90 min,Legs,0,0,0,2,2,1,1,0,0,0,0
+3,Full Body,20-30 min,Full Body 1,1,1,0,1,0,0,0,0,0,0,0
+3,Full Body,20-30 min,Full Body 2,0,0,1,0,1,0,1,0,0,0,0
+3,Full Body,20-30 min,Full Body 3,0,1,0,0,0,1,0,1,1,0,0
+3,Full Body,30-45 min,Full Body 1,1,1,0,1,1,0,0,0,0,0,0
+3,Full Body,30-45 min,Full Body 2,0,1,1,0,1,0,1,0,0,0,0
+3,Full Body,30-45 min,Full Body 3,1,0,0,1,0,1,0,1,1,0,0
+3,Full Body,45-60 min,Full Body 1,1,1,0,1,1,1,0,0,0,0,0
+3,Full Body,45-60 min,Full Body 2,0,1,1,0,1,0,1,1,0,0,0
+3,Full Body,45-60 min,Full Body 3,1,0,1,1,0,1,0,0,1,0,0
+3,Full Body,60-90 min,Full Body 1,1,1,1,1,1,1,0,0,0,0,0
+3,Full Body,60-90 min,Full Body 2,1,1,1,0,1,0,1,1,0,0,0
+3,Full Body,60-90 min,Full Body 3,0,1,1,1,0,1,1,0,1,0,0
+3,2 Upper 1 Lower,20-30 min,Upper 1,1,1,0,0,0,0,0,0,1,0,0
+3,2 Upper 1 Lower,20-30 min,Upper 2,0,1,1,0,0,0,0,1,0,0,0
+3,2 Upper 1 Lower,20-30 min,Lower,0,0,0,1,1,1,0,0,0,0,0
+3,2 Upper 1 Lower,30-45 min,Upper 1,1,1,1,0,0,0,0,1,0,0,0
+3,2 Upper 1 Lower,30-45 min,Upper 2,1,1,1,0,0,0,0,0,1,0,0
+3,2 Upper 1 Lower,30-45 min,Lower,0,0,0,1,1,1,1,0,0,0,0
+3,2 Upper 1 Lower,45-60 min,Upper 1,1,2,1,0,0,0,0,1,0,0,0
+3,2 Upper 1 Lower,45-60 min,Upper 2,2,1,1,0,0,0,0,0,1,0,0
+3,2 Upper 1 Lower,45-60 min,Lower,0,0,0,2,1,1,1,0,0,0,0
+3,2 Upper 1 Lower,60-90 min,Upper 1,1,2,1,0,0,0,0,1,1,0,0
+3,2 Upper 1 Lower,60-90 min,Upper 2,2,1,1,0,0,0,0,1,1,0,0
+3,2 Upper 1 Lower,60-90 min,Lower,0,0,0,2,2,1,1,0,0,0,0
+3,1 Upper 2 Lower,20-30 min,Upper,1,1,1,0,0,0,0,0,0,0,0
+3,1 Upper 2 Lower,20-30 min,Lower 1,0,0,0,1,1,1,0,0,0,0,0
+3,1 Upper 2 Lower,20-30 min,Lower 2,0,0,0,1,1,0,1,0,0,0,0
+3,1 Upper 2 Lower,30-45 min,Upper,1,1,1,0,0,0,0,1,1,0,0
+3,1 Upper 2 Lower,30-45 min,Lower 1,0,0,0,1,1,1,1,0,0,0,0
+3,1 Upper 2 Lower,30-45 min,Lower 2,0,0,0,1,1,1,1,0,0,0,0
+3,1 Upper 2 Lower,45-60 min,Upper,1,1,1,0,0,0,0,1,1,0,0
+3,1 Upper 2 Lower,45-60 min,Lower 1,0,0,0,2,1,1,1,0,0,0,0
+3,1 Upper 2 Lower,45-60 min,Lower 2,0,0,0,1,2,1,1,0,0,0,0
+3,1 Upper 2 Lower,60-90 min,Upper,1,2,1,0,0,0,0,1,1,0,0
+3,1 Upper 2 Lower,60-90 min,Lower 1,0,0,0,2,1,1,2,0,0,0,0
+3,1 Upper 2 Lower,60-90 min,Lower 2,0,0,0,1,2,2,1,0,0,0,0
+4,Upper Lower,20-30 min,Upper 1,1,1,0,0,0,0,0,0,1,0,0
+4,Upper Lower,20-30 min,Lower 1,0,0,0,1,1,1,0,0,0,0,0
+4,Upper Lower,20-30 min,Upper 2,0,1,1,0,0,0,0,1,0,0,0
+4,Upper Lower,20-30 min,Lower 2,0,0,0,1,1,0,1,0,0,0,0
+4,Upper Lower,30-45 min,Upper 1,1,1,1,0,0,0,0,1,0,0,0
+4,Upper Lower,30-45 min,Lower 1,0,0,0,1,1,1,1,0,0,0,0
+4,Upper Lower,30-45 min,Upper 2,1,1,1,0,0,0,0,0,1,0,0
+4,Upper Lower,30-45 min,Lower 2,0,0,0,1,1,1,1,0,0,0,0
+4,Upper Lower,45-60 min,Upper 1,1,2,1,0,0,0,0,1,0,0,0
+4,Upper Lower,45-60 min,Lower 1,0,0,0,2,1,1,1,0,0,0,0
+4,Upper Lower,45-60 min,Upper 2,2,1,1,0,0,0,0,0,1,0,0
+4,Upper Lower,45-60 min,Lower 2,0,0,0,1,2,1,1,0,0,0,0
+4,Upper Lower,60-90 min,Upper 1,1,2,1,0,0,0,0,1,1,0,0
+4,Upper Lower,60-90 min,Lower 1,0,0,0,2,1,1,2,0,0,0,0
+4,Upper Lower,60-90 min,Upper 2,2,1,1,0,0,0,0,1,1,0,0
+4,Upper Lower,60-90 min,Lower 2,0,0,0,1,2,2,1,0,0,0,0
+5,PPL Upper Lower,20-30 min,Push,1,0,1,0,0,0,0,0,1,0,0
+5,PPL Upper Lower,20-30 min,Pull,0,2,0,0,0,0,0,1,0,0,0
+5,PPL Upper Lower,20-30 min,Legs,0,0,0,1,1,1,0,0,0,0,0
+5,PPL Upper Lower,20-30 min,Upper,1,1,1,0,0,0,0,0,0,0,0
+5,PPL Upper Lower,20-30 min,Lower,0,0,0,1,1,0,1,0,0,0,0
+5,PPL Upper Lower,30-45 min,Push,2,0,1,0,0,0,0,0,1,0,0
+5,PPL Upper Lower,30-45 min,Pull,0,2,0,0,0,0,0,2,0,0,0
+5,PPL Upper Lower,30-45 min,Legs,0,0,0,1,1,1,1,0,0,0,0
+5,PPL Upper Lower,30-45 min,Upper,1,1,2,0,0,0,0,0,0,0,0
+5,PPL Upper Lower,30-45 min,Lower,0,0,0,1,1,1,1,0,0,0,0
+5,PPL Upper Lower,45-60 min,Push,2,0,1,0,0,0,0,0,2,0,0
+5,PPL Upper Lower,45-60 min,Pull,0,3,0,0,0,0,0,2,0,0,0
+5,PPL Upper Lower,45-60 min,Legs,0,0,0,2,1,1,1,0,0,0,0
+5,PPL Upper Lower,45-60 min,Upper,1,1,2,0,0,0,0,0,0,0,0
+5,PPL Upper Lower,45-60 min,Lower,0,0,0,1,2,1,1,0,0,0,0
+5,PPL Upper Lower,60-90 min,Push,2,0,2,0,0,0,0,0,2,0,0
+5,PPL Upper Lower,60-90 min,Pull,0,3,0,0,0,0,0,3,0,0,0
+5,PPL Upper Lower,60-90 min,Legs,0,0,0,2,1,1,2,0,0,0,0
+5,PPL Upper Lower,60-90 min,Upper,1,1,2,0,0,0,0,1,1,0,0
+5,PPL Upper Lower,60-90 min,Lower,0,0,0,1,2,2,1,0,0,0,0
+6,Push Pull Legs x2,20-30 min,Push 1,1,0,1,0,0,0,0,0,1,0,0
+6,Push Pull Legs x2,20-30 min,Pull 1,0,2,0,0,0,0,0,1,0,0,0
+6,Push Pull Legs x2,20-30 min,Legs 1,0,0,0,1,1,1,0,0,0,0,0
+6,Push Pull Legs x2,20-30 min,Push 2,1,0,1,0,0,0,0,0,1,0,0
+6,Push Pull Legs x2,20-30 min,Pull 2,0,2,0,0,0,0,0,1,0,0,0
+6,Push Pull Legs x2,20-30 min,Legs 2,0,0,0,1,1,0,1,0,0,0,0
+6,Push Pull Legs x2,30-45 min,Push 1,1,0,2,0,0,0,0,0,1,0,0
+6,Push Pull Legs x2,30-45 min,Pull 1,0,2,0,0,0,0,0,2,0,0,0
+6,Push Pull Legs x2,30-45 min,Legs 1,0,0,0,1,1,1,1,0,0,0,0
+6,Push Pull Legs x2,30-45 min,Push 2,2,0,1,0,0,0,0,0,1,0,0
+6,Push Pull Legs x2,30-45 min,Pull 2,0,2,0,0,0,0,0,2,0,0,0
+6,Push Pull Legs x2,30-45 min,Legs 2,0,0,0,1,1,1,1,0,0,0,0
+6,Push Pull Legs x2,45-60 min,Push 1,2,0,2,0,0,0,0,0,1,0,0
+6,Push Pull Legs x2,45-60 min,Pull 1,0,3,0,0,0,0,0,2,0,0,0
+6,Push Pull Legs x2,45-60 min,Legs 1,0,0,0,2,1,1,1,0,0,0,0
+6,Push Pull Legs x2,45-60 min,Push 2,1,0,1,0,0,0,0,0,2,0,0
+6,Push Pull Legs x2,45-60 min,Pull 2,0,3,0,0,0,0,0,2,0,0,0
+6,Push Pull Legs x2,45-60 min,Legs 2,0,0,0,1,2,1,1,0,0,0,0
+6,Push Pull Legs x2,60-90 min,Push 1,2,0,2,0,0,0,0,0,2,0,0
+6,Push Pull Legs x2,60-90 min,Pull 1,0,3,0,0,0,0,0,3,0,0,0
+6,Push Pull Legs x2,60-90 min,Legs 1,0,0,0,2,1,1,2,0,0,0,0
+6,Push Pull Legs x2,60-90 min,Push 2,2,0,2,0,0,0,0,0,2,0,0
+6,Push Pull Legs x2,60-90 min,Pull 2,0,3,0,0,0,0,0,3,0,0,0
+6,Push Pull Legs x2,60-90 min,Legs 2,0,0,0,1,2,2,1,0,0,0,0

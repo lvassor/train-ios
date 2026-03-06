@@ -1,0 +1,921 @@
+exercise_id,display_name,instructions
+EX001,Dumbbell Back Extension,"Step 1: Set up at the back extension station (45-degree or horizontal).
+Step 2: Let your torso hang toward the floor with a flat back.
+Step 3: Raise your torso by squeezing your glutes and hamstrings until your body forms a straight line.
+Step 4: Lower your torso with control back toward the floor, maintaining a flat back."
+EX002,Bodyweight Back Extension,"Step 1: Set up at the back extension station with hips at the edge of the pad.
+Step 2: Let your torso hang toward the floor with a flat back.
+Step 3: Raise your torso by driving your hips into the pad and squeezing your glutes.
+Step 4: Lower back down with control, keeping your back flat throughout."
+EX003,Back Extension Hold,"Step 1: Set up at the back extension station with hips at the edge of the pad.
+Step 2: Raise your torso until your body forms a straight line from head to heels.
+Step 3: Maintain this straight-line position for the prescribed time.
+Step 4: Lower your torso back down with control when the hold is complete."
+EX004,Barbell Curl,"Step 1: Stand holding a barbell with an underhand grip, hands shoulder-width apart.
+Step 2: Stand tall with feet shoulder-width apart, core braced.
+Step 3: Curl the bar up toward your shoulders by bending only at the elbows.
+Step 4: Lower the bar back down with control to full arm extension."
+EX005,Dumbbell Curl,"Step 1: Stand holding a dumbbell in each hand at your sides, palms facing forward.
+Step 2: Feet shoulder-width apart, core braced.
+Step 3: Curl both dumbbells up toward your shoulders, keeping elbows stationary.
+Step 4: Lower the dumbbells back down with control."
+EX006,Dumbbell Hammer Curl,"Step 1: Stand holding a dumbbell in each hand at your sides with palms facing your thighs (neutral grip).
+Step 2: Feet shoulder-width apart, core braced.
+Step 3: Curl both dumbbells up toward your shoulders while keeping your palms facing each other throughout.
+Step 4: Lower the dumbbells back to your sides with control."
+EX007,Cable Curl,"Step 1: Set the cable pulley to the lowest position with a straight bar or EZ bar attachment.
+Step 2: Arms extended toward the low pulley, slight tension on the cable.
+Step 3: Curl the bar up toward your shoulders, keeping your elbows stationary.
+Step 4: Lower the bar back down with control, resisting the cable."
+EX008,EZ-bar Preacher Curl,"Step 1: Sit at the preacher bench and adjust the pad so your armpits rest near the top.
+Step 2: Upper arms pressed flat against the pad throughout.
+Step 3: Curl the weight up toward your shoulders while keeping your upper arms pressed into the pad.
+Step 4: Lower the weight with control back down the pad."
+EX009,Standing Calf Raise,"Step 1: Step onto the standing calf raise machine with your shoulders under the pads.
+Step 2: Stand tall and lift your shoulders into the pads to release the safety.
+Step 3: Push through the balls of your feet to rise as high as possible.
+Step 4: Lower your heels slowly below the platform level, getting a full stretch in your calves."
+EX010,Seated Calf Raise,"Step 1: Sit in the seated calf raise machine with the pad across your lower thighs (not your knees).
+Step 2: Release the safety lever.
+Step 3: Push through the balls of your feet to raise your heels as high as possible.
+Step 4: Lower your heels slowly below platform level for a full stretch."
+EX011,Standing Calf Raise,"Step 1: Step onto the standing calf raise machine with your shoulders under the pads.
+Step 2: Stand tall and lift your shoulders into the pads to release the safety.
+Step 3: Push through the balls of your feet to rise as high as possible.
+Step 4: Lower your heels slowly below the platform level, getting a full stretch in your calves."
+EX012,Seated Calf Raise,"Step 1: Sit in the seated calf raise machine with the pad across your lower thighs (not your knees).
+Step 2: Release the safety lever.
+Step 3: Push through the balls of your feet to raise your heels as high as possible.
+Step 4: Lower your heels slowly below platform level for a full stretch."
+EX013,Standing Dumbbell Calf Raise,"Step 1: Hold a dumbbell in one hand and stand on the edge of a step or platform with the balls of your feet on the edge.
+Step 2: Let your heels drop below the platform for a stretch.
+Step 3: Rise up onto your toes as high as possible, squeezing your calf at the top.
+Step 4: Lower your heels slowly below the platform, getting a full stretch."
+EX014,Standing Kettlebell Calf Raise,"Step 1: Hold a kettlebell in one hand at your side.
+Step 2: Let your heels drop below platform level for a stretch.
+Step 3: Push through the balls of your feet to rise as high as possible.
+Step 4: Lower your heels with control below the platform for a full stretch."
+EX015,Single Leg Dumbbell Calf Raise,"Step 1: Hold a dumbbell in the hand on the same side as your working leg.
+Step 2: Lift your non-working foot off the ground.
+Step 3: Push through the ball of your foot to rise as high as possible on one leg.
+Step 4: Lower your heel slowly below the step for a complete stretch."
+EX016,Single Leg Kettlebell Calf Raise,"Step 1: Hold a kettlebell in one hand on the same side as your working leg.
+Step 2: Lift your non-working foot off the ground.
+Step 3: Rise onto your toes as high as possible, squeezing your calf.
+Step 4: Lower with control, dropping your heel below the step."
+EX017,Calf Press,"Step 1: Sit in the leg press machine and place just the balls of your feet on the lower edge of the platform, hip-width apart.
+Step 2: Press the platform up and release the safeties.
+Step 3: Push the platform away by pointing your toes, pressing through the balls of your feet.
+Step 4: Lower the platform by letting your toes come back toward you, stretching your calves."
+EX018,Calf Press,"Step 1: Sit in the leg press machine and place just the balls of your feet on the lower edge of the platform, hip-width apart.
+Step 2: Press the platform up and release the safeties.
+Step 3: Push the platform away by pointing your toes, pressing through the balls of your feet.
+Step 4: Lower the platform by letting your toes come back toward you, stretching your calves."
+EX019,Bodyweight Calf Raise,"Step 1: Stand on a flat floor or on the edge of a step with heels hanging off for extra range.
+Step 2: Stand tall, feet hip-width apart.
+Step 3: Rise up onto your toes as high as possible.
+Step 4: Lower your heels back down with control."
+EX020,Dumbbell Chest Fly,"Step 1: Lie on a flat bench holding a dumbbell in each hand.
+Step 2: Arms extended over chest, elbows slightly bent.
+Step 3: Lower the dumbbells out to your sides in a wide arc until you feel a stretch in your chest.
+Step 4: Bring the dumbbells back together over your chest in the same arc, like you're hugging a large tree."
+EX021,Cable Chest Fly,"Step 1: Set both cable pulleys to shoulder height or slightly higher with D-handles.
+Step 2: Arms out to your sides with slight elbow bend.
+Step 3: Bring your hands together in front of your chest in a hugging motion.
+Step 4: Open your arms back out to the sides with control until you feel a stretch."
+EX022,Barbell Bench Press,"Step 1: Lie on the bench with eyes under the bar.
+Step 2: Unrack the bar with arms locked and position it over your chest.
+Step 3: Lower the bar to your mid-chest by bending your elbows at roughly 45 degrees from your body.
+Step 4: Press the bar up by driving it toward the ceiling."
+EX023,Dumbbell Bench Press,"Step 1: Sit on the bench with dumbbells on your thighs.
+Step 2: Lie with feet flat on floor, shoulder blades squeezed together.
+Step 3: Lower the dumbbells to the sides of your chest, elbows at roughly 45 degrees from your body.
+Step 4: Press the dumbbells up, bringing them slightly together at the top."
+EX024,Dumbbell Floor Press,"Step 1: Lie on the floor with knees bent and feet flat.
+Step 2: Back flat against the floor, shoulder blades squeezed together.
+Step 3: Lower the dumbbells until your upper arms touch the floor.
+Step 4: Press the dumbbells up, bringing them together over your chest."
+EX025,Cable Chest Press,"Step 1: Set the cable pulleys to chest height with handles attached.
+Step 2: Handles at chest level, elbows bent and back.
+Step 3: Press the handles forward and together in front of your chest.
+Step 4: Let your hands come back to the starting position with control, feeling a stretch across your chest."
+EX026,Incline Barbell Bench Press,"Step 1: Set the bench to 30-45 degrees.
+Step 2: Unrack with arms locked and position the bar over your upper chest/collarbone area.
+Step 3: Lower the bar to your upper chest, just below your collarbone.
+Step 4: Press the bar toward the ceiling, driving yourself into the bench."
+EX027,Incline Dumbbell Bench Press,"Step 1: Set the bench to 30-45 degrees.
+Step 2: Feet flat on floor, shoulder blades squeezed.
+Step 3: Lower the dumbbells to the sides of your upper chest, elbows at about 45 degrees.
+Step 4: Press the dumbbells up and slightly together over your upper chest."
+EX028,Decline Barbell Bench Press,"Step 1: Set the bench to a decline angle.
+Step 2: Unrack the bar with arms locked.
+Step 3: Lower the bar to your lower chest/upper stomach area.
+Step 4: Press the bar toward the ceiling, driving yourself into the bench."
+EX029,Decline Dumbbell Bench Press,"Step 1: Set the bench to decline and secure your legs under the pads.
+Step 2: Shoulder blades squeezed, dumbbells over your lower chest.
+Step 3: Lower the dumbbells to the sides of your lower chest, elbows at about 45 degrees.
+Step 4: Press the dumbbells up and slightly together over your lower chest."
+EX030,Close Grip Bench Press,"Step 1: Lie on a flat bench with eyes under the bar.
+Step 2: Unrack and position the bar over your chest.
+Step 3: Lower the bar to your lower chest, keeping elbows tucked at about 30 degrees from your body.
+Step 4: Press the bar straight up, driving yourself into the bench."
+EX031,Plank,"Step 1: Place your forearms on the floor with elbows directly under your shoulders.
+Step 2: Forearms parallel, fists together or palms down.
+Step 3: Hold this position for the prescribed time.
+Step 4: Lower your knees to the floor to rest when complete."
+EX032,Side Plank,"Step 1: Lie on your side with your forearm on the floor, elbow directly under your shoulder.
+Step 2: Lift your hips off the floor so your body forms a straight line from head to feet.
+Step 3: Hold this position for the prescribed time.
+Step 4: Lower your hips to the floor to rest, then switch to the other side."
+EX033,Ab Wheel Rollout,"Step 1: Kneel on the floor with an ab wheel in front of you.
+Step 2: Arms straight, wheel under shoulders.
+Step 3: Roll the wheel forward by extending your arms, keeping your core tight.
+Step 4: Pull the wheel back toward your knees by squeezing your abs and pulling your arms back."
+EX034,Dead Bug,"Step 1: Lie on your back with arms extended toward the ceiling and knees bent at 90 degrees (tabletop position).
+Step 2: Arms pointing up, knees over hips, shins parallel to floor.
+Step 3: Slowly extend one arm overhead and the opposite leg out straight, keeping your lower back pressed into the floor.
+Step 4: Return your arm and leg to the starting position, then repeat on the opposite side."
+EX035,Cable Crunch,"Step 1: Attach a rope to a high cable pulley.
+Step 2: Kneel upright with rope held at the back of your head.
+Step 3: Crunch down by curling your spine and bringing your elbows toward your knees.
+Step 4: Uncurl your spine to return to upright, feeling a stretch in your abs."
+EX036,Hanging Knee Raise,"Step 1: Hang from a pull-up bar with hands shoulder-width apart, arms fully extended.
+Step 2: Dead hang with legs straight down.
+Step 3: Raise your legs in front of you by flexing at the hips.
+Step 4: Lower your legs back down with control."
+EX037,Russian Twist,"Step 1: Sit on the floor with knees bent and feet flat (or elevated for more challenge).
+Step 2: Feet grounded or hovering, torso leaned back with flat back.
+Step 3: Rotate your torso to one side, bringing the weight toward the floor beside your hip.
+Step 4: Rotate to the other side, moving the weight across your body."
+EX038,Cable Wood Chop,"Step 1: Set the cable pulley to high position with a handle.
+Step 2: Feet shoulder-width apart, standing perpendicular to the cable.
+Step 3: Pull the handle diagonally across your body from high to low, rotating your torso.
+Step 4: Return the handle to the starting position with control, resisting the cable."
+EX039,Pallof Press,"Step 1: Set a cable pulley to chest height with a D-handle.
+Step 2: Handle at your chest, feet shoulder-width apart, perpendicular to the cable.
+Step 3: Press the handle straight out in front of your chest, extending your arms.
+Step 4: Bring the handle back to your chest with control."
+EX040,Dumbbell Farmer's Walk,"Step 1: Pick up a heavy dumbbell in each hand using a deadlift motion.
+Step 2: Arms straight, shoulders back and down.
+Step 3: Walk forward with controlled, steady steps.
+Step 4: Walk for the prescribed distance or time, then carefully lower the weights by hinging at your hips."
+EX041,Kettlebell Farmer's Walk,"Step 1: Pick up a kettlebell in each hand using proper deadlift form.
+Step 2: Arms straight, shoulders pulled back.
+Step 3: Walk forward with controlled steps, keeping your torso upright.
+Step 4: Walk for the prescribed distance or time, then lower the kettlebells by hinging at your hips."
+EX042,Dumbbell Suitcase Carry,"Step 1: Pick up a single heavy dumbbell or kettlebell in one hand using a deadlift motion.
+Step 2: Weight in one hand only, arm straight.
+Step 3: Walk forward with controlled steps, keeping your torso upright and resisting the sideways pull.
+Step 4: Walk for the prescribed distance or time, then switch hands and repeat."
+EX043,Barbell Deadlift,"Step 1: Load the barbell and position it over your mid-foot.
+Step 2: Hinge at your hips and grip the bar just outside your legs.
+Step 3: Drive the floor away while keeping the bar tight to your body.
+Step 4: Push your hips back and hinge forward, keeping the bar close to your legs."
+EX044,Kettlebell Deadlift,"Step 1: Place the kettlebell on the floor between your feet.
+Step 2: Hinge at your hips and grip the kettlebell handle with both hands.
+Step 3: Drive the floor away and stand tall, keeping the kettlebell close to your body.
+Step 4: Push your hips back and hinge forward, lowering the kettlebell back between your feet."
+EX045,Barbell Romanian Deadlift,"Step 1: Set up in a squat rack with the bar at hip height, or deadlift it from the floor.
+Step 2: Feet hip-width apart, slight bend in your knees that stays constant.
+Step 3: Push your hips straight back like you're closing a car door behind you.
+Step 4: Drive your hips forward to stand tall, squeezing the bar against your legs on the way up."
+EX046,Dumbbell Romanian Deadlift,"Step 1: Hold a dumbbell in each hand in front of your thighs, palms facing you.
+Step 2: Slight bend in your knees that stays fixed.
+Step 3: Push your hips straight back, sliding the dumbbells down the front of your thighs.
+Step 4: Drive your hips forward to stand tall, keeping the dumbbells close to your legs."
+EX047,Kettlebell Romanian Deadlift,"Step 1: Hold a kettlebell in each hand in front of your thighs, or a single kettlebell with both hands.
+Step 2: Slight bend in your knees that stays constant.
+Step 3: Push your hips straight back, letting the kettlebells travel down your thighs.
+Step 4: Drive your hips forward to stand tall."
+EX048,Barbell Landmine Romanian Deadlift,"Step 1: Secure one end of a barbell in a landmine attachment or corner.
+Step 2: Stand with feet hip-width apart, slight knee bend.
+Step 3: Push your hips back and hinge forward, letting the bar lower toward the floor.
+Step 4: Drive your hips forward to stand tall, raising the bar back to hip height."
+EX049,Dips,"Step 1: Grip the dip bars and jump or press yourself up to straight arms.
+Step 2: Arms locked, shoulders down (not shrugged).
+Step 3: Lower yourself by bending your elbows until your upper arms are parallel to the floor or shoulders drop slightly below elbows.
+Step 4: Press yourself back up to straight arms."
+EX050,Assisted Dips,"Step 1: Set the assisted dip machine with your desired weight.
+Step 2: Arms locked, shoulders down.
+Step 3: Lower yourself until upper arms are parallel to the floor, bending at the elbows.
+Step 4: Press back up to straight arms."
+EX051,Bench Dips,"Step 1: Sit on a bench and place your hands on the edge beside your hips.
+Step 2: Arms straight, supporting your body.
+Step 3: Lower your body by bending your elbows until your upper arms are roughly parallel to the floor.
+Step 4: Press back up by extending your arms."
+EX052,Face Pull,"Step 1: Set a cable pulley to upper chest or face height with a rope attachment.
+Step 2: Arms extended toward the pulley, tension on the cable.
+Step 3: Pull the rope toward your face, separating the ends as you pull.
+Step 4: Extend your arms back toward the pulley with control."
+EX053,Seated Hip Abduction,"Step 1: Sit in the hip abduction machine with your back against the pad.
+Step 2: Feet on the footrests, knees behind the pads.
+Step 3: Push your knees apart against the pads, spreading them as wide as possible.
+Step 4: Bring your knees back together with control, resisting the weight."
+EX054,Cable Hip Abduction,"Step 1: Set the cable to the lowest position with an ankle strap.
+Step 2: Stand tall on the leg closest to the machine.
+Step 3: Kick your working leg straight out to the side, away from the machine.
+Step 4: Lower your leg back to the starting position with control."
+EX055,Copenhagen Plank (bent knee),"Step 1: Lie on your side with your top leg's inside knee on a bench.
+Step 2: Your elbow stays stacked under your shoulder.
+Step 3: Lift your hips off the ground by pressing your top knee into the bench and engaging your core and inner thigh.
+Step 4: Lower your hips back to the floor with control."
+EX056,Copenhagen Plank (straight leg),"Step 1: Lie on your side with your top leg's inside ankle or lower shin on a bench.
+Step 2: Top leg is straight, pressing into the bench.
+Step 3: Lift your hips by pressing your top leg into the bench and bracing your core.
+Step 4: Lower your hips with control."
+EX057,Seated Hip Adduction,"Step 1: Sit in the hip adduction machine with your back against the pad.
+Step 2: Feet on the footrests, knees outside the pads.
+Step 3: Squeeze your knees together against the pads, bringing your thighs as close as possible.
+Step 4: Let your knees spread apart with control, resisting the weight."
+EX058,Kettlebell Swing,"Step 1: Place the kettlebell about a foot in front of you on the floor.
+Step 2: Hinge at your hips and grab the handle with both hands.
+Step 3: Hike the kettlebell back between your legs, then explosively drive your hips forward to swing it up to chest height.
+Step 4: Let the kettlebell swing back down, hinging at your hips as it passes through."
+EX059,Cable Pull Through,"Step 1: Set the cable pulley to the lowest position with a rope attachment.
+Step 2: Stand with feet shoulder-width apart, holding the rope between your legs.
+Step 3: Drive your hips forward explosively, standing tall.
+Step 4: Hinge your hips back, letting the cable pull your hands back through your legs."
+EX060,Barbell Hip Thrust,"Step 1: Position a bench against a wall or secure it so it won't slide.
+Step 2: Plant your feet flat on the floor about hip-width apart, roughly a shin-length from your glutes.
+Step 3: Drive through your heels and squeeze your glutes to lift your hips toward the ceiling.
+Step 4: Lower your hips back down with control, keeping tension in your glutes."
+EX061,Dumbbell Hip Thrust,"Step 1: Position a bench against a wall.
+Step 2: Feet flat on the floor about hip-width apart, shin-length from your glutes.
+Step 3: Drive through your heels and squeeze your glutes to lift your hips.
+Step 4: Lower your hips with control, keeping tension in your glutes."
+EX062,Glute Bridge Hold,"Step 1: Lie on your back with knees bent and feet flat on the floor, about hip-width apart.
+Step 2: Arms rest at your sides, palms down.
+Step 3: Drive through your heels and squeeze your glutes to lift your hips toward the ceiling.
+Step 4: Lower your hips back down with control."
+EX063,Single Leg Glute Bridge Hold,"Step 1: Lie on your back with knees bent and feet flat on the floor.
+Step 2: Arms rest at your sides, palms down for stability.
+Step 3: Drive through your grounded heel to lift your hips until your body forms a straight line.
+Step 4: Lower your hips back down with control when the hold is complete."
+EX064,Single Leg Glute Bridge,"Step 1: Lie on your back with knees bent and feet flat.
+Step 2: Working foot flat on the floor, arms at your sides for stability.
+Step 3: Drive through your grounded heel and squeeze your glute to lift your hips.
+Step 4: Lower your hips with control, lightly touching the floor before the next rep."
+EX065,Cable Kickback,"Step 1: Set the cable pulley to the lowest position.
+Step 2: Stand on your free leg with a slight bend in the knee.
+Step 3: Keeping your leg straight or with a slight bend, kick your foot straight back behind you.
+Step 4: Return your leg to the starting position with control, resisting the cable on the way forward."
+EX066,Glute Kickback,"Step 1: Kneel on the glute kickback machine pad with one leg.
+Step 2: The working leg starts bent with the plate near your glute.
+Step 3: Press the plate back and up by extending your hip, squeezing your glute hard at the top.
+Step 4: Lower the plate back to the starting position with control."
+EX067,Lying Leg Curl,"Step 1: Lie face down on the leg curl machine.
+Step 2: Grip the handles and press your hips firmly into the pad.
+Step 3: Curl your heels toward your glutes by bending your knees.
+Step 4: Lower the weight slowly by straightening your legs."
+EX068,Seated Leg Curl,"Step 1: Sit in the machine with your back against the pad.
+Step 2: Legs start extended in front of you.
+Step 3: Curl your heels under the seat by bending your knees.
+Step 4: Extend your legs back to the starting position with control."
+EX069,Lying Leg Curl,"Step 1: Lie face down on the leg curl machine.
+Step 2: Grip the handles and press your hips firmly into the pad.
+Step 3: Curl your heels toward your glutes by bending your knees.
+Step 4: Lower the weight slowly by straightening your legs."
+EX070,Seated Leg Curl,"Step 1: Sit in the machine with your back against the pad.
+Step 2: Legs start extended in front of you.
+Step 3: Curl your heels under the seat by bending your knees.
+Step 4: Extend your legs back to the starting position with control."
+EX071,Leg Extension,"Step 1: Adjust the seat so your knees align with the machine's pivot point.
+Step 2: Sit with your back flat against the pad and grip the side handles.
+Step 3: Extend your legs by kicking the pad up toward the ceiling.
+Step 4: Lower the weight slowly by bending your knees back to the starting position."
+EX072,Leg Extension,"Step 1: Adjust the seat so your knees align with the machine's pivot point.
+Step 2: Sit with your back flat against the pad and grip the side handles.
+Step 3: Extend your legs by kicking the pad up toward the ceiling.
+Step 4: Lower the weight slowly by bending your knees back to the starting position."
+EX073,Leg Press,"Step 1: Sit in the leg press machine and place your feet shoulder-width apart on the platform, positioned in the middle of the footplate.
+Step 2: Press the platform to release the safety handles, then unlock and move them aside.
+Step 3: Lower the platform by bending your knees, bringing them toward your chest.
+Step 4: Push the platform away by driving through your whole foot."
+EX074,Leg Press,"Step 1: Sit in the leg press machine and place your feet shoulder-width apart on the platform, positioned in the middle of the footplate.
+Step 2: Press the platform to release the safety handles, then unlock and move them aside.
+Step 3: Lower the platform by bending your knees, bringing them toward your chest.
+Step 4: Push the platform away by driving through your whole foot."
+EX075,Hack Squat,"Step 1: Position yourself in the hack squat machine with your back flat against the pad and shoulders under the shoulder pads.
+Step 2: Release the safety handles and extend your legs to support the weight.
+Step 3: Lower the weight by bending your knees, keeping your back flat against the pad.
+Step 4: Drive through your feet to push the platform away."
+EX076,Barbell Walking Lunge,"Step 1: Set up in a squat rack with the bar across your upper traps, gripping slightly wider than shoulder-width.
+Step 2: Stand tall with feet together, bar secure on your back.
+Step 3: Take a large step forward and lower your back knee toward the floor.
+Step 4: Continue walking forward, alternating legs with each step."
+EX077,Dumbbell Walking Lunge,"Step 1: Hold a dumbbell in each hand at your sides with arms straight.
+Step 2: Feet together, chest tall, core braced.
+Step 3: Step forward into a lunge, lowering your back knee toward the floor.
+Step 4: Continue alternating legs as you walk forward."
+EX078,Kettlebell Walking Lunge,"Step 1: Hold a kettlebell in each hand at your sides, or hold one kettlebell in the goblet position at your chest.
+Step 2: Feet together, stand tall with core braced.
+Step 3: Step forward and lower your back knee toward the floor.
+Step 4: Continue walking forward, alternating legs."
+EX079,Dumbbell Reverse Lunge,"Step 1: Stand tall holding a dumbbell in each hand at your sides.
+Step 2: Eyes forward, chest proud.
+Step 3: Step one foot back and lower your back knee toward the floor.
+Step 4: Drive through your front foot to stand and bring your back foot to meet the front."
+EX080,Kettlebell Reverse Lunge,"Step 1: Stand tall holding a kettlebell in each hand at your sides, or one kettlebell in the goblet position.
+Step 2: Core braced, chest up, eyes forward.
+Step 3: Step one foot back and lower your back knee toward the floor.
+Step 4: Push through your front foot to return to standing."
+EX081,Elevated Dumbbell Reverse Lunge,"Step 1: Stand on a low platform or step (4-6 inches) holding dumbbells at your sides.
+Step 2: Feet together on the platform, core braced, chest tall.
+Step 3: Step one foot back off the platform and lower until your back knee nearly touches the floor.
+Step 4: Drive through your front foot to return to standing on the platform."
+EX082,Elevated Kettlebell Reverse Lunge,"Step 1: Stand on a low platform holding kettlebells at your sides or one kettlebell at your chest.
+Step 2: Feet together on the platform, chest tall, core braced.
+Step 3: Step one foot back off the platform and lower your back knee toward the floor.
+Step 4: Push through your front foot to return to the platform."
+EX083,Push Up,"Step 1: Place your hands on the floor slightly wider than shoulder-width.
+Step 2: Arms straight, core braced, glutes squeezed.
+Step 3: Lower your chest toward the floor by bending your elbows at about 45 degrees from your body.
+Step 4: Push the floor away to return to the start."
+EX084,Incline Push Up,"Step 1: Place your hands on an elevated surface (bench, box, bar) slightly wider than shoulder-width.
+Step 2: Arms straight, body rigid from head to heels.
+Step 3: Lower your chest toward the elevated surface by bending your elbows at about 45 degrees.
+Step 4: Push yourself away from the surface, keeping your body straight."
+EX085,Decline Push Up,"Step 1: Place your feet on an elevated surface (bench, box, step) and hands on the floor shoulder-width apart.
+Step 2: Arms straight, core braced, body rigid from head to heels.
+Step 3: Lower your chest toward the floor by bending your elbows at about 45 degrees.
+Step 4: Push the floor away to rise back up, keeping your body straight throughout."
+EX086,Pike Push Up,"Step 1: Start in a push-up position, then walk your hands back and push your hips up high.
+Step 2: Head between your arms looking at your feet.
+Step 3: Bend your elbows to lower the top of your head toward the floor between your hands.
+Step 4: Push back up to the starting V position."
+EX087,Diamond Push Up,"Step 1: Start in a push-up position with your hands close together, forming a diamond shape with your index fingers and thumbs touching.
+Step 2: Arms extended, hands under your chest in the diamond shape.
+Step 3: Lower your chest toward your hands by bending your elbows, which will flare slightly.
+Step 4: Push the floor away to return to start."
+EX088,Rear Delt Fly,"Step 1: Hold a dumbbell in each hand.
+Step 2: Slight bend in knees, back flat, core braced.
+Step 3: Raise the dumbbells out to your sides by squeezing your rear shoulders together.
+Step 4: Lower the dumbbells back down with control."
+EX089,Rear Delt Fly,"Step 1: Hold a dumbbell in each hand.
+Step 2: Slight bend in knees, back flat, core braced.
+Step 3: Raise the dumbbells out to your sides by squeezing your rear shoulders together.
+Step 4: Lower the dumbbells back down with control."
+EX090,Barbell Bent Over Row,"Step 1: Hold a barbell with hands slightly wider than shoulder-width.
+Step 2: Bar hangs at arm's length below your shoulders.
+Step 3: Pull the bar toward your lower ribcage by driving your elbows back.
+Step 4: Lower the bar with control back to arm's length."
+EX091,Dumbbell Bent Over Row,"Step 1: Hold a dumbbell in each hand.
+Step 2: Palms face each other, slight knee bend, back flat.
+Step 3: Row both dumbbells to your lower ribs by driving your elbows back and squeezing your shoulder blades together.
+Step 4: Lower the dumbbells back to arm's length with control."
+EX092,Kettlebell Bent Over Row,"Step 1: Hold a kettlebell in each hand.
+Step 2: Back flat, knees slightly bent, core braced.
+Step 3: Row the kettlebells to your lower ribs by driving your elbows back.
+Step 4: Lower the kettlebells with control back to arm's length."
+EX093,Seated Cable Row,"Step 1: Sit at the cable row station with feet on the footplates, knees slightly bent.
+Step 2: Arms straight, shoulders reaching forward slightly to stretch your lats.
+Step 3: Pull the handle toward your lower ribcage, driving your elbows back.
+Step 4: Extend your arms forward with control, letting your shoulders reach slightly forward for a stretch."
+EX094,Inverted Row,"Step 1: Set a barbell in a rack at about waist height.
+Step 2: Hang below the bar with heels on the floor.
+Step 3: Pull your chest to the bar by squeezing your shoulder blades together and driving your elbows back.
+Step 4: Lower yourself with control until arms are fully extended."
+EX095,Single Arm Dumbbell Row,"Step 1: Place one knee and same-side hand on a flat bench for support.
+Step 2: Back flat and parallel to the floor.
+Step 3: Row the dumbbell to your lower rib/hip area by driving your elbow toward the ceiling.
+Step 4: Lower the dumbbell back to arm's length with control."
+EX096,Chest Supported Dumbbell Row,"Step 1: Lie face down on an incline bench set to about 30-45 degrees.
+Step 2: Chest on pad, chin over the top of the bench.
+Step 3: Row both dumbbells up toward your lower ribs, squeezing your shoulder blades together.
+Step 4: Lower the dumbbells back to arm's length with control."
+EX097,T-Bar Row,"Step 1: Load a T-bar row machine or landmine barbell.
+Step 2: Bent over at about 45 degrees, arms extended, back flat.
+Step 3: Row the bar up toward your chest, driving your elbows back.
+Step 4: Lower the weight with control until arms are extended."
+EX098,Pendlay Row,"Step 1: Stand over a barbell on the floor with feet hip-width apart.
+Step 2: Back flat and parallel to floor, arms hanging straight.
+Step 3: Row the bar explosively from the floor to your lower chest, then lower it back to the floor.
+Step 4: Touch the bar to floor and reset briefly before the next rep."
+EX099,Cable Upright Row,"Step 1: Set the cable pulley to the lowest position with a straight bar.
+Step 2: Arms extended toward the low pulley, bar against your thighs.
+Step 3: Pull the bar up along your body toward your chin, leading with your elbows.
+Step 4: Lower the bar back down with control."
+EX100,Dumbbell Upright Row,"Step 1: Stand holding a dumbbell in each hand in front of your thighs.
+Step 2: Stand tall with feet shoulder-width apart.
+Step 3: Pull the dumbbells up along your body, leading with your elbows.
+Step 4: Lower the dumbbells back to your thighs with control."
+EX101,Barbell Overhead Press,"Step 1: Set the bar in a rack at upper chest height.
+Step 2: Feet shoulder-width apart, bar on front delts and upper chest.
+Step 3: Press the bar straight up, moving your head back slightly to let it pass.
+Step 4: Lower the bar with control back to your front shoulders."
+EX102,Seated Dumbbell Overhead Press,"Step 1: Sit on a bench with back support, or stand with feet shoulder-width apart.
+Step 2: Dumbbells at shoulder level, elbows below and slightly in front of wrists.
+Step 3: Press the dumbbells up and slightly together overhead.
+Step 4: Lower the dumbbells back to shoulder height with control."
+EX103,Kettlebell Overhead Press,"Step 1: Clean a kettlebell to the rack position at your shoulder—bell resting on the outside of your forearm, elbow tucked to your ribs.
+Step 2: Kettlebell secure in the rack, wrist straight.
+Step 3: Press the kettlebell straight up, rotating your palm to face forward at the top.
+Step 4: Lower the kettlebell back to the rack position with control, rotating your palm back to face you."
+EX104,Landmine Press,"Step 1: Secure one end of a barbell in a landmine attachment or corner.
+Step 2: Bar at shoulder level, elbow tucked.
+Step 3: Press the bar up and forward in an arc until your arm is fully extended.
+Step 4: Lower the bar back to shoulder height with control."
+EX105,Seated Arnold Press,"Step 1: Sit on a bench with back support.
+Step 2: Dumbbells at shoulder height, palms toward your face, elbows in front.
+Step 3: Press the dumbbells up while rotating your palms to face forward.
+Step 4: Lower the dumbbells while rotating your palms back toward your face, returning to the starting position."
+EX106,Dumbbell Lateral Raise,"Step 1: Stand with feet shoulder-width apart holding a dumbbell in each hand at your sides.
+Step 2: Slight bend in your elbows that stays constant throughout.
+Step 3: Raise the dumbbells out to your sides until your arms are parallel to the floor.
+Step 4: Lower the dumbbells back to your sides with control."
+EX107,Cable Lateral Raise,"Step 1: Set the cable pulley to the lowest position.
+Step 2: Arm at your side with slight elbow bend.
+Step 3: Raise your arm out to the side until it's parallel to the floor.
+Step 4: Lower your arm back to your side with control, resisting the cable."
+EX108,Barbell Front Raise,"Step 1: Stand holding a barbell with an overhand grip at shoulder width or slightly narrower.
+Step 2: Stand tall, core braced, slight bend in elbows that stays constant.
+Step 3: Raise the bar in front of you until arms are parallel to the floor (shoulder height).
+Step 4: Lower the bar back to your thighs with control."
+EX109,Dumbbell Front Raise,"Step 1: Stand holding a dumbbell in each hand in front of your thighs.
+Step 2: Stand tall, core braced, slight bend in elbows.
+Step 3: Raise one or both dumbbells in front of you to shoulder height.
+Step 4: Lower the dumbbell(s) back to your thighs with control."
+EX110,Dumbbell Shrug,"Step 1: Stand holding a dumbbell in each hand at your sides, arms straight, palms facing your body.
+Step 2: Arms hang naturally, shoulders in neutral position.
+Step 3: Shrug your shoulders straight up toward your ears as high as possible.
+Step 4: Lower your shoulders back down with control to neutral."
+EX111,Barbell Shrug,"Step 1: Stand holding a barbell in front of your thighs with an overhand grip, hands just outside shoulder width.
+Step 2: Stand tall, shoulders in neutral position, core braced.
+Step 3: Shrug your shoulders straight up toward your ears, lifting the bar.
+Step 4: Lower your shoulders back to neutral with control."
+EX112,Dumbbell Bulgarian Split Squat,"Step 1: Position a bench about 2-3 feet behind you.
+Step 2: Place one foot behind you on the bench with laces down.
+Step 3: Lower straight down by bending your front knee, keeping your chest tall.
+Step 4: Drive through your front foot to stand back up."
+EX113,Kettlbell Bulgarian Split Squat,"Step 1: Position a bench about 2-3 feet behind you.
+Step 2: Place one foot behind you on the bench with laces down.
+Step 3: Lower straight down by bending your front knee, keeping your torso upright.
+Step 4: Push through your front foot to rise back up."
+EX114,Elevated Dumbbell Bulgarian Split Squat,"Step 1: Place your front foot on a low platform or plate (2-4 inches).
+Step 2: Place your rear foot on the bench with laces down.
+Step 3: Lower straight down, allowing your front knee to travel forward over your toes.
+Step 4: Drive through your front foot to stand tall."
+EX115,Elevated Kettlbell Bulgarian Split Squat,"Step 1: Place your front foot on a low platform or plate.
+Step 2: Place your rear foot on the bench with laces down.
+Step 3: Lower straight down, letting your front knee travel forward.
+Step 4: Push through your elevated front foot to stand."
+EX116,Barbell Back Squat,"Step 1: Set the bar in the squat rack at armpit height.
+Step 2: Unrack by driving your back into the bar and standing tall.
+Step 3: Push your hips back and spread the floor apart with your feet as you lower.
+Step 4: Drive the floor away through your whole foot, keeping your chest up."
+EX117,Dumbbell Goblet Squat,"Step 1: Hold one dumbbell vertically in front of your chest, cupping the top of the weight with both hands.
+Step 2: Stand with feet shoulder-width apart, toes turned out slightly.
+Step 3: Push your hips back and sit down between your legs, keeping elbows inside your knees.
+Step 4: Drive the floor away and stand tall, keeping the weight tight to your chest."
+EX118,Kettlebell Goblet Squat,"Step 1: Grip the kettlebell by the horns (sides of the handle) with both hands, holding it at chest height.
+Step 2: Stand with feet shoulder-width apart, toes turned out slightly.
+Step 3: Push your hips back and sit down between your legs, letting your elbows track inside your knees.
+Step 4: Push the floor away and stand tall, keeping the kettlebell close to your chest."
+EX119,Dumbbell Goblet Squat (heels elevated),"Step 1: Place a weight plate or slant board on the floor.
+Step 2: Step onto the plate with your heels elevated and toes on the floor.
+Step 3: Sit straight down, keeping your torso upright.
+Step 4: Drive through your feet and stand tall, maintaining balance on the elevated surface."
+EX120,Kettlebell Goblet Squat (heels elevated),"Step 1: Place a weight plate or slant board on the floor.
+Step 2: Step onto the plate with heels elevated, feet shoulder-width apart.
+Step 3: Sit straight down, allowing your knees to travel forward over your toes.
+Step 4: Push through your feet to stand tall, maintaining balance."
+EX121,Barbell Front Squat,"Step 1: Set the bar in the squat rack at collarbone height.
+Step 2: Unrack by driving your elbows up toward the ceiling and standing tall.
+Step 3: Keep your elbows punching forward as you push your hips back and lower down.
+Step 4: Drive the floor away while keeping your elbows high."
+EX122,Kettlebell Front Squat,"Step 1: Clean two kettlebells into the front rack position—bells resting on the outside of your forearms, handles across your palms, elbows tucked tight to your ribs.
+Step 2: Stand with feet shoulder-width apart, toes slightly out.
+Step 3: Push your hips back and squat down, keeping your torso upright and elbows from flaring.
+Step 4: Drive the floor away and stand tall, keeping the kettlebells stable in the rack."
+EX123,Dumbbell Front Squat,"Step 1: Hold two dumbbells at shoulder height with ends resting on your shoulders.
+Step 2: Stand with feet shoulder-width apart, toes slightly out.
+Step 3: Push your hips back and lower down, keeping your torso upright and elbows high.
+Step 4: Drive the floor away and stand tall, maintaining the dumbbell position."
+EX124,Cable Squat,"Step 1: Set the cable pulley to the lowest position and attach a rope or straight bar handle.
+Step 2: Step back until there's tension on the cable.
+Step 3: Push your hips back and squat down while keeping your arms stationary.
+Step 4: Drive through your feet to stand tall."
+EX125,Dumbbell Cossack Squat,"Step 1: Hold a dumbbell in the goblet position at your chest, or let two dumbbells hang at your sides.
+Step 2: Toes turned out slightly, weight distributed evenly.
+Step 3: Shift your weight to one leg and squat down on that side while the other leg stays straight.
+Step 4: Push through the bent leg to return to center, then shift to the other side."
+EX126,Kettlebell Cossack Squat,"Step 1: Hold a kettlebell in the goblet position at your chest, gripping the horns.
+Step 2: Toes turned out slightly, kettlebell tight to your chest.
+Step 3: Shift your weight to one side and squat down on that leg while the other stays straight.
+Step 4: Drive through the bent leg to return to center."
+EX127,Dumbbell Sumo Squat,"Step 1: Hold a dumbbell vertically by one end with both hands, letting it hang at arm's length.
+Step 2: The dumbbell hangs between your legs.
+Step 3: Push your knees out over your toes and lower straight down, keeping your torso upright.
+Step 4: Drive the floor away and stand tall, squeezing your glutes at the top."
+EX128,Kettlebell Sumo Squat,"Step 1: Hold a kettlebell by the handle with both hands, letting it hang at arm's length.
+Step 2: The kettlebell hangs between your legs, arms straight.
+Step 3: Push your knees out and lower straight down, keeping your torso upright.
+Step 4: Push the floor away to stand, keeping your knees out."
+EX129,Dumbbell Step-Up,"Step 1: Stand facing a sturdy box or bench at knee height or slightly below.
+Step 2: Place one foot completely on top of the box.
+Step 3: Drive through the foot on the box to step up, bringing your trailing leg up to meet it.
+Step 4: Step back down with the same leg that came up second."
+EX130,Kettlebell Step-Up,"Step 1: Stand facing a sturdy box or bench at knee height or below.
+Step 2: Place one foot fully on the box.
+Step 3: Drive through the foot on the box to stand up tall.
+Step 4: Step down with control, leading with your trailing leg."
+EX131,Cable Step-Up,"Step 1: Set the cable pulley low and attach a handle.
+Step 2: Place the foot further from the machine on top of the box.
+Step 3: Drive through the foot on the box to step up, using the cable for added resistance.
+Step 4: Step back down with control, maintaining tension on the cable."
+EX132,Barbell Skull Crusher,"Step 1: Lie on a flat bench holding a barbell (or EZ bar) with a narrow grip.
+Step 2: Arms extended over your chest, not over your face.
+Step 3: Lower the bar toward your forehead by bending only at your elbows.
+Step 4: Extend your elbows to press the bar back up to the starting position."
+EX133,Dumbbell Skull Crusher,"Step 1: Lie on a flat bench holding a dumbbell in each hand.
+Step 2: Arms extended, dumbbells over your chest.
+Step 3: Lower the dumbbells toward the sides of your forehead by bending only at your elbows.
+Step 4: Extend your elbows to press the dumbbells back up."
+EX134,Cable Tricep Pushdown,"Step 1: Set the cable pulley to the highest position with a straight bar or rope attachment.
+Step 2: Elbows pinned to your sides and bent at about 90 degrees.
+Step 3: Push the handle down by extending your elbows until arms are straight.
+Step 4: Let the handle rise back up with control until your elbows reach 90 degrees."
+EX135,Overhead Dumbbell Extension,"Step 1: Stand or sit holding one dumbbell with both hands.
+Step 2: Arms fully extended overhead, elbows close to your ears.
+Step 3: Lower the dumbbell behind your head by bending your elbows.
+Step 4: Extend your elbows to press the dumbbell back up overhead."
+EX136,Pull Up,"Step 1: Grip a pull-up bar with hands slightly wider than shoulder-width, palms facing away from you.
+Step 2: Dead hang position, shoulders engaged (not shrugged to your ears), core tight.
+Step 3: Pull yourself up by driving your elbows down toward your hips.
+Step 4: Lower yourself with control until arms are fully extended."
+EX137,Chin Up,"Step 1: Grip a pull-up bar with hands shoulder-width apart, palms facing toward you.
+Step 2: Dead hang with shoulders engaged, core tight.
+Step 3: Pull yourself up by driving your elbows down and back.
+Step 4: Lower yourself with control to a full hang."
+EX138,Assisted Pull Up,"Step 1: Set the assisted pull-up machine with your desired weight.
+Step 2: Hang with arms extended, knees or feet supported.
+Step 3: Pull yourself up by driving your elbows down.
+Step 4: Lower yourself with control to full arm extension."
+EX139,Lat Pulldown,"Step 1: Sit at the lat pulldown machine with thighs secured under the pads.
+Step 2: Arms extended overhead, shoulders stretched.
+Step 3: Pull the bar down to your upper chest by driving your elbows toward your hips.
+Step 4: Let the bar rise with control, fully extending your arms and feeling a stretch in your lats."
+EX140,Neutral Grip Pull Up,"Step 1: Grip parallel handles on a pull-up bar with palms facing each other.
+Step 2: Dead hang with shoulders engaged, core braced.
+Step 3: Pull yourself up by driving your elbows down and back.
+Step 4: Lower yourself with control to full extension."
+EX141,Single Leg Bodyweight Calf Raise,"Step 1: Stand on one foot with the other leg slightly raised behind you or to the side.
+Step 2: Keep your standing leg straight with a slight bend in the knee for balance.
+Step 3: Rise up onto your toes as high as possible, squeezing your calf at the top.
+Step 4: Lower your heel back down with control, maintaining balance on one leg."
+EX142,Smith Machine Calf Raise,"Step 1: Position yourself under the Smith machine bar with the bar across your upper traps.
+Step 2: Place the balls of your feet on a raised platform or weight plates, heels hanging off.
+Step 3: Push through the balls of your feet to rise as high as possible.
+Step 4: Lower your heels slowly below the platform level for a full stretch."
+EX143,Barbell Good Morning,"Step 1: Set up in a squat rack with the bar across your upper traps, gripping slightly wider than shoulder-width.
+Step 2: Stand with feet shoulder-width apart, slight bend in the knees that stays constant.
+Step 3: Push your hips straight back and hinge forward, keeping your back flat and core braced.
+Step 4: Drive your hips forward to return to standing tall, squeezing your glutes at the top."
+EX144,Smith Machine Good Morning,"Step 1: Position yourself under the Smith machine bar with the bar across your upper traps.
+Step 2: Stand with feet shoulder-width apart, slight bend in the knees that stays constant.
+Step 3: Push your hips back and hinge forward, keeping your back flat as the bar travels down.
+Step 4: Drive your hips forward to stand tall, keeping the bar path controlled."
+EX145,Elevated Smith Machine Squat,"Step 1: Position yourself under the Smith machine bar with the bar across your upper traps.
+Step 2: Place your heels on a raised platform or weight plates for increased quad emphasis.
+Step 3: Push your hips back and squat down, keeping your torso upright.
+Step 4: Drive through your feet to stand tall, pressing the bar back up."
+EX146,Dumbbell Split Squat,"Step 1: Stand holding a dumbbell in each hand at your sides with arms straight.
+Step 2: Take a long step forward and plant your front foot firmly.
+Step 3: Lower straight down by bending both knees until your back knee nearly touches the floor.
+Step 4: Drive through your front foot to stand back up to the starting position."
+EX147,Kettlebell Split Squat,"Step 1: Stand holding a kettlebell in each hand at your sides, or one in the goblet position at your chest.
+Step 2: Take a long step forward and plant your front foot firmly.
+Step 3: Lower straight down by bending both knees until your back knee nearly touches the floor.
+Step 4: Push through your front foot to return to standing."
+EX148,Barbell Split Squat,"Step 1: Set up in a squat rack with the bar across your upper traps, gripping slightly wider than shoulder-width.
+Step 2: Step back and position your feet in a split stance, one foot forward and one back.
+Step 3: Lower straight down by bending both knees until your back knee nearly touches the floor.
+Step 4: Drive through your front foot to stand back up, keeping the bar stable."
+EX149,Dumbbell Elevated Split Squat,"Step 1: Stand on a low platform or weight plate holding dumbbells at your sides.
+Step 2: Position your rear foot on the floor behind you in a split stance.
+Step 3: Lower straight down by bending your front knee, allowing it to travel forward over your toes.
+Step 4: Drive through your elevated front foot to stand tall."
+EX150,Kettlebell Elevated Split Squat,"Step 1: Stand on a low platform or weight plate holding kettlebells at your sides or one at your chest.
+Step 2: Position your rear foot on the floor behind you in a split stance.
+Step 3: Lower straight down by bending your front knee, letting it travel forward.
+Step 4: Push through your elevated front foot to return to standing."
+EX151,Landmine Squat,"Step 1: Secure one end of a barbell in a landmine attachment or corner.
+Step 2: Hold the free end of the bar at chest height with both hands.
+Step 3: Push your hips back and squat down, keeping your torso upright and the bar close to your body.
+Step 4: Drive through your feet to stand tall, pressing the bar back up."
+EX152,Dumbbell Lateral Lunge,"Step 1: Stand tall holding a dumbbell in each hand at your sides, feet together.
+Step 2: Take a wide step to one side, keeping your trailing leg straight.
+Step 3: Push your hips back and bend the stepping leg, lowering until your thigh is parallel to the floor.
+Step 4: Drive through your bent leg to push back to the starting position."
+EX153,Kettlebell Lateral Lunge,"Step 1: Stand tall holding kettlebells at your sides or one at your chest in goblet position.
+Step 2: Take a wide step to one side, keeping your trailing leg straight.
+Step 3: Push your hips back and bend the stepping leg, lowering into a deep side lunge.
+Step 4: Push through your bent leg to return to standing."
+EX154,Machine Hip Thrust,"Step 1: Sit in the hip thrust machine with your back against the pad and feet flat on the footplate.
+Step 2: Position the pad across your hips and release the safety if applicable.
+Step 3: Drive through your heels and squeeze your glutes to press the weight up.
+Step 4: Lower the weight with control back to the starting position."
+EX155,Smith Machine Reverse Lunge,"Step 1: Position yourself under the Smith machine bar with the bar across your upper traps.
+Step 2: Stand with feet together in the center of the machine.
+Step 3: Step one foot back and lower your back knee toward the floor, keeping your torso upright.
+Step 4: Drive through your front foot to bring your back leg forward to the starting position."
+EX156,Smith Machine Elevated Reverse Lunge,"Step 1: Position yourself under the Smith machine bar with the bar across your upper traps.
+Step 2: Stand on a low platform or step with feet together.
+Step 3: Step one foot back off the platform and lower until your back knee nearly touches the floor.
+Step 4: Drive through your front foot to return to standing on the platform."
+EX157,Lying Reach Over,"Step 1: Lie on your back with your legs straight and arms extended overhead on the floor.
+Step 2: Keep your lower back pressed into the floor and core engaged.
+Step 3: Simultaneously raise one arm and the opposite leg to meet above your midsection.
+Step 4: Lower back to the starting position with control, then repeat on the opposite side."
+EX158,Weighted Lying Reach Over,"Step 1: Lie on your back holding a dumbbell with both hands, arms extended overhead.
+Step 2: Keep your lower back pressed into the floor and core engaged.
+Step 3: Raise your arms and legs simultaneously, bringing the weight toward your feet.
+Step 4: Lower back to the starting position with control."
+EX159,Jack Knife,"Step 1: Lie on your back with your legs straight and arms extended overhead on the floor.
+Step 2: Keep your core braced and lower back pressed into the floor.
+Step 3: Simultaneously raise your arms and legs to meet above your midsection, forming a V-shape.
+Step 4: Lower your arms and legs back to the floor with control."
+EX160,Weighted Jack Knife,"Step 1: Lie on your back holding a dumbbell or weight plate with both hands, arms extended overhead.
+Step 2: Keep your legs straight and core braced.
+Step 3: Raise your arms and legs simultaneously to meet above your midsection, touching the weight to your feet.
+Step 4: Lower back to the starting position with control."
+EX161,Extended Plank,"Step 1: Start in a plank position, then walk your hands forward past your shoulders.
+Step 2: Keep your core braced, glutes squeezed, and body in a straight line from head to heels.
+Step 3: Hold this extended position for the prescribed time, with hands further out than a standard plank.
+Step 4: Walk your hands back to a standard plank position to rest."
+EX162,Hanging Leg Raise ,"Step 1: Hang from a pull-up bar with hands shoulder-width apart, arms fully extended.
+Step 2: Keep your core tight and avoid swinging.
+Step 3: Raise your legs in front of you by flexing at the hips until they are parallel to the floor or higher.
+Step 4: Lower your legs back down with control to a dead hang."
+EX163,Hanging Knee Raise (Captain's Chair),"Step 1: Position yourself in the captain's chair with your back against the pad and arms on the armrests.
+Step 2: Let your legs hang straight down, core engaged.
+Step 3: Raise your knees toward your chest by flexing at the hips.
+Step 4: Lower your legs back down with control."
+EX164,Hanging Leg Raise (Captain's Chair),"Step 1: Position yourself in the captain's chair with your back against the pad and arms on the armrests.
+Step 2: Let your legs hang straight down, core engaged.
+Step 3: Raise your legs in front of you by flexing at the hips until they are parallel to the floor or higher.
+Step 4: Lower your legs back down with control."
+EX165,Weighted Russian Twist,"Step 1: Sit on the floor with knees bent and feet flat, holding a dumbbell or weight plate at your chest.
+Step 2: Lean your torso back slightly with a flat back, feet hovering or grounded.
+Step 3: Rotate your torso to one side, bringing the weight toward the floor beside your hip.
+Step 4: Rotate to the other side, moving the weight across your body."
+EX166,Decline Sit-Up,"Step 1: Secure your feet under the pads of a decline bench, lying face up with your head at the lower end.
+Step 2: Cross your arms over your chest or place your hands behind your head.
+Step 3: Curl your torso up by contracting your abs, lifting your shoulders toward your hips.
+Step 4: Lower your torso back down with control, stopping just before your back touches the bench."
+EX167,Weighted Decline Sit-Up,"Step 1: Secure your feet under the pads of a decline bench, holding a dumbbell or weight plate at your chest.
+Step 2: Lie back with your head at the lower end of the bench.
+Step 3: Curl your torso up by contracting your abs, keeping the weight tight to your chest.
+Step 4: Lower your torso back down with control."
+EX168,Cable Hip Adduction,"Step 1: Set the cable pulley to the lowest position with an ankle strap attached.
+Step 2: Stand on the leg furthest from the machine, facing perpendicular to the cable.
+Step 3: Pull your working leg across your body toward the machine, squeezing your inner thigh.
+Step 4: Return your leg to the starting position with control, resisting the cable."
+EX169,Machine Chest Press,"Step 1: Adjust the seat height so the handles are at chest level.
+Step 2: Sit with your back flat against the pad and grip the handles.
+Step 3: Press the handles forward until your arms are fully extended.
+Step 4: Return the handles back to the starting position with control."
+EX170,Machine Chest Press,"Step 1: Load the plates and adjust the seat so the handles are at chest level.
+Step 2: Sit with your back flat against the pad and grip the handles.
+Step 3: Press the handles forward until your arms are fully extended.
+Step 4: Return the handles back to the starting position with control."
+EX171,Machine Pec Deck Fly,"Step 1: Adjust the seat height and arm pads so your upper arms are parallel to the floor.
+Step 2: Sit with your back against the pad and forearms on the arm pads.
+Step 3: Squeeze your arms together in front of your chest by contracting your pecs.
+Step 4: Open your arms back to the starting position with control."
+EX172,Smith Machine Bench Press,"Step 1: Lie on the bench under the Smith machine bar with eyes under the bar.
+Step 2: Unrack by rotating the bar and position it over your chest.
+Step 3: Lower the bar to your mid-chest by bending your elbows at roughly 45 degrees from your body.
+Step 4: Press the bar up by driving it toward the ceiling, then rotate to rack."
+EX173,Deficit Push Up,"Step 1: Place your hands on the floor slightly wider than shoulder-width, with your feet elevated on blocks or weight plates.
+Step 2: Arms straight, core braced, glutes squeezed, hands lower than your feet.
+Step 3: Lower your chest past your hands by bending your elbows, getting a deeper stretch.
+Step 4: Push the floor away to return to the start."
+EX174,Machine Shoulder Press,"Step 1: Adjust the seat so the handles are at shoulder height.
+Step 2: Sit with your back against the pad and grip the handles.
+Step 3: Press the handles up until your arms are fully extended overhead.
+Step 4: Lower the handles back to shoulder height with control."
+EX175,Machine Shoulder Press,"Step 1: Load the plates and adjust the seat so the handles are at shoulder height.
+Step 2: Sit with your back against the pad and grip the handles.
+Step 3: Press the handles up until your arms are fully extended overhead.
+Step 4: Lower the handles back to shoulder height with control."
+EX176,Single Arm Landmine Press,"Step 1: Secure one end of a barbell in a landmine attachment or corner.
+Step 2: Stand perpendicular to the barbell, gripping the free end with one hand at shoulder height.
+Step 3: Press the bar up and forward in an arc until your arm is fully extended.
+Step 4: Lower the bar back to shoulder height with control, then switch sides."
+EX177,Single Arm Cable Lateral Raise,"Step 1: Set the cable pulley to the lowest position with a D-handle.
+Step 2: Stand with your side to the machine, arm at your side with slight elbow bend.
+Step 3: Raise your arm out to the side until it's parallel to the floor.
+Step 4: Lower your arm back to your side with control, resisting the cable."
+EX178,Standing Dumbbell Hammer Press,"Step 1: Stand holding a dumbbell in each hand at shoulder height with palms facing each other.
+Step 2: Feet shoulder-width apart, core braced.
+Step 3: Press both dumbbells up overhead, keeping your palms facing each other throughout.
+Step 4: Lower the dumbbells back to shoulder height with control."
+EX179,Barbell Upright Row,"Step 1: Stand holding a barbell with an overhand grip, hands slightly narrower than shoulder-width.
+Step 2: Stand tall, core braced, bar resting against your thighs.
+Step 3: Pull the bar up along your body toward your chin, leading with your elbows.
+Step 4: Lower the bar back to your thighs with control."
+EX180,Kettlebell Z-Press,"Step 1: Sit on the floor with legs extended straight in front of you.
+Step 2: Clean a kettlebell to the rack position at your shoulder, or hold one in each hand.
+Step 3: Press the kettlebell straight up, rotating your palm to face forward at the top.
+Step 4: Lower the kettlebell back to the rack position with control."
+EX181,Chest Supported Machine Row,"Step 1: Adjust the chest pad height so your arms can hang straight down.
+Step 2: Sit or stand with your chest pressed against the pad.
+Step 3: Pull the handles toward your lower ribs, squeezing your shoulder blades together.
+Step 4: Extend your arms back to the starting position with control."
+EX182,Chest Supported Machine Row,"Step 1: Load the plates and adjust the chest pad height so your arms can hang straight down.
+Step 2: Position your chest against the pad.
+Step 3: Pull the handles toward your lower ribs, squeezing your shoulder blades together.
+Step 4: Extend your arms back to the starting position with control."
+EX183,Straight Bar Lat Prayer,"Step 1: Set the cable pulley to a high position with a straight bar attachment.
+Step 2: Kneel facing the cable, gripping the bar with straight arms overhead.
+Step 3: Pull the bar down in an arc toward your thighs, keeping your arms straight and squeezing your lats.
+Step 4: Let the bar rise back up with control, feeling a stretch in your lats."
+EX184,Dumbbell Pullover,"Step 1: Lie on a flat bench holding a dumbbell with both hands, arms extended over your chest.
+Step 2: Keep a slight bend in your elbows throughout the movement.
+Step 3: Lower the dumbbell back over your head in an arc until you feel a stretch in your lats.
+Step 4: Pull the dumbbell back over your chest by squeezing your lats and chest."
+EX185,Kneeling Single Arm Lat Pulldown,"Step 1: Set the cable pulley to a high position with a D-handle attachment.
+Step 2: Kneel facing the cable, gripping the handle with one arm extended overhead.
+Step 3: Pull the handle down toward your hip, driving your elbow down and back.
+Step 4: Let your arm extend back up with control, then switch sides."
+EX186,Smith Machine Bent Over Row,"Step 1: Position yourself under the Smith machine bar, hinged forward at about 45 degrees.
+Step 2: Grip the bar with hands slightly wider than shoulder-width, letting it hang at arm's length.
+Step 3: Pull the bar toward your lower ribcage by driving your elbows back.
+Step 4: Lower the bar with control back to arm's length."
+EX187,Kettlebell Gorilla Row,"Step 1: Place two kettlebells on the floor between your feet, shoulder-width apart.
+Step 2: Hinge at your hips with a flat back, gripping both kettlebell handles.
+Step 3: Row one kettlebell to your hip while keeping the other on the ground, then switch.
+Step 4: Alternate sides, maintaining your hinged position throughout."
+EX188,Banded Pull Up,"Step 1: Loop a resistance band over a pull-up bar and step one or both feet into the band.
+Step 2: Grip the bar with hands slightly wider than shoulder-width, palms facing away.
+Step 3: Pull yourself up by driving your elbows down, using the band for assistance.
+Step 4: Lower yourself with control until arms are fully extended."
+EX189,Weighted Pull Up,"Step 1: Attach a weight belt with plates around your waist, or hold a dumbbell between your feet.
+Step 2: Grip the bar with hands slightly wider than shoulder-width, hanging with added weight.
+Step 3: Pull yourself up by driving your elbows down toward your hips.
+Step 4: Lower yourself with control until arms are fully extended."
+EX190,Seated Dumbbell Curl,"Step 1: Sit on a bench with your feet flat on the floor, holding a dumbbell in each hand at your sides.
+Step 2: Palms facing forward, arms hanging straight down.
+Step 3: Curl both dumbbells up toward your shoulders, keeping your elbows stationary.
+Step 4: Lower the dumbbells back down with control."
+EX191,Incline Dumbbell Curl,"Step 1: Set an adjustable bench to 45-60 degrees and sit back against it.
+Step 2: Let your arms hang straight down at your sides, palms facing forward.
+Step 3: Curl both dumbbells up toward your shoulders, keeping your upper arms stationary.
+Step 4: Lower the dumbbells back down with control, feeling a stretch at the bottom."
+EX192,Concentration Curl,"Step 1: Sit on a bench with your legs spread, holding a dumbbell in one hand.
+Step 2: Rest your elbow against the inside of your thigh, arm extended down.
+Step 3: Curl the dumbbell up toward your shoulder, keeping your upper arm pressed against your thigh.
+Step 4: Lower the dumbbell back down with control, then switch arms."
+EX193,Seated Hammer Curl,"Step 1: Sit on a bench with your feet flat on the floor, holding a dumbbell in each hand at your sides.
+Step 2: Palms facing your thighs in a neutral grip, arms hanging straight.
+Step 3: Curl both dumbbells up toward your shoulders while keeping your palms facing each other.
+Step 4: Lower the dumbbells back down with control."
+EX194,Reverse Straight Bar Cable Curl,"Step 1: Set the cable pulley to the lowest position with a straight bar attachment.
+Step 2: Grip the bar with an overhand grip (palms facing down), arms extended.
+Step 3: Curl the bar up toward your shoulders, keeping your elbows stationary.
+Step 4: Lower the bar back down with control."
+EX195,Reverse Barbell Curl,"Step 1: Stand holding a barbell with an overhand grip (palms facing down), hands shoulder-width apart.
+Step 2: Stand tall with feet shoulder-width apart, bar against your thighs.
+Step 3: Curl the bar up toward your shoulders, keeping your wrists straight and elbows stationary.
+Step 4: Lower the bar back down with control."
+EX196,Reverse Kettlebell Curl,"Step 1: Stand holding a kettlebell in each hand with an overhand grip (palms facing your thighs).
+Step 2: Stand tall with feet shoulder-width apart, kettlebells at your sides.
+Step 3: Curl both kettlebells up toward your shoulders, keeping your wrists straight.
+Step 4: Lower the kettlebells back down with control."
+EX197,Reverse Dumbbell Curl,"Step 1: Stand holding a dumbbell in each hand with an overhand grip (palms facing your thighs).
+Step 2: Stand tall with feet shoulder-width apart, dumbbells at your sides.
+Step 3: Curl both dumbbells up toward your shoulders, keeping your wrists straight.
+Step 4: Lower the dumbbells back down with control."
+EX198,EZ-Bar Curl,"Step 1: Stand holding an EZ-bar with an underhand grip on the angled portions.
+Step 2: Stand tall with feet shoulder-width apart, bar against your thighs.
+Step 3: Curl the bar up toward your shoulders, keeping your elbows stationary.
+Step 4: Lower the bar back down with control."
+EX199,EZ-Bar Cable Curl,"Step 1: Set the cable pulley to the lowest position with an EZ-bar attachment.
+Step 2: Grip the angled portions of the bar with an underhand grip, arms extended.
+Step 3: Curl the bar up toward your shoulders, keeping your elbows stationary.
+Step 4: Lower the bar back down with control, resisting the cable."
+EX200,EZ-Bar Preacher Curl,"Step 1: Sit at the preacher bench with your upper arms resting on the pad, holding an EZ-bar.
+Step 2: Grip the angled portions of the bar, arms extended down the pad.
+Step 3: Curl the bar up toward your shoulders, keeping your upper arms pressed into the pad.
+Step 4: Lower the bar with control back down the pad."
+EX201,Single Arm Dumbbell Preacher Curl,"Step 1: Sit at a preacher bench or use an incline bench set to about 45 degrees.
+Step 2: Rest your upper arm against the pad, holding a dumbbell with palm facing up.
+Step 3: Curl the dumbbell up toward your shoulder, keeping your upper arm pressed into the pad.
+Step 4: Lower the dumbbell with control, then switch arms."
+EX202,Dumbbell Preacher Curl,"Step 1: Sit at the preacher bench with your upper arms resting on the pad, holding a dumbbell in each hand.
+Step 2: Palms facing up, arms extended down the pad.
+Step 3: Curl both dumbbells up toward your shoulders, keeping your upper arms pressed into the pad.
+Step 4: Lower the dumbbells with control back down the pad."
+EX203,Machine Preacher Curl,"Step 1: Adjust the seat height so your upper arms rest comfortably on the pad.
+Step 2: Grip the handles with palms facing up, arms extended.
+Step 3: Curl the handles up toward your shoulders, keeping your upper arms on the pad.
+Step 4: Lower with control back to the starting position."
+EX204,Cable Bayesian Curl,"Step 1: Set the cable pulley to the lowest position with a D-handle attachment.
+Step 2: Stand facing away from the machine, arm extended behind you holding the handle.
+Step 3: Curl the handle forward and up toward your shoulder, keeping your upper arm stationary.
+Step 4: Lower your arm back with control, then switch sides."
+EX205,Rope Curl,"Step 1: Set the cable pulley to the lowest position with a rope attachment.
+Step 2: Grip the rope with both hands, palms facing each other, arms extended.
+Step 3: Curl the rope up toward your shoulders, keeping your elbows stationary.
+Step 4: Lower the rope back down with control."
+EX206,Close Grip Smith Machine Bench Press,"Step 1: Lie on the bench under the Smith machine bar with a close grip (hands about 12 inches apart).
+Step 2: Unrack by rotating the bar and position it over your chest.
+Step 3: Lower the bar to your lower chest, keeping elbows tucked at about 30 degrees.
+Step 4: Press the bar straight up, then rotate to rack."
+EX207,Weighted Dips,"Step 1: Attach a weight belt with plates around your waist.
+Step 2: Grip the dip bars and press yourself up to straight arms, shoulders down.
+Step 3: Lower yourself by bending your elbows until your upper arms are parallel to the floor.
+Step 4: Press yourself back up to straight arms."
+EX208,Banded Dips,"Step 1: Loop a resistance band over the dip bars and step your knees or feet into the band.
+Step 2: Grip the bars and press up to straight arms, using the band for assistance.
+Step 3: Lower yourself until your upper arms are parallel to the floor.
+Step 4: Press back up to straight arms with band assistance."
+EX209,Seated Single Arm Dumbbell Extension,"Step 1: Sit on a bench with back support, holding one dumbbell overhead with arm fully extended.
+Step 2: Keep your upper arm close to your ear, elbow pointing up.
+Step 3: Lower the dumbbell behind your head by bending your elbow.
+Step 4: Extend your elbow to press the dumbbell back up, then switch arms."
+EX210,Rope Overhead Extension,"Step 1: Set the cable pulley to the lowest position with a rope attachment.
+Step 2: Face away from the machine, gripping the rope behind your head with elbows bent.
+Step 3: Extend your elbows to press the rope overhead until arms are straight.
+Step 4: Lower the rope back behind your head with control."
+EX211,EZ-Bar Overhead Extension,"Step 1: Set the cable pulley to the lowest position with an EZ-bar attachment.
+Step 2: Face away from the machine, gripping the bar behind your head with elbows bent.
+Step 3: Extend your elbows to press the bar overhead until arms are straight.
+Step 4: Lower the bar back behind your head with control."
+EX212,Straight Bar Overhead Extension,"Step 1: Set the cable pulley to the lowest position with a straight bar attachment.
+Step 2: Face away from the machine, gripping the bar behind your head with elbows bent.
+Step 3: Extend your elbows to press the bar overhead until arms are straight.
+Step 4: Lower the bar back behind your head with control."
+EX213,Rope Pushdown,"Step 1: Set the cable pulley to the highest position with a rope attachment.
+Step 2: Grip the rope with palms facing each other, elbows pinned to your sides.
+Step 3: Push the rope down by extending your elbows, spreading the ends at the bottom.
+Step 4: Let the rope rise back up with control until your elbows reach 90 degrees."
+EX214,EZ-Bar Pushdown,"Step 1: Set the cable pulley to the highest position with an EZ-bar attachment.
+Step 2: Grip the angled portions of the bar, elbows pinned to your sides.
+Step 3: Push the bar down by extending your elbows until arms are straight.
+Step 4: Let the bar rise back up with control until your elbows reach 90 degrees."
+EX215,Single Arm Pushdown,"Step 1: Set the cable pulley to the highest position with a D-handle or no attachment.
+Step 2: Grip the cable or handle with one hand, elbow pinned to your side.
+Step 3: Push down by extending your elbow until your arm is straight.
+Step 4: Let your arm rise back up with control, then switch sides."
+EX216,Straight Bar Overhead Pushdown,"Step 1: Set the cable pulley to the lowest position with a straight bar attachment.
+Step 2: Face the machine, gripping the bar with elbows bent at your sides.
+Step 3: Press the bar down and forward in an arc, extending your elbows.
+Step 4: Let the bar return with control, bending your elbows back to the start."
+EX217,Rope Overhead Pushdown,"Step 1: Set the cable pulley to the lowest position with a rope attachment.
+Step 2: Face the machine, gripping the rope with elbows bent at your sides.
+Step 3: Press the rope down and forward in an arc, spreading the ends as you extend.
+Step 4: Let the rope return with control, bending your elbows back to the start."
+EX218,EZ-Bar Overhead Pushdown,"Step 1: Set the cable pulley to the lowest position with an EZ-bar attachment.
+Step 2: Face the machine, gripping the bar with elbows bent at your sides.
+Step 3: Press the bar down and forward in an arc, extending your elbows.
+Step 4: Let the bar return with control, bending your elbows back to the start."
+EX219,EZ-Bar Skull Crusher,"Step 1: Lie on a flat bench holding an EZ-bar with a narrow grip on the angled portions.
+Step 2: Arms extended over your chest, not over your face.
+Step 3: Lower the bar toward your forehead by bending only at your elbows.
+Step 4: Extend your elbows to press the bar back up to the starting position."
+EX220,Straight Bar Front Raise,"Step 1: Set the cable pulley to the lowest position with a straight bar attachment.
+Step 2: Stand facing away from the machine, gripping the bar with arms at your sides.
+Step 3: Raise the bar in front of you until arms are parallel to the floor.
+Step 4: Lower the bar back to your sides with control."
+EX221,Close Grip Lat Pulldown,"Step 1: Sit at the lat pulldown machine with thighs secured under the pads.
+Step 2: Grip the bar with hands close together (about shoulder-width or narrower), arms extended.
+Step 3: Pull the bar down to your upper chest by driving your elbows toward your hips.
+Step 4: Let the bar rise with control, fully extending your arms."
+EX222,Neutral Grip Lat Pulldown,"Step 1: Sit at the lat pulldown machine with thighs secured under the pads.
+Step 2: Grip the neutral-grip handles with palms facing each other, arms extended.
+Step 3: Pull the handles down to your upper chest by driving your elbows down and back.
+Step 4: Let the handles rise with control, fully extending your arms."
+EX223,Rope Pull Through,"Step 1: Set the cable pulley to the lowest position with a rope attachment.
+Step 2: Stand with feet shoulder-width apart, holding the rope between your legs.
+Step 3: Drive your hips forward explosively, standing tall.
+Step 4: Hinge your hips back, letting the cable pull your hands back through your legs."
+EX224,Rope Upright Row,"Step 1: Set the cable pulley to the lowest position with a rope attachment.
+Step 2: Grip the rope with both hands, standing tall with the rope against your thighs.
+Step 3: Pull the rope up along your body toward your chin, leading with your elbows.
+Step 4: Lower the rope back down with control."
+EX225,EZ-Bar Upright Row,"Step 1: Set the cable pulley to the lowest position with an EZ-bar attachment.
+Step 2: Grip the angled portions of the bar, standing tall with the bar against your thighs.
+Step 3: Pull the bar up along your body toward your chin, leading with your elbows.
+Step 4: Lower the bar back down with control."
+EX226,Rope Front Raise,"Step 1: Set the cable pulley to the lowest position with a rope attachment.
+Step 2: Stand facing away from the machine, gripping the rope with arms at your sides.
+Step 3: Raise the rope in front of you until arms are parallel to the floor.
+Step 4: Lower the rope back to your sides with control."
+EX227,Neutral Grip Seated Cable Row,"Step 1: Sit at the cable row station with feet on the footplates, knees slightly bent.
+Step 2: Grip the neutral-grip handles with palms facing each other, arms extended.
+Step 3: Pull the handles toward your lower ribcage, driving your elbows back.
+Step 4: Extend your arms forward with control, letting your shoulders reach slightly forward for a stretch."
+EX228,Wide Grip Seated Cable Row,"Step 1: Sit at the cable row station with feet on the footplates, knees slightly bent.
+Step 2: Grip the wide bar with hands wider than shoulder-width, arms extended.
+Step 3: Pull the bar toward your lower ribcage, driving your elbows out and back.
+Step 4: Extend your arms forward with control, letting your shoulders reach slightly forward for a stretch."
+EX229,Rope Lat Prayer,"Step 1: Set the cable pulley to a high position with a rope attachment.
+Step 2: Kneel facing the cable, gripping the rope with arms extended overhead.
+Step 3: Pull the rope down in an arc toward your thighs, keeping your arms straight and squeezing your lats.
+Step 4: Let the rope rise back up with control, feeling a stretch in your lats."
+EX230,EZ-Bar Lat Prayer,"Step 1: Set the cable pulley to a high position with an EZ-bar attachment.
+Step 2: Kneel facing the cable, gripping the bar with arms extended overhead.
+Step 3: Pull the bar down in an arc toward your thighs, keeping your arms straight and squeezing your lats.
+Step 4: Let the bar rise back up with control, feeling a stretch in your lats."

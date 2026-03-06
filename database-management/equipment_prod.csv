@@ -1,0 +1,62 @@
+equipment_id,category,name,image_filename
+EP001,Barbells,Barbells,00013101-Barbell-without-Weight_equipment_max.png
+EP002,Barbells,Squat Rack,00013101-Rack-Squat_equipment_max.png
+EP003,Barbells,Flat Bench Press,00013101-Rack-Flat-Bench_equipment_max.png
+EP004,Barbells,Incline Bench Press,00013101-Rack-Incline-Bench_equipment_max.png
+EP005,Barbells,Decline Bench Press,00013101-Bench-Decline_equipment_max.png
+EP006,Barbells,Landmine Attachment,00013101-Landmine_max.png
+EP007,Barbells,Hip Thrust Bench,00013101-Bench_equipment_max.png
+EP008,Barbells,Preacher Bench,00013101-Bench-Preacher_equipment_max.png
+EP009,Barbells,Smith Machine,00013101-Smith-Machine_equipment_max.png
+EP010,Dumbbells,Dumbbells,00013101-Dumbbell_equipment_max.png
+EP011,Dumbbells,Adjustable Bench,00013101-Backrest-Bench_max.png
+EP012,Kettlebells,Kettlebells,00013101-Kettlebell_equipment_max.png
+EP013,Cables,Single Adjustable Cable Machine,
+EP014,Cables,Dual Cable Machine,00013101-Cable-Machine-VERSION-1_equipment_max.png
+EP015,Cables,Lat Pull Down Machine,00013101-Cable-Machine-VERSION-2_equipment_max.png
+EP016,Cables,Cable Row Machine,00013101-Cable-Machine-VERSION-3_equipment_max.png
+EP017,Pin-Loaded Machines,Leg Press Machine,00013101-Lever-Seated-Leg-Press_equipment_max.png
+EP018,Pin-Loaded Machines,Leg Extension Machine,00013101-Leg-Extension-Machine_max.png
+EP019,Pin-Loaded Machines,Lying Leg Curl Machine,00013101-Lever-Lying-Leg-Curl_equipment_max.png
+EP020,Pin-Loaded Machines,Seated Leg Curl Machine,00013101-Lever-Leg-Curl_equipment_max.png
+EP021,Pin-Loaded Machines,Standing Calf Raise Machine,00013101-Lever-Calf-Raise-(plate-loaded)_equipment_max.png
+EP022,Pin-Loaded Machines,Seated Calf Raise Machine,00013101-Lever-Calf-Raise-(plate-loaded)-VERSION-2_equipment_max.png
+EP023,Pin-Loaded Machines,Hip Abduction Machine,00013101-Lever-Abductor_equipment_max.png
+EP024,Pin-Loaded Machines,Hip Adduction Machine,00013101-Lever-Adductor_equipment_max.png
+EP025,Pin-Loaded Machines,Assisted Pull-Up/Dip Machine,00013101-Lever-Assisted-Pull-up-Dip_equipment_max.png
+EP026,Pin-Loaded Machines,Machine Chest Press,00013101-Lever-Chest-Press_equipment_max.png
+EP027,Pin-Loaded Machines,Pec Deck,00013101-Lever-Seated-Fly_equipment_max.png
+EP028,Pin-Loaded Machines,Shoulder Press Machine,00013101-Lever-Seated-Shoulder-Press_equipment_max.png
+EP029,Pin-Loaded Machines,Chest Supported Row Machine,00013101-Lever-Rowing_equipment_max.png
+EP030,Pin-Loaded Machines,Preacher Curl Machine,00013101-Preacher-Curl-Machine_max.png
+EP031,Plate-Loaded Machines,Leg Press Machine,00013101-45-Degrees-Leg-Press-Machine_max.png
+EP032,Plate-Loaded Machines,Leg Extension Machine,
+EP033,Plate-Loaded Machines,Lying Leg Curl Machine,
+EP034,Plate-Loaded Machines,Seated Leg Curl Machine,00013101-Sitting-Leg-Curl-Machine_max.png
+EP035,Plate-Loaded Machines,Standing Calf Raise Machine,
+EP036,Plate-Loaded Machines,Seated Calf Raise Machine,00013101-Lever-Donkey-Calf-Raise_equipment_max.png
+EP037,Plate-Loaded Machines,Hack Squat Machine,00013101-Lying-Hack-Squat-Machine_max.png
+EP038,Plate-Loaded Machines,Glute Kickback Machine,00013101-Lever-Standing-Hip-Extension_equipment_max.png
+EP039,Plate-Loaded Machines,Machine Chest Press,00013101-Lever-Chest-Press-(plate-loaded)_equipment_max.png
+EP040,Plate-Loaded Machines,Shoulder Press Machine,00013101-Lever-Shoulder-Press-(plate-loaded)_equipment_max.png
+EP041,Plate-Loaded Machines,Chest Supported Row Machine,00013101-Lever-Seated-Row-(plate-loaded)_equipment_max.png
+EP042,Plate-Loaded Machines,Hip Thrust Machine,
+EP043,Bodyweight,Bodyweight,
+EP044,Other,Flat Bench,00013101-Bench_equipment_max.png
+EP045,Other,Pull-Up Bar,00013101-Fixed-Bar_max.png
+EP046,Other,Dip Station,00013101-Dip-Cage_equipment_max.png
+EP047,Other,Roman Chair,00013101-Bench-Hyperextension_equipment_max.png
+EP048,Other,Ab Wheel,00013101-Ab-Roller_equipment_max.png
+EP049,Other,Captains Chair,00013101-Dip-Machine_max.png
+EP050,Other,Decline Core Bench,00013101-Bench-Decline_equipment_max.png
+EP051,Attachment,Straight Bar,00013101-Cable-Machine-Attachment-Cable-Bar_equipment_max.png
+EP052,Attachment,Rope,00013101-Cable-Machine-Attachment-Rope_equipment_max.png
+EP053,Attachment,D-Handles,00013101-Cable-Machine-Attachment-Handle_equipment_max.png
+EP054,Attachment,EZ-Bar,00013101-EZ-Bar_equipment_max.png
+EP055,Attachment,EZ-Bar Cable,00013101-Cable-Machine-Attachment-SZ-Bar_equipment_max.png
+EP056,Attachment,Ankle Strap,00013101-Ankle-Strap_max.png
+EP057,Attachment,Resistance Band,00013101-Resistance-Band_max.png
+EP058,Attachment,Weight Belt,00013101-Weight-Belt_max.png
+EP059,Attachment,Close Grip,00013101-Cable-Machine-Attachment-Double-Handle_equipment_max.png
+EP060,Attachment,Neutral Grip,00013101-Cable-Machine-Attachment-Revolving-Multi-Exercise-Bar_equipment_max.png
+EP061,Attachment,Wide Bar,00013101-Cable-Machine-Attachment-Lat-Bar_equipment_max.png
