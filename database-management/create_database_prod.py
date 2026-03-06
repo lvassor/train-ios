@@ -74,7 +74,8 @@ def create_database():
         equipment_id TEXT PRIMARY KEY,
         category TEXT NOT NULL,
         name TEXT NOT NULL,
-        image_filename TEXT
+        image_filename TEXT,
+        description TEXT
     )
     """)
 
@@ -166,12 +167,13 @@ def create_database():
         eid = row["equipment_id"].strip()
         equipment_ids.add(eid)
         cursor.execute(
-            "INSERT INTO equipment (equipment_id, category, name, image_filename) VALUES (?, ?, ?, ?)",
+            "INSERT INTO equipment (equipment_id, category, name, image_filename, description) VALUES (?, ?, ?, ?, ?)",
             (
                 eid,
                 row["category"].strip(),
                 row["name"].strip(),
                 row["image_filename"].strip() if pd.notna(row["image_filename"]) else None,
+                row["description"].strip() if pd.notna(row.get("description")) else None,
             ),
         )
 

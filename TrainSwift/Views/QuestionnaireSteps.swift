@@ -18,7 +18,7 @@ struct NameStepView: View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("What shall we call you?")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
 
                 Text("Please enter your name")
@@ -104,7 +104,7 @@ struct GenderStepView: View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Gender")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
 
                 Text("We may require this for exercise prescription")
@@ -222,7 +222,7 @@ struct AgeStepView: View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Date of Birth")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
 
                 Text("This helps us tailor your training intensity")
@@ -283,7 +283,7 @@ struct HeightStepView: View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Height")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
 
                 Text("This helps us calculate your body metrics")
@@ -445,7 +445,7 @@ struct WeightStepView: View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Weight")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
 
                 Text("This helps us calculate your body metrics")
@@ -582,7 +582,7 @@ struct GoalsStepView: View {
 
     let goals = [
         ("get_stronger", "Get Stronger", "Build maximum strength & power"),
-        ("build_muscle", "Build Muscle Mass", "Both size and definition"),
+        ("build_muscle", "Build Muscle Mass", "Develop size and definition"),
         ("tone_up", "Tone Up", "Lose fat while building muscle")
     ]
 
@@ -590,7 +590,7 @@ struct GoalsStepView: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("What are your primary goals?")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
@@ -646,8 +646,8 @@ struct MuscleGroupsStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             VStack(alignment: .center, spacing: Spacing.sm) {
-                Text("Any muscle groups you want to prioritise?")
-                    .font(.trainTitle2)
+                Text("Any muscle groups you want to prioritize?")
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
@@ -663,6 +663,7 @@ struct MuscleGroupsStepView: View {
             CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3, gender: bodyGender)
                 .frame(maxWidth: .infinity)
                 .frame(height: 440)
+                .drawingGroup()
 
             // Selected muscles pills (only shown when selections exist)
             if !selectedGroups.isEmpty {
@@ -739,7 +740,7 @@ struct ExperienceStepView: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("How confident do you feel in the gym?")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
@@ -786,7 +787,7 @@ struct MotivationStepView: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Why have you considered using this app?")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
@@ -826,16 +827,16 @@ struct TrainingPlaceStepView: View {
     @Binding var selectedTrainingPlace: String
 
     let trainingPlaces = [
-        ("large_gym", "Large Gym", "Full commercial gym with all equipment", "building.2.fill"),
-        ("small_gym", "Small Gym", "Smaller gym with essential equipment", "dumbbell.fill"),
-        ("garage_gym", "Garage Gym", "Home/garage gym with basic equipment", "house.fill")
+        ("large_gym", "Large Gym", "Full commercial gym with all equipment (barbells, cables, machines, dumbbells)", "building.2.fill"),
+        ("small_gym", "Small Gym", "Smaller gym with essential equipment (dumbbells, barbells, some machines)", "dumbbell.fill"),
+        ("garage_gym", "Garage Gym", "Home/garage gym with basic equipment (dumbbells, kettlebells, bodyweight)", "house.fill")
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Where do you exercise?")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
@@ -871,17 +872,24 @@ struct TrainingPlaceStepView: View {
 }
 
                             Spacer()
-
-                            if selectedTrainingPlace == value {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                            }
                         }
                         .padding(Spacing.md)
                         .frame(maxWidth: .infinity)
                         .background(selectedTrainingPlace == value ? Color.trainPrimary : .clear)
                         .appCard()
+                        .overlay(alignment: .topTrailing) {
+                            if selectedTrainingPlace == value {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.white)
+                                    .background(
+                                        Circle()
+                                            .fill(Color.trainPrimary)
+                                            .frame(width: 20, height: 20)
+                                    )
+                                    .offset(x: -8, y: 8)
+                            }
+                        }
                     }
                     .buttonStyle(ScaleButtonStyle())
                 }
@@ -900,6 +908,7 @@ struct EquipmentCard: View {
     let equipmentName: String
     let isSelected: Bool
     let onToggle: () -> Void
+    var onInfoTapped: (() -> Void)? = nil
 
     var body: some View {
         Button(action: onToggle) {
@@ -922,12 +931,23 @@ struct EquipmentCard: View {
                     }
                 }
 
-                // Equipment name
-                Text(equipmentName)
-                    .font(.trainBody)
-                    .foregroundColor(.trainTextPrimary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
+                // Equipment name + info button
+                HStack(spacing: Spacing.xs) {
+                    Text(equipmentName)
+                        .font(.trainBody)
+                        .foregroundColor(.trainTextPrimary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    if onInfoTapped != nil {
+                        Button(action: { onInfoTapped?() }) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 14))
+                                .foregroundColor(.trainTextSecondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
 
                 Spacer()
 
@@ -1008,14 +1028,17 @@ struct EquipmentGroupSection: View {
     }
 
     private var exerciseCountLabel: String {
+        let dbCategories: [String]
         switch categoryKey {
-        case "barbells": return "Unlocks 30+ exercises"
-        case "cables_and_attachments": return "Unlocks 25+ exercises"
-        case "pin_loaded": return "Unlocks 20+ exercises"
-        case "plate_loaded": return "Unlocks 15+ exercises"
-        case "other": return "Unlocks 10+ exercises"
+        case "barbells": dbCategories = ["Barbells"]
+        case "cables_and_attachments": dbCategories = ["Cables", "Attachment"]
+        case "pin_loaded": dbCategories = ["Pin-loaded"]
+        case "plate_loaded": dbCategories = ["Plate-loaded"]
+        case "other": dbCategories = ["Other"]
         default: return ""
         }
+        let count = ExerciseDatabaseManager.shared.exerciseCount(forCategories: dbCategories)
+        return count > 0 ? "Unlocks \(count)+ exercises" : ""
     }
 
     private var cardBackground: Color {
@@ -1090,7 +1113,7 @@ struct EquipmentGroupSection: View {
                                 .fill(allSelected ? Color.white : Color.trainPrimary)
                                 .frame(width: IconSize.md, height: IconSize.md)
 
-                            Image(systemName: allSelected ? "checkmark" : "minus")
+                            Image(systemName: allSelected ? "checkmark" : "ellipsis")
                                 .font(.trainCaptionSmall).fontWeight(.bold)
                                 .foregroundColor(allSelected ? .trainPrimary : .white)
                         }
@@ -1310,7 +1333,7 @@ struct EquipmentStepView: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("What equipment do you have available?")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
@@ -1387,8 +1410,10 @@ struct EquipmentStepView: View {
                 let dbItems = ExerciseDatabaseManager.shared.equipmentInCategory(dbCategory)
                 let detailedKey = config.detailedKeyMapping[dbCategory] ?? config.id
                 for dbItem in dbItems {
-                    items.append(dbItem.name)
-                    itemToDetailedKey[dbItem.name] = detailedKey
+                    // Append " attachment" to items from Attachment category
+                    let displayName = dbCategory == "Attachment" ? "\(dbItem.name) attachment" : dbItem.name
+                    items.append(displayName)
+                    itemToDetailedKey[displayName] = detailedKey
                 }
             }
             loadedSubItems[config.id] = items
@@ -1464,6 +1489,8 @@ struct EquipmentStepView: View {
 struct EquipmentInfoModal: View {
     let equipmentType: String
     let onDismiss: () -> Void
+    var dbDescription: String? = nil
+    var dbName: String? = nil
 
     var body: some View {
         ZStack {
@@ -1497,11 +1524,11 @@ struct EquipmentInfoModal: View {
 
                 // Content (bottom 60%)
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    Text(equipmentName)
+                    Text(dbName ?? equipmentName)
                         .font(.trainTitle2)
                         .foregroundColor(.trainTextPrimary)
 
-                    Text(equipmentDescription)
+                    Text(dbDescription ?? equipmentDescription)
                         .font(.trainBody)
                         .foregroundColor(.trainTextSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -1605,14 +1632,14 @@ struct TrainingDaysStepView: View {
 
     // Warning message for out-of-range selections
     private var warningMessage: String {
-        return String(localized: "We recommend a maximum of \(recommendedRange.upperBound) sessions per week for your experience level, in order for your brain to learn new movements and for your body to recover properly")
+        return String(localized: "We recommend a maximum of \(recommendedRange.upperBound) sessions per week for your experience level, to allow sufficient recovery.")
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xl) {
+        VStack(alignment: .leading, spacing: 22) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("How many days per week would you like to commit to strength training?")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
@@ -1639,7 +1666,7 @@ struct TrainingDaysStepView: View {
                     .font(.trainBody)
                     .foregroundColor(.trainTextPrimary)
             }
-            .padding(.vertical, Spacing.md)
+            .padding(.vertical, Spacing.smd)
 
             // Horizontal slider with range indicator
             VStack(spacing: Spacing.sm) {
@@ -1878,7 +1905,7 @@ struct SplitSelectionStepView: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Choose your training split")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
@@ -1989,8 +2016,8 @@ struct SessionDurationStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
-                Text("How long can you spend per session?")
-                    .font(.trainTitle2)
+                Text("How long can you spend training?")
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
@@ -2036,11 +2063,11 @@ struct InjuriesStepView: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Do you have any injuries?")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("We'll avoid exercises that might aggravate these areas")
+                Text("We will flag any exercises that might aggravate these areas")
                     .font(.trainSubtitle)
                     .foregroundColor(.trainTextSecondary)
                     .multilineTextAlignment(.center)
@@ -2060,6 +2087,19 @@ struct InjuriesStepView: View {
                                     .padding(Spacing.md)
                                     .background(injuries.contains(injury) ? Color.trainPrimary : .clear)
                                     .appCard(cornerRadius: CornerRadius.md)
+                                    .overlay(alignment: .topTrailing) {
+                                        if injuries.contains(injury) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.system(size: 16))
+                                                .foregroundColor(.white)
+                                                .background(
+                                                    Circle()
+                                                        .fill(Color.trainPrimary)
+                                                        .frame(width: 16, height: 16)
+                                                )
+                                                .offset(x: -6, y: 6)
+                                        }
+                                    }
                             }
                             .buttonStyle(ScaleButtonStyle())
                         }

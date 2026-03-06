@@ -31,11 +31,6 @@ struct MultiSelectCard: View {
             action()
         }) {
             HStack(spacing: Spacing.md) {
-                // Checkbox icon
-                Image(systemName: isSelected ? "checkmark.square.fill" : "square")
-                    .font(.system(size: 22))
-                    .foregroundColor(isSelected ? .white : .trainPrimary)
-
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(title)
                         .font(isCompact ? .trainBodyMedium : .trainHeadline)  // Smaller font for compact mode
@@ -63,6 +58,19 @@ struct MultiSelectCard: View {
                 }
             )
             .modifier(ConditionalGlassModifier(isSelected: isSelected))
+            .overlay(alignment: .topTrailing) {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                        .background(
+                            Circle()
+                                .fill(Color.trainPrimary)
+                                .frame(width: 20, height: 20)
+                        )
+                        .offset(x: -8, y: 8)
+                }
+            }
         }
         .buttonStyle(ScaleButtonStyle())
     }

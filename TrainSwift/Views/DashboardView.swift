@@ -24,6 +24,7 @@ struct DashboardContent: View {
     @State private var showProgramOverview = false
     @State private var isProgramProgressExpanded = false
     @State private var currentStreak: Int = 0
+    @State private var showProfile = false
 
     var user: UserProfile? {
         authService.currentUser
@@ -48,8 +49,14 @@ struct DashboardContent: View {
                 ScrollView {
                     Color.clear.frame(height: 0)
                     VStack(spacing: Spacing.lg) {
-                        // Top Header (Fixed) - padding included in TopHeaderView per Figma
-                        TopHeaderView()
+                        // Program summary card at top
+                        if let validProgram = programData {
+                            ProgramSummaryCard(
+                                program: validProgram,
+                                onTap: { showProgramOverview = true }
+                            )
+                            .padding(.horizontal, Spacing.lg)
+                        }
 
                         // Active workout timer display
                         ActiveWorkoutTimerView()
@@ -99,6 +106,19 @@ struct DashboardContent: View {
                 .edgeFadeMask(topFade: 16, bottomFade: 60)
             }
             .background(Color.clear)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showProfile = true }) {
+                        Image(systemName: "person.circle")
+                            .font(.system(size: IconSize.md))
+                            .foregroundColor(.trainTextPrimary)
+                    }
+                    .accessibilityLabel("Account")
+                }
+            }
+            .sheet(isPresented: $showProfile) {
+                ProfileView()
+            }
             .navigationDestination(isPresented: $showProgramOverview) {
                 if let program = userProgram {
                     ProgramOverviewView(userProgram: program)
@@ -1223,7 +1243,49 @@ struct ActiveWorkoutTimerView: View {
     }
 }
 
-// MARK: - Top Header View
+// MARK: - Program Summary Card
+
+struct ProgramSummaryCard: View {
+    let program: Program
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack {
+                    Text("Your Program")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.trainCaptionSmall)
+                        .foregroundColor(.trainTextSecondary)
+                }
+
+                Text(program.type.description)
+                    .font(.trainBodyMedium)
+                    .foregroundColor(.trainTextPrimary)
+
+                HStack(spacing: Spacing.lg) {
+                    Label("\(program.daysPerWeek) days/week", systemImage: "calendar")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+
+                    Label("\(program.totalWeeks) weeks", systemImage: "clock")
+                        .font(.trainCaption)
+                        .foregroundColor(.trainTextSecondary)
+                }
+            }
+            .padding(Spacing.md)
+            .appCard(cornerRadius: CornerRadius.md)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
+// MARK: - Top Header View (Legacy - kept for reference)
 
 struct TopHeaderView: View {
     @ObservedObject var authService = AuthService.shared

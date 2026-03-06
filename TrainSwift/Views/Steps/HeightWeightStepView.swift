@@ -22,7 +22,7 @@ struct HeightWeightStepView: View {
             // Header
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Height & Weight")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
 
                 Text("This helps us calculate your body metrics for personalized workouts and calorie tracking")
@@ -62,10 +62,14 @@ struct HeightWeightStepView: View {
                         }) {
                             Text(unit == .cm ? "cm" : "ft/in")
                                 .font(.trainCaption)
-                                .foregroundColor(heightUnit == unit ? .white : .trainTextSecondary)
+                                .foregroundColor(heightUnit == unit ? .white : .trainHover)
                                 .padding(.horizontal, Spacing.lg)
                                 .padding(.vertical, Spacing.sm)
-                                .background(heightUnit == unit ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.15))
+                                .background(heightUnit == unit ? Color.trainPrimary : .clear)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(heightUnit == unit ? Color.clear : Color.trainHover, lineWidth: 1.5)
+                                )
                                 .clipShape(Capsule())
                         }
                         .buttonStyle(ScaleButtonStyle())
@@ -151,10 +155,14 @@ struct HeightWeightStepView: View {
                         }) {
                             Text(unit == .kg ? "kg" : "lbs")
                                 .font(.trainCaption)
-                                .foregroundColor(weightUnit == unit ? .white : .trainTextSecondary)
+                                .foregroundColor(weightUnit == unit ? .white : .trainHover)
                                 .padding(.horizontal, Spacing.lg)
                                 .padding(.vertical, Spacing.sm)
-                                .background(weightUnit == unit ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.15))
+                                .background(weightUnit == unit ? Color.trainPrimary : .clear)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(weightUnit == unit ? Color.clear : Color.trainHover, lineWidth: 1.5)
+                                )
                                 .clipShape(Capsule())
                         }
                         .buttonStyle(ScaleButtonStyle())

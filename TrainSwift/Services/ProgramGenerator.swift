@@ -19,7 +19,7 @@ class ProgramGenerator {
 
     /// Generate program and return any warnings for UI display
     func generateProgramWithWarnings(from questionnaireData: QuestionnaireData) -> ProgramGenerationResult {
-        AppLogger.logProgram("Generating personalised program: \(questionnaireData.trainingDaysPerWeek) days/week, \(questionnaireData.sessionDuration)")
+        AppLogger.logProgram("Generating personalized program: \(questionnaireData.trainingDaysPerWeek) days/week, \(questionnaireData.sessionDuration)")
 
         do {
             // Use dynamic database-driven program generation with warnings

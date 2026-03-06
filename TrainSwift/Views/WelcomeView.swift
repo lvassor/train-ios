@@ -28,8 +28,15 @@ struct WelcomeView: View {
                             // Sign In button
                             Button(action: onLogin) {
                                 Text("Sign In")
-                                    .font(.trainBody)
-                                    .foregroundColor(.white)
+                                    .font(.trainBody).fontWeight(.medium)
+                                    .foregroundColor(.trainHover)
+                                    .padding(.horizontal, Spacing.md)
+                                    .padding(.vertical, Spacing.sm)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
+                                            .stroke(Color.trainHover, lineWidth: 1.5)
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                             }
                         }
                         .padding(.horizontal, Spacing.lg)
@@ -58,22 +65,13 @@ struct WelcomeView: View {
                     .padding(.horizontal, Spacing.lg)
 
                     // Updated subtitle with proper line breaking
-                    Text("Train uses programming and training principles from professional personal trainers to help you master weight lifting and hit your goals.")
+                    Text("Train uses training principles from professional personal trainers to help you master weight lifting and hit your goals.")
                         .font(.trainBody)
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, Spacing.lg)
                         .padding(.top, Spacing.md)
-
-                    // Caption above carousel so it's always visible
-                    Text("Join Train to get personalized workouts and hit your goals faster.")
-                        .font(.trainBody)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.top, Spacing.xl)
 
                     // Cover Flow carousel with center stage scaling - reduced to 75% size
                     GeometryReader { containerGeometry in
@@ -101,7 +99,7 @@ struct WelcomeView: View {
                                                     .opacity(opacity)
                                                     .animation(.spring(response: 0.6, dampingFraction: 0.8), value: scale)
                                             }
-                                            .frame(width: containerWidth * 0.45, height: 300) // Reduced from 60% to 45%
+                                            .frame(width: containerWidth * 0.40, height: 300) // Reduced from 60% to 45%
                                         }
                                     }
                                     .padding(.horizontal, Layout.horizontalPadding)
@@ -117,7 +115,7 @@ struct WelcomeView: View {
                                             Image(screenshot)
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fit)
-                                                .frame(width: containerWidth * 0.45)
+                                                .frame(width: containerWidth * 0.40)
                                                 .frame(height: 300) // Reduced from 60% to 45%
                                                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.modal))
                                                 .shadowStyle(.media)
@@ -132,7 +130,16 @@ struct WelcomeView: View {
                         }
                     }
                     .frame(height: 330) // 75% of 440 = 330
-                    .padding(.top, 22) // Reduced by 30% (32 * 0.7)
+                    .padding(.top, 16)
+
+                    // Caption below carousel
+                    Text("Join Train to get personalized workouts and hit your goals faster.")
+                        .font(.trainBody)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.top, Spacing.md)
 
                     // Add bottom padding so content scrolls behind the floating button
                     Spacer()

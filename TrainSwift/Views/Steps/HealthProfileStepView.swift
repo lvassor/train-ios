@@ -23,7 +23,7 @@ struct HealthProfileStepView: View {
             // Header
             VStack(alignment: .center, spacing: Spacing.sm) {
                 Text("Body Stats")
-                    .font(.trainTitle2)
+                    .font(.trainTitle)
                     .foregroundColor(.trainTextPrimary)
 
                 Text("Sync with Train for the best experience")
@@ -55,21 +55,13 @@ struct HealthProfileStepView: View {
                                 .foregroundColor(.red)
                                 .font(.title3)
 
-                            VStack(alignment: .leading, spacing: Spacing.xxs) {
-                                Text("Sync with Apple Health")
-                                    .font(.trainBodyMedium)
-                                    .foregroundColor(.white)
-
-                                if healthKitManager.isSimulator {
-                                    Text("(Limited in simulator)")
-                                        .font(.trainCaption)
-                                        .foregroundColor(.trainTextSecondary)
-                                }
-                            }
+                            Text("Sync with Apple Health")
+                                .font(.trainBodyMedium)
+                                .foregroundColor(.white)
                         }
-                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, Spacing.lg)
                         .padding(.vertical, Spacing.md)
-                        .background(healthKitManager.isSimulator ? Color.trainTextSecondary.opacity(0.3) : Color.trainHover)
+                        .background(Color.trainHover)
                         .appCard(cornerRadius: CornerRadius.md)
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -102,7 +94,7 @@ struct HealthProfileStepView: View {
                             .foregroundColor(.trainTextPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
 
-                        Text("We use gender and age to provide you with the most accurate personalised workouts.")
+                        Text("We use gender and age to provide you with the most accurate personalized workouts.")
                             .font(.trainBody)
                             .foregroundColor(.trainTextSecondary)
                             .multilineTextAlignment(.leading)

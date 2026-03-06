@@ -19,12 +19,14 @@ struct DBEquipment: Codable, FetchableRecord, TableRecord, Identifiable, Hashabl
     let category: String        // "Barbells", "Dumbbells", "Cables", etc.
     let name: String            // "Barbells", "Squat Rack", "Single Adjustable Cable Machine", etc.
     let imageFilename: String?
+    let description: String?
 
     private enum CodingKeys: String, CodingKey {
         case equipmentId = "equipment_id"
         case category
         case name
         case imageFilename = "image_filename"
+        case description
     }
 }
 

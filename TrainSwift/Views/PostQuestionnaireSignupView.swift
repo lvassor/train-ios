@@ -67,11 +67,14 @@ struct PostQuestionnaireSignupView: View {
                             Text("Sign up with Apple")
                                 .font(.trainBody).fontWeight(.medium)
                         }
-                        .foregroundColor(.black)
+                        .foregroundColor(.trainHover)
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
-                        .background(Color.white)
-                        .cornerRadius(CornerRadius.md)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
+                                .stroke(Color.trainHover, lineWidth: 1.5)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
 
                     // Sign up with Google Button
@@ -84,11 +87,14 @@ struct PostQuestionnaireSignupView: View {
                             Text("Sign up with Google")
                                 .font(.trainBody).fontWeight(.medium)
                         }
-                        .foregroundColor(.black)
+                        .foregroundColor(.trainHover)
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
-                        .background(Color.white)
-                        .cornerRadius(CornerRadius.md)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
+                                .stroke(Color.trainHover, lineWidth: 1.5)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
 
                     // Sign up with Email Button
@@ -111,11 +117,14 @@ struct PostQuestionnaireSignupView: View {
                             Text("Sign up with Email")
                                 .font(.trainBody).fontWeight(.medium)
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(.trainHover)
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
-                        .background(Color.trainPrimary)
-                        .cornerRadius(CornerRadius.md)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
+                                .stroke(Color.trainHover, lineWidth: 1.5)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
 
                     // OR Divider
@@ -610,33 +619,36 @@ struct PrivacyPolicySheet: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
-                    Text("Last Updated: December 2024")
+                    Text("Last Updated: \(Date().formatted(.dateTime.month(.wide).year()))")
                         .font(.trainCaption)
                         .foregroundColor(.trainTextSecondary)
 
                     Group {
                         sectionHeader("1. Information We Collect")
-                        sectionBody("We collect information you provide directly to us, such as when you create an account, complete your fitness profile, or contact us for support.")
+                        sectionBody("We collect information you provide directly to us, such as when you create an account, complete your fitness profile, or contact us for support. This may include your name, email address, date of birth, gender, height, weight, fitness goals, and workout activity data.")
 
                         sectionHeader("2. How We Use Your Information")
-                        sectionBody("We use the information we collect to provide, maintain, and improve our services, including generating personalized workout plans and tracking your fitness progress.")
+                        sectionBody("We use the information we collect to provide, maintain, and improve our services, including generating personalized workout plans and tracking your fitness progress. We do not use your data for advertising purposes.")
 
                         sectionHeader("3. Information Sharing")
-                        sectionBody("We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this Privacy Policy.")
+                        sectionBody("We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this Privacy Policy or as required by law.")
 
                         sectionHeader("4. Data Security")
-                        sectionBody("We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.")
+                        sectionBody("We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. All data is encrypted in transit and at rest.")
 
-                        sectionHeader("5. Your Privacy Rights")
-                        sectionBody("You have the right to access, update, or delete your personal information. You can manage your account settings within the app or contact us for assistance.")
+                        sectionHeader("5. Data Retention")
+                        sectionBody("We retain your personal data for as long as your account is active or as needed to provide our services. You may request deletion of your account and associated data at any time.")
 
-                        sectionHeader("6. Cookies and Tracking")
+                        sectionHeader("6. Your Privacy Rights")
+                        sectionBody("You have the right to access, update, or delete your personal information. You can manage your account settings within the app or contact us for assistance. If you are in the EU/EEA, you have additional rights under GDPR including the right to data portability and the right to restrict processing.")
+
+                        sectionHeader("7. Cookies and Tracking")
                         sectionBody("We may use cookies and similar tracking technologies to improve your experience and analyze usage patterns.")
 
-                        sectionHeader("7. Changes to Privacy Policy")
+                        sectionHeader("8. Changes to Privacy Policy")
                         sectionBody("We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.")
 
-                        sectionHeader("8. Contact Us")
+                        sectionHeader("9. Contact Us")
                         sectionBody("If you have any questions about this Privacy Policy, please contact us through the app's support feature.")
                     }
                 }
@@ -678,7 +690,7 @@ struct TermsAndConditionsSheet: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
-                    Text("Last Updated: December 2024")
+                    Text("Last Updated: \(Date().formatted(.dateTime.month(.wide).year()))")
                         .font(.trainCaption)
                         .foregroundColor(.trainTextSecondary)
 
@@ -687,36 +699,44 @@ struct TermsAndConditionsSheet: View {
                         sectionBody("By downloading, installing, or using train (\"the App\"), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use the App.")
 
                         sectionHeader("2. Description of Service")
-                        sectionBody("train is a fitness application that provides personalized workout programs, exercise tracking, and training guidance. The App generates workout plans based on user-provided information and preferences.")
+                        sectionBody("train is a fitness application that provides personalized workout programs, exercise tracking, and training guidance. The App generates workout plans based on user-provided information and preferences. The App has been designed by qualified personal trainers; however, it does not replace individual assessment by a fitness professional.")
 
                         sectionHeader("3. User Accounts")
                         sectionBody("You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to provide accurate and complete information when creating your account.")
 
-                        sectionHeader("4. Health and Safety Disclaimer")
-                        sectionBody("The App provides general fitness information and workout suggestions. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider before beginning any exercise program.\n\nYou acknowledge that physical exercise carries inherent risks. You assume full responsibility for any injuries or damages that may occur during your use of the App's workout programs.")
+                        sectionHeader("4. Physical Activity Readiness")
+                        sectionBody("Before starting any exercise program, you should consult a qualified healthcare provider, particularly if you:\n\n- Have a heart condition or chest pain\n- Experience dizziness or loss of consciousness\n- Have a bone or joint problem that could be worsened by exercise\n- Are currently taking medication for blood pressure or a heart condition\n- Are pregnant or have recently given birth\n- Have any other medical condition that may affect your ability to exercise safely\n\nThis is consistent with the Physical Activity Readiness Questionnaire (PAR-Q) guidelines. If you answer yes to any of the above, seek medical clearance before using the App's workout programs.")
 
-                        sectionHeader("5. User Content")
+                        sectionHeader("5. Health and Safety Disclaimer")
+                        sectionBody("The App provides general fitness information and workout suggestions based on established training principles. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider before beginning any exercise program.\n\nYou acknowledge that physical exercise carries inherent risks including but not limited to muscle strains, joint injuries, and cardiovascular events. You assume full responsibility for any injuries or damages that may occur during your use of the App's workout programs.\n\nWhere the App flags exercises as potentially aggravating an injury you have disclosed, this is advisory only and does not constitute medical advice. You should use your own judgement and consult a healthcare professional regarding exercises that may affect existing injuries or conditions.")
+
+                        sectionHeader("6. Professional Indemnity")
+                        sectionBody("The workout programs provided by the App are created using established exercise science and personal training principles. However, the App's creators and operators accept no liability for injury, loss, or damage arising from the use of the App or its workout programs. All exercises are performed at your own risk.\n\nThe App does not establish a trainer-client relationship. Users are advised to seek guidance from a qualified personal trainer or exercise professional for form checks and personalized instruction.")
+                    }
+
+                    Group {
+                        sectionHeader("7. User Content")
                         sectionBody("You retain ownership of any data you input into the App. By using the App, you grant us a license to use this data to provide and improve our services.")
 
-                        sectionHeader("6. Prohibited Conduct")
+                        sectionHeader("8. Prohibited Conduct")
                         sectionBody("You agree not to:\n- Use the App for any unlawful purpose\n- Attempt to gain unauthorized access to the App's systems\n- Interfere with or disrupt the App's functionality\n- Share your account with others or create multiple accounts")
 
-                        sectionHeader("7. Intellectual Property")
+                        sectionHeader("9. Intellectual Property")
                         sectionBody("The App, including its design, features, and content, is protected by intellectual property laws. You may not copy, modify, distribute, or create derivative works without our express permission.")
 
-                        sectionHeader("8. Subscription and Payments")
+                        sectionHeader("10. Subscription and Payments")
                         sectionBody("Certain features may require a paid subscription. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period. You can manage subscriptions in your App Store account settings.")
 
-                        sectionHeader("9. Termination")
+                        sectionHeader("11. Termination")
                         sectionBody("We reserve the right to suspend or terminate your access to the App at any time for violation of these terms or for any other reason at our discretion.")
 
-                        sectionHeader("10. Limitation of Liability")
+                        sectionHeader("12. Limitation of Liability")
                         sectionBody("To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the App.")
 
-                        sectionHeader("11. Changes to Terms")
+                        sectionHeader("13. Changes to Terms")
                         sectionBody("We may update these Terms and Conditions from time to time. Continued use of the App after changes constitutes acceptance of the new terms.")
 
-                        sectionHeader("12. Contact")
+                        sectionHeader("14. Contact")
                         sectionBody("If you have questions about these Terms and Conditions, please contact us through the App's support feature.")
                     }
                 }

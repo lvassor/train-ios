@@ -192,7 +192,7 @@ struct DashboardCarouselView: View {
     }
 
     /// Pick the exercise with the lowest total logged volume (reps x weight).
-    /// Exercises that have never been logged are prioritised first.
+    /// Exercises that have never been logged are prioritized first.
     private func exerciseWithLowestVolume(from exercises: [ProgramExercise]) -> ProgramExercise {
         guard let userId = AuthService.shared.currentUser?.id else {
             return exercises.first!

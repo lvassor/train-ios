@@ -19,6 +19,9 @@ struct QuestionnaireView: View {
     @State private var isSignupInProgress = false  // Safeguard to prevent state conflicts during signup
     @State private var slideDirection: Edge = .trailing
     @State private var returnToReviewAfterEdit: Bool = false
+    @State private var showWelcomeInterstitial = false
+    @State private var welcomeGlowScale: CGFloat = 0.3
+    @State private var welcomeGlowOpacity: Double = 0.0
 
     let onComplete: () -> Void
     var onBack: (() -> Void)? = nil
@@ -197,11 +200,11 @@ struct QuestionnaireView: View {
                                         ))
                                 }
                                 .padding(.horizontal, Spacing.md)
-                                .padding(.top, Spacing.md)
+                                .padding(.top, Spacing.sm)
                                 .padding(.bottom, 100)
                             }
                             .scrollDisabled(shouldDisableScrollForCurrentStep())
-                            .edgeFadeMask(topFade: 16, bottomFade: 60)
+                            .edgeFadeMask(topFade: 8, bottomFade: 60)
                             .onChange(of: currentStep) { _, _ in
                                 withAnimation(nil) {
                                     scrollProxy.scrollTo("scrollTop", anchor: .top)
@@ -222,6 +225,46 @@ struct QuestionnaireView: View {
             }
         }
         .charcoalGradientBackground()
+        .overlay {
+            if showWelcomeInterstitial {
+                ZStack {
+                    Color.black.opacity(0.8)
+                        .ignoresSafeArea()
+
+                    // Radial glow pulse
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.trainPrimary.opacity(0.4), Color.trainPrimary.opacity(0.1), .clear],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 200
+                            )
+                        )
+                        .scaleEffect(welcomeGlowScale)
+                        .opacity(welcomeGlowOpacity)
+
+                    VStack(spacing: Spacing.md) {
+                        let name = viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                        Text("Welcome aboard, \(name) \u{1FAE1}")
+                            .font(.trainTitle).fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .transition(.opacity)
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        showWelcomeInterstitial = false
+                    }
+                    slideDirection = .trailing
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        currentStep += 1
+                    }
+                    QuestionnaireStateManager.save(step: currentStep, data: viewModel.questionnaireData)
+                }
+            }
+        }
         .onAppear {
             // Restore saved questionnaire state if available
             if let savedStep = QuestionnaireStateManager.savedStep() {
@@ -303,14 +346,6 @@ struct QuestionnaireView: View {
             NameStepView(name: $viewModel.questionnaireData.name)
         case 2: // Health Profile (age/gender + Apple Health)
             VStack(spacing: Spacing.md) {
-                // #83 - Personalized greeting after name entry
-                if !viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text("Nice to meet you, \(viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines))!")
-                        .font(.trainSubtitle)
-                        .foregroundColor(.trainPrimary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                }
-
                 HealthProfileStepView(
                     dateOfBirth: $viewModel.questionnaireData.dateOfBirth,
                     selectedGender: $viewModel.questionnaireData.gender,
@@ -670,6 +705,26 @@ struct QuestionnaireView: View {
                 "instanceId": String(instanceId),
                 "reviewStep": "\(reviewStep)"
             ])
+        } else if currentStep == 1 && !showWelcomeInterstitial {
+            // Show welcome interstitial after name step before advancing
+            showWelcomeInterstitial = true
+            welcomeGlowScale = 0.3
+            welcomeGlowOpacity = 0.0
+            withAnimation(.easeOut(duration: 1.2)) {
+                welcomeGlowScale = 2.5
+                welcomeGlowOpacity = 0.6
+            }
+            // Auto-dismiss after 2.5 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    showWelcomeInterstitial = false
+                }
+                slideDirection = .trailing
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    currentStep += 1
+                }
+                QuestionnaireStateManager.save(step: currentStep, data: viewModel.questionnaireData)
+            }
         } else {
             slideDirection = .trailing
             withAnimation(.easeInOut(duration: 0.3)) {

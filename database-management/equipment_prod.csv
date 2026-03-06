@@ -1,62 +1,62 @@
-equipment_id,category,name,image_filename
-EP001,Barbells,Barbells,00013101-Barbell-without-Weight_equipment_max.png
-EP002,Barbells,Squat Rack,00013101-Rack-Squat_equipment_max.png
-EP003,Barbells,Flat Bench Press,00013101-Rack-Flat-Bench_equipment_max.png
-EP004,Barbells,Incline Bench Press,00013101-Rack-Incline-Bench_equipment_max.png
-EP005,Barbells,Decline Bench Press,00013101-Bench-Decline_equipment_max.png
-EP006,Barbells,Landmine Attachment,00013101-Landmine_max.png
-EP007,Barbells,Hip Thrust Bench,00013101-Bench_equipment_max.png
-EP008,Barbells,Preacher Bench,00013101-Bench-Preacher_equipment_max.png
-EP009,Barbells,Smith Machine,00013101-Smith-Machine_equipment_max.png
-EP010,Dumbbells,Dumbbells,00013101-Dumbbell_equipment_max.png
-EP011,Dumbbells,Adjustable Bench,00013101-Backrest-Bench_max.png
-EP012,Kettlebells,Kettlebells,00013101-Kettlebell_equipment_max.png
-EP013,Cables,Single Adjustable Cable Machine,
-EP014,Cables,Dual Cable Machine,00013101-Cable-Machine-VERSION-1_equipment_max.png
-EP015,Cables,Lat Pull Down Machine,00013101-Cable-Machine-VERSION-2_equipment_max.png
-EP016,Cables,Cable Row Machine,00013101-Cable-Machine-VERSION-3_equipment_max.png
-EP017,Pin-Loaded Machines,Leg Press Machine,00013101-Lever-Seated-Leg-Press_equipment_max.png
-EP018,Pin-Loaded Machines,Leg Extension Machine,00013101-Leg-Extension-Machine_max.png
-EP019,Pin-Loaded Machines,Lying Leg Curl Machine,00013101-Lever-Lying-Leg-Curl_equipment_max.png
-EP020,Pin-Loaded Machines,Seated Leg Curl Machine,00013101-Lever-Leg-Curl_equipment_max.png
-EP021,Pin-Loaded Machines,Standing Calf Raise Machine,00013101-Lever-Calf-Raise-(plate-loaded)_equipment_max.png
-EP022,Pin-Loaded Machines,Seated Calf Raise Machine,00013101-Lever-Calf-Raise-(plate-loaded)-VERSION-2_equipment_max.png
-EP023,Pin-Loaded Machines,Hip Abduction Machine,00013101-Lever-Abductor_equipment_max.png
-EP024,Pin-Loaded Machines,Hip Adduction Machine,00013101-Lever-Adductor_equipment_max.png
-EP025,Pin-Loaded Machines,Assisted Pull-Up/Dip Machine,00013101-Lever-Assisted-Pull-up-Dip_equipment_max.png
-EP026,Pin-Loaded Machines,Machine Chest Press,00013101-Lever-Chest-Press_equipment_max.png
-EP027,Pin-Loaded Machines,Pec Deck,00013101-Lever-Seated-Fly_equipment_max.png
-EP028,Pin-Loaded Machines,Shoulder Press Machine,00013101-Lever-Seated-Shoulder-Press_equipment_max.png
-EP029,Pin-Loaded Machines,Chest Supported Row Machine,00013101-Lever-Rowing_equipment_max.png
-EP030,Pin-Loaded Machines,Preacher Curl Machine,00013101-Preacher-Curl-Machine_max.png
-EP031,Plate-Loaded Machines,Leg Press Machine,00013101-45-Degrees-Leg-Press-Machine_max.png
-EP032,Plate-Loaded Machines,Leg Extension Machine,
-EP033,Plate-Loaded Machines,Lying Leg Curl Machine,
-EP034,Plate-Loaded Machines,Seated Leg Curl Machine,00013101-Sitting-Leg-Curl-Machine_max.png
-EP035,Plate-Loaded Machines,Standing Calf Raise Machine,
-EP036,Plate-Loaded Machines,Seated Calf Raise Machine,00013101-Lever-Donkey-Calf-Raise_equipment_max.png
-EP037,Plate-Loaded Machines,Hack Squat Machine,00013101-Lying-Hack-Squat-Machine_max.png
-EP038,Plate-Loaded Machines,Glute Kickback Machine,00013101-Lever-Standing-Hip-Extension_equipment_max.png
-EP039,Plate-Loaded Machines,Machine Chest Press,00013101-Lever-Chest-Press-(plate-loaded)_equipment_max.png
-EP040,Plate-Loaded Machines,Shoulder Press Machine,00013101-Lever-Shoulder-Press-(plate-loaded)_equipment_max.png
-EP041,Plate-Loaded Machines,Chest Supported Row Machine,00013101-Lever-Seated-Row-(plate-loaded)_equipment_max.png
-EP042,Plate-Loaded Machines,Hip Thrust Machine,
-EP043,Bodyweight,Bodyweight,
-EP044,Other,Flat Bench,00013101-Bench_equipment_max.png
-EP045,Other,Pull-Up Bar,00013101-Fixed-Bar_max.png
-EP046,Other,Dip Station,00013101-Dip-Cage_equipment_max.png
-EP047,Other,Roman Chair,00013101-Bench-Hyperextension_equipment_max.png
-EP048,Other,Ab Wheel,00013101-Ab-Roller_equipment_max.png
-EP049,Other,Captains Chair,00013101-Dip-Machine_max.png
-EP050,Other,Decline Core Bench,00013101-Bench-Decline_equipment_max.png
-EP051,Attachment,Straight Bar,00013101-Cable-Machine-Attachment-Cable-Bar_equipment_max.png
-EP052,Attachment,Rope,00013101-Cable-Machine-Attachment-Rope_equipment_max.png
-EP053,Attachment,D-Handles,00013101-Cable-Machine-Attachment-Handle_equipment_max.png
-EP054,Attachment,EZ-Bar,00013101-EZ-Bar_equipment_max.png
-EP055,Attachment,EZ-Bar Cable,00013101-Cable-Machine-Attachment-SZ-Bar_equipment_max.png
-EP056,Attachment,Ankle Strap,00013101-Ankle-Strap_max.png
-EP057,Attachment,Resistance Band,00013101-Resistance-Band_max.png
-EP058,Attachment,Weight Belt,00013101-Weight-Belt_max.png
-EP059,Attachment,Close Grip,00013101-Cable-Machine-Attachment-Double-Handle_equipment_max.png
-EP060,Attachment,Neutral Grip,00013101-Cable-Machine-Attachment-Revolving-Multi-Exercise-Bar_equipment_max.png
-EP061,Attachment,Wide Bar,00013101-Cable-Machine-Attachment-Lat-Bar_equipment_max.png
+equipment_id,category,name,image_filename,description
+EP001,Barbells,Barbells,00013101-Barbell-without-Weight_equipment_max.png,A long steel bar (typically 20kg/45lbs) loaded with weight plates on each end. Essential for compound lifts like squats deadlifts and bench press.
+EP002,Barbells,Squat Rack,00013101-Rack-Squat_equipment_max.png,An adjustable rack with safety catches for performing barbell squats overhead presses and other standing barbell movements safely.
+EP003,Barbells,Flat Bench Press,00013101-Rack-Flat-Bench_equipment_max.png,A flat bench with an integrated barbell rack designed specifically for the flat barbell bench press.
+EP004,Barbells,Incline Bench Press,00013101-Rack-Incline-Bench_equipment_max.png,An angled bench with barbell rack set at 30-45 degrees targeting the upper chest and front deltoids.
+EP005,Barbells,Decline Bench Press,00013101-Bench-Decline_equipment_max.png,A bench angled downward with barbell rack emphasizing the lower portion of the chest muscles.
+EP006,Barbells,Landmine Attachment,00013101-Landmine_max.png,A pivot attachment that secures one end of a barbell to the floor enabling arcing pressing and rowing movements.
+EP007,Barbells,Hip Thrust Bench,00013101-Bench_equipment_max.png,A sturdy padded bench at the ideal height for barbell hip thrusts targeting the glutes and hamstrings.
+EP008,Barbells,Preacher Bench,00013101-Bench-Preacher_equipment_max.png,An angled pad that supports the upper arms during bicep curls isolating the biceps and reducing momentum.
+EP009,Barbells,Smith Machine,00013101-Smith-Machine_equipment_max.png,A barbell fixed within steel rails allowing vertical movement only. Provides stability for squats presses and rows.
+EP010,Dumbbells,Dumbbells,00013101-Dumbbell_equipment_max.png,Individual hand-held weights available in fixed or adjustable varieties. Versatile for unilateral and bilateral exercises.
+EP011,Dumbbells,Adjustable Bench,00013101-Backrest-Bench_max.png,A bench with an adjustable backrest angle from flat to upright used with dumbbells for presses flyes and rows.
+EP012,Kettlebells,Kettlebells,00013101-Kettlebell_equipment_max.png,Cast iron weights with a top handle ideal for swings cleans snatches and dynamic functional movements.
+EP013,Cables,Single Adjustable Cable Machine,,A single cable pulley that adjusts vertically providing constant tension for isolation and functional exercises.
+EP014,Cables,Dual Cable Machine,00013101-Cable-Machine-VERSION-1_equipment_max.png,A machine with two independent adjustable cable pulleys enabling crossovers flyes and bilateral cable work.
+EP015,Cables,Lat Pull Down Machine,00013101-Cable-Machine-VERSION-2_equipment_max.png,A cable machine with a high pulley and thigh pad designed for lat pulldowns targeting the back muscles.
+EP016,Cables,Cable Row Machine,00013101-Cable-Machine-VERSION-3_equipment_max.png,A seated cable station with a low pulley and foot platform for seated rows targeting the mid-back.
+EP017,Pin-Loaded Machines,Leg Press Machine,00013101-Lever-Seated-Leg-Press_equipment_max.png,A seated machine where you push a platform away using your legs. Targets quads glutes and hamstrings safely.
+EP018,Pin-Loaded Machines,Leg Extension Machine,00013101-Leg-Extension-Machine_max.png,A seated machine that isolates the quadriceps by extending the legs against a padded roller.
+EP019,Pin-Loaded Machines,Lying Leg Curl Machine,00013101-Lever-Lying-Leg-Curl_equipment_max.png,A prone machine that isolates the hamstrings by curling the legs toward the glutes against resistance.
+EP020,Pin-Loaded Machines,Seated Leg Curl Machine,00013101-Lever-Leg-Curl_equipment_max.png,A seated machine that targets the hamstrings by curling the legs downward against a padded lever.
+EP021,Pin-Loaded Machines,Standing Calf Raise Machine,00013101-Lever-Calf-Raise-(plate-loaded)_equipment_max.png,A machine with shoulder pads for standing calf raises targeting the gastrocnemius muscle.
+EP022,Pin-Loaded Machines,Seated Calf Raise Machine,00013101-Lever-Calf-Raise-(plate-loaded)-VERSION-2_equipment_max.png,A seated machine with a knee pad for calf raises emphasizing the soleus muscle of the calves.
+EP023,Pin-Loaded Machines,Hip Abduction Machine,00013101-Lever-Abductor_equipment_max.png,A seated machine where you push your legs outward against padded levers targeting the outer hip and glute muscles.
+EP024,Pin-Loaded Machines,Hip Adduction Machine,00013101-Lever-Adductor_equipment_max.png,A seated machine where you squeeze your legs inward against padded levers targeting the inner thigh muscles.
+EP025,Pin-Loaded Machines,Assisted Pull-Up/Dip Machine,00013101-Lever-Assisted-Pull-up-Dip_equipment_max.png,A counterbalanced machine that provides assistance for pull-ups and dips making them accessible at any strength level.
+EP026,Pin-Loaded Machines,Machine Chest Press,00013101-Lever-Chest-Press_equipment_max.png,A seated pressing machine that targets the chest shoulders and triceps with a guided pressing motion.
+EP027,Pin-Loaded Machines,Pec Deck,00013101-Lever-Seated-Fly_equipment_max.png,A seated machine with padded arms for chest flyes isolating the pectoral muscles through a hugging motion.
+EP028,Pin-Loaded Machines,Shoulder Press Machine,00013101-Lever-Seated-Shoulder-Press_equipment_max.png,A seated machine for overhead pressing that targets the deltoids and triceps with a guided vertical path.
+EP029,Pin-Loaded Machines,Chest Supported Row Machine,00013101-Lever-Rowing_equipment_max.png,A chest-supported machine for rowing movements that isolates the back muscles while minimizing lower back strain.
+EP030,Pin-Loaded Machines,Preacher Curl Machine,00013101-Preacher-Curl-Machine_max.png,A machine version of the preacher curl that isolates the biceps with a fixed movement pattern and adjustable resistance.
+EP031,Plate-Loaded Machines,Leg Press Machine,00013101-45-Degrees-Leg-Press-Machine_max.png,A 45-degree angled sled that you load with weight plates for heavy leg pressing targeting quads glutes and hamstrings.
+EP032,Plate-Loaded Machines,Leg Extension Machine,,A plate-loaded version of the leg extension providing quadriceps isolation with manually loaded resistance.
+EP033,Plate-Loaded Machines,Lying Leg Curl Machine,,A plate-loaded prone leg curl machine for hamstring isolation using manually loaded weight plates.
+EP034,Plate-Loaded Machines,Seated Leg Curl Machine,00013101-Sitting-Leg-Curl-Machine_max.png,A plate-loaded seated leg curl targeting the hamstrings with manually loaded resistance plates.
+EP035,Plate-Loaded Machines,Standing Calf Raise Machine,,A plate-loaded standing calf raise machine for targeting the gastrocnemius with heavy loads.
+EP036,Plate-Loaded Machines,Seated Calf Raise Machine,00013101-Lever-Donkey-Calf-Raise_equipment_max.png,A plate-loaded seated calf raise machine emphasizing the soleus muscle with manually loaded resistance.
+EP037,Plate-Loaded Machines,Hack Squat Machine,00013101-Lying-Hack-Squat-Machine_max.png,An angled sled machine for squatting with back support targeting the quads with reduced spinal load.
+EP038,Plate-Loaded Machines,Glute Kickback Machine,00013101-Lever-Standing-Hip-Extension_equipment_max.png,A machine for standing hip extension movements that isolates and targets the glute muscles.
+EP039,Plate-Loaded Machines,Machine Chest Press,00013101-Lever-Chest-Press-(plate-loaded)_equipment_max.png,A plate-loaded chest press machine providing a natural pressing arc for chest shoulder and tricep development.
+EP040,Plate-Loaded Machines,Shoulder Press Machine,00013101-Lever-Shoulder-Press-(plate-loaded)_equipment_max.png,A plate-loaded overhead press machine for deltoid development with a guided pressing path.
+EP041,Plate-Loaded Machines,Chest Supported Row Machine,00013101-Lever-Seated-Row-(plate-loaded)_equipment_max.png,A plate-loaded row machine with chest support for heavy back training while protecting the lower back.
+EP042,Plate-Loaded Machines,Hip Thrust Machine,,A dedicated machine for hip thrusts providing a stable platform and lever system for maximum glute activation.
+EP043,Bodyweight,Bodyweight,,No equipment needed. Uses your own body weight as resistance for exercises like push-ups pull-ups and squats.
+EP044,Other,Flat Bench,00013101-Bench_equipment_max.png,A simple sturdy flat bench used for dumbbell presses step-ups and as a platform for various exercises.
+EP045,Other,Pull-Up Bar,00013101-Fixed-Bar_max.png,A fixed overhead bar for pull-ups chin-ups and hanging exercises targeting the back and biceps.
+EP046,Other,Dip Station,00013101-Dip-Cage_equipment_max.png,Parallel bars at waist height for dip exercises targeting the chest triceps and shoulders.
+EP047,Other,Roman Chair,00013101-Bench-Hyperextension_equipment_max.png,An angled pad for back extensions and glute-ham raises strengthening the posterior chain.
+EP048,Other,Ab Wheel,00013101-Ab-Roller_equipment_max.png,A small wheel with handles that rolls along the floor for intense abdominal and core strengthening exercises.
+EP049,Other,Captains Chair,00013101-Dip-Machine_max.png,A frame with padded arm rests for hanging leg raises and knee raises targeting the abdominals.
+EP050,Other,Decline Core Bench,00013101-Bench-Decline_equipment_max.png,A declined bench for sit-ups and core exercises providing increased range of motion and resistance through gravity.
+EP051,Attachment,Straight Bar,00013101-Cable-Machine-Attachment-Cable-Bar_equipment_max.png,A straight metal bar that attaches to cable machines for pulldowns rows curls and pressdowns.
+EP052,Attachment,Rope,00013101-Cable-Machine-Attachment-Rope_equipment_max.png,A braided rope attachment with knotted ends for cable exercises like tricep pushdowns and face pulls.
+EP053,Attachment,D-Handles,00013101-Cable-Machine-Attachment-Handle_equipment_max.png,Single-grip handles that attach to cables allowing unilateral movements like single-arm rows and flyes.
+EP054,Attachment,EZ-Bar,00013101-EZ-Bar_equipment_max.png,A W-shaped free weight bar that reduces wrist strain during bicep curls and tricep exercises.
+EP055,Attachment,EZ-Bar Cable,00013101-Cable-Machine-Attachment-SZ-Bar_equipment_max.png,A W-shaped bar attachment for cable machines combining the ergonomic grip with constant cable tension.
+EP056,Attachment,Ankle Strap,00013101-Ankle-Strap_max.png,A padded strap that wraps around the ankle connecting to a cable for leg exercises like kickbacks and hip abductions.
+EP057,Attachment,Resistance Band,00013101-Resistance-Band_max.png,Elastic bands providing variable resistance for warm-ups mobility work and assisted or resisted exercises.
+EP058,Attachment,Weight Belt,00013101-Weight-Belt_max.png,A belt with a chain for adding weight plates to bodyweight exercises like pull-ups and dips.
+EP059,Attachment,Close Grip,00013101-Cable-Machine-Attachment-Double-Handle_equipment_max.png,A narrow double-handle attachment for close-grip cable rows and pulldowns emphasizing the inner back muscles.
+EP060,Attachment,Neutral Grip,00013101-Cable-Machine-Attachment-Revolving-Multi-Exercise-Bar_equipment_max.png,A multi-grip bar attachment with parallel handles for neutral-grip pulldowns and rows reducing shoulder stress.
+EP061,Attachment,Wide Bar,00013101-Cable-Machine-Attachment-Lat-Bar_equipment_max.png,A wide lat pulldown bar for wide-grip cable exercises targeting the outer lats and upper back.

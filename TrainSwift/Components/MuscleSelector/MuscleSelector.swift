@@ -36,7 +36,7 @@ struct MuscleSelector: View {
     }
 
     var body: some View {
-        VStack(spacing: Spacing.md) {
+        VStack(spacing: Spacing.sm) {
             // Toggle row with Gender and Side toggles
             HStack(spacing: Spacing.md) {
                 // Gender toggle
@@ -226,7 +226,7 @@ struct CompactMuscleSelector: View {
         // Side by side body diagrams - front and back (gender inherited from questionnaire)
         HStack(spacing: Spacing.sm) {
             // Front view
-            VStack(spacing: Spacing.xs) {
+            VStack(spacing: Spacing.xxs) {
                 Text("Front")
                     .font(.trainCaption)
                     .foregroundColor(.trainTextSecondary)
@@ -235,7 +235,7 @@ struct CompactMuscleSelector: View {
             }
 
             // Back view
-            VStack(spacing: Spacing.xs) {
+            VStack(spacing: Spacing.xxs) {
                 Text("Back")
                     .font(.trainCaption)
                     .foregroundColor(.trainTextSecondary)

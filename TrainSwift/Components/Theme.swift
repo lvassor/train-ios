@@ -473,8 +473,7 @@ struct ShimmerModifier: ViewModifier {
             )
             .onAppear {
                 withAnimation(
-                    .linear(duration: 2.5)
-                    .repeatForever(autoreverses: false)
+                    .linear(duration: 4.2)
                     .delay(1.0)
                 ) {
                     phase = 1.5

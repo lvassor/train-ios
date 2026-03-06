@@ -133,7 +133,10 @@ struct ProgramReadyView: View {
                         .font(.trainTitle)
                         .foregroundColor(.trainTextPrimary)
 
-                    Text("Your personalised plan is complete")
+                    Text({
+                        let name = viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                        return name.isEmpty ? "Your personalized plan is complete" : "Your program is ready to use, \(name)!"
+                    }())
                         .font(.trainSubtitle)
                         .foregroundColor(.trainTextSecondary)
                 }
@@ -146,8 +149,8 @@ struct ProgramReadyView: View {
                     )
 
                     ProgramInfoCard(
-                        label: "Prioritised Muscle Groups",
-                        value: selectedMuscleGroups.isEmpty ? "Full body" : selectedMuscleGroups.joined(separator: ", ")
+                        label: "Prioritized Muscle Groups",
+                        value: selectedMuscleGroups.isEmpty ? "Full Body" : selectedMuscleGroups.joined(separator: ", ")
                     )
 
                     ProgramInfoCard(

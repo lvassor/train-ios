@@ -71,11 +71,14 @@ struct LoginView: View {
                             Text("Log in with Apple")
                                 .font(.trainBody).fontWeight(.medium)
                         }
-                        .foregroundColor(.black)
+                        .foregroundColor(.trainHover)
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
-                        .background(Color.white)
-                        .cornerRadius(CornerRadius.md)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
+                                .stroke(Color.trainHover, lineWidth: 1.5)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
 
                     // Log in with Google Button
@@ -88,22 +91,32 @@ struct LoginView: View {
                             Text("Log in with Google")
                                 .font(.trainBody).fontWeight(.medium)
                         }
-                        .foregroundColor(.black)
+                        .foregroundColor(.trainHover)
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
-                        .background(Color.white)
-                        .cornerRadius(CornerRadius.md)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
+                                .stroke(Color.trainHover, lineWidth: 1.5)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
 
                     // Continue with Email Button
                     Button(action: { showEmailLogin = true }) {
-                        Text("Continue with Email")
-                            .font(.trainBody).fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: ButtonHeight.standard)
-                            .background(Color.trainPrimary)
-                            .cornerRadius(CornerRadius.md)
+                        HStack(spacing: Spacing.md) {
+                            Image(systemName: "envelope")
+                                .font(.trainBodyMedium)
+                            Text("Continue with Email")
+                                .font(.trainBody).fontWeight(.medium)
+                        }
+                        .foregroundColor(.trainHover)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: ButtonHeight.standard)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
+                                .stroke(Color.trainHover, lineWidth: 1.5)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
 
                     // Error message
@@ -132,13 +145,14 @@ struct LoginView: View {
                     Button(action: { showSignup = true }) {
                         Text("Create an Account")
                             .font(.trainBodyMedium)
-                            .foregroundColor(.trainPrimary)
+                            .foregroundColor(.trainHover)
                             .frame(maxWidth: .infinity)
                             .frame(height: ButtonHeight.standard)
                             .overlay(
-                                RoundedRectangle(cornerRadius: CornerRadius.md)
-                                    .stroke(Color.trainPrimary, lineWidth: 2)
+                                RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
+                                    .stroke(Color.trainHover, lineWidth: 1.5)
                             )
+                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
                 }
                 .padding(.horizontal, Spacing.lg)
@@ -354,10 +368,14 @@ struct EmailLoginSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.trainCaption).fontWeight(.semibold)
+                            .foregroundColor(.trainTextPrimary)
+                            .frame(width: IconSize.lg, height: IconSize.lg)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
                     }
-                    .foregroundColor(.trainTextSecondary)
                 }
             }
         }

@@ -92,6 +92,58 @@ class ExerciseDatabaseManager {
         return ids
     }
 
+    /// Count exercises that use equipment from a given category
+    func exerciseCount(forCategory category: String) -> Int {
+        guard let dbQueue = dbQueue else { return 0 }
+
+        // Get all equipment IDs in this category
+        let categoryItems = equipmentInCategory(category)
+        let ids = Set(categoryItems.map { $0.equipmentId })
+        guard !ids.isEmpty else { return 0 }
+
+        do {
+            return try dbQueue.read { db in
+                let idList = ids.map { "'\($0)'" }.joined(separator: ",")
+                let sql = """
+                    SELECT COUNT(DISTINCT exercise_id) FROM exercises
+                    WHERE equipment_id_1 IN (\(idList))
+                       OR equipment_id_2 IN (\(idList))
+                """
+                return try Int.fetchOne(db, sql: sql) ?? 0
+            }
+        } catch {
+            AppLogger.logDatabase("Failed to count exercises for category \(category): \(error)", level: .error)
+            return 0
+        }
+    }
+
+    /// Count exercises that use equipment from multiple categories
+    func exerciseCount(forCategories categories: [String]) -> Int {
+        guard let dbQueue = dbQueue else { return 0 }
+
+        var allIds = Set<String>()
+        for category in categories {
+            let items = equipmentInCategory(category)
+            allIds.formUnion(items.map { $0.equipmentId })
+        }
+        guard !allIds.isEmpty else { return 0 }
+
+        do {
+            return try dbQueue.read { db in
+                let idList = allIds.map { "'\($0)'" }.joined(separator: ",")
+                let sql = """
+                    SELECT COUNT(DISTINCT exercise_id) FROM exercises
+                    WHERE equipment_id_1 IN (\(idList))
+                       OR equipment_id_2 IN (\(idList))
+                """
+                return try Int.fetchOne(db, sql: sql) ?? 0
+            }
+        } catch {
+            AppLogger.logDatabase("Failed to count exercises for categories: \(error)", level: .error)
+            return 0
+        }
+    }
+
     private func loadEquipmentCache() {
         guard let dbQueue = dbQueue else { return }
 
