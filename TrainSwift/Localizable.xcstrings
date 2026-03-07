@@ -19,9 +19,6 @@
     "(%lld)" : {
 
     },
-    "(Limited in simulator)" : {
-
-    },
     "%.0f cm" : {
 
     },
@@ -411,7 +408,7 @@
     "An account with this email already exists" : {
 
     },
-    "Any muscle groups you want to prioritise?" : {
+    "Any muscle groups you want to prioritize?" : {
 
     },
     "Appearance" : {
@@ -775,7 +772,7 @@
     "How did you hear about us?" : {
 
     },
-    "How long can you spend per session?" : {
+    "How long can you spend training?" : {
 
     },
     "How many days per week would you like to commit to strength training?" : {
@@ -811,7 +808,7 @@
     "kg" : {
 
     },
-    "Last Updated: December 2024" : {
+    "Last Updated: %@" : {
 
     },
     "lbs" : {
@@ -899,9 +896,6 @@
 
     },
     "Next: %@" : {
-
-    },
-    "Nice to meet you, %@!" : {
 
     },
     "No account found with this email" : {
@@ -1395,7 +1389,7 @@
     "Total Volume" : {
 
     },
-    "Train uses programming and training principles from professional personal trainers to help you master weight lifting and hit your goals." : {
+    "Train uses training principles from professional personal trainers to help you master weight lifting and hit your goals." : {
 
     },
     "Train with structure, guidance and\nprogress in mind." : {
@@ -1459,13 +1453,13 @@
     "We may require this for exercise prescription" : {
 
     },
-    "We recommend a maximum of %lld sessions per week for your experience level, in order for your brain to learn new movements and for your body to recover properly" : {
+    "We recommend a maximum of %lld sessions per week for your experience level, to allow sufficient recovery." : {
 
     },
-    "We use gender and age to provide you with the most accurate personalised workouts." : {
+    "We use gender and age to provide you with the most accurate personalized workouts." : {
 
     },
-    "We'll avoid exercises that might aggravate these areas" : {
+    "We will flag any exercises that might aggravate these areas" : {
 
     },
     "Week %d of %d" : {
@@ -1482,6 +1476,9 @@
 
     },
     "Weight" : {
+
+    },
+    "Welcome aboard, %@ 🫡" : {
 
     },
     "Welcome Back" : {
@@ -1550,13 +1547,16 @@
     "You're ready to increase the weight!" : {
 
     },
-    "Your personalised plan is complete" : {
+    "Your personalized plan is complete" : {
 
     },
     "Your Plan" : {
 
     },
     "Your Program" : {
+
+    },
+    "Your program is ready to use, %@!" : {
 
     }
   },

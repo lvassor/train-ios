@@ -1,7 +1,7 @@
 # Seed Data Plan: Realistic Workout History Generator
 
 ## Goal
-Create a `SeedDataManager.swift` gated behind `#if DEBUG` that populates the app with ~6-8 weeks of realistic workout history for the current user, so all data-driven views (dashboard, calendar, streaks, exercise history, milestones, workout summary) display genuine-looking data instead of hardcoded mocks.
+Create a `SeedDataManager.swift` gated behind `#if DEBUG` that populates the app with ~6-8 weeks up to today's date specificlly,of realistic workout history for the current user, so all data-driven views (dashboard, calendar, streaks, exercise history, milestones, workout summary) display genuine-looking data instead of hardcoded mocks.
 
 ---
 
