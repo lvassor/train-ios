@@ -31,9 +31,10 @@ struct ExerciseLibraryView: View {
                 // Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.trainTextSecondary)
+                        .foregroundColor(.white)
 
-                    TextField("Search exercises", text: $searchText)
+                    TextField("Search exercises", text: $searchText, prompt: Text("Search exercises").foregroundColor(.white.opacity(0.5)))
+                        .foregroundColor(.white)
                         .autocorrectionDisabled()
                         .onChange(of: searchText) { _, _ in
                             applyFilters()
@@ -42,7 +43,7 @@ struct ExerciseLibraryView: View {
                     if !searchText.isEmpty {
                         Button(action: { searchText = "" }) {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.trainTextSecondary)
+                                .foregroundColor(.white)
                         }
                     }
                 }

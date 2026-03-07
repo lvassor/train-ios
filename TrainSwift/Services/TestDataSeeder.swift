@@ -98,8 +98,10 @@ class TestDataSeeder {
 
         guard let programId = workoutProgram.id else { return }
 
-        // 4. Generate 3 past weeks + current week of workout sessions
-        let weekDates = sessionDates(daysPerWeek: daysPerWeek, weeksBack: 3)
+        // 4. Generate sessions from Feb 1 2026 to now
+        let seedStart = Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 1))!
+        let weeksBack = max(3, Calendar.current.dateComponents([.weekOfYear], from: seedStart, to: Date()).weekOfYear ?? 5)
+        let weekDates = sessionDates(daysPerWeek: daysPerWeek, weeksBack: weeksBack)
         let totalWeeks = weekDates.count // 3 past + possibly 1 current
 
         for (weekIndex, dates) in weekDates.enumerated() {

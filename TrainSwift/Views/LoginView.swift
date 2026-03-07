@@ -71,14 +71,11 @@ struct LoginView: View {
                             Text("Log in with Apple")
                                 .font(.trainBody).fontWeight(.medium)
                         }
-                        .foregroundColor(.trainHover)
+                        .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
-                                .stroke(Color.trainHover, lineWidth: 1.5)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
+                        .background(Color.white)
+                        .cornerRadius(CornerRadius.md)
                     }
 
                     // Log in with Google Button
@@ -91,32 +88,26 @@ struct LoginView: View {
                             Text("Log in with Google")
                                 .font(.trainBody).fontWeight(.medium)
                         }
-                        .foregroundColor(.trainHover)
+                        .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
-                                .stroke(Color.trainHover, lineWidth: 1.5)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
+                        .background(Color.white)
+                        .cornerRadius(CornerRadius.md)
                     }
 
                     // Continue with Email Button
                     Button(action: { showEmailLogin = true }) {
                         HStack(spacing: Spacing.md) {
-                            Image(systemName: "envelope")
+                            Image(systemName: "envelope.fill")
                                 .font(.trainBodyMedium)
                             Text("Continue with Email")
                                 .font(.trainBody).fontWeight(.medium)
                         }
-                        .foregroundColor(.trainHover)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: ButtonHeight.standard)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
-                                .stroke(Color.trainHover, lineWidth: 1.5)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
+                        .background(Color.trainPrimary)
+                        .cornerRadius(CornerRadius.md)
                     }
 
                     // Error message
@@ -145,14 +136,13 @@ struct LoginView: View {
                     Button(action: { showSignup = true }) {
                         Text("Create an Account")
                             .font(.trainBodyMedium)
-                            .foregroundColor(.trainHover)
+                            .foregroundColor(.trainPrimary)
                             .frame(maxWidth: .infinity)
                             .frame(height: ButtonHeight.standard)
                             .overlay(
-                                RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous)
-                                    .stroke(Color.trainHover, lineWidth: 1.5)
+                                RoundedRectangle(cornerRadius: CornerRadius.md)
+                                    .stroke(Color.trainPrimary, lineWidth: 2)
                             )
-                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.pill, style: .continuous))
                     }
                 }
                 .padding(.horizontal, Spacing.lg)

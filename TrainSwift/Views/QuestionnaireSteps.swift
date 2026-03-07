@@ -274,6 +274,12 @@ struct AgeStepView: View {
 
 // MARK: - Q3: Height
 struct HeightStepView: View {
+    private static let integerFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.maximumFractionDigits = 0
+        f.minimumFractionDigits = 0
+        return f
+    }()
     @Binding var heightCm: Double
     @Binding var heightFt: Int
     @Binding var heightIn: Int
@@ -360,7 +366,8 @@ struct HeightStepView: View {
                         in: 120...220,
                         step: 10,  // Step of 10 means each major tick is 10cm
                         snap: .none,  // No snapping - allows precise values
-                        tick: .unit  // Major ticks every 10 units
+                        tick: .unit,  // Major ticks every 10 units
+                        formatter: Self.integerFormatter
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
                     .colorScheme(.dark)  // Force dark mode for white labels
@@ -414,7 +421,8 @@ struct HeightStepView: View {
                         in: 3...8,
                         step: 1,  // Step of 1 means each major tick is 1 foot
                         snap: .none,  // No snapping - allows precise values
-                        tick: .unit  // Major ticks every 1 foot
+                        tick: .unit,  // Major ticks every 1 foot
+                        formatter: Self.integerFormatter
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
                     .colorScheme(.dark)  // Force dark mode for white labels
@@ -437,6 +445,12 @@ struct HeightStepView: View {
 
 // MARK: - Q4: Weight
 struct WeightStepView: View {
+    private static let integerFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.maximumFractionDigits = 0
+        f.minimumFractionDigits = 0
+        return f
+    }()
     @Binding var weightKg: Double
     @Binding var weightLbs: Double
     @Binding var unit: QuestionnaireData.WeightUnit
@@ -520,7 +534,8 @@ struct WeightStepView: View {
                         in: 30...200,
                         step: 10,  // Step of 10 means each major tick is 10kg
                         snap: .none,  // No snapping - allows precise values
-                        tick: .unit  // Major ticks every 10 units
+                        tick: .unit,  // Major ticks every 10 units
+                        formatter: Self.integerFormatter
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
                     .colorScheme(.dark)  // Force dark mode for white labels
@@ -554,7 +569,8 @@ struct WeightStepView: View {
                         in: 60...440,
                         step: 20,  // Step of 20 means each major tick is 20lbs
                         snap: .none,  // No snapping - allows precise values
-                        tick: .unit  // Major ticks every 20 units
+                        tick: .unit,  // Major ticks every 20 units
+                        formatter: Self.integerFormatter
                     )
                     .tint(.trainPrimary)  // Primary color indicator bar
                     .colorScheme(.dark)  // Force dark mode for white labels
@@ -662,8 +678,9 @@ struct MuscleGroupsStepView: View {
             // Interactive body diagram - uses gender from questionnaire, larger height after removing toggle
             CompactMuscleSelector(selectedMuscles: $selectedGroups, maxSelections: 3, gender: bodyGender)
                 .frame(maxWidth: .infinity)
-                .frame(height: 440)
+                .frame(height: 420)
                 .drawingGroup()
+                .padding(.bottom, -Spacing.sm)
 
             // Selected muscles pills (only shown when selections exist)
             if !selectedGroups.isEmpty {
@@ -1224,32 +1241,24 @@ struct SimpleEquipmentToggleCard: View {
                 // Title
                 Text(title)
                     .font(.trainBodyMedium)
-                    .foregroundColor(.trainTextPrimary)
+                    .foregroundColor(isSelected ? .white : .trainTextPrimary)
 
                 Spacer()
-
-                // Selection indicator
-                ZStack {
-                    Circle()
-                        .stroke(isSelected ? Color.trainPrimary : Color.trainTextSecondary.opacity(0.4), lineWidth: 2)
-                        .frame(width: IconSize.md, height: IconSize.md)
-
-                    if isSelected {
-                        Circle()
-                            .fill(Color.trainPrimary)
-                            .frame(width: IconSize.md, height: IconSize.md)
-
-                        Image(systemName: "checkmark")
-                            .font(.trainCaptionSmall).fontWeight(.bold)
-                            .foregroundColor(.white)
-                    }
-                }
             }
             .padding(.leading, Spacing.sm)
-            .padding(.trailing, 28)
+            .padding(.trailing, Spacing.md)
             .padding(.vertical, Spacing.sm)
             .frame(minHeight: ElementHeight.optionCard)
+            .background(isSelected ? Color.trainPrimary : .clear)
             .appCard(cornerRadius: CornerRadius.md)
+            .overlay(alignment: .topTrailing) {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                        .padding(Spacing.sm)
+                }
+            }
         }
         .buttonStyle(ScaleButtonStyle())
     }
@@ -1984,6 +1993,14 @@ struct SplitOptionCard: View {
                 .padding(Spacing.md)
                 .background(isSelected ? Color.trainPrimary : .clear)
                 .appCard()
+                .overlay(alignment: .topTrailing) {
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.white)
+                            .padding(Spacing.sm)
+                    }
+                }
             }
             .buttonStyle(ScaleButtonStyle())
 

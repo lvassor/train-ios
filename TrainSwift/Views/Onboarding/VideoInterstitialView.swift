@@ -139,7 +139,7 @@ private struct InterstitialScreen: View {
                 // Continue button
                 CustomButton(title: "Continue", action: onNext, isEnabled: true)
                     .padding(.horizontal, Spacing.md)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, Spacing.md)
             }
         }
     }

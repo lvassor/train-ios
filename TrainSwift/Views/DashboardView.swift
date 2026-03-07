@@ -24,7 +24,7 @@ struct DashboardContent: View {
     @State private var showProgramOverview = false
     @State private var isProgramProgressExpanded = false
     @State private var currentStreak: Int = 0
-    @State private var showProfile = false
+    @State private var showProgramDetail = false
 
     var user: UserProfile? {
         authService.currentUser
@@ -53,7 +53,7 @@ struct DashboardContent: View {
                         if let validProgram = programData {
                             ProgramSummaryCard(
                                 program: validProgram,
-                                onTap: { showProgramOverview = true }
+                                onTap: { showProgramDetail = true }
                             )
                             .padding(.horizontal, Spacing.lg)
                         }
@@ -106,23 +106,13 @@ struct DashboardContent: View {
                 .edgeFadeMask(topFade: 16, bottomFade: 60)
             }
             .background(Color.clear)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showProfile = true }) {
-                        Image(systemName: "person.circle")
-                            .font(.system(size: IconSize.md))
-                            .foregroundColor(.trainTextPrimary)
-                    }
-                    .accessibilityLabel("Account")
-                }
-            }
-            .sheet(isPresented: $showProfile) {
-                ProfileView()
-            }
             .navigationDestination(isPresented: $showProgramOverview) {
                 if let program = userProgram {
                     ProgramOverviewView(userProgram: program)
                 }
+            }
+            .navigationDestination(isPresented: $showProgramDetail) {
+                ProgramDetailView()
             }
         }
         .containerBackground(AppGradient.background, for: .navigation)
@@ -1248,40 +1238,110 @@ struct ActiveWorkoutTimerView: View {
 struct ProgramSummaryCard: View {
     let program: Program
     let onTap: () -> Void
+    @ObservedObject private var authService = AuthService.shared
+
+    private var userName: String {
+        if let name = authService.currentUser?.name, !name.isEmpty {
+            let firstName = name.components(separatedBy: " ").first ?? name
+            return firstName.prefix(1).uppercased() + firstName.dropFirst().lowercased()
+        }
+        return "Your"
+    }
+
+    private var experienceLevelLabel: String {
+        guard let user = authService.currentUser,
+              let qData = user.getQuestionnaireData(),
+              !qData.experienceLevel.isEmpty else {
+            return ""
+        }
+        switch qData.experienceLevel.lowercased() {
+        case "0_months", "no_experience":
+            return "Beginner"
+        case "0_6_months", "beginner":
+            return "Beginner"
+        case "6_months_2_years", "intermediate":
+            return "Intermediate"
+        case "2_plus_years", "advanced":
+            return "Advanced"
+        default:
+            return qData.experienceLevel.capitalized
+        }
+    }
 
     var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack {
-                    Text("Your Program")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("\(userName)'s Program")
+                .font(.trainCaption)
+                .foregroundColor(.trainTextSecondary)
+
+            Button(action: onTap) {
+                HStack(spacing: Spacing.md) {
+                    // Left side: text info
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text(experienceLevelLabel.isEmpty
+                             ? program.type.description
+                             : "\(program.type.description) - \(experienceLevelLabel)")
+                            .font(.trainBodyMedium)
+                            .foregroundColor(.trainTextPrimary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+
+                        Text("\(program.daysPerWeek) days per week")
+                            .font(.trainCaption)
+                            .foregroundColor(.trainTextSecondary)
+                    }
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.trainCaptionSmall)
-                        .foregroundColor(.trainTextSecondary)
+                    // Right side: donut chart
+                    DonutChartView(
+                        value: program.daysPerWeek,
+                        total: 7,
+                        size: 48,
+                        lineWidth: 5,
+                        color: .trainPrimary
+                    )
                 }
-
-                Text(program.type.description)
-                    .font(.trainBodyMedium)
-                    .foregroundColor(.trainTextPrimary)
-
-                HStack(spacing: Spacing.lg) {
-                    Label("\(program.daysPerWeek) days/week", systemImage: "calendar")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-
-                    Label("\(program.totalWeeks) weeks", systemImage: "clock")
-                        .font(.trainCaption)
-                        .foregroundColor(.trainTextSecondary)
-                }
+                .padding(Spacing.md)
+                .appCard(cornerRadius: CornerRadius.md)
             }
-            .padding(Spacing.md)
-            .appCard(cornerRadius: CornerRadius.md)
+            .buttonStyle(ScaleButtonStyle())
         }
-        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
+// MARK: - Donut Chart View
+
+struct DonutChartView: View {
+    let value: Int
+    let total: Int
+    let size: CGFloat
+    let lineWidth: CGFloat
+    let color: Color
+
+    private var fraction: Double {
+        guard total > 0 else { return 0 }
+        return Double(value) / Double(total)
+    }
+
+    var body: some View {
+        ZStack {
+            // Background ring
+            Circle()
+                .stroke(color.opacity(0.2), lineWidth: lineWidth)
+
+            // Foreground arc
+            Circle()
+                .trim(from: 0, to: fraction)
+                .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+
+            // Center number
+            Text("\(value)")
+                .font(.trainBodyMedium)
+                .foregroundColor(.trainTextPrimary)
+        }
+        .frame(width: size, height: size)
     }
 }
 

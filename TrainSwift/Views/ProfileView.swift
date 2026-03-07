@@ -16,7 +16,6 @@ struct ProfileView: View {
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
     @State private var deleteConfirmationText: String = ""
-    @State private var shouldRestartQuestionnaire = false
     @State private var showEditProfile = false
     @State private var showProgramSelector = false
 
@@ -46,11 +45,7 @@ struct ProfileView: View {
                         }
                         .padding(.top, Spacing.xl)
 
-                        // Program Card - First
-                        ProgramCard()
-                            .padding(.horizontal, Spacing.lg)
-
-                        // Subscription Card - Second
+                        // Subscription Card
                         SubscriptionInfoCard()
                             .padding(.horizontal, Spacing.lg)
 
@@ -156,17 +151,6 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showProgramSelector) {
             ProgramSelectorView()
-        }
-        .fullScreenCover(isPresented: $shouldRestartQuestionnaire) {
-            QuestionnaireView(
-                onComplete: {
-                    shouldRestartQuestionnaire = false
-                },
-                onBack: {
-                    shouldRestartQuestionnaire = false
-                }
-            )
-            .environmentObject(WorkoutViewModel.shared)
         }
     }
 

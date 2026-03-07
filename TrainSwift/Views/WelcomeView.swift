@@ -71,7 +71,7 @@ struct WelcomeView: View {
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, Spacing.lg)
-                        .padding(.top, Spacing.md)
+                        .padding(.top, 20)
 
                     // Cover Flow carousel with center stage scaling - reduced to 75% size
                     GeometryReader { containerGeometry in
@@ -139,7 +139,7 @@ struct WelcomeView: View {
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, Spacing.lg)
-                        .padding(.top, Spacing.md)
+                        .padding(.top, Spacing.smd)
 
                     // Add bottom padding so content scrolls behind the floating button
                     Spacer()

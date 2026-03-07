@@ -26,6 +26,12 @@ struct SignupView: View {
                         Spacer()
                             .frame(height: 40)
 
+                        // Logo
+                        Image("TrainLogoWithText")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: 60)
+
                         // Header
                         VStack(spacing: Spacing.sm) {
                             Text("Create Account")
@@ -112,7 +118,11 @@ struct SignupView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: { dismiss() }) {
                         Image(systemName: "xmark")
+                            .font(.trainCaption).fontWeight(.semibold)
                             .foregroundColor(.trainTextPrimary)
+                            .frame(width: IconSize.lg, height: IconSize.lg)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
                     }
                 }
             }

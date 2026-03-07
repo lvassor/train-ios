@@ -15,6 +15,10 @@ struct MilestonesView: View {
     @State private var recentPBs: [RecentPB] = []
     @State private var isLoaded = false
 
+    @State private var showRecentlyAchievedSheet = false
+    @State private var showUpcomingSheet = false
+    @State private var showStreakSheet = false
+
     private let service = MilestoneService()
 
     private var recentlyAchieved: [MilestoneProgress] {
@@ -37,6 +41,22 @@ struct MilestonesView: View {
         return result
     }
 
+    private var allUpcoming: [MilestoneProgress] {
+        allMilestones
+            .filter { !$0.isCompleted }
+            .sorted { $0.progress > $1.progress }
+    }
+
+    private let streakThresholds: [(days: Int, title: String, icon: String)] = [
+        (7, "7-Day Streak", "flame.fill"),
+        (14, "14-Day Streak", "flame.fill"),
+        (30, "30-Day Streak", "flame.fill"),
+        (60, "60-Day Streak", "flame.fill"),
+        (100, "100-Day Streak", "flame.fill"),
+        (200, "200-Day Streak", "flame.fill"),
+        (365, "365-Day Streak", "flame.fill")
+    ]
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: Spacing.lg) {
@@ -45,12 +65,20 @@ struct MilestonesView: View {
 
                 // Recently Achieved
                 if !recentlyAchieved.isEmpty {
-                    milestoneSection(title: "Recently Achieved", milestones: Array(recentlyAchieved.prefix(5)))
+                    milestoneSectionWithViewMore(
+                        title: "Recently Achieved",
+                        milestones: Array(recentlyAchieved.prefix(3)),
+                        showSheet: $showRecentlyAchievedSheet
+                    )
                 }
 
                 // Upcoming Milestones
                 if !upcoming.isEmpty {
-                    milestoneSection(title: "Upcoming Milestones", milestones: upcoming)
+                    milestoneSectionWithViewMore(
+                        title: "Upcoming Milestones",
+                        milestones: Array(upcoming.prefix(3)),
+                        showSheet: $showUpcomingSheet
+                    )
                 }
 
                 // Streak Milestones
@@ -82,6 +110,19 @@ struct MilestonesView: View {
         .onAppear {
             loadData()
         }
+        .sheet(isPresented: $showRecentlyAchievedSheet) {
+            MilestoneListSheet(title: "Recently Achieved", milestones: recentlyAchieved)
+        }
+        .sheet(isPresented: $showUpcomingSheet) {
+            MilestoneListSheet(title: "Upcoming Milestones", milestones: allUpcoming)
+        }
+        .sheet(isPresented: $showStreakSheet) {
+            StreakMilestoneListSheet(
+                title: "Streak Milestones",
+                thresholds: streakThresholds,
+                currentStreakValue: topStats.progressionStreak
+            )
+        }
     }
 
     // MARK: - Top Stats
@@ -97,7 +138,7 @@ struct MilestonesView: View {
             // Center flame - decorative, no card background
             VStack(spacing: Spacing.xs) {
                 FlameView()
-                    .frame(width: 44, height: 44)
+                    .frame(width: 30, height: 30)
                     .clipped()
 
                 Text("\(topStats.progressionStreak)")
@@ -119,9 +160,13 @@ struct MilestonesView: View {
         .padding(.horizontal, Spacing.lg)
     }
 
-    // MARK: - Milestone Section
+    // MARK: - Milestone Section with View More
 
-    private func milestoneSection(title: String, milestones: [MilestoneProgress]) -> some View {
+    private func milestoneSectionWithViewMore(
+        title: String,
+        milestones: [MilestoneProgress],
+        showSheet: Binding<Bool>
+    ) -> some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text(title)
                 .font(.trainHeadline)
@@ -134,18 +179,23 @@ struct MilestonesView: View {
                 }
             }
             .padding(.horizontal, Spacing.lg)
+
+            Button {
+                showSheet.wrappedValue = true
+            } label: {
+                Text("View more...")
+                    .font(.trainCaptionLarge).fontWeight(.medium)
+                    .foregroundColor(.trainPrimary)
+            }
+            .padding(.horizontal, Spacing.lg)
         }
     }
 
     // MARK: - Streak Milestones
 
     private var streakMilestonesSection: some View {
-        let streakThresholds: [(days: Int, title: String, icon: String)] = [
-            (7, "7-Day Streak", "flame.fill"),
-            (30, "30-Day Streak", "flame.fill"),
-            (100, "100-Day Streak", "flame.fill")
-        ]
         let currentStreakValue = topStats.progressionStreak
+        let visibleThresholds = Array(streakThresholds.prefix(3))
 
         return VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Streak Milestones")
@@ -154,7 +204,7 @@ struct MilestonesView: View {
                 .padding(.horizontal, Spacing.lg)
 
             VStack(spacing: Spacing.sm) {
-                ForEach(streakThresholds, id: \.days) { milestone in
+                ForEach(visibleThresholds, id: \.days) { milestone in
                     let progress = min(1.0, Double(currentStreakValue) / Double(milestone.days))
                     let isAchieved = currentStreakValue >= milestone.days
 
@@ -167,6 +217,15 @@ struct MilestonesView: View {
                         targetValue: milestone.days
                     )
                 }
+            }
+            .padding(.horizontal, Spacing.lg)
+
+            Button {
+                showStreakSheet = true
+            } label: {
+                Text("View more...")
+                    .font(.trainCaptionLarge).fontWeight(.medium)
+                    .foregroundColor(.trainPrimary)
             }
             .padding(.horizontal, Spacing.lg)
         }
@@ -247,20 +306,19 @@ private struct StatBox: View {
     let icon: String
 
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            HStack(spacing: Spacing.xs) {
-                Image(systemName: icon)
-                    .font(.trainCaptionSmall)
-                    .foregroundColor(.trainPrimary)
+        VStack(spacing: Spacing.xs) {
+            Image(systemName: icon)
+                .font(.system(size: 28))
+                .foregroundColor(.trainPrimary)
 
-                Text(value)
-                    .font(.trainSmallNumber).fontWeight(.bold)
-                    .foregroundColor(.trainTextPrimary)
-            }
+            Text(value)
+                .font(.trainSmallNumber).fontWeight(.bold)
+                .foregroundColor(.trainTextPrimary)
 
             Text(label)
                 .font(.trainCaptionSmall)
                 .foregroundColor(.trainTextSecondary)
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.md)
@@ -279,19 +337,18 @@ private struct StreakStatBox: View {
     let label: String
 
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            HStack(spacing: Spacing.xs) {
-                FlameView()
-                    .frame(width: IconSize.sm, height: IconSize.sm)
+        VStack(spacing: Spacing.xs) {
+            FlameView()
+                .frame(width: 30, height: 30)
 
-                Text(value)
-                    .font(.trainSmallNumber).fontWeight(.bold)
-                    .foregroundColor(.trainTextPrimary)
-            }
+            Text(value)
+                .font(.trainSmallNumber).fontWeight(.bold)
+                .foregroundColor(.trainTextPrimary)
 
             Text(label)
                 .font(.trainCaptionSmall)
                 .foregroundColor(.trainTextSecondary)
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.md)
@@ -501,6 +558,97 @@ private struct StreakMilestoneCard: View {
                 animatedProgress = progress
             }
         }
+    }
+}
+
+// MARK: - Milestone List Sheet
+
+private struct MilestoneListSheet: View {
+    let title: String
+    let milestones: [MilestoneProgress]
+
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: Spacing.sm) {
+                    ForEach(milestones) { milestone in
+                        MilestoneCard(milestone: milestone)
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.md)
+                .padding(.bottom, Spacing.xxl)
+            }
+            .charcoalGradientBackground()
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: IconSize.md))
+                            .foregroundColor(.trainTextSecondary)
+                    }
+                }
+            }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - Streak Milestone List Sheet
+
+private struct StreakMilestoneListSheet: View {
+    let title: String
+    let thresholds: [(days: Int, title: String, icon: String)]
+    let currentStreakValue: Int
+
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: Spacing.sm) {
+                    ForEach(thresholds, id: \.days) { milestone in
+                        let progress = min(1.0, Double(currentStreakValue) / Double(milestone.days))
+                        let isAchieved = currentStreakValue >= milestone.days
+
+                        StreakMilestoneCard(
+                            title: milestone.title,
+                            icon: milestone.icon,
+                            progress: progress,
+                            isAchieved: isAchieved,
+                            currentValue: currentStreakValue,
+                            targetValue: milestone.days
+                        )
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.md)
+                .padding(.bottom, Spacing.xxl)
+            }
+            .charcoalGradientBackground()
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: IconSize.md))
+                            .foregroundColor(.trainTextSecondary)
+                    }
+                }
+            }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
     }
 }
 

@@ -20,8 +20,9 @@ struct QuestionnaireView: View {
     @State private var slideDirection: Edge = .trailing
     @State private var returnToReviewAfterEdit: Bool = false
     @State private var showWelcomeInterstitial = false
-    @State private var welcomeGlowScale: CGFloat = 0.3
-    @State private var welcomeGlowOpacity: Double = 0.0
+    @State private var starburstActive: Bool = false
+    @State private var centralFlashScale: CGFloat = 0
+    @State private var centralFlashOpacity: Double = 0
 
     let onComplete: () -> Void
     var onBack: (() -> Void)? = nil
@@ -195,9 +196,10 @@ struct QuestionnaireView: View {
                                     currentStepView
                                         .id(currentStep)
                                         .transition(.asymmetric(
-                                            insertion: .move(edge: slideDirection),
-                                            removal: .move(edge: slideDirection == .trailing ? .leading : .trailing)
+                                            insertion: .move(edge: slideDirection).combined(with: .opacity),
+                                            removal: .move(edge: slideDirection == .trailing ? .leading : .trailing).combined(with: .opacity)
                                         ))
+                                        .animation(.easeInOut(duration: 0.3), value: currentStep)
                                 }
                                 .padding(.horizontal, Spacing.md)
                                 .padding(.top, Spacing.sm)
@@ -231,22 +233,54 @@ struct QuestionnaireView: View {
                     Color.black.opacity(0.8)
                         .ignoresSafeArea()
 
-                    // Radial glow pulse
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color.trainPrimary.opacity(0.4), Color.trainPrimary.opacity(0.1), .clear],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 200
-                            )
-                        )
-                        .scaleEffect(welcomeGlowScale)
-                        .opacity(welcomeGlowOpacity)
+                    // Starburst rays — full screen explosion
+                    GeometryReader { geo in
+                        let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
+                        let rayCount = 24
+                        let maxRayLength = max(geo.size.width, geo.size.height) * 0.9
+
+                        ZStack {
+                            ForEach(0..<rayCount, id: \.self) { i in
+                                let angle = Double(i) * (360.0 / Double(rayCount))
+                                let rayWidth: CGFloat = CGFloat.random(in: 2.5...4)
+                                let rayHeight: CGFloat = CGFloat.random(in: maxRayLength * 0.5...maxRayLength)
+
+                                Rectangle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [.white, Color.trainPrimary.opacity(0.3), .clear],
+                                            startPoint: .bottom,
+                                            endPoint: .top
+                                        )
+                                    )
+                                    .frame(width: rayWidth, height: rayHeight)
+                                    .blur(radius: 3)
+                                    .offset(y: -rayHeight / 2)
+                                    .rotationEffect(.degrees(angle))
+                                    .scaleEffect(starburstActive ? 2.0 : 0.0)
+                                    .opacity(starburstActive ? 0.0 : 1.0)
+                                    .animation(
+                                        .easeOut(duration: 1.2)
+                                        .delay(Double.random(in: 0...0.15)),
+                                        value: starburstActive
+                                    )
+                            }
+
+                            // Central flash
+                            Circle()
+                                .fill(.white)
+                                .frame(width: geo.size.width * 0.5, height: geo.size.width * 0.5)
+                                .scaleEffect(centralFlashScale)
+                                .opacity(centralFlashOpacity)
+                                .blur(radius: 20)
+                        }
+                        .position(center)
+                    }
+                    .ignoresSafeArea()
 
                     VStack(spacing: Spacing.md) {
                         let name = viewModel.questionnaireData.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                        Text("Welcome aboard, \(name) \u{1FAE1}")
+                        Text("Welcome Aboard,\n\(name) \u{1FAE1}")
                             .font(.trainTitle).fontWeight(.bold)
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
@@ -708,11 +742,19 @@ struct QuestionnaireView: View {
         } else if currentStep == 1 && !showWelcomeInterstitial {
             // Show welcome interstitial after name step before advancing
             showWelcomeInterstitial = true
-            welcomeGlowScale = 0.3
-            welcomeGlowOpacity = 0.0
-            withAnimation(.easeOut(duration: 1.2)) {
-                welcomeGlowScale = 2.5
-                welcomeGlowOpacity = 0.6
+            starburstActive = false
+            centralFlashScale = 0
+            centralFlashOpacity = 0
+            // Trigger starburst after a brief delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                starburstActive = true
+                withAnimation(.easeOut(duration: 0.5)) {
+                    centralFlashScale = 1.0
+                    centralFlashOpacity = 0.8
+                }
+                withAnimation(.easeOut(duration: 0.5).delay(0.3)) {
+                    centralFlashOpacity = 0
+                }
             }
             // Auto-dismiss after 2.5 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {

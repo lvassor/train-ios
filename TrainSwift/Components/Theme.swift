@@ -49,7 +49,7 @@ extension Color {
 // Number fonts remain fixed-size because they are decorative / layout-critical.
 extension Font {
     // Headers — scale with Dynamic Type
-    static var trainTitle: Font { .title.weight(.semibold) }                   // ~28pt base
+    static var trainTitle: Font { .title2.weight(.semibold) }                   // ~22pt base (reduced from ~28pt)
     static var trainTitle2: Font { .title2.weight(.semibold) }                 // ~22pt base
     static var trainHeadline: Font { .headline }                               // ~17pt base, semibold by default
 

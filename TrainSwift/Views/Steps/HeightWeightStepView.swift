@@ -17,6 +17,14 @@ struct HeightWeightStepView: View {
     @Binding var weightLbs: Double
     @Binding var weightUnit: QuestionnaireData.WeightUnit
 
+    /// Integer-only formatter for SlidingRuler tick labels (no decimals)
+    private static let integerFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.maximumFractionDigits = 0
+        f.minimumFractionDigits = 0
+        return f
+    }()
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header
@@ -91,7 +99,8 @@ struct HeightWeightStepView: View {
                             in: 120...220,
                             step: 10,
                             snap: .none,
-                            tick: .unit
+                            tick: .unit,
+                            formatter: Self.integerFormatter
                         )
                         .frame(height: 60)
                         .onChange(of: heightCm) { _, newValue in
@@ -120,7 +129,8 @@ struct HeightWeightStepView: View {
                             in: 3...8,
                             step: 1,
                             snap: .none,
-                            tick: .unit
+                            tick: .unit,
+                            formatter: Self.integerFormatter
                         )
                         .frame(height: 60)
                     }
@@ -183,7 +193,8 @@ struct HeightWeightStepView: View {
                             in: 30...200,
                             step: 10,
                             snap: .none,
-                            tick: .unit
+                            tick: .unit,
+                            formatter: Self.integerFormatter
                         )
                         .frame(height: 60)
                         .onChange(of: weightKg) { _, newValue in
@@ -201,7 +212,8 @@ struct HeightWeightStepView: View {
                             in: 60...440,
                             step: 20,
                             snap: .none,
-                            tick: .unit
+                            tick: .unit,
+                            formatter: Self.integerFormatter
                         )
                         .frame(height: 60)
                         .onChange(of: weightLbs) { _, newValue in
